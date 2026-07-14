@@ -51,16 +51,22 @@ class IssueClassifier:
         if status == "budget_exceeded" or "budgetexceeded" in searchable or "budget" in status:
             return self._make("budget_exceeded", stage, "high", evidence or [result.summary], "stop_or_raise_budget")
 
-        if status == "timeout" or "timeout" in searchable or "timed out" in searchable:
-            return self._make("timeout", stage, "high", evidence or [result.summary], "inspect_timeout_or_reduce_scope")
-
         if normalized_log.missing_logs and status != "pass":
             return self._make("unknown", stage, "low", ["tool log is missing"], "collect_tool_log")
 
         if stage == "cosim" and status != "pass":
+            if (status == "timeout" or "timeout" in searchable or "timed out" in searchable) and _has_structural_signal(
+                searchable
+            ):
+                return self._make("structural_failure", stage, "medium", evidence, "debug_dataflow_or_streaming")
+            if status == "timeout" or "timeout" in searchable or "timed out" in searchable:
+                return self._make("timeout", stage, "high", evidence or [result.summary], "inspect_timeout_or_reduce_scope")
             if _has_structural_signal(searchable):
                 return self._make("structural_failure", stage, "high", evidence, "debug_dataflow_or_streaming")
             return self._make("cosim_failure", stage, "medium", evidence, "inspect_cosim_failure")
+
+        if status == "timeout" or "timeout" in searchable or "timed out" in searchable:
+            return self._make("timeout", stage, "high", evidence or [result.summary], "inspect_timeout_or_reduce_scope")
 
         if stage == "csim" and status != "pass":
             if status == "compile_error" or _has_compile_signal(searchable):
@@ -103,4 +109,4 @@ def _has_mismatch_signal(text: str) -> bool:
 
 
 def _has_structural_signal(text: str) -> bool:
-    return bool(re.search(r"\b(deadlock|dataflow|stream|fifo|channel|cosim deadlock)\b", text))
+    return bool(re.search(r"\b(deadlock|dataflow|stream|fifo|channel|protocol|underflow|overflow|blocked|stall)\b", text))

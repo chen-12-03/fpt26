@@ -26,11 +26,16 @@ class RunLayout:
     optimization_dir: Path
     optimization_summary_path: Path
     pareto_candidates_path: Path
+    cosim_dir: Path
+    cosim_decision_path: Path
+    cosim_diagnosis_path: Path
+    cosim_artifact_index_path: Path
     candidates_dir: Path
     baseline_dir: Path
     baseline_kernel_path: Path
     baseline_manifest_path: Path
     baseline_stage_results_path: Path
+    baseline_cosim_diagnosis_path: Path
     final_dir: Path
     final_kernel_path: Path
 
@@ -49,11 +54,16 @@ class RunLayout:
             "optimization_dir": str(self.optimization_dir),
             "optimization_summary_path": str(self.optimization_summary_path),
             "pareto_candidates_path": str(self.pareto_candidates_path),
+            "cosim_dir": str(self.cosim_dir),
+            "cosim_decision_path": str(self.cosim_decision_path),
+            "cosim_diagnosis_path": str(self.cosim_diagnosis_path),
+            "cosim_artifact_index_path": str(self.cosim_artifact_index_path),
             "candidates_dir": str(self.candidates_dir),
             "baseline_dir": str(self.baseline_dir),
             "baseline_kernel_path": str(self.baseline_kernel_path),
             "baseline_manifest_path": str(self.baseline_manifest_path),
             "baseline_stage_results_path": str(self.baseline_stage_results_path),
+            "baseline_cosim_diagnosis_path": str(self.baseline_cosim_diagnosis_path),
             "final_dir": str(self.final_dir),
             "final_kernel_path": str(self.final_kernel_path),
         }
@@ -149,8 +159,9 @@ def _layout(task_id: str, run_id: str, run_dir: Path) -> RunLayout:
     transcript_dir = run_dir / "transcript"
     llm_dir = run_dir / "llm"
     optimization_dir = run_dir / "optimization"
+    cosim_dir = run_dir / "cosim"
     final_dir = run_dir / "final"
-    for directory in (candidates_dir, baseline_dir, transcript_dir, llm_dir, optimization_dir, final_dir):
+    for directory in (candidates_dir, baseline_dir, transcript_dir, llm_dir, optimization_dir, cosim_dir, final_dir):
         directory.mkdir(parents=True, exist_ok=False)
     return RunLayout(
         task_id=task_id,
@@ -166,11 +177,16 @@ def _layout(task_id: str, run_id: str, run_dir: Path) -> RunLayout:
         optimization_dir=optimization_dir,
         optimization_summary_path=optimization_dir / "search_summary.json",
         pareto_candidates_path=optimization_dir / "pareto_candidates.json",
+        cosim_dir=cosim_dir,
+        cosim_decision_path=cosim_dir / "decision.json",
+        cosim_diagnosis_path=cosim_dir / "diagnosis.json",
+        cosim_artifact_index_path=cosim_dir / "artifact_index.json",
         candidates_dir=candidates_dir,
         baseline_dir=baseline_dir,
         baseline_kernel_path=baseline_dir / "kernel.cpp",
         baseline_manifest_path=baseline_dir / "manifest.json",
         baseline_stage_results_path=baseline_dir / "stage_results.json",
+        baseline_cosim_diagnosis_path=baseline_dir / "cosim_diagnosis.json",
         final_dir=final_dir,
         final_kernel_path=final_dir / "kernel.cpp",
     )

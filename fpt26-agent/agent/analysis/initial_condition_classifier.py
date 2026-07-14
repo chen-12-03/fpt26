@@ -52,20 +52,6 @@ class InitialConditionClassifier:
         for result in result_list:
             normalized = self.log_normalizer.normalize(result)
             issue = self.issue_classifier.classify(result, normalized)
-            if (
-                result.stage == "cosim"
-                and result.status != "pass"
-                and task_context.task_type == "structural"
-                and issue.issue_category in {"cosim_failure", "unknown"}
-            ):
-                issue = IssueClassification(
-                    condition="structural_failure",
-                    issue_category="structural_failure",
-                    stage="cosim",
-                    confidence="high",
-                    evidence=issue.evidence or ["structural task failed cosim"],
-                    recommended_action="debug_dataflow_or_streaming",
-                )
             classifications.append(issue)
 
         for category in (

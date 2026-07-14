@@ -27,6 +27,7 @@ class ManifestWriter:
         write_text_once(layout.baseline_kernel_path, baseline_kernel)
         write_json_once(layout.baseline_stage_results_path, baseline_stage_results)
         write_json_once(layout.transcript_path, transcript)
+        write_json_once(layout.baseline_cosim_diagnosis_path, _cosim_diagnosis_dict(result))
         write_json_once(layout.baseline_manifest_path, _candidate_manifest(candidate, layout, result, baseline_stage_results))
         for attempt in repair_attempts:
             repair_candidate = attempt.get("candidate")
@@ -44,6 +45,7 @@ class ManifestWriter:
             _write_optimization_candidate(layout, record, kernel_code)
         _write_llm_audit(layout, getattr(result, "llm_usage", {}))
         _write_optimization_audit(layout, result, optimization_candidates)
+        _write_cosim_audit(layout, result)
         write_text_once(layout.final_kernel_path, result.final_kernel)
         write_json_once(
             layout.run_manifest_path,
@@ -68,6 +70,9 @@ def _candidate_manifest(
         },
         "initial_condition": result.initial_condition.to_dict(),
         "stage_results": stage_results,
+        "cosim_decision": _cosim_decision_dict(result),
+        "cosim_diagnosis": _cosim_diagnosis_dict(result),
+        "requires_structural_repair": getattr(result, "requires_structural_repair", False),
         "status": result.status,
     }
 
@@ -113,6 +118,9 @@ def _run_manifest(
         "baseline_metrics": getattr(result, "baseline_metrics", {}),
         "final_metrics": getattr(result, "final_metrics", {}),
         "selection_reason": getattr(result, "selection_reason", None),
+        "cosim_decision": _cosim_decision_dict(result),
+        "cosim_diagnosis": _cosim_diagnosis_dict(result),
+        "requires_structural_repair": getattr(result, "requires_structural_repair", False),
         "llm_usage": getattr(result, "llm_usage", {}),
         "stop_reason": getattr(result, "stop_reason", None),
         "initial_condition": result.initial_condition.to_dict(),
@@ -139,6 +147,12 @@ def _run_manifest(
             "search_summary": str(layout.optimization_summary_path),
             "pareto_candidates": str(layout.pareto_candidates_path),
         },
+        "cosim_paths": {
+            "decision": str(layout.cosim_decision_path),
+            "diagnosis": str(layout.cosim_diagnosis_path),
+            "artifact_index": str(layout.cosim_artifact_index_path),
+            "baseline_candidate_diagnosis": str(layout.baseline_cosim_diagnosis_path),
+        },
     }
 
 
@@ -160,6 +174,7 @@ def _candidate_paths(layout: RunLayout, candidate_id: str) -> dict[str, str]:
             "manifest_path": str(layout.baseline_manifest_path),
             "kernel_path": str(layout.baseline_kernel_path),
             "stage_results_path": str(layout.baseline_stage_results_path),
+            "cosim_diagnosis_path": str(layout.baseline_cosim_diagnosis_path),
         }
     candidate_dir = layout.candidates_dir / candidate_id
     return {
@@ -268,6 +283,37 @@ def _write_optimization_audit(layout: RunLayout, result: Any, records: list[dict
     ]
     write_json_once(layout.optimization_summary_path, search_summary)
     write_json_once(layout.pareto_candidates_path, pareto)
+
+
+def _write_cosim_audit(layout: RunLayout, result: Any) -> None:
+    decision = _cosim_decision_dict(result)
+    diagnosis = _cosim_diagnosis_dict(result)
+    artifacts = diagnosis.get("artifacts", {}) if isinstance(diagnosis, dict) else {}
+    write_json_once(layout.cosim_decision_path, decision)
+    write_json_once(layout.cosim_diagnosis_path, diagnosis)
+    write_json_once(layout.cosim_artifact_index_path, artifacts)
+
+
+def _cosim_decision_dict(result: Any) -> dict[str, Any] | None:
+    decision = getattr(result, "cosim_decision", None)
+    if decision is None:
+        return None
+    if hasattr(decision, "to_dict"):
+        return decision.to_dict()
+    if isinstance(decision, dict):
+        return decision
+    return None
+
+
+def _cosim_diagnosis_dict(result: Any) -> dict[str, Any] | None:
+    diagnosis = getattr(result, "cosim_diagnosis", None)
+    if diagnosis is None:
+        return None
+    if hasattr(diagnosis, "to_dict"):
+        return diagnosis.to_dict()
+    if isinstance(diagnosis, dict):
+        return diagnosis
+    return None
 
 
 def _attempt_dict(attempt: Any) -> dict[str, Any]:

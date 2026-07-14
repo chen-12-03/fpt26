@@ -5,7 +5,9 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable
 
+from agent.analysis.cosim_analyzer import CoSimAnalyzer, CoSimDiagnosis
 from agent.analysis.initial_condition_classifier import InitialCondition, InitialConditionClassifier
+from agent.analysis.log_normalizer import LogNormalizer
 from agent.core.candidate_store import CandidateStore
 from agent.core.task_context import TaskContext
 from agent.execution.harness_backend import HarnessBackend
@@ -14,6 +16,7 @@ from agent.input.task_adapter import TaskAdapter
 from agent.llm.llm_client import LLMClient
 from agent.reporting.manifest_writer import ManifestWriter
 from agent.strategy.baseline_manager import BaselineManager
+from agent.strategy.cosim_policy import CosimDecision, CosimPolicy
 from agent.strategy.optimization_controller import OptimizationCandidateRecord, OptimizationController
 from agent.strategy.repair_controller import RepairAttempt, RepairController
 
@@ -40,6 +43,9 @@ class AgentRunResult:
     final_metrics: dict[str, Any]
     selected_candidate_id: str
     selection_reason: str | None
+    cosim_decision: CosimDecision | None
+    cosim_diagnosis: CoSimDiagnosis | None
+    requires_structural_repair: bool
     llm_usage: dict[str, Any]
     stop_reason: str
     run_directory: str | None = None
@@ -64,6 +70,9 @@ class AgentRunResult:
             "final_metrics": _json_value(self.final_metrics),
             "selected_candidate_id": self.selected_candidate_id,
             "selection_reason": self.selection_reason,
+            "cosim_decision": self.cosim_decision.to_dict() if self.cosim_decision is not None else None,
+            "cosim_diagnosis": self.cosim_diagnosis.to_dict() if self.cosim_diagnosis is not None else None,
+            "requires_structural_repair": self.requires_structural_repair,
             "llm_usage": _json_value(self.llm_usage),
             "stop_reason": self.stop_reason,
             "run_directory": self.run_directory,
@@ -83,6 +92,9 @@ class CompetitionAgent:
         baseline_manager: BaselineManager | None = None,
         repair_controller: RepairController | None = None,
         optimization_controller: OptimizationController | None = None,
+        cosim_policy: CosimPolicy | None = None,
+        cosim_analyzer: CoSimAnalyzer | None = None,
+        log_normalizer: LogNormalizer | None = None,
         llm_client: LLMClient | None = None,
         repair_enabled: bool = False,
         optimize_enabled: bool = False,
@@ -94,6 +106,9 @@ class CompetitionAgent:
         self.baseline_manager = baseline_manager or BaselineManager()
         self.repair_controller = repair_controller or RepairController()
         self.optimization_controller = optimization_controller or OptimizationController()
+        self.cosim_policy = cosim_policy or CosimPolicy()
+        self.cosim_analyzer = cosim_analyzer or CoSimAnalyzer()
+        self.log_normalizer = log_normalizer or LogNormalizer()
         self.llm_client = llm_client
         self.repair_enabled = repair_enabled
         self.optimize_enabled = optimize_enabled
@@ -172,9 +187,22 @@ class CompetitionAgent:
                 stop_reason="baseline_synth_failed",
             )
 
-        if task_context.requires_cosim:
+        cosim_decision = self.cosim_policy.should_run_baseline(
+            task_context,
+            list(stage_results),
+            getattr(tool_server, "budget", None),
+        )
+        cosim_diagnosis: CoSimDiagnosis | None = None
+        requires_structural_repair = False
+        if cosim_decision.should_run:
             cosim_result = backend.cosim(baseline_kernel)
             stage_results.append(cosim_result)
+            cosim_diagnosis = self.cosim_analyzer.analyze(
+                task_context,
+                cosim_result,
+                self.log_normalizer.normalize(cosim_result),
+            )
+            requires_structural_repair = cosim_diagnosis.requires_structural_repair
             if not _passed(cosim_result):
                 return self._finish(
                     task_context,
@@ -186,8 +214,29 @@ class CompetitionAgent:
                     repair_status="not_attempted",
                     repair_attempts=[],
                     selected_candidate_id=baseline_candidate.candidate_id,
+                    cosim_decision=cosim_decision,
+                    cosim_diagnosis=cosim_diagnosis,
+                    requires_structural_repair=requires_structural_repair,
                     stop_reason="baseline_cosim_failed",
                 )
+        elif cosim_decision.reason == "insufficient_budget":
+            stage_results.append(_cosim_budget_result(cosim_decision, tool_server))
+            return self._finish(
+                task_context,
+                tool_server,
+                baseline_kernel,
+                final_kernel,
+                stage_results,
+                output_root,
+                repair_status="not_attempted",
+                repair_attempts=[],
+                selected_candidate_id=baseline_candidate.candidate_id,
+                cosim_decision=cosim_decision,
+                cosim_diagnosis=None,
+                requires_structural_repair=False,
+                stop_reason="cosim_budget_insufficient",
+                status="budget_exceeded",
+            )
 
         optimization_status = "not_attempted"
         optimization_candidates: list[OptimizationCandidateRecord] = []
@@ -236,6 +285,9 @@ class CompetitionAgent:
             final_metrics=final_metrics,
             selected_candidate_id=selected_candidate_id,
             selection_reason=selection_reason,
+            cosim_decision=cosim_decision,
+            cosim_diagnosis=cosim_diagnosis,
+            requires_structural_repair=requires_structural_repair,
             stop_reason=stop_reason,
             status="completed",
             classification_results=classification_results,
@@ -258,6 +310,9 @@ class CompetitionAgent:
         baseline_metrics: dict[str, Any] | None = None,
         final_metrics: dict[str, Any] | None = None,
         selection_reason: str | None = None,
+        cosim_decision: CosimDecision | None = None,
+        cosim_diagnosis: CoSimDiagnosis | None = None,
+        requires_structural_repair: bool = False,
         stop_reason: str,
         status: str | None = None,
         classification_results: list[UnifiedToolResult] | None = None,
@@ -282,6 +337,9 @@ class CompetitionAgent:
             final_metrics=_json_value(final_metrics or {}),
             selected_candidate_id=selected_candidate_id,
             selection_reason=selection_reason,
+            cosim_decision=cosim_decision,
+            cosim_diagnosis=cosim_diagnosis,
+            requires_structural_repair=requires_structural_repair,
             llm_usage=_llm_usage(self.llm_client),
             stop_reason=stop_reason,
         )
@@ -310,6 +368,24 @@ def _run_status(results: list[UnifiedToolResult]) -> str:
     if last.status in {"budget_exceeded", "timeout", "exception"}:
         return last.status
     return "stopped"
+
+
+def _cosim_budget_result(decision: CosimDecision, tool_server: Any) -> UnifiedToolResult:
+    spent = getattr(getattr(tool_server, "budget", None), "spent", None)
+    return UnifiedToolResult(
+        stage="cosim",
+        status="budget_exceeded",
+        return_code=None,
+        elapsed_seconds=0.0,
+        summary=(
+            "cosim budget insufficient before tool call: "
+            f"required={decision.required_budget}, available={decision.available_budget}"
+        ),
+        metrics={},
+        artifacts={},
+        budget_before=spent if isinstance(spent, int) else None,
+        budget_after=spent if isinstance(spent, int) else None,
+    )
 
 
 def _budget_snapshot(tool_server: Any) -> dict[str, Any]:

@@ -120,7 +120,19 @@ class HarnessBackend:
             if csynth_rpt.exists():
                 artifacts["csynth_rpt"] = str(csynth_rpt)
         if stage == "cosim":
-            cosim_report = run_dir / "cosim_proj" / "sol" / "sim" / "report"
+            sol_dir = run_dir / "cosim_proj" / "sol"
+            cosim_report = sol_dir / "sim" / "report"
             if cosim_report.exists():
                 artifacts["cosim_report_dir"] = str(cosim_report)
+            top = getattr(self.task, "top", None)
+            if isinstance(top, str) and top:
+                cosim_rpt = cosim_report / f"{top}_cosim.rpt"
+                if cosim_rpt.exists():
+                    artifacts["cosim_rpt"] = str(cosim_rpt)
+            csynth_xml = sol_dir / "syn" / "report" / "csynth.xml"
+            csynth_rpt = sol_dir / "syn" / "report" / "csynth.rpt"
+            if csynth_xml.exists():
+                artifacts["cosim_csynth_xml"] = str(csynth_xml)
+            if csynth_rpt.exists():
+                artifacts["cosim_csynth_rpt"] = str(csynth_rpt)
         return artifacts
