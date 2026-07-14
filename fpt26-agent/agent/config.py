@@ -33,6 +33,7 @@ class AgentCLIConfig:
     output_root: Path
     tool_run_root: Path | None
     summary_format: str
+    score: bool
     max_repair_attempts: int
     max_structural_repair_attempts: int
     max_optimization_candidates: int
@@ -70,6 +71,7 @@ def config_from_args(args: object, env: Mapping[str, str] | None = None) -> Agen
         output_root=output_root,
         tool_run_root=tool_run_root,
         summary_format=summary_format,
+        score=bool(getattr(args, "score", False)),
         max_repair_attempts=_positive_int_arg_or_env(
             getattr(args, "max_repair_attempts", None),
             source,

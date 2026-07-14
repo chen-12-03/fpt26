@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, TextIO
 
@@ -32,12 +33,19 @@ from agent.input.task_adapter import TaskAdapter
 from agent.llm.config import LLMConfigError
 from agent.llm.llm_client import LLMClient
 from agent.reporting.console_report import render_console_report
+from agent.reporting.score_report import Scorer, run_official_scoring
 
 
 TaskLoader = Callable[[str | Path], Any]
 BudgetFactory = Callable[[int], Any]
 ToolServerFactory = Callable[[Any, Any, Path], Any]
 LLMClientFactory = Callable[[], LLMClient]
+
+
+@dataclass(frozen=True)
+class AgentExecution:
+    result: AgentRunResult
+    scoring: dict[str, Any] | None
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -75,6 +83,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default="json",
         help="Output format for the final run summary. Default: json.",
     )
+    parser.add_argument(
+        "--score",
+        action="store_true",
+        help="Run official hidden-testbench scoring after the Agent finishes and persist scorecard artifacts.",
+    )
     return parser.parse_args(argv)
 
 
@@ -88,6 +101,7 @@ def run_agent(
     max_structural_repair_attempts: int | None = None,
     max_optimization_candidates: int | None = None,
     summary_format: str = "json",
+    score: bool = False,
     stdout: TextIO = sys.stdout,
     stderr: TextIO = sys.stderr,
     task_loader: TaskLoader = load_task,
@@ -95,6 +109,7 @@ def run_agent(
     tool_server_factory: ToolServerFactory = ToolServer,
     llm_client_factory: LLMClientFactory = LLMClient,
     backend_factory: Any = None,
+    scorer: Scorer | None = None,
 ) -> int:
     args = argparse.Namespace(
         task=task_path,
@@ -105,10 +120,11 @@ def run_agent(
         max_structural_repair_attempts=max_structural_repair_attempts,
         max_optimization_candidates=max_optimization_candidates,
         summary_format=summary_format,
+        score=score,
     )
     try:
         config = config_from_args(args)
-        result = _run_config(
+        execution = _run_config(
             config,
             stdout=stdout,
             task_loader=task_loader,
@@ -116,6 +132,7 @@ def run_agent(
             tool_server_factory=tool_server_factory,
             llm_client_factory=llm_client_factory,
             backend_factory=backend_factory,
+            scorer=scorer,
         )
     except (AgentConfigError, LLMConfigError, FileNotFoundError, NotADirectoryError, ValueError, KeyError) as exc:
         print(f"error: {_redact_secrets(str(exc))}", file=stderr)
@@ -124,9 +141,10 @@ def run_agent(
         print(f"error: {_redact_secrets(type(exc).__name__ + ': ' + str(exc))}", file=stderr)
         return EXIT_TOOL_ERROR
 
-    summary = result_summary(result, config.mode)
+    result = execution.result
+    summary = result_summary(result, config.mode, scoring=execution.scoring)
     if config.summary_format in {"text", "both"}:
-        print(render_console_report(result, config.mode), file=stdout)
+        print(render_console_report(result, config.mode, scoring=execution.scoring), file=stdout)
     if config.summary_format == "both":
         print("--- json summary ---", file=stdout)
     if config.summary_format in {"json", "both"}:
@@ -143,7 +161,8 @@ def _run_config(
     tool_server_factory: ToolServerFactory,
     llm_client_factory: LLMClientFactory,
     backend_factory: Any,
-) -> AgentRunResult:
+    scorer: Scorer | None,
+) -> AgentExecution:
     del stdout
     task_dir = config.task_path.resolve()
     if not task_dir.is_dir():
@@ -168,7 +187,16 @@ def _run_config(
     if backend_factory is not None:
         agent_kwargs["backend_factory"] = backend_factory
     agent = CompetitionAgent(**agent_kwargs)
-    return agent.run(task, tool_server, output_root=config.output_root)
+    result = agent.run(task, tool_server, output_root=config.output_root)
+    scoring = None
+    if config.score:
+        if result.run_directory is None:
+            raise ValueError("run_directory is required before scoring")
+        if scorer is None:
+            scoring = run_official_scoring(task, result.final_kernel, result.run_directory)
+        else:
+            scoring = run_official_scoring(task, result.final_kernel, result.run_directory, scorer=scorer)
+    return AgentExecution(result=result, scoring=scoring)
 
 
 def _tool_run_root(config: AgentCLIConfig, task_id: str) -> Path:
@@ -183,8 +211,8 @@ def _validate_tool_run_root(path: Path) -> None:
         raise FileExistsError(f"tool run root already exists and is not empty: {path}")
 
 
-def result_summary(result: AgentRunResult, mode: str) -> dict[str, Any]:
-    return {
+def result_summary(result: AgentRunResult, mode: str, scoring: dict[str, Any] | None = None) -> dict[str, Any]:
+    summary = {
         "task_id": result.task_id,
         "mode": mode,
         "status": result.status,
@@ -209,8 +237,10 @@ def result_summary(result: AgentRunResult, mode: str) -> dict[str, Any]:
         "model_repair_failed": _model_repair_failed(result),
         "run_directory": result.run_directory,
         "run_manifest_path": result.run_manifest_path,
+        "scoring": scoring,
         "stop_reason": result.stop_reason,
     }
+    return summary
 
 
 def exit_code_for_result(result: AgentRunResult, mode: str) -> int:
@@ -283,6 +313,7 @@ def main(argv: list[str] | None = None, *, stdout: TextIO = sys.stdout, stderr: 
         max_structural_repair_attempts=args.max_structural_repair_attempts,
         max_optimization_candidates=args.max_optimization_candidates,
         summary_format=args.summary_format,
+        score=args.score,
         stdout=stdout,
         stderr=stderr,
     )

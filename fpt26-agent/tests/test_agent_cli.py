@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import threading
 import unittest
+from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from types import SimpleNamespace
@@ -239,6 +240,45 @@ def _llm_env(base_url: str, *, api_key: str = "secret-cli-key") -> dict[str, str
         "FPT26_LLM_SOURCE": "local-fake-http",
         "FPT26_LLM_MAX_RETRIES": "0",
     }
+
+
+@dataclass
+class FakeScorecard:
+    task_id: str
+    difficulty: int
+    functional_pass: bool
+    synth_pass: bool
+    cosim_pass: bool | None
+    baseline_latency: int | None
+    candidate_latency: int | None
+    acceleration: float | None
+    is_opt: bool
+    score: float
+
+    def render(self) -> str:
+        return (
+            f"=== Scorecard: {self.task_id} (difficulty {self.difficulty}) ===\n"
+            f"  functional (hidden TB): {'PASS' if self.functional_pass else 'FAIL'}\n"
+            f"  synthesizable         : {'PASS' if self.synth_pass else 'FAIL'}\n"
+            f"  SCORE                 : {self.score:.3f}"
+        )
+
+
+def fake_scorer(task, candidate_kernel: str, work_root: Path) -> FakeScorecard:
+    work_root.mkdir(parents=True, exist_ok=True)
+    (work_root / "fake_grade.log").write_text("fake official grade\n", encoding="utf-8")
+    return FakeScorecard(
+        task_id=task.id,
+        difficulty=task.difficulty,
+        functional_pass="dotProduct" in candidate_kernel,
+        synth_pass=True,
+        cosim_pass=None,
+        baseline_latency=120,
+        candidate_latency=80,
+        acceleration=1.5,
+        is_opt=True,
+        score=2.345,
+    )
 
 
 def _run_cli(
@@ -498,6 +538,57 @@ class AgentCliTests(unittest.TestCase):
         self.assertIn("budget 5/40 credits spent", text)
         self.assertNotIn("#include", text)
         self.assertNotIn("messages", text)
+
+    def test_score_flag_persists_official_scorecard_and_adds_summary(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            stdout = io.StringIO()
+            code = run_agent(
+                task_path=DOT_PRODUCT,
+                mode="baseline",
+                output_root=tmp / "runs",
+                score=True,
+                scorer=fake_scorer,
+                tool_server_factory=FakeToolServer,
+                backend_factory=FakeBackend,
+                stdout=stdout,
+                stderr=io.StringIO(),
+            )
+            summary = json.loads(stdout.getvalue())
+            run_dir = Path(summary["run_directory"])
+            scorecard_json = run_dir / "scoring" / "scorecard.json"
+            scorecard_txt = run_dir / "scoring" / "scorecard.txt"
+            scorecard = json.loads(scorecard_json.read_text(encoding="utf-8"))
+            scorecard_text = scorecard_txt.read_text(encoding="utf-8")
+
+        self.assertEqual(code, EXIT_SUCCESS)
+        self.assertEqual(summary["scoring"]["score"], 2.345)
+        self.assertEqual(scorecard["task_id"], "dotProduct_optimize")
+        self.assertEqual(scorecard["score"], 2.345)
+        self.assertIn("Scorecard", scorecard_text)
+
+    def test_score_text_summary_contains_official_scorecard_section(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            stdout = io.StringIO()
+            code = run_agent(
+                task_path=DOT_PRODUCT,
+                mode="baseline",
+                output_root=tmp / "runs",
+                score=True,
+                scorer=fake_scorer,
+                summary_format="text",
+                tool_server_factory=FakeToolServer,
+                backend_factory=FakeBackend,
+                stdout=stdout,
+                stderr=io.StringIO(),
+            )
+            text = stdout.getvalue()
+
+        self.assertEqual(code, EXIT_SUCCESS)
+        self.assertIn("--- official scorecard (hidden grading, uncharged) ---", text)
+        self.assertIn("functional (hidden TB): PASS", text)
+        self.assertIn("SCORE", text)
 
 
 if __name__ == "__main__":

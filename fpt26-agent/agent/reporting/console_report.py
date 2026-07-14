@@ -5,7 +5,7 @@ from typing import Any
 from agent.competition_agent import AgentRunResult
 
 
-def render_console_report(result: AgentRunResult, mode: str) -> str:
+def render_console_report(result: AgentRunResult, mode: str, scoring: dict[str, Any] | None = None) -> str:
     context = result.task_context
     lines = [
         f"=== Task {context.task_id} [{context.task_type}] ===",
@@ -48,6 +48,17 @@ def render_console_report(result: AgentRunResult, mode: str) -> str:
     lines.extend(["", "--- stage results ---"])
     for stage in result.stage_results:
         lines.append(f"  {stage.stage:<6} {stage.status:<14} {stage.summary}")
+    if scoring is not None:
+        lines.extend(["", "--- official scorecard (hidden grading, uncharged) ---"])
+        rendered = scoring.get("rendered")
+        if isinstance(rendered, str) and rendered:
+            lines.append(rendered)
+        else:
+            lines.append(f"  score: {scoring.get('score')}")
+        paths = scoring.get("paths")
+        if isinstance(paths, dict):
+            lines.append(f"  scorecard json         : {paths.get('scorecard_json')}")
+            lines.append(f"  scorecard text         : {paths.get('scorecard_txt')}")
     return "\n".join(lines)
 
 
