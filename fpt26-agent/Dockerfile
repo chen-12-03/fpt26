@@ -1,0 +1,11 @@
+ARG BASE_IMAGE=vitis_runtime:2025.2
+FROM ${BASE_IMAGE}
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV WORKSPACE=/workspace
+ENV PYTHONPATH=/workspace/fpt26-agent:/workspace/fpt26-harness
+
+WORKDIR /workspace
+
+CMD ["bash"]

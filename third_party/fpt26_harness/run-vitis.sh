@@ -5,14 +5,13 @@
 # and the current directory are bind-mounted, and the container's working dir
 # mirrors the host $PWD
 #
-# Override via env vars: IMAGE, VITIS or XILINX_VITIS, XRT or XILINX_XRT,
-# and PLATFORM.
+# Override via env vars: IMAGE, XILINX_VITIS, XILINX_XRT, PLATFORM.
 
 set -euo pipefail
 
-IMAGE=${IMAGE:-vitis_runtime:2025.2}
-XILINX_VITIS=${VITIS:-${XILINX_VITIS:-/tools/Xilinx/Vitis/2025.2}}
-XILINX_XRT=${XRT:-${XILINX_XRT:-/opt/xilinx/xrt}}
+IMAGE=${IMAGE:-vitis_runtime:2023.2}
+XILINX_VITIS=${VITIS:-/tools/Xilinx/Vitis/2023.2}
+XILINX_XRT=${XRT:-/opt/xilinx/xrt}
 PLATFORM=${PLATFORM:-/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm}
 
 HOST_PWD=$PWD

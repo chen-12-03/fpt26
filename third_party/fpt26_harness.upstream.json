@@ -1,0 +1,10 @@
+{
+  "source_path": "fpt26-harness",
+  "frozen_path": "third_party/fpt26_harness",
+  "git_repository": null,
+  "git_revision": null,
+  "git_metadata_note": "No .git metadata was present inside the source harness directory; the parent repository was intentionally not treated as the upstream harness repository.",
+  "import_method": "restored into this repository from the previously verified frozen harness snapshot; generated artifacts, caches, Vitis projects, logs, run results, and local Zone.Identifier sidecar files excluded",
+  "file_count": 36,
+  "sha256_manifest_path": "third_party/fpt26_harness.sha256"
+}
