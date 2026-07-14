@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from agent.competition_agent import CompetitionAgent
 from agent.execution.result_adapter import UnifiedToolResult
@@ -76,6 +78,7 @@ class FakeBackend:
 
 
 def make_task(tmp: Path, *, task_type: str = "optimize", requires_cosim: bool = False, kernel: str = "int top(){return 0;}\n"):
+    tmp.mkdir(parents=True, exist_ok=True)
     (tmp / "kernel.cpp").write_text(kernel, encoding="utf-8")
     (tmp / "kernel.h").write_text("int top();\n", encoding="utf-8")
     (tmp / "tb.cpp").write_text("int main(){return top();}\n", encoding="utf-8")
@@ -120,7 +123,7 @@ def write_log(tmp: Path, text: str, name: str = "tool.log") -> Path:
 
 
 class CompetitionAgentUnitTests(unittest.TestCase):
-    def run_agent(self, task, plan):
+    def run_agent(self, task, plan, *, output_root: Path | None = None):
         instances: list[FakeBackend] = []
 
         def factory(task_obj, server_obj):
@@ -129,7 +132,7 @@ class CompetitionAgentUnitTests(unittest.TestCase):
             return backend
 
         server = FakeToolServer()
-        result = CompetitionAgent(backend_factory=factory).run(task, server)
+        result = CompetitionAgent(backend_factory=factory).run(task, server, output_root=output_root)
         return result, instances[0], server
 
     def test_csim_failure_stops_before_synth(self):
@@ -205,10 +208,87 @@ class CompetitionAgentUnitTests(unittest.TestCase):
         second = json.dumps(json.loads(result.to_json()), sort_keys=True)
         self.assertEqual(first, second)
 
+    def test_persistence_writes_replay_ready_baseline(self):
+        kernel = "int top(){return 42;}\n"
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            task = make_task(tmp / "task", task_type="optimize", kernel=kernel)
+            result, _backend, _server = self.run_agent(task, {}, output_root=tmp / "runs")
+            run_dir = Path(result.run_directory)
+
+            self.assertTrue((run_dir / "run_manifest.json").is_file())
+            self.assertTrue((run_dir / "task_context.json").is_file())
+            self.assertEqual((run_dir / "candidates" / "c000_baseline" / "kernel.cpp").read_text(), kernel)
+            self.assertEqual((run_dir / "final" / "kernel.cpp").read_text(), kernel)
+
+            manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+            candidate_manifest = json.loads(
+                (run_dir / "candidates" / "c000_baseline" / "manifest.json").read_text(encoding="utf-8")
+            )
+            stage_results = json.loads(
+                (run_dir / "candidates" / "c000_baseline" / "stage_results.json").read_text(encoding="utf-8")
+            )
+            transcript = json.loads((run_dir / "transcript" / "toolserver_transcript.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(manifest["baseline_candidate_id"], "c000_baseline")
+        self.assertEqual(manifest["initial_condition"]["condition"], "correct_unoptimized")
+        self.assertEqual(candidate_manifest["parent_candidate_id"], None)
+        self.assertEqual(candidate_manifest["action"], None)
+        self.assertEqual(candidate_manifest["lineage"], [])
+        self.assertEqual(stage_results[0]["stage"], "csim")
+        self.assertEqual(stage_results[1]["stage"], "synth")
+        self.assertEqual(transcript[0]["kind"], "csim")
+        self.assertEqual(manifest["transcript_paths"], [str(run_dir / "transcript" / "toolserver_transcript.json")])
+        self.assertEqual(manifest["final_kernel_sha256"], hashlib.sha256(kernel.encode("utf-8")).hexdigest())
+        self.assertEqual(result.final_kernel_sha256, manifest["final_kernel_sha256"])
+
+    def test_run_id_is_unique_and_existing_runs_are_not_overwritten(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            output_root = tmp / "runs"
+            task = make_task(tmp / "task")
+            first, _backend, _server = self.run_agent(task, {}, output_root=output_root)
+            marker = Path(first.run_directory) / "marker.txt"
+            marker.write_text("keep me", encoding="utf-8")
+
+            second, _backend2, _server2 = self.run_agent(task, {}, output_root=output_root)
+
+            self.assertNotEqual(first.run_directory, second.run_directory)
+            self.assertTrue(first.run_directory.endswith("run_000"))
+            self.assertTrue(second.run_directory.endswith("run_001"))
+            self.assertEqual(marker.read_text(encoding="utf-8"), "keep me")
+
+    def test_json_manifests_round_trip_stably(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            task = make_task(tmp / "task")
+            result, _backend, _server = self.run_agent(task, {}, output_root=tmp / "runs")
+            manifest_path = Path(result.run_manifest_path)
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+        first = json.dumps(data, sort_keys=True)
+        second = json.dumps(json.loads(json.dumps(data, sort_keys=True)), sort_keys=True)
+        self.assertEqual(first, second)
+
+    def test_partial_write_failure_does_not_delete_existing_valid_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            output_root = tmp / "runs"
+            task = make_task(tmp / "task")
+            first, _backend, _server = self.run_agent(task, {}, output_root=output_root)
+            baseline_kernel = Path(first.run_directory) / "candidates" / "c000_baseline" / "kernel.cpp"
+            original = baseline_kernel.read_text(encoding="utf-8")
+
+            with patch("agent.reporting.manifest_writer.write_json_once", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    self.run_agent(task, {}, output_root=output_root)
+
+            self.assertEqual(baseline_kernel.read_text(encoding="utf-8"), original)
+
 
 @unittest.skipUnless(os.environ.get("FPT26_RUN_HLS_TESTS") == "1", "set FPT26_RUN_HLS_TESTS=1 to run Vitis HLS tests")
 class CompetitionAgentOfficialHlsTests(unittest.TestCase):
-    def run_official(self, task_name: str):
+    def run_official(self, task_name: str, *, output_root: Path | None = None):
         from llm4hls.budget import Budget
         from llm4hls.harness import ToolServer
         from llm4hls.task import load_task
@@ -216,7 +296,7 @@ class CompetitionAgentOfficialHlsTests(unittest.TestCase):
         task = load_task(Path("fpt26-harness/tasks") / task_name)
         run_root = Path("fpt26-agent/runs/competition_agent_tests") / task_name
         server = ToolServer(task, Budget(task.budget), run_root)
-        return CompetitionAgent().run(task, server)
+        return CompetitionAgent().run(task, server, output_root=output_root)
 
     def test_dot_product_optimize_csim_synth(self):
         result = self.run_official("dotProduct_optimize")
@@ -228,6 +308,26 @@ class CompetitionAgentOfficialHlsTests(unittest.TestCase):
         result = self.run_official("projection_bugfix")
         self.assertEqual([stage.stage for stage in result.stage_results], ["csim"])
         self.assertEqual(result.initial_condition.condition, "csim_failure")
+
+    def test_dot_product_persistent_manifest_matches_synth_report(self):
+        from llm4hls.report import parse_csynth_xml
+
+        output_root = Path("fpt26-agent/runs/competition_agent_persist_tests")
+        result = self.run_official("dotProduct_optimize", output_root=output_root)
+        run_dir = Path(result.run_directory)
+        manifest_path = run_dir / "run_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        synth_result = next(stage for stage in manifest["stage_results"] if stage["stage"] == "synth")
+        csynth_xml = Path(synth_result["artifacts"]["csynth_xml"])
+        report = parse_csynth_xml(csynth_xml)
+
+        self.assertTrue(manifest_path.is_file())
+        self.assertEqual((run_dir / "final" / "kernel.cpp").read_text(encoding="utf-8"), result.final_kernel)
+        self.assertEqual(manifest["initial_condition"]["condition"], "correct_unoptimized")
+        self.assertEqual(synth_result["metrics"]["estimated_clock_ns"], report.clock_period_ns)
+        self.assertEqual(synth_result["metrics"]["latency_max"], report.latency_worst)
+        self.assertEqual(synth_result["metrics"]["ii_max"], report.interval_max)
+        self.assertEqual(synth_result["metrics"]["lut"], report.resources["LUT"])
 
 
 if __name__ == "__main__":

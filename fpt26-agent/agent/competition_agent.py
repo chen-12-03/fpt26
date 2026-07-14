@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Any, Callable
 
 from agent.analysis.initial_condition_classifier import InitialCondition, InitialConditionClassifier
@@ -9,6 +10,7 @@ from agent.core.task_context import TaskContext
 from agent.execution.harness_backend import HarnessBackend
 from agent.execution.result_adapter import UnifiedToolResult
 from agent.input.task_adapter import TaskAdapter
+from agent.reporting.manifest_writer import ManifestWriter
 from agent.strategy.baseline_manager import BaselineManager
 
 
@@ -25,6 +27,8 @@ class AgentRunResult:
     final_kernel_sha256: str
     budget: dict[str, Any]
     status: str
+    run_directory: str | None = None
+    run_manifest_path: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -36,6 +40,8 @@ class AgentRunResult:
             "final_kernel_sha256": self.final_kernel_sha256,
             "budget": _json_value(self.budget),
             "status": self.status,
+            "run_directory": self.run_directory,
+            "run_manifest_path": self.run_manifest_path,
         }
 
     def to_json(self) -> str:
@@ -54,7 +60,7 @@ class CompetitionAgent:
         self.classifier = classifier or InitialConditionClassifier()
         self.baseline_manager = baseline_manager or BaselineManager()
 
-    def run(self, task: Any, tool_server: Any) -> AgentRunResult:
+    def run(self, task: Any, tool_server: Any, output_root: str | Path | None = None) -> AgentRunResult:
         task_context = TaskAdapter.from_official_task(task)
         final_kernel = self.baseline_manager.initial_kernel(task_context)
         backend = self.backend_factory(task, tool_server)
@@ -63,20 +69,20 @@ class CompetitionAgent:
         csim_result = backend.csim(final_kernel)
         stage_results.append(csim_result)
         if not _passed(csim_result):
-            return self._finish(task_context, tool_server, final_kernel, stage_results)
+            return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
 
         synth_result = backend.synth(final_kernel)
         stage_results.append(synth_result)
         if not _passed(synth_result):
-            return self._finish(task_context, tool_server, final_kernel, stage_results)
+            return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
 
         if task_context.requires_cosim:
             cosim_result = backend.cosim(final_kernel)
             stage_results.append(cosim_result)
             if not _passed(cosim_result):
-                return self._finish(task_context, tool_server, final_kernel, stage_results)
+                return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
 
-        return self._finish(task_context, tool_server, final_kernel, stage_results)
+        return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
 
     def _finish(
         self,
@@ -84,10 +90,11 @@ class CompetitionAgent:
         tool_server: Any,
         final_kernel: str,
         stage_results: list[UnifiedToolResult],
+        output_root: str | Path | None,
     ) -> AgentRunResult:
         initial_condition = self.classifier.classify(task_context, stage_results)
         final_hash = self.baseline_manager.sha256(final_kernel)
-        return AgentRunResult(
+        result = AgentRunResult(
             task_id=task_context.task_id,
             task_context=task_context,
             initial_condition=initial_condition,
@@ -96,6 +103,15 @@ class CompetitionAgent:
             final_kernel_sha256=final_hash,
             budget=_budget_snapshot(tool_server),
             status=_run_status(stage_results),
+        )
+        if output_root is None:
+            return result
+
+        layout = ManifestWriter(output_root).persist(result)
+        return replace(
+            result,
+            run_directory=str(layout.run_dir),
+            run_manifest_path=str(layout.run_manifest_path),
         )
 
 
