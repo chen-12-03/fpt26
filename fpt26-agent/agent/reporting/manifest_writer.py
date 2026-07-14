@@ -13,18 +13,42 @@ class ManifestWriter:
 
     def persist(self, result: Any) -> RunLayout:
         layout = self.store.create_run_layout(result.task_id)
-        candidate = self.store.baseline_candidate(result.task_context, result.final_kernel)
+        baseline_kernel = getattr(result, "baseline_kernel", result.final_kernel)
+        candidate = self.store.baseline_candidate(result.task_context, baseline_kernel)
         task_context_dict = result.task_context.to_dict()
         stage_results = [stage.to_dict() for stage in result.stage_results]
+        baseline_stage_results = _baseline_stage_results(result, stage_results)
         transcript = result.budget.get("transcript", []) if isinstance(result.budget, dict) else []
+        repair_attempts = [_attempt_dict(attempt) for attempt in getattr(result, "repair_attempts", [])]
+        optimization_candidates = [_candidate_record_dict(candidate) for candidate in getattr(result, "optimization_candidates", [])]
+        candidates = [candidate]
 
         write_json_once(layout.task_context_path, task_context_dict)
-        write_text_once(layout.baseline_kernel_path, result.final_kernel)
-        write_json_once(layout.baseline_stage_results_path, stage_results)
+        write_text_once(layout.baseline_kernel_path, baseline_kernel)
+        write_json_once(layout.baseline_stage_results_path, baseline_stage_results)
         write_json_once(layout.transcript_path, transcript)
-        write_json_once(layout.baseline_manifest_path, _candidate_manifest(candidate, layout, result, stage_results))
+        write_json_once(layout.baseline_manifest_path, _candidate_manifest(candidate, layout, result, baseline_stage_results))
+        for attempt in repair_attempts:
+            repair_candidate = attempt.get("candidate")
+            replacement_kernel = attempt.get("replacement_kernel")
+            if not isinstance(repair_candidate, dict) or not isinstance(replacement_kernel, str):
+                continue
+            candidates.append(_candidate_from_dict(repair_candidate))
+            _write_repair_candidate(layout, attempt, replacement_kernel)
+        for record in optimization_candidates:
+            optimization_candidate = record.get("candidate")
+            kernel_code = record.get("kernel_code")
+            if not isinstance(optimization_candidate, dict) or not isinstance(kernel_code, str):
+                continue
+            candidates.append(_candidate_from_dict(optimization_candidate))
+            _write_optimization_candidate(layout, record, kernel_code)
+        _write_llm_audit(layout, getattr(result, "llm_usage", {}))
+        _write_optimization_audit(layout, result, optimization_candidates)
         write_text_once(layout.final_kernel_path, result.final_kernel)
-        write_json_once(layout.run_manifest_path, _run_manifest(layout, candidate, result, stage_results))
+        write_json_once(
+            layout.run_manifest_path,
+            _run_manifest(layout, candidates, result, stage_results, repair_attempts, optimization_candidates),
+        )
         return layout
 
 
@@ -48,11 +72,26 @@ def _candidate_manifest(
     }
 
 
+def _baseline_stage_results(result: Any, stage_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if getattr(result, "repair_attempts", []):
+        return stage_results[:1]
+    if getattr(result, "optimization_candidates", []):
+        baseline: list[dict[str, Any]] = []
+        for stage in stage_results:
+            baseline.append(stage)
+            if stage.get("stage") == "synth":
+                break
+        return baseline
+    return stage_results
+
+
 def _run_manifest(
     layout: RunLayout,
-    candidate: Candidate,
+    candidates: list[Candidate],
     result: Any,
     stage_results: list[dict[str, Any]],
+    repair_attempts: list[dict[str, Any]],
+    optimization_candidates: list[dict[str, Any]],
 ) -> dict[str, Any]:
     result_dict = result.to_dict()
     result_dict["run_directory"] = str(layout.run_dir)
@@ -65,7 +104,17 @@ def _run_manifest(
         "status": result.status,
         "task_context_sha256": sha256_json(task_context_dict),
         "final_kernel_sha256": result.final_kernel_sha256,
-        "baseline_candidate_id": candidate.candidate_id,
+        "baseline_candidate_id": "c000_baseline",
+        "selected_candidate_id": getattr(result, "selected_candidate_id", None),
+        "repair_status": getattr(result, "repair_status", None),
+        "repair_attempts": repair_attempts,
+        "optimization_status": getattr(result, "optimization_status", None),
+        "optimization_candidates": optimization_candidates,
+        "baseline_metrics": getattr(result, "baseline_metrics", {}),
+        "final_metrics": getattr(result, "final_metrics", {}),
+        "selection_reason": getattr(result, "selection_reason", None),
+        "llm_usage": getattr(result, "llm_usage", {}),
+        "stop_reason": getattr(result, "stop_reason", None),
         "initial_condition": result.initial_condition.to_dict(),
         "stage_results": stage_results,
         "budget": result.budget,
@@ -77,10 +126,167 @@ def _run_manifest(
         "candidates": [
             {
                 **candidate.to_dict(),
-                "manifest_path": str(layout.baseline_manifest_path),
-                "kernel_path": str(layout.baseline_kernel_path),
-                "stage_results_path": str(layout.baseline_stage_results_path),
+                **_candidate_paths(layout, candidate.candidate_id),
             }
+            for candidate in candidates
         ],
         "transcript_paths": [str(layout.transcript_path)],
+        "llm_paths": {
+            "calls_jsonl": str(layout.llm_calls_path),
+            "token_summary": str(layout.llm_summary_path),
+        },
+        "optimization_paths": {
+            "search_summary": str(layout.optimization_summary_path),
+            "pareto_candidates": str(layout.pareto_candidates_path),
+        },
     }
+
+
+def _candidate_from_dict(data: dict[str, Any]) -> Candidate:
+    return Candidate(
+        candidate_id=data["candidate_id"],
+        label=data["label"],
+        kernel_sha256=data["kernel_sha256"],
+        task_context_sha256=data["task_context_sha256"],
+        parent_candidate_id=data.get("parent_candidate_id"),
+        action=data.get("action"),
+        lineage=list(data.get("lineage", [])),
+    )
+
+
+def _candidate_paths(layout: RunLayout, candidate_id: str) -> dict[str, str]:
+    if candidate_id == "c000_baseline":
+        return {
+            "manifest_path": str(layout.baseline_manifest_path),
+            "kernel_path": str(layout.baseline_kernel_path),
+            "stage_results_path": str(layout.baseline_stage_results_path),
+        }
+    candidate_dir = layout.candidates_dir / candidate_id
+    return {
+        "manifest_path": str(candidate_dir / "manifest.json"),
+        "kernel_path": str(candidate_dir / "kernel.cpp"),
+        "stage_results_path": str(candidate_dir / "stage_results.json"),
+        "validation_path": str(candidate_dir / "validation.json"),
+        "actions_path": str(candidate_dir / "actions.json"),
+        "comparison_path": str(candidate_dir / "comparison.json"),
+        "diff_path": str(candidate_dir / "diff.patch"),
+    }
+
+
+def _write_repair_candidate(layout: RunLayout, attempt: dict[str, Any], replacement_kernel: str) -> None:
+    candidate = attempt["candidate"]
+    candidate_id = candidate["candidate_id"]
+    candidate_dir = layout.candidates_dir / candidate_id
+    candidate_dir.mkdir(parents=False, exist_ok=False)
+    write_text_once(candidate_dir / "kernel.cpp", replacement_kernel)
+    write_json_once(candidate_dir / "validation.json", attempt.get("validation_result", {}))
+    write_json_once(candidate_dir / "stage_results.json", attempt.get("stage_results", []))
+    write_json_once(
+        candidate_dir / "manifest.json",
+        {
+            "schema_version": "candidate-manifest-v1",
+            **candidate,
+            "diagnosis": attempt.get("diagnosis"),
+            "changes": attempt.get("changes"),
+            "confidence": attempt.get("confidence"),
+            "prompt_sha256": attempt.get("prompt_sha256"),
+            "llm_call_record": attempt.get("llm_call_record"),
+            "validation_result": attempt.get("validation_result"),
+            "stage_results": attempt.get("stage_results", []),
+            "status": attempt.get("status"),
+            "paths": _candidate_paths(layout, candidate_id),
+        },
+    )
+
+
+def _write_optimization_candidate(layout: RunLayout, record: dict[str, Any], kernel_code: str) -> None:
+    candidate = record["candidate"]
+    candidate_id = candidate["candidate_id"]
+    candidate_dir = layout.candidates_dir / candidate_id
+    candidate_dir.mkdir(parents=False, exist_ok=False)
+    write_text_once(candidate_dir / "kernel.cpp", kernel_code)
+    write_json_once(candidate_dir / "validation.json", record.get("validation_result", {}))
+    write_json_once(candidate_dir / "actions.json", record.get("actions", []))
+    write_json_once(candidate_dir / "stage_results.json", record.get("stage_results", []))
+    write_json_once(candidate_dir / "comparison.json", record.get("comparison_to_baseline", {}))
+    write_text_once(candidate_dir / "diff.patch", record.get("diff_patch", ""))
+    write_json_once(
+        candidate_dir / "manifest.json",
+        {
+            "schema_version": "candidate-manifest-v1",
+            **candidate,
+            "actions": record.get("actions", []),
+            "validation_result": record.get("validation_result"),
+            "stage_results": record.get("stage_results", []),
+            "metrics": record.get("metrics", {}),
+            "constraint_checks": record.get("constraint_checks", {}),
+            "comparison_to_baseline": record.get("comparison_to_baseline", {}),
+            "selection_status": record.get("selection_status"),
+            "status": record.get("status"),
+            "stop_reason": record.get("stop_reason"),
+            "paths": _candidate_paths(layout, candidate_id),
+        },
+    )
+
+
+def _write_llm_audit(layout: RunLayout, llm_usage: dict[str, Any]) -> None:
+    records = llm_usage.get("records", []) if isinstance(llm_usage, dict) else []
+    summary = {key: value for key, value in llm_usage.items() if key != "records"} if isinstance(llm_usage, dict) else {}
+    lines = [json_dumps(record) for record in records]
+    write_text_once(layout.llm_calls_path, "\n".join(lines) + ("\n" if lines else ""))
+    write_text_once(layout.llm_summary_path, json_dumps(summary, pretty=True))
+
+
+def _write_optimization_audit(layout: RunLayout, result: Any, records: list[dict[str, Any]]) -> None:
+    search_summary = {
+        "schema_version": "optimization-search-v1",
+        "optimization_status": getattr(result, "optimization_status", None),
+        "selected_candidate_id": getattr(result, "selected_candidate_id", None),
+        "selection_reason": getattr(result, "selection_reason", None),
+        "baseline_metrics": getattr(result, "baseline_metrics", {}),
+        "final_metrics": getattr(result, "final_metrics", {}),
+        "candidate_count": len(records),
+        "candidates": [
+            {
+                "candidate_id": (record.get("candidate") or {}).get("candidate_id"),
+                "status": record.get("status"),
+                "selection_status": record.get("selection_status"),
+                "actions": record.get("actions", []),
+            }
+            for record in records
+        ],
+    }
+    pareto = [
+        {
+            "candidate_id": (record.get("candidate") or {}).get("candidate_id"),
+            "metrics": record.get("metrics", {}),
+            "constraint_checks": record.get("constraint_checks", {}),
+            "selection_status": record.get("selection_status"),
+        }
+        for record in records
+        if record.get("status") == "synth_pass"
+    ]
+    write_json_once(layout.optimization_summary_path, search_summary)
+    write_json_once(layout.pareto_candidates_path, pareto)
+
+
+def _attempt_dict(attempt: Any) -> dict[str, Any]:
+    if hasattr(attempt, "to_dict"):
+        return attempt.to_dict()
+    if isinstance(attempt, dict):
+        return attempt
+    return {}
+
+
+def _candidate_record_dict(candidate: Any) -> dict[str, Any]:
+    if hasattr(candidate, "to_dict"):
+        return candidate.to_dict()
+    if isinstance(candidate, dict):
+        return candidate
+    return {}
+
+
+def json_dumps(data: Any, *, pretty: bool = False) -> str:
+    if pretty:
+        return __import__("json").dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    return __import__("json").dumps(data, sort_keys=True, ensure_ascii=False)

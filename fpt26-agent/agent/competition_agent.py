@@ -6,12 +6,16 @@ from pathlib import Path
 from typing import Any, Callable
 
 from agent.analysis.initial_condition_classifier import InitialCondition, InitialConditionClassifier
+from agent.core.candidate_store import CandidateStore
 from agent.core.task_context import TaskContext
 from agent.execution.harness_backend import HarnessBackend
 from agent.execution.result_adapter import UnifiedToolResult
 from agent.input.task_adapter import TaskAdapter
+from agent.llm.llm_client import LLMClient
 from agent.reporting.manifest_writer import ManifestWriter
 from agent.strategy.baseline_manager import BaselineManager
+from agent.strategy.optimization_controller import OptimizationCandidateRecord, OptimizationController
+from agent.strategy.repair_controller import RepairAttempt, RepairController
 
 
 BackendFactory = Callable[[Any, Any], HarnessBackend]
@@ -23,10 +27,21 @@ class AgentRunResult:
     task_context: TaskContext
     initial_condition: InitialCondition
     stage_results: list[UnifiedToolResult]
+    baseline_kernel: str
     final_kernel: str
     final_kernel_sha256: str
     budget: dict[str, Any]
     status: str
+    repair_status: str
+    repair_attempts: list[RepairAttempt]
+    optimization_status: str
+    optimization_candidates: list[OptimizationCandidateRecord]
+    baseline_metrics: dict[str, Any]
+    final_metrics: dict[str, Any]
+    selected_candidate_id: str
+    selection_reason: str | None
+    llm_usage: dict[str, Any]
+    stop_reason: str
     run_directory: str | None = None
     run_manifest_path: str | None = None
 
@@ -36,10 +51,21 @@ class AgentRunResult:
             "task_context": self.task_context.to_dict(),
             "initial_condition": self.initial_condition.to_dict(),
             "stage_results": [result.to_dict() for result in self.stage_results],
+            "baseline_kernel": self.baseline_kernel,
             "final_kernel": self.final_kernel,
             "final_kernel_sha256": self.final_kernel_sha256,
             "budget": _json_value(self.budget),
             "status": self.status,
+            "repair_status": self.repair_status,
+            "repair_attempts": [attempt.to_dict() for attempt in self.repair_attempts],
+            "optimization_status": self.optimization_status,
+            "optimization_candidates": [candidate.to_dict() for candidate in self.optimization_candidates],
+            "baseline_metrics": _json_value(self.baseline_metrics),
+            "final_metrics": _json_value(self.final_metrics),
+            "selected_candidate_id": self.selected_candidate_id,
+            "selection_reason": self.selection_reason,
+            "llm_usage": _json_value(self.llm_usage),
+            "stop_reason": self.stop_reason,
             "run_directory": self.run_directory,
             "run_manifest_path": self.run_manifest_path,
         }
@@ -55,54 +81,209 @@ class CompetitionAgent:
         backend_factory: BackendFactory | None = None,
         classifier: InitialConditionClassifier | None = None,
         baseline_manager: BaselineManager | None = None,
+        repair_controller: RepairController | None = None,
+        optimization_controller: OptimizationController | None = None,
+        llm_client: LLMClient | None = None,
+        repair_enabled: bool = False,
+        optimize_enabled: bool = False,
+        max_repair_attempts: int = 2,
+        max_optimization_candidates: int = 3,
     ) -> None:
         self.backend_factory = backend_factory or HarnessBackend
         self.classifier = classifier or InitialConditionClassifier()
         self.baseline_manager = baseline_manager or BaselineManager()
+        self.repair_controller = repair_controller or RepairController()
+        self.optimization_controller = optimization_controller or OptimizationController()
+        self.llm_client = llm_client
+        self.repair_enabled = repair_enabled
+        self.optimize_enabled = optimize_enabled
+        self.max_repair_attempts = max_repair_attempts
+        self.max_optimization_candidates = max_optimization_candidates
 
     def run(self, task: Any, tool_server: Any, output_root: str | Path | None = None) -> AgentRunResult:
+        if self.repair_enabled and self.llm_client is None:
+            raise ValueError("repair_enabled=True requires llm_client")
         task_context = TaskAdapter.from_official_task(task)
-        final_kernel = self.baseline_manager.initial_kernel(task_context)
+        baseline_kernel = self.baseline_manager.initial_kernel(task_context)
+        final_kernel = baseline_kernel
         backend = self.backend_factory(task, tool_server)
         stage_results: list[UnifiedToolResult] = []
+        candidate_store = CandidateStore(output_root or Path("runs"))
+        baseline_candidate = candidate_store.baseline_candidate(task_context, baseline_kernel)
 
-        csim_result = backend.csim(final_kernel)
+        csim_result = backend.csim(baseline_kernel)
         stage_results.append(csim_result)
         if not _passed(csim_result):
-            return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
+            repair_attempts: list[RepairAttempt] = []
+            repair_status = "not_attempted"
+            selected_candidate_id = baseline_candidate.candidate_id
+            stop_reason = "baseline_csim_failed"
+            status = _run_status(stage_results)
+            if self.repair_enabled:
+                assert self.llm_client is not None
+                repair = self.repair_controller.repair(
+                    task_context,
+                    baseline_candidate,
+                    csim_result,
+                    backend,
+                    self.llm_client,
+                    candidate_store,
+                    max_attempts=self.max_repair_attempts,
+                )
+                repair_attempts = repair.attempts
+                repair_status = repair.status
+                selected_candidate_id = repair.selected_candidate.candidate_id
+                stop_reason = repair.stop_reason
+                if repair.status == "repaired":
+                    final_kernel = repair.final_kernel
+                    status = "completed"
+                    for attempt in repair.attempts:
+                        stage_results.extend(attempt.stage_results)
+                else:
+                    final_kernel = baseline_kernel
+                    status = "repair_failed"
+            return self._finish(
+                task_context,
+                tool_server,
+                baseline_kernel,
+                final_kernel,
+                stage_results,
+                output_root,
+                repair_status=repair_status,
+                repair_attempts=repair_attempts,
+                selected_candidate_id=selected_candidate_id,
+                stop_reason=stop_reason,
+                status=status,
+            )
 
-        synth_result = backend.synth(final_kernel)
+        synth_result = backend.synth(baseline_kernel)
         stage_results.append(synth_result)
         if not _passed(synth_result):
-            return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
+            return self._finish(
+                task_context,
+                tool_server,
+                baseline_kernel,
+                final_kernel,
+                stage_results,
+                output_root,
+                repair_status="not_attempted",
+                repair_attempts=[],
+                selected_candidate_id=baseline_candidate.candidate_id,
+                stop_reason="baseline_synth_failed",
+            )
 
         if task_context.requires_cosim:
-            cosim_result = backend.cosim(final_kernel)
+            cosim_result = backend.cosim(baseline_kernel)
             stage_results.append(cosim_result)
             if not _passed(cosim_result):
-                return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
+                return self._finish(
+                    task_context,
+                    tool_server,
+                    baseline_kernel,
+                    final_kernel,
+                    stage_results,
+                    output_root,
+                    repair_status="not_attempted",
+                    repair_attempts=[],
+                    selected_candidate_id=baseline_candidate.candidate_id,
+                    stop_reason="baseline_cosim_failed",
+                )
 
-        return self._finish(task_context, tool_server, final_kernel, stage_results, output_root)
+        optimization_status = "not_attempted"
+        optimization_candidates: list[OptimizationCandidateRecord] = []
+        baseline_metrics = dict(synth_result.metrics or {})
+        final_metrics = dict(synth_result.metrics or {})
+        selection_reason: str | None = None
+        selected_candidate_id = baseline_candidate.candidate_id
+        stop_reason = "baseline_complete"
+        classification_results = list(stage_results)
+
+        if self.optimize_enabled:
+            optimization = self.optimization_controller.optimize(
+                task_context,
+                baseline_candidate,
+                list(stage_results),
+                backend,
+                candidate_store,
+                max_candidates=self.max_optimization_candidates,
+            )
+            optimization_status = optimization.status
+            optimization_candidates = optimization.candidates
+            baseline_metrics = optimization.baseline_metrics
+            final_metrics = optimization.final_metrics
+            selection_reason = optimization.selection_reason
+            selected_candidate_id = optimization.selected_candidate.candidate_id
+            final_kernel = optimization.final_kernel
+            if optimization.status == "improved":
+                stop_reason = "optimization_improved"
+            elif optimization.status not in {"task_type_not_optimizable", "baseline_csim_not_pass", "baseline_synth_not_pass"}:
+                stop_reason = optimization.status
+            for candidate in optimization.candidates:
+                stage_results.extend(candidate.stage_results)
+
+        return self._finish(
+            task_context,
+            tool_server,
+            baseline_kernel,
+            final_kernel,
+            stage_results,
+            output_root,
+            repair_status="not_attempted",
+            repair_attempts=[],
+            optimization_status=optimization_status,
+            optimization_candidates=optimization_candidates,
+            baseline_metrics=baseline_metrics,
+            final_metrics=final_metrics,
+            selected_candidate_id=selected_candidate_id,
+            selection_reason=selection_reason,
+            stop_reason=stop_reason,
+            status="completed",
+            classification_results=classification_results,
+        )
 
     def _finish(
         self,
         task_context: TaskContext,
         tool_server: Any,
+        baseline_kernel: str,
         final_kernel: str,
         stage_results: list[UnifiedToolResult],
         output_root: str | Path | None,
+        *,
+        repair_status: str,
+        repair_attempts: list[RepairAttempt],
+        selected_candidate_id: str,
+        optimization_status: str = "not_attempted",
+        optimization_candidates: list[OptimizationCandidateRecord] | None = None,
+        baseline_metrics: dict[str, Any] | None = None,
+        final_metrics: dict[str, Any] | None = None,
+        selection_reason: str | None = None,
+        stop_reason: str,
+        status: str | None = None,
+        classification_results: list[UnifiedToolResult] | None = None,
     ) -> AgentRunResult:
-        initial_condition = self.classifier.classify(task_context, stage_results)
+        initial_condition = self.classifier.classify(task_context, classification_results or stage_results)
         final_hash = self.baseline_manager.sha256(final_kernel)
         result = AgentRunResult(
             task_id=task_context.task_id,
             task_context=task_context,
             initial_condition=initial_condition,
             stage_results=list(stage_results),
+            baseline_kernel=baseline_kernel,
             final_kernel=final_kernel,
             final_kernel_sha256=final_hash,
             budget=_budget_snapshot(tool_server),
-            status=_run_status(stage_results),
+            status=status or _run_status(stage_results),
+            repair_status=repair_status,
+            repair_attempts=list(repair_attempts),
+            optimization_status=optimization_status,
+            optimization_candidates=list(optimization_candidates or []),
+            baseline_metrics=_json_value(baseline_metrics or {}),
+            final_metrics=_json_value(final_metrics or {}),
+            selected_candidate_id=selected_candidate_id,
+            selection_reason=selection_reason,
+            llm_usage=_llm_usage(self.llm_client),
+            stop_reason=stop_reason,
         )
         if output_root is None:
             return result
@@ -177,3 +358,12 @@ def _json_value(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [_json_value(item) for item in value]
     return value
+
+
+def _llm_usage(llm_client: LLMClient | None) -> dict[str, Any]:
+    tracker = getattr(llm_client, "token_tracker", None)
+    if tracker is None:
+        return {"records": [], "summary": {}}
+    summary = tracker.summary() if callable(getattr(tracker, "summary", None)) else {}
+    records = [record.to_dict() for record in getattr(tracker, "records", [])]
+    return {**summary, "records": records}

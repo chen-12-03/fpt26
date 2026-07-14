@@ -193,10 +193,20 @@ def _validate(value: Any, schema: dict[str, Any], path: str, errors: list[str]) 
     if expected_type == "array" or isinstance(value, list):
         if not isinstance(value, list):
             return
+        min_items = schema.get("minItems")
+        if isinstance(min_items, int) and len(value) < min_items:
+            errors.append(f"{path}: expected at least {min_items} item(s)")
         item_schema = schema.get("items")
         if isinstance(item_schema, dict):
             for index, item in enumerate(value):
                 _validate(item, item_schema, f"{path}[{index}]", errors)
+
+    if expected_type == "string" or isinstance(value, str):
+        if not isinstance(value, str):
+            return
+        min_length = schema.get("minLength")
+        if isinstance(min_length, int) and len(value) < min_length:
+            errors.append(f"{path}: expected string length >= {min_length}")
 
 
 def _type_matches(value: Any, expected: str) -> bool:

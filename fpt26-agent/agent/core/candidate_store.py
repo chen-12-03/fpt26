@@ -20,6 +20,12 @@ class RunLayout:
     run_manifest_path: Path
     transcript_dir: Path
     transcript_path: Path
+    llm_dir: Path
+    llm_calls_path: Path
+    llm_summary_path: Path
+    optimization_dir: Path
+    optimization_summary_path: Path
+    pareto_candidates_path: Path
     candidates_dir: Path
     baseline_dir: Path
     baseline_kernel_path: Path
@@ -37,6 +43,12 @@ class RunLayout:
             "run_manifest_path": str(self.run_manifest_path),
             "transcript_dir": str(self.transcript_dir),
             "transcript_path": str(self.transcript_path),
+            "llm_dir": str(self.llm_dir),
+            "llm_calls_path": str(self.llm_calls_path),
+            "llm_summary_path": str(self.llm_summary_path),
+            "optimization_dir": str(self.optimization_dir),
+            "optimization_summary_path": str(self.optimization_summary_path),
+            "pareto_candidates_path": str(self.pareto_candidates_path),
             "candidates_dir": str(self.candidates_dir),
             "baseline_dir": str(self.baseline_dir),
             "baseline_kernel_path": str(self.baseline_kernel_path),
@@ -75,13 +87,70 @@ class CandidateStore:
             lineage=[],
         )
 
+    def repair_candidate(
+        self,
+        task_context: TaskContext,
+        kernel_code: str,
+        *,
+        attempt_index: int,
+        parent_candidate: Candidate,
+        action: dict[str, Any],
+    ) -> Candidate:
+        if attempt_index <= 0:
+            raise ValueError("attempt_index must be positive")
+        candidate_id = f"c{attempt_index:03d}_repair_llm_{attempt_index:02d}"
+        lineage = [*parent_candidate.lineage, parent_candidate.candidate_id]
+        return Candidate(
+            candidate_id=candidate_id,
+            label=f"repair_llm_{attempt_index:02d}",
+            kernel_sha256=sha256_text(kernel_code),
+            task_context_sha256=sha256_json(task_context.to_dict()),
+            parent_candidate_id=parent_candidate.candidate_id,
+            action=action,
+            lineage=lineage,
+        )
+
+    def optimization_candidate(
+        self,
+        task_context: TaskContext,
+        kernel_code: str,
+        *,
+        attempt_index: int,
+        parent_candidate: Candidate,
+        action: dict[str, Any],
+    ) -> Candidate:
+        if attempt_index <= 0:
+            raise ValueError("attempt_index must be positive")
+        action_type = action.get("action_type")
+        label = {
+            "pipeline_loop": "pipeline",
+            "unroll_loop": "unroll",
+            "array_partition": "partition",
+        }.get(action_type, "opt")
+        candidate_id = f"c{attempt_index:03d}_{label}_{attempt_index:02d}"
+        lineage = [*parent_candidate.lineage, parent_candidate.candidate_id]
+        return Candidate(
+            candidate_id=candidate_id,
+            label=f"{label}_{attempt_index:02d}",
+            kernel_sha256=sha256_text(kernel_code),
+            task_context_sha256=sha256_json(task_context.to_dict()),
+            parent_candidate_id=parent_candidate.candidate_id,
+            action={
+                "type": "deterministic_optimization",
+                "actions": [action],
+            },
+            lineage=lineage,
+        )
+
 
 def _layout(task_id: str, run_id: str, run_dir: Path) -> RunLayout:
     candidates_dir = run_dir / "candidates"
     baseline_dir = candidates_dir / "c000_baseline"
     transcript_dir = run_dir / "transcript"
+    llm_dir = run_dir / "llm"
+    optimization_dir = run_dir / "optimization"
     final_dir = run_dir / "final"
-    for directory in (candidates_dir, baseline_dir, transcript_dir, final_dir):
+    for directory in (candidates_dir, baseline_dir, transcript_dir, llm_dir, optimization_dir, final_dir):
         directory.mkdir(parents=True, exist_ok=False)
     return RunLayout(
         task_id=task_id,
@@ -91,6 +160,12 @@ def _layout(task_id: str, run_id: str, run_dir: Path) -> RunLayout:
         run_manifest_path=run_dir / "run_manifest.json",
         transcript_dir=transcript_dir,
         transcript_path=transcript_dir / "toolserver_transcript.json",
+        llm_dir=llm_dir,
+        llm_calls_path=llm_dir / "calls.jsonl",
+        llm_summary_path=llm_dir / "token_summary.json",
+        optimization_dir=optimization_dir,
+        optimization_summary_path=optimization_dir / "search_summary.json",
+        pareto_candidates_path=optimization_dir / "pareto_candidates.json",
         candidates_dir=candidates_dir,
         baseline_dir=baseline_dir,
         baseline_kernel_path=baseline_dir / "kernel.cpp",

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 
-ALLOWED_TASK_TYPES = {"generate", "repair", "optimize", "synth_fix", "structural", "unknown"}
+ALLOWED_TASK_TYPES = {"generate", "repair", "optimize", "mixed", "synth_fix", "structural", "unknown"}
 ALLOWED_INPUT_MODES = {"official_task", "existing_code", "natural_language"}
 
 
