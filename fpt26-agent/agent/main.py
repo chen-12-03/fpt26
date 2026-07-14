@@ -2,87 +2,290 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import sys
+import uuid
 from pathlib import Path
-from typing import TextIO
+from typing import Any, Callable, TextIO
 
-from agent.natural_language_flow import run_natural_language_baseline
-from agent.run_existing_code import DEFAULT_RUNNER, run_existing_code
+from llm4hls.budget import Budget
+from llm4hls.harness import ToolServer
+from llm4hls.task import load_task
+
+from agent.competition_agent import AgentRunResult, CompetitionAgent
+from agent.config import (
+    EXIT_BASELINE_CORRECTNESS_FAILURE,
+    EXIT_BUDGET_EXCEEDED,
+    EXIT_INPUT_OR_CONFIG_ERROR,
+    EXIT_LLM_ERROR,
+    EXIT_SAFE_FALLBACK,
+    EXIT_SUCCESS,
+    EXIT_TOOL_ERROR,
+    SUPPORTED_MODES,
+    AgentCLIConfig,
+    AgentConfigError,
+    config_from_args,
+    mode_flags,
+)
+from agent.input.task_adapter import TaskAdapter
+from agent.llm.config import LLMConfigError
+from agent.llm.llm_client import LLMClient
+from agent.reporting.console_report import render_console_report
 
 
-SUPPORTED_INPUT_TYPES = {"ir", "natural-language"}
-SUPPORTED_MODES = {"baseline", "replay"}
+TaskLoader = Callable[[str | Path], Any]
+BudgetFactory = Callable[[int], Any]
+ToolServerFactory = Callable[[Any, Any, Path], Any]
+LLMClientFactory = Callable[[], LLMClient]
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the FPT26 Track-A HLS agent.")
-    parser.add_argument("--input", required=True, type=Path, help="Input artifact path.")
+    parser = argparse.ArgumentParser(description="Run the FPT26 Track-A agent on an official task package.")
+    parser.add_argument("--task", required=True, type=Path, help="Official task directory.")
+    parser.add_argument("--mode", required=True, choices=sorted(SUPPORTED_MODES), help="Agent mode.")
     parser.add_argument(
-        "--input-type",
-        required=True,
-        choices=sorted(SUPPORTED_INPUT_TYPES),
-        help="Input type. Supports 'ir' and 'natural-language'.",
+        "--output-root",
+        type=Path,
+        default=None,
+        help="Root directory for persisted Agent run artifacts. Defaults to FPT26_RUN_OUTPUT_ROOT or fpt26-agent/runs/cli.",
     )
     parser.add_argument(
-        "--mode",
-        required=True,
-        choices=sorted(SUPPORTED_MODES),
-        help="Execution mode. Currently supports 'baseline' and 'replay'.",
+        "--tool-run-root",
+        type=Path,
+        default=None,
+        help="Optional official ToolServer run root. Defaults to a unique directory under output root.",
+    )
+    parser.add_argument("--max-repair-attempts", type=int, default=None, help="Override FPT26_MAX_REPAIR_ATTEMPTS.")
+    parser.add_argument(
+        "--max-structural-repair-attempts",
+        type=int,
+        default=None,
+        help="Override FPT26_MAX_STRUCTURAL_REPAIR_ATTEMPTS.",
+    )
+    parser.add_argument(
+        "--max-optimization-candidates",
+        type=int,
+        default=None,
+        help="Override FPT26_MAX_OPTIMIZATION_CANDIDATES.",
+    )
+    parser.add_argument(
+        "--summary-format",
+        choices=["json", "text", "both"],
+        default="json",
+        help="Output format for the final run summary. Default: json.",
     )
     return parser.parse_args(argv)
 
 
 def run_agent(
-    input_path: Path,
     *,
-    input_type: str,
+    task_path: Path,
     mode: str,
-    runner_path: Path = DEFAULT_RUNNER,
-    agent_work_root: Path | None = None,
+    output_root: Path | None = None,
+    tool_run_root: Path | None = None,
+    max_repair_attempts: int | None = None,
+    max_structural_repair_attempts: int | None = None,
+    max_optimization_candidates: int | None = None,
+    summary_format: str = "json",
     stdout: TextIO = sys.stdout,
     stderr: TextIO = sys.stderr,
+    task_loader: TaskLoader = load_task,
+    budget_factory: BudgetFactory = Budget,
+    tool_server_factory: ToolServerFactory = ToolServer,
+    llm_client_factory: LLMClientFactory = LLMClient,
+    backend_factory: Any = None,
 ) -> int:
-    if input_type not in SUPPORTED_INPUT_TYPES:
-        print(f"error: unsupported input type: {input_type}", file=stderr)
-        return 2
-    if mode not in SUPPORTED_MODES:
-        print(f"error: unsupported mode: {mode}", file=stderr)
-        return 2
-
-    if input_type == "natural-language":
-        if mode != "baseline":
-            print("error: natural-language input currently supports only baseline mode", file=stderr)
-            return 2
-        result = run_natural_language_baseline(
-            input_path,
-            runner_path=runner_path,
-            work_root=agent_work_root,
+    args = argparse.Namespace(
+        task=task_path,
+        mode=mode,
+        output_root=output_root,
+        tool_run_root=tool_run_root,
+        max_repair_attempts=max_repair_attempts,
+        max_structural_repair_attempts=max_structural_repair_attempts,
+        max_optimization_candidates=max_optimization_candidates,
+        summary_format=summary_format,
+    )
+    try:
+        config = config_from_args(args)
+        result = _run_config(
+            config,
             stdout=stdout,
-            stderr=stderr,
+            task_loader=task_loader,
+            budget_factory=budget_factory,
+            tool_server_factory=tool_server_factory,
+            llm_client_factory=llm_client_factory,
+            backend_factory=backend_factory,
         )
-        return result.exit_code
+    except (AgentConfigError, LLMConfigError, FileNotFoundError, NotADirectoryError, ValueError, KeyError) as exc:
+        print(f"error: {_redact_secrets(str(exc))}", file=stderr)
+        return EXIT_INPUT_OR_CONFIG_ERROR
+    except Exception as exc:
+        print(f"error: {_redact_secrets(type(exc).__name__ + ': ' + str(exc))}", file=stderr)
+        return EXIT_TOOL_ERROR
 
-    manifest_metadata = None
-    if mode == "replay":
-        manifest_metadata = {
-            "mode": "replay",
-            "input_type": input_type,
-            "llm_called": False,
-        }
+    summary = result_summary(result, config.mode)
+    if config.summary_format in {"text", "both"}:
+        print(render_console_report(result, config.mode), file=stdout)
+    if config.summary_format == "both":
+        print("--- json summary ---", file=stdout)
+    if config.summary_format in {"json", "both"}:
+        print(json.dumps(summary, sort_keys=True, ensure_ascii=False), file=stdout)
+    return exit_code_for_result(result, config.mode)
 
-    return run_existing_code(
-        input_path,
-        runner_path=runner_path,
-        candidate_prefix=mode,
-        manifest_metadata=manifest_metadata,
-        stdout=stdout,
-        stderr=stderr,
+
+def _run_config(
+    config: AgentCLIConfig,
+    *,
+    stdout: TextIO,
+    task_loader: TaskLoader,
+    budget_factory: BudgetFactory,
+    tool_server_factory: ToolServerFactory,
+    llm_client_factory: LLMClientFactory,
+    backend_factory: Any,
+) -> AgentRunResult:
+    del stdout
+    task_dir = config.task_path.resolve()
+    if not task_dir.is_dir():
+        raise NotADirectoryError(f"task directory does not exist: {task_dir}")
+    task = task_loader(task_dir)
+    task_context = TaskAdapter.from_official_task(task)
+    flags = mode_flags(config.mode, task_context.task_type)
+    llm_client = llm_client_factory() if flags.needs_llm else None
+    run_root = _tool_run_root(config, task_context.task_id)
+    _validate_tool_run_root(run_root)
+    tool_server = tool_server_factory(task, budget_factory(task.budget), run_root)
+
+    agent_kwargs: dict[str, Any] = {
+        "llm_client": llm_client,
+        "repair_enabled": flags.repair_enabled,
+        "optimize_enabled": flags.optimize_enabled,
+        "structural_repair_enabled": flags.structural_repair_enabled,
+        "max_repair_attempts": config.max_repair_attempts,
+        "max_structural_repair_attempts": config.max_structural_repair_attempts,
+        "max_optimization_candidates": config.max_optimization_candidates,
+    }
+    if backend_factory is not None:
+        agent_kwargs["backend_factory"] = backend_factory
+    agent = CompetitionAgent(**agent_kwargs)
+    return agent.run(task, tool_server, output_root=config.output_root)
+
+
+def _tool_run_root(config: AgentCLIConfig, task_id: str) -> Path:
+    if config.tool_run_root is not None:
+        return config.tool_run_root.resolve()
+    unique = uuid.uuid4().hex[:12]
+    return (config.output_root / "_toolserver" / task_id / f"tools_{unique}").resolve()
+
+
+def _validate_tool_run_root(path: Path) -> None:
+    if path.exists() and any(path.iterdir()):
+        raise FileExistsError(f"tool run root already exists and is not empty: {path}")
+
+
+def result_summary(result: AgentRunResult, mode: str) -> dict[str, Any]:
+    return {
+        "task_id": result.task_id,
+        "mode": mode,
+        "status": result.status,
+        "initial_condition": result.initial_condition.to_dict(),
+        "selected_candidate_id": result.selected_candidate_id,
+        "final_kernel_sha256": result.final_kernel_sha256,
+        "stage_statuses": [
+            {
+                "stage": stage.stage,
+                "status": stage.status,
+                "summary": stage.summary,
+                "budget_before": stage.budget_before,
+                "budget_after": stage.budget_after,
+            }
+            for stage in result.stage_results
+        ],
+        "repair_status": result.repair_status,
+        "optimization_status": result.optimization_status,
+        "structural_repair_status": result.structural_repair_status,
+        "hls_budget": result.budget,
+        "llm_usage": result.llm_usage,
+        "model_repair_failed": _model_repair_failed(result),
+        "run_directory": result.run_directory,
+        "run_manifest_path": result.run_manifest_path,
+        "stop_reason": result.stop_reason,
+    }
+
+
+def exit_code_for_result(result: AgentRunResult, mode: str) -> int:
+    if _has_llm_error(result):
+        return EXIT_LLM_ERROR
+    if result.status == "budget_exceeded" or _has_stage_status(result, {"budget_exceeded"}):
+        return EXIT_BUDGET_EXCEEDED
+    if result.status in {"timeout", "exception"} or _has_stage_status(result, {"timeout", "exception"}):
+        return EXIT_TOOL_ERROR
+
+    if result.status == "completed":
+        if mode == "optimize" and result.optimization_status not in {"improved", "not_attempted"}:
+            return EXIT_SAFE_FALLBACK
+        return EXIT_SUCCESS
+
+    if mode == "baseline":
+        return EXIT_BASELINE_CORRECTNESS_FAILURE
+    if result.status in {"repair_failed", "structural_repair_failed"}:
+        return EXIT_SAFE_FALLBACK
+    if result.optimization_status not in {"not_attempted", "improved"}:
+        return EXIT_SAFE_FALLBACK
+    condition = result.initial_condition.condition
+    if condition in {"compile_failure", "csim_failure", "synth_failure", "cosim_failure", "structural_failure"}:
+        return EXIT_BASELINE_CORRECTNESS_FAILURE
+    return EXIT_TOOL_ERROR
+
+
+def _has_llm_error(result: AgentRunResult) -> bool:
+    for attempt in result.repair_attempts:
+        if attempt.status == "llm_error":
+            return True
+    for attempt in result.structural_repair_attempts:
+        if attempt.status == "llm_error":
+            return True
+    return False
+
+
+def _model_repair_failed(result: AgentRunResult) -> bool:
+    return (
+        result.repair_status == "failed"
+        and bool(result.repair_attempts)
+        and any(attempt.llm_response.status == "ok" for attempt in result.repair_attempts)
     )
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(sys.argv[1:] if argv is None else argv)
-    return run_agent(args.input, input_type=args.input_type, mode=args.mode)
+def _has_stage_status(result: AgentRunResult, statuses: set[str]) -> bool:
+    return any(stage.status in statuses for stage in result.stage_results)
+
+
+def _redact_secrets(text: str) -> str:
+    redacted = text
+    for name in ("FPT26_LLM_API_KEY", "LLM_API_KEY"):
+        value = os.environ.get(name)
+        if value:
+            redacted = redacted.replace(value, "[redacted]")
+    return redacted
+
+
+def main(argv: list[str] | None = None, *, stdout: TextIO = sys.stdout, stderr: TextIO = sys.stderr) -> int:
+    try:
+        args = parse_args(sys.argv[1:] if argv is None else argv)
+    except SystemExit as exc:
+        return int(exc.code) if isinstance(exc.code, int) else EXIT_INPUT_OR_CONFIG_ERROR
+    return run_agent(
+        task_path=args.task,
+        mode=args.mode,
+        output_root=args.output_root,
+        tool_run_root=args.tool_run_root,
+        max_repair_attempts=args.max_repair_attempts,
+        max_structural_repair_attempts=args.max_structural_repair_attempts,
+        max_optimization_candidates=args.max_optimization_candidates,
+        summary_format=args.summary_format,
+        stdout=stdout,
+        stderr=stderr,
+    )
 
 
 if __name__ == "__main__":

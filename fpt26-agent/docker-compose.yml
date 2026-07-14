@@ -20,7 +20,7 @@ services:
       FPT26_XRT_SOURCE: ${FPT26_XRT_SOURCE:-image-default}
       LLM4HLS_VITIS_HLS_ROOT: ${VITIS:?set VITIS to the host Vitis 2025.2 path}
       LLM4HLS_PART: ${HLS_PART:-xcu55c-fsvh2892-2L-e}
-      PYTHONPATH: /workspace/fpt26-agent:/workspace/fpt26-harness
+      PYTHONPATH: /workspace/fpt26-agent:/workspace/fpt26-harness:/workspace/third_party/fpt26_harness
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
       USER: ${USER:-fpt26}
