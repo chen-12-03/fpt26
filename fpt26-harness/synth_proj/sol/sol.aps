@@ -1,0 +1,21 @@
+<AutoPilot:solution xmlns:AutoPilot="com.autoesl.autopilot.solution">
+    <name>
+        <value string="sol"/>
+    </name>
+    <project>
+        <value string="synth_proj"/>
+    </project>
+    <flowTarget value="vivado"/>
+    <targetInfo>
+        <TargetInfo value="xcu55c:-fsvh2892:-2L-e"/>
+    </targetInfo>
+    <libraryList>
+        <library value="xilinx/virtexuplus/virtexuplus" name="DefaultPlatform"/>
+    </libraryList>
+    <clockList>
+        <clock name="clk_default" period="5.0" default="false"/>
+    </clockList>
+    <config>
+        <config_compile complex-mul-dsp="0" unsafe_math_optimizations="1"/>
+    </config>
+</AutoPilot:solution>

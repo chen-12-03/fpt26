@@ -1,0 +1,78 @@
+Execute       source -notrace -encoding utf-8 /tools/Xilinx/2025.2/Vitis/tps/tcl/tcl8.6/clock.tcl 
+Execute         source -encoding utf-8 /tools/Xilinx/2025.2/tps/tcl/tcl8/8.5/msgcat-1.6.1.tm 
+INFO-FLOW: Workspace /home/chen1/projects/fpt26_new/fpt26-harness/synth_proj/sol opened at Tue Jul 14 17:11:57 CST 2026
+Execute       send_msg_by_id INFO @200-1505@%s%s  vivado 
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+Execute     set_top dotProduct 
+INFO: [HLS 200-1510] Running: set_top dotProduct 
+Execute     set_part xcu55c-fsvh2892-2L-e 
+INFO: [HLS 200-1510] Running: set_part xcu55c-fsvh2892-2L-e 
+Execute       create_platform xcu55c-fsvh2892-2L-e -board  
+DBG:HLSDevice: Trying to load device library: /tools/Xilinx/2025.2/Vitis/lib/lnx64.o/libxv_hlsvwrap.so
+DBG:HLSDevice: first parts/arch.xml in RDI_DATADIR: /tools/Xilinx/2025.2/Vivado/data/parts/arch.xml
+DBG:HLSDevice: init success
+INFO: [HLS 200-1611] Setting target device to 'xcu55c-fsvh2892-2L-e'
+Command       create_platform done; 1.18 sec.
+Execute       source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/common/xilinx.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/interface/plb46.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/interface/axi4.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/interface/nativeAXI4.gen 
+Execute           source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/interface/saxilite.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/scripts/xilinxcoregen.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/interface/XilEDKCoreGen.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/ip/xfft.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/ip/xfir.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/ip/dds_compiler.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/ip/util.gen 
+Execute         source /tools/Xilinx/2025.2/Vitis/common/technology/xilinx/DSP48/dsp48.gen 
+Execute       ap_part_info -name xcu55c-fsvh2892-2L-e -data info 
+Execute       config_compile -quiet -complex-mul-dsp=0 
+Command     set_part done; 1.27 sec.
+Execute     create_clock -period 5.0 -name clk_default 
+INFO: [HLS 200-1510] Running: create_clock -period 5.0 -name clk_default 
+Execute       ap_set_clock -name clk_default -period 5 -unit ns -default=false 
+INFO: [SYN 201-201] Setting up clock 'clk_default' with a period of 5ns.
+Execute     config_compile -unsafe_math_optimizations 
+INFO: [HLS 200-1510] Running: config_compile -unsafe_math_optimizations 
+INFO: [XFORM 203-1172] Optimizing floating point zeros and discarding its signedness.
+INFO: [XFORM 203-1176] Optimizing floating point comparison without checking NaN.
+INFO: [XFORM 203-1173] Reordering floating point operations aggressively.
+Execute     csynth_design 
+INFO: [HLS 200-1510] Running: csynth_design 
+Execute       ::AP::init_summary_file csynth 
+Execute       AP::msg_collection_file -open /home/chen1/projects/fpt26_new/fpt26-harness/synth_proj/sol/.autopilot/db/be_messages.xml 
+Execute       elaborate -effort=medium -skip_syncheck=0 -keep_printf=0 -skip_cdt=0 -skip_transform=0 -ng=0 -g=0 -from_csynth_design=1 
+WARNING: [HLS 200-40] Cannot find source file dotProduct.cpp; skipping it.
+INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0.01 seconds. CPU system time: 0 seconds. Elapsed time: 0.02 seconds; current allocated memory: 457.465 MB.
+Execute         send_msg_by_id INFO @200-2191@%s%s C-Synthesis clang-16 
+INFO: [HLS 200-2191] C-Synthesis will use clang-16 as the compiler
+Execute         set_directive_top dotProduct -name=dotProduct 
+Execute         source /tools/Xilinx/2025.2/Vitis/tps/tcl/tcllib2.0/yaml/huddle.tcl 
+Execute           source /tools/Xilinx/2025.2/tps/tcl/tcllib2.0/yaml/huddle_types.tcl 
+Execute         source /tools/Xilinx/2025.2/Vitis/tps/tcl/tcllib2.0/yaml/json2huddle.tcl 
+Execute           source /tools/Xilinx/2025.2/Vitis/tps/tcl/tcllib2.0/try/try.tcl 
+Execute         send_msg_by_id WARNING @200-1986@%s%s TOP /home/chen1/projects/fpt26_new/fpt26-harness/runs/codex-dotProduct-libfix/grade/grade_synth_cand/run_hls.tcl:8 
+WARNING: [HLS 200-1986] Could not apply TOP directive, invalid function, label, or variable (/home/chen1/projects/fpt26_new/fpt26-harness/runs/codex-dotProduct-libfix/grade/grade_synth_cand/run_hls.tcl:8)
+INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.01 seconds; current allocated memory: 457.465 MB.
+INFO-FLOW: Linking Debug ...
+ERROR: [HLS 200-70] Cannot find any design unit to elaborate.
+INFO-FLOW: Caught error in elaborate: Error in linking the design.
+    while executing
+"AP::ap_link_39 $bcfiles $skip_transform $LLVMFlags $dbgInfo"
+    (procedure "AP::compile_dut_files" line 69)
+    invoked from within
+"AP::compile_dut_files $dut_files $dbgInfo $skip_cdt $skip_transform $objdir $perf_budget_var_bcfiles"
+    (procedure "AP::compile" line 115)
+    invoked from within
+"AP::compile 1 $skip_cdt $skip_transform"
+    (procedure "ap_internal_elaborate" line 55)
+    invoked from within
+"ap_internal_elaborate "
+Command       elaborate done; error code: 2; 
+INFO-FLOW: Caught error in csynth_design: Error in linking the design.
+    while executing
+"ap_internal_csynth_design "
+Command     csynth_design done; error code: 2; 
+INFO: [HLS 200-2161] Finished Command csynth_design Elapsed time: 00:00:00; Allocated memory: 0.000 MB.
+Command   ap_source done; error code: 1; 1.34 sec.
+Execute   cleanup_all 

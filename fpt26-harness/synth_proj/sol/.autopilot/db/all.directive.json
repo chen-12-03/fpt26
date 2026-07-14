@@ -1,0 +1,20 @@
+[{
+    "id": 0,
+    "insert_position": "",
+    "functionName": "dotProduct",
+    "label": "",
+    "functionLabel": "",
+    "success": false,
+    "slx": false,
+    "csim": false,
+    "ifcond": "",
+    "sourceFile": "\/home\/chen1\/projects\/fpt26_new\/fpt26-harness\/runs\/codex-dotProduct-libfix\/grade\/grade_synth_cand\/run_hls.tcl",
+    "sourceLine": 8,
+    "pragma": {
+      "name": "TOP",
+      "option": [{
+          "name": "name",
+          "value": "dotProduct"
+        }]
+    }
+  }]

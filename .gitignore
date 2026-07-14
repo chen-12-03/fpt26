@@ -1,0 +1,55 @@
+# Windows / WSL metadata
+*:Zone.Identifier
+Thumbs.db
+.DS_Store
+
+# Python cache and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environments and secrets
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Build and packaging outputs
+build/
+dist/
+*.egg-info/
+
+# Vitis / HLS generated artifacts
+.Xil/
+**/.Xil/
+xsim.dir/
+**/xsim.dir/
+*.jou
+*.str
+*.wdb
+*.wcfg
+*.xo
+*.xclbin
+*.ltx
+*_x/
+*.app/
+
+# Project run outputs and logs
+fpt26-agent/runs/
+fpt26-agent/logs/
+fpt26-agent/hls_prj/
+fpt26-agent/agent_runs/
+fpt26-agent/generated/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*~
