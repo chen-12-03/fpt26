@@ -33,6 +33,7 @@ from agent.input.task_adapter import TaskAdapter
 from agent.llm.config import LLMConfigError
 from agent.llm.llm_client import LLMClient
 from agent.reporting.console_report import render_console_report
+from agent.reporting.run_report import attach_report_to_manifest, write_experimental_report
 from agent.reporting.score_report import Scorer, run_official_scoring
 
 
@@ -46,6 +47,7 @@ LLMClientFactory = Callable[[], LLMClient]
 class AgentExecution:
     result: AgentRunResult
     scoring: dict[str, Any] | None
+    report: dict[str, Any]
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -142,9 +144,9 @@ def run_agent(
         return EXIT_TOOL_ERROR
 
     result = execution.result
-    summary = result_summary(result, config.mode, scoring=execution.scoring)
+    summary = result_summary(result, config.mode, scoring=execution.scoring, report=execution.report)
     if config.summary_format in {"text", "both"}:
-        print(render_console_report(result, config.mode, scoring=execution.scoring), file=stdout)
+        print(render_console_report(result, config.mode, scoring=execution.scoring, report=execution.report), file=stdout)
     if config.summary_format == "both":
         print("--- json summary ---", file=stdout)
     if config.summary_format in {"json", "both"}:
@@ -196,7 +198,9 @@ def _run_config(
             scoring = run_official_scoring(task, result.final_kernel, result.run_directory)
         else:
             scoring = run_official_scoring(task, result.final_kernel, result.run_directory, scorer=scorer)
-    return AgentExecution(result=result, scoring=scoring)
+    report = write_experimental_report(result, mode=config.mode, scoring=scoring)
+    attach_report_to_manifest(result, report, scoring=scoring)
+    return AgentExecution(result=result, scoring=scoring, report=report)
 
 
 def _tool_run_root(config: AgentCLIConfig, task_id: str) -> Path:
@@ -211,7 +215,12 @@ def _validate_tool_run_root(path: Path) -> None:
         raise FileExistsError(f"tool run root already exists and is not empty: {path}")
 
 
-def result_summary(result: AgentRunResult, mode: str, scoring: dict[str, Any] | None = None) -> dict[str, Any]:
+def result_summary(
+    result: AgentRunResult,
+    mode: str,
+    scoring: dict[str, Any] | None = None,
+    report: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     summary = {
         "task_id": result.task_id,
         "mode": mode,
@@ -237,10 +246,23 @@ def result_summary(result: AgentRunResult, mode: str, scoring: dict[str, Any] | 
         "model_repair_failed": _model_repair_failed(result),
         "run_directory": result.run_directory,
         "run_manifest_path": result.run_manifest_path,
+        "report": _report_summary(report),
         "scoring": scoring,
         "stop_reason": result.stop_reason,
     }
     return summary
+
+
+def _report_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
+    if report is None:
+        return None
+    paths = report.get("paths") if isinstance(report.get("paths"), dict) else {}
+    return {
+        "report_json": paths.get("report_json"),
+        "report_txt": paths.get("report_txt"),
+        "verification": report.get("verification"),
+        "ppa": report.get("ppa"),
+    }
 
 
 def exit_code_for_result(result: AgentRunResult, mode: str) -> int:

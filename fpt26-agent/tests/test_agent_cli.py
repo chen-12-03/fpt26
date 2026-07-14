@@ -254,6 +254,8 @@ class FakeScorecard:
     acceleration: float | None
     is_opt: bool
     score: float
+    baseline_report: dict
+    candidate_report: dict
 
     def render(self) -> str:
         return (
@@ -278,6 +280,40 @@ def fake_scorer(task, candidate_kernel: str, work_root: Path) -> FakeScorecard:
         acceleration=1.5,
         is_opt=True,
         score=2.345,
+        baseline_report={
+            "clock_period_ns": 4.3,
+            "latency_best": 120,
+            "latency_avg": 120,
+            "latency_worst": 120,
+            "interval_min": 8,
+            "interval_max": 8,
+            "resources": {
+                "LUT": 100,
+                "FF": 50,
+                "DSP": 0,
+                "BRAM_18K": 0,
+                "URAM": 0,
+            },
+            "available": {},
+            "utilization": {},
+        },
+        candidate_report={
+            "clock_period_ns": 4.0,
+            "latency_best": 80,
+            "latency_avg": 80,
+            "latency_worst": 80,
+            "interval_min": 1,
+            "interval_max": 1,
+            "resources": {
+                "LUT": 111,
+                "FF": 55,
+                "DSP": 0,
+                "BRAM_18K": 0,
+                "URAM": 0,
+            },
+            "available": {},
+            "utilization": {},
+        },
     )
 
 
@@ -534,10 +570,33 @@ class AgentCliTests(unittest.TestCase):
         self.assertIn("--- metered tool transcript ---", text)
         self.assertIn("--- agent result ---", text)
         self.assertIn("--- stage results ---", text)
+        self.assertIn("--- experimental report ---", text)
         self.assertIn("#1", text)
         self.assertIn("budget 5/40 credits spent", text)
         self.assertNotIn("#include", text)
         self.assertNotIn("messages", text)
+
+    def test_report_is_persisted_for_normal_run(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            code, summary, stderr = _run_cli(DOT_PRODUCT, "baseline", tmp / "runs")
+            run_dir = Path(summary["run_directory"])
+            report_json = Path(summary["report"]["report_json"])
+            report_txt = Path(summary["report"]["report_txt"])
+            report = json.loads(report_json.read_text(encoding="utf-8"))
+            report_text = report_txt.read_text(encoding="utf-8")
+            manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(code, EXIT_SUCCESS, stderr)
+        self.assertEqual(report["schema_version"], "fpt26-agent-experimental-report-v1")
+        self.assertEqual(report["task"]["task_id"], "dotProduct_optimize")
+        self.assertEqual(report["verification"]["csim_status"], "pass")
+        self.assertEqual(report["verification"]["synth_status"], "pass")
+        self.assertEqual(report["ppa"]["latency_max"], 120)
+        self.assertEqual(report["paths"]["run_directory"], str(run_dir))
+        self.assertIn("Experimental Report", report_text)
+        self.assertEqual(manifest["reporting"]["report"]["report_json"], str(report_json))
+        self.assertIsNone(manifest["reporting"]["scoring"])
 
     def test_score_flag_persists_official_scorecard_and_adds_summary(self):
         with tempfile.TemporaryDirectory() as tmp_name:
@@ -558,13 +617,23 @@ class AgentCliTests(unittest.TestCase):
             run_dir = Path(summary["run_directory"])
             scorecard_json = run_dir / "scoring" / "scorecard.json"
             scorecard_txt = run_dir / "scoring" / "scorecard.txt"
+            report_json = run_dir / "report" / "report.json"
             scorecard = json.loads(scorecard_json.read_text(encoding="utf-8"))
             scorecard_text = scorecard_txt.read_text(encoding="utf-8")
+            report = json.loads(report_json.read_text(encoding="utf-8"))
+            manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
 
         self.assertEqual(code, EXIT_SUCCESS)
         self.assertEqual(summary["scoring"]["score"], 2.345)
+        self.assertEqual(summary["report"]["ppa"]["latency_max"], 80)
+        self.assertEqual(summary["report"]["ppa"]["lut"], 111)
         self.assertEqual(scorecard["task_id"], "dotProduct_optimize")
         self.assertEqual(scorecard["score"], 2.345)
+        self.assertEqual(report["scoring"]["score"], 2.345)
+        self.assertEqual(report["ppa"]["latency_max"], 80)
+        self.assertEqual(report["ppa"]["lut"], 111)
+        self.assertEqual(manifest["reporting"]["scoring"]["score"], 2.345)
+        self.assertEqual(manifest["reporting"]["report"]["ppa"]["lut"], 111)
         self.assertIn("Scorecard", scorecard_text)
 
     def test_score_text_summary_contains_official_scorecard_section(self):

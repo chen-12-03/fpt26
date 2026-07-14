@@ -5,7 +5,12 @@ from typing import Any
 from agent.competition_agent import AgentRunResult
 
 
-def render_console_report(result: AgentRunResult, mode: str, scoring: dict[str, Any] | None = None) -> str:
+def render_console_report(
+    result: AgentRunResult,
+    mode: str,
+    scoring: dict[str, Any] | None = None,
+    report: dict[str, Any] | None = None,
+) -> str:
     context = result.task_context
     lines = [
         f"=== Task {context.task_id} [{context.task_type}] ===",
@@ -48,6 +53,18 @@ def render_console_report(result: AgentRunResult, mode: str, scoring: dict[str, 
     lines.extend(["", "--- stage results ---"])
     for stage in result.stage_results:
         lines.append(f"  {stage.stage:<6} {stage.status:<14} {stage.summary}")
+    if report is not None:
+        paths = report.get("paths", {}) if isinstance(report.get("paths"), dict) else {}
+        ppa = report.get("ppa", {}) if isinstance(report.get("ppa"), dict) else {}
+        lines.extend(
+            [
+                "",
+                "--- experimental report ---",
+                f"  report json            : {paths.get('report_json')}",
+                f"  report text            : {paths.get('report_txt')}",
+                f"  ppa                    : clk={ppa.get('estimated_clock_ns')}ns latency={ppa.get('latency_max')} II={ppa.get('ii_max')}",
+            ]
+        )
     if scoring is not None:
         lines.extend(["", "--- official scorecard (hidden grading, uncharged) ---"])
         rendered = scoring.get("rendered")
