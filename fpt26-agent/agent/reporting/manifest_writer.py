@@ -20,6 +20,9 @@ class ManifestWriter:
         baseline_stage_results = _baseline_stage_results(result, stage_results)
         transcript = result.budget.get("transcript", []) if isinstance(result.budget, dict) else []
         repair_attempts = [_attempt_dict(attempt) for attempt in getattr(result, "repair_attempts", [])]
+        structural_attempts = [
+            _attempt_dict(attempt) for attempt in getattr(result, "structural_repair_attempts", [])
+        ]
         optimization_candidates = [_candidate_record_dict(candidate) for candidate in getattr(result, "optimization_candidates", [])]
         candidates = [candidate]
 
@@ -36,6 +39,13 @@ class ManifestWriter:
                 continue
             candidates.append(_candidate_from_dict(repair_candidate))
             _write_repair_candidate(layout, attempt, replacement_kernel)
+        for attempt in structural_attempts:
+            structural_candidate = attempt.get("candidate")
+            replacement_kernel = attempt.get("replacement_kernel")
+            if not isinstance(structural_candidate, dict) or not isinstance(replacement_kernel, str):
+                continue
+            candidates.append(_candidate_from_dict(structural_candidate))
+            _write_structural_candidate(layout, attempt, replacement_kernel)
         for record in optimization_candidates:
             optimization_candidate = record.get("candidate")
             kernel_code = record.get("kernel_code")
@@ -46,10 +56,19 @@ class ManifestWriter:
         _write_llm_audit(layout, getattr(result, "llm_usage", {}))
         _write_optimization_audit(layout, result, optimization_candidates)
         _write_cosim_audit(layout, result)
+        _write_structural_repair_audit(layout, result, structural_attempts)
         write_text_once(layout.final_kernel_path, result.final_kernel)
         write_json_once(
             layout.run_manifest_path,
-            _run_manifest(layout, candidates, result, stage_results, repair_attempts, optimization_candidates),
+            _run_manifest(
+                layout,
+                candidates,
+                result,
+                stage_results,
+                repair_attempts,
+                structural_attempts,
+                optimization_candidates,
+            ),
         )
         return layout
 
@@ -72,7 +91,10 @@ def _candidate_manifest(
         "stage_results": stage_results,
         "cosim_decision": _cosim_decision_dict(result),
         "cosim_diagnosis": _cosim_diagnosis_dict(result),
+        "baseline_cosim_diagnosis": _baseline_cosim_diagnosis_dict(result),
+        "final_cosim_diagnosis": _final_cosim_diagnosis_dict(result),
         "requires_structural_repair": getattr(result, "requires_structural_repair", False),
+        "structural_repair_status": getattr(result, "structural_repair_status", None),
         "status": result.status,
     }
 
@@ -80,6 +102,13 @@ def _candidate_manifest(
 def _baseline_stage_results(result: Any, stage_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if getattr(result, "repair_attempts", []):
         return stage_results[:1]
+    if getattr(result, "structural_repair_attempts", []):
+        baseline: list[dict[str, Any]] = []
+        for stage in stage_results:
+            baseline.append(stage)
+            if stage.get("stage") == "cosim":
+                break
+        return baseline
     if getattr(result, "optimization_candidates", []):
         baseline: list[dict[str, Any]] = []
         for stage in stage_results:
@@ -96,6 +125,7 @@ def _run_manifest(
     result: Any,
     stage_results: list[dict[str, Any]],
     repair_attempts: list[dict[str, Any]],
+    structural_attempts: list[dict[str, Any]],
     optimization_candidates: list[dict[str, Any]],
 ) -> dict[str, Any]:
     result_dict = result.to_dict()
@@ -113,6 +143,8 @@ def _run_manifest(
         "selected_candidate_id": getattr(result, "selected_candidate_id", None),
         "repair_status": getattr(result, "repair_status", None),
         "repair_attempts": repair_attempts,
+        "structural_repair_status": getattr(result, "structural_repair_status", None),
+        "structural_repair_attempts": structural_attempts,
         "optimization_status": getattr(result, "optimization_status", None),
         "optimization_candidates": optimization_candidates,
         "baseline_metrics": getattr(result, "baseline_metrics", {}),
@@ -120,6 +152,8 @@ def _run_manifest(
         "selection_reason": getattr(result, "selection_reason", None),
         "cosim_decision": _cosim_decision_dict(result),
         "cosim_diagnosis": _cosim_diagnosis_dict(result),
+        "baseline_cosim_diagnosis": _baseline_cosim_diagnosis_dict(result),
+        "final_cosim_diagnosis": _final_cosim_diagnosis_dict(result),
         "requires_structural_repair": getattr(result, "requires_structural_repair", False),
         "llm_usage": getattr(result, "llm_usage", {}),
         "stop_reason": getattr(result, "stop_reason", None),
@@ -153,6 +187,10 @@ def _run_manifest(
             "artifact_index": str(layout.cosim_artifact_index_path),
             "baseline_candidate_diagnosis": str(layout.baseline_cosim_diagnosis_path),
         },
+        "structural_repair_paths": {
+            "summary": str(layout.structural_repair_summary_path),
+            "attempts": str(layout.structural_repair_attempts_path),
+        },
     }
 
 
@@ -182,6 +220,8 @@ def _candidate_paths(layout: RunLayout, candidate_id: str) -> dict[str, str]:
         "kernel_path": str(candidate_dir / "kernel.cpp"),
         "stage_results_path": str(candidate_dir / "stage_results.json"),
         "validation_path": str(candidate_dir / "validation.json"),
+        "stream_analysis_path": str(candidate_dir / "stream_analysis.json"),
+        "cosim_diagnosis_path": str(candidate_dir / "cosim_diagnosis.json"),
         "actions_path": str(candidate_dir / "actions.json"),
         "comparison_path": str(candidate_dir / "comparison.json"),
         "diff_path": str(candidate_dir / "diff.patch"),
@@ -209,6 +249,43 @@ def _write_repair_candidate(layout: RunLayout, attempt: dict[str, Any], replacem
             "validation_result": attempt.get("validation_result"),
             "stage_results": attempt.get("stage_results", []),
             "status": attempt.get("status"),
+            "paths": _candidate_paths(layout, candidate_id),
+        },
+    )
+
+
+def _write_structural_candidate(layout: RunLayout, attempt: dict[str, Any], replacement_kernel: str) -> None:
+    candidate = attempt["candidate"]
+    candidate_id = candidate["candidate_id"]
+    candidate_dir = layout.candidates_dir / candidate_id
+    candidate_dir.mkdir(parents=False, exist_ok=False)
+    write_text_once(candidate_dir / "kernel.cpp", replacement_kernel)
+    write_json_once(candidate_dir / "validation.json", attempt.get("validation_result", {}))
+    write_json_once(candidate_dir / "stream_analysis.json", attempt.get("stream_analysis", {}))
+    write_json_once(candidate_dir / "stage_results.json", attempt.get("stage_results", []))
+    write_json_once(candidate_dir / "cosim_diagnosis.json", attempt.get("cosim_diagnosis"))
+    write_text_once(candidate_dir / "diff.patch", attempt.get("diff_patch", ""))
+    write_json_once(
+        candidate_dir / "manifest.json",
+        {
+            "schema_version": "candidate-manifest-v1",
+            **candidate,
+            "diagnosis": attempt.get("diagnosis"),
+            "repair_strategy": attempt.get("repair_strategy"),
+            "affected_streams": attempt.get("affected_streams", []),
+            "changes": attempt.get("changes", []),
+            "confidence": attempt.get("confidence"),
+            "prompt_sha256": attempt.get("prompt_sha256"),
+            "llm_call_record": attempt.get("llm_call_record"),
+            "validation_result": attempt.get("validation_result"),
+            "stream_analysis": attempt.get("stream_analysis"),
+            "stage_results": attempt.get("stage_results", []),
+            "cosim_diagnosis": attempt.get("cosim_diagnosis"),
+            "selection_status": attempt.get("selection_status"),
+            "status": attempt.get("status"),
+            "stop_reason": attempt.get("stop_reason"),
+            "budget_before": attempt.get("budget_before"),
+            "budget_after": attempt.get("budget_after"),
             "paths": _candidate_paths(layout, candidate_id),
         },
     )
@@ -294,6 +371,30 @@ def _write_cosim_audit(layout: RunLayout, result: Any) -> None:
     write_json_once(layout.cosim_artifact_index_path, artifacts)
 
 
+def _write_structural_repair_audit(layout: RunLayout, result: Any, attempts: list[dict[str, Any]]) -> None:
+    summary = {
+        "schema_version": "structural-repair-summary-v1",
+        "status": getattr(result, "structural_repair_status", None),
+        "selected_candidate_id": getattr(result, "selected_candidate_id", None),
+        "stop_reason": getattr(result, "stop_reason", None),
+        "attempt_count": len(attempts),
+        "baseline_cosim_diagnosis": _baseline_cosim_diagnosis_dict(result),
+        "final_cosim_diagnosis": _final_cosim_diagnosis_dict(result),
+        "attempts": [
+            {
+                "attempt_index": attempt.get("attempt_index"),
+                "candidate_id": (attempt.get("candidate") or {}).get("candidate_id"),
+                "status": attempt.get("status"),
+                "selection_status": attempt.get("selection_status"),
+                "stop_reason": attempt.get("stop_reason"),
+            }
+            for attempt in attempts
+        ],
+    }
+    write_json_once(layout.structural_repair_summary_path, summary)
+    write_json_once(layout.structural_repair_attempts_path, attempts)
+
+
 def _cosim_decision_dict(result: Any) -> dict[str, Any] | None:
     decision = getattr(result, "cosim_decision", None)
     if decision is None:
@@ -307,6 +408,28 @@ def _cosim_decision_dict(result: Any) -> dict[str, Any] | None:
 
 def _cosim_diagnosis_dict(result: Any) -> dict[str, Any] | None:
     diagnosis = getattr(result, "cosim_diagnosis", None)
+    if diagnosis is None:
+        return None
+    if hasattr(diagnosis, "to_dict"):
+        return diagnosis.to_dict()
+    if isinstance(diagnosis, dict):
+        return diagnosis
+    return None
+
+
+def _baseline_cosim_diagnosis_dict(result: Any) -> dict[str, Any] | None:
+    diagnosis = getattr(result, "baseline_cosim_diagnosis", None)
+    if diagnosis is None:
+        return None
+    if hasattr(diagnosis, "to_dict"):
+        return diagnosis.to_dict()
+    if isinstance(diagnosis, dict):
+        return diagnosis
+    return None
+
+
+def _final_cosim_diagnosis_dict(result: Any) -> dict[str, Any] | None:
+    diagnosis = getattr(result, "final_cosim_diagnosis", None)
     if diagnosis is None:
         return None
     if hasattr(diagnosis, "to_dict"):

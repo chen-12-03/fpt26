@@ -19,6 +19,10 @@ from agent.strategy.baseline_manager import BaselineManager
 from agent.strategy.cosim_policy import CosimDecision, CosimPolicy
 from agent.strategy.optimization_controller import OptimizationCandidateRecord, OptimizationController
 from agent.strategy.repair_controller import RepairAttempt, RepairController
+from agent.strategy.structural_repair_controller import (
+    StructuralRepairAttempt,
+    StructuralRepairController,
+)
 
 
 BackendFactory = Callable[[Any, Any], HarnessBackend]
@@ -45,7 +49,11 @@ class AgentRunResult:
     selection_reason: str | None
     cosim_decision: CosimDecision | None
     cosim_diagnosis: CoSimDiagnosis | None
+    baseline_cosim_diagnosis: CoSimDiagnosis | None
+    final_cosim_diagnosis: CoSimDiagnosis | None
     requires_structural_repair: bool
+    structural_repair_status: str
+    structural_repair_attempts: list[StructuralRepairAttempt]
     llm_usage: dict[str, Any]
     stop_reason: str
     run_directory: str | None = None
@@ -72,7 +80,15 @@ class AgentRunResult:
             "selection_reason": self.selection_reason,
             "cosim_decision": self.cosim_decision.to_dict() if self.cosim_decision is not None else None,
             "cosim_diagnosis": self.cosim_diagnosis.to_dict() if self.cosim_diagnosis is not None else None,
+            "baseline_cosim_diagnosis": (
+                self.baseline_cosim_diagnosis.to_dict() if self.baseline_cosim_diagnosis is not None else None
+            ),
+            "final_cosim_diagnosis": (
+                self.final_cosim_diagnosis.to_dict() if self.final_cosim_diagnosis is not None else None
+            ),
             "requires_structural_repair": self.requires_structural_repair,
+            "structural_repair_status": self.structural_repair_status,
+            "structural_repair_attempts": [attempt.to_dict() for attempt in self.structural_repair_attempts],
             "llm_usage": _json_value(self.llm_usage),
             "stop_reason": self.stop_reason,
             "run_directory": self.run_directory,
@@ -92,32 +108,40 @@ class CompetitionAgent:
         baseline_manager: BaselineManager | None = None,
         repair_controller: RepairController | None = None,
         optimization_controller: OptimizationController | None = None,
+        structural_repair_controller: StructuralRepairController | None = None,
         cosim_policy: CosimPolicy | None = None,
         cosim_analyzer: CoSimAnalyzer | None = None,
         log_normalizer: LogNormalizer | None = None,
         llm_client: LLMClient | None = None,
         repair_enabled: bool = False,
         optimize_enabled: bool = False,
+        structural_repair_enabled: bool = False,
         max_repair_attempts: int = 2,
         max_optimization_candidates: int = 3,
+        max_structural_repair_attempts: int = 2,
     ) -> None:
         self.backend_factory = backend_factory or HarnessBackend
         self.classifier = classifier or InitialConditionClassifier()
         self.baseline_manager = baseline_manager or BaselineManager()
         self.repair_controller = repair_controller or RepairController()
         self.optimization_controller = optimization_controller or OptimizationController()
+        self.structural_repair_controller = structural_repair_controller or StructuralRepairController()
         self.cosim_policy = cosim_policy or CosimPolicy()
         self.cosim_analyzer = cosim_analyzer or CoSimAnalyzer()
         self.log_normalizer = log_normalizer or LogNormalizer()
         self.llm_client = llm_client
         self.repair_enabled = repair_enabled
         self.optimize_enabled = optimize_enabled
+        self.structural_repair_enabled = structural_repair_enabled
         self.max_repair_attempts = max_repair_attempts
         self.max_optimization_candidates = max_optimization_candidates
+        self.max_structural_repair_attempts = max_structural_repair_attempts
 
     def run(self, task: Any, tool_server: Any, output_root: str | Path | None = None) -> AgentRunResult:
         if self.repair_enabled and self.llm_client is None:
             raise ValueError("repair_enabled=True requires llm_client")
+        if self.structural_repair_enabled and self.llm_client is None:
+            raise ValueError("structural_repair_enabled=True requires llm_client")
         task_context = TaskAdapter.from_official_task(task)
         baseline_kernel = self.baseline_manager.initial_kernel(task_context)
         final_kernel = baseline_kernel
@@ -204,6 +228,37 @@ class CompetitionAgent:
             )
             requires_structural_repair = cosim_diagnosis.requires_structural_repair
             if not _passed(cosim_result):
+                structural_repair_status = "not_attempted"
+                structural_repair_attempts: list[StructuralRepairAttempt] = []
+                final_cosim_diagnosis = cosim_diagnosis
+                selected_candidate_id = baseline_candidate.candidate_id
+                stop_reason = "baseline_cosim_failed"
+                status = _run_status(stage_results)
+                if self.structural_repair_enabled and requires_structural_repair:
+                    assert self.llm_client is not None
+                    structural = self.structural_repair_controller.repair(
+                        task_context,
+                        baseline_candidate,
+                        cosim_result,
+                        cosim_diagnosis,
+                        backend,
+                        self.llm_client,
+                        candidate_store,
+                        max_attempts=self.max_structural_repair_attempts,
+                    )
+                    structural_repair_status = structural.status
+                    structural_repair_attempts = structural.attempts
+                    selected_candidate_id = structural.selected_candidate.candidate_id
+                    final_cosim_diagnosis = structural.final_cosim_diagnosis
+                    stop_reason = structural.stop_reason
+                    for attempt in structural.attempts:
+                        stage_results.extend(attempt.stage_results)
+                    if structural.status == "repaired":
+                        final_kernel = structural.final_kernel
+                        status = "completed"
+                    else:
+                        final_kernel = baseline_kernel
+                        status = "structural_repair_failed"
                 return self._finish(
                     task_context,
                     tool_server,
@@ -213,11 +268,17 @@ class CompetitionAgent:
                     output_root,
                     repair_status="not_attempted",
                     repair_attempts=[],
-                    selected_candidate_id=baseline_candidate.candidate_id,
+                    selected_candidate_id=selected_candidate_id,
                     cosim_decision=cosim_decision,
                     cosim_diagnosis=cosim_diagnosis,
+                    baseline_cosim_diagnosis=cosim_diagnosis,
+                    final_cosim_diagnosis=final_cosim_diagnosis,
                     requires_structural_repair=requires_structural_repair,
-                    stop_reason="baseline_cosim_failed",
+                    structural_repair_status=structural_repair_status,
+                    structural_repair_attempts=structural_repair_attempts,
+                    stop_reason=stop_reason,
+                    status=status,
+                    classification_results=[csim_result, synth_result, cosim_result],
                 )
         elif cosim_decision.reason == "insufficient_budget":
             stage_results.append(_cosim_budget_result(cosim_decision, tool_server))
@@ -287,6 +348,8 @@ class CompetitionAgent:
             selection_reason=selection_reason,
             cosim_decision=cosim_decision,
             cosim_diagnosis=cosim_diagnosis,
+            baseline_cosim_diagnosis=cosim_diagnosis,
+            final_cosim_diagnosis=cosim_diagnosis,
             requires_structural_repair=requires_structural_repair,
             stop_reason=stop_reason,
             status="completed",
@@ -312,7 +375,11 @@ class CompetitionAgent:
         selection_reason: str | None = None,
         cosim_decision: CosimDecision | None = None,
         cosim_diagnosis: CoSimDiagnosis | None = None,
+        baseline_cosim_diagnosis: CoSimDiagnosis | None = None,
+        final_cosim_diagnosis: CoSimDiagnosis | None = None,
         requires_structural_repair: bool = False,
+        structural_repair_status: str = "not_attempted",
+        structural_repair_attempts: list[StructuralRepairAttempt] | None = None,
         stop_reason: str,
         status: str | None = None,
         classification_results: list[UnifiedToolResult] | None = None,
@@ -339,7 +406,11 @@ class CompetitionAgent:
             selection_reason=selection_reason,
             cosim_decision=cosim_decision,
             cosim_diagnosis=cosim_diagnosis,
+            baseline_cosim_diagnosis=baseline_cosim_diagnosis,
+            final_cosim_diagnosis=final_cosim_diagnosis,
             requires_structural_repair=requires_structural_repair,
+            structural_repair_status=structural_repair_status,
+            structural_repair_attempts=list(structural_repair_attempts or []),
             llm_usage=_llm_usage(self.llm_client),
             stop_reason=stop_reason,
         )

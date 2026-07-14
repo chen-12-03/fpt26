@@ -59,8 +59,9 @@ class KernelValidator:
         elif original_signature is not None and candidate_signature != original_signature:
             errors.append("top function signature changed")
 
+        known_local_files = _known_local_files(task_context) | set(_local_includes(original_kernel))
         for include_name in _local_includes(candidate_kernel):
-            if include_name not in _known_local_files(task_context):
+            if include_name not in known_local_files:
                 errors.append(f"replacement kernel includes unknown local file: {include_name}")
 
         status = "pass" if not errors else "fail"

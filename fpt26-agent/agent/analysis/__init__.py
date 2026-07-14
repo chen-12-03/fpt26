@@ -4,6 +4,7 @@ from .issue_classifier import ISSUE_CATEGORIES, IssueClassification, IssueClassi
 from .kernel_validator import KernelValidationResult, KernelValidator
 from .log_normalizer import LogNormalizer, NormalizedLog
 from .report_analyzer import ReportAnalysis, ReportAnalyzer
+from .stream_analyzer import StreamAnalysis, StreamAnalyzer
 
 __all__ = [
     "ISSUE_CATEGORIES",
@@ -19,4 +20,6 @@ __all__ = [
     "NormalizedLog",
     "ReportAnalysis",
     "ReportAnalyzer",
+    "StreamAnalysis",
+    "StreamAnalyzer",
 ]
