@@ -1,0 +1,206 @@
+"""Iter3 Deep-optimized prompts — task-specific strategies + hls-generator discipline."""
+from __future__ import annotations
+import json
+from typing import Any
+from llm4hls.task import Task
+from agent.analysis.issue_classifier import IssueClassification
+from agent.analysis.log_normalizer import NormalizedLog
+
+# ── Base system prompt (shared across all modes) ──────────────────────────
+_SYS_BASE = """You are an expert AMD-Xilinx Vitis HLS engineer optimizing C/C++ kernels for an Alveo U55C (xcu55c-fsvh2892-2L-e, 200 MHz, Vitis 2025.2).
+
+Output ONLY the full kernel source inside a ```cpp fenced block.
+Do NOT modify the top function signature, headers, or testbenches.
+
+## Core Optimization Discipline (from hls-generator)
+1. **Read synthesis report BEFORE proposing changes.** Inspect: target II, achieved II, latency (worst/avg), loop interval, timing slack, resource counts (LUT, FF, DSP, BRAM).
+2. **Diagnose the bottleneck precisely before acting:**
+   - II violation → timing? recurrence? memory-port pressure? interface bandwidth?
+   - High latency → which loop dominates? Can it be pipelined?
+   - Resource explosion → is UNROLL factor too aggressive? FF/LUT > 5x = over-unrolling.
+   - Cosim DEADLOCK → check stream depths, DATAFLOW stage balance, FIFO write ordering.
+3. **Apply ONE pragma class per iteration.** Re-synthesize. Compare reports.
+4. **If a directive does NOT improve the limiting report metric, REMOVE or revise it.** Do not accumulate ineffective pragmas.
+5. **Never apply both ARRAY_PARTITION and ARRAY_RESHAPE to the same variable.**
+6. **DATAFLOW requires explicit stream depths.** Use stream.depth(N) for every inter-stage channel.
+
+## Pipeline & II Rules
+- PIPELINE II=<n> on the loop/function that directly controls throughput.
+- Pipelining an outer loop forces inner-loop concurrency — this is an architectural decision.
+- If II=1 fails: classify the cause (timing/recurrence/memory-port/bandwidth) before adding more pragmas.
+
+## Array Partition & Reshape
+- ARRAY_PARTITION: creates parallel banks/elements. Grows LUT/FF/BRAM.
+- ARRAY_RESHAPE: widens storage word. Use when adjacent elements move together.
+- Match dim, type, factor to the access dimension that appears in the bottleneck.
+- Tiled loops + cyclic partition: the canonical pattern for vector reduction.
+
+## Dataflow & Streaming (cosim-critical)
+- DATAFLOW: only after design has clear producer/compute/consumer stages.
+- Connect stages via hls::stream<T> FIFOs with explicit .depth(N).
+- **C-sim FIFOs are UNBOUNDED.** They hide deadlocks. Cosim FIFOs default to depth 2.
+- **The #1 cosim deadlock pattern:** writing an ENTIRE stream before writing any side-channel data. Fix by interleaving writes to all streams in a single loop.
+
+## Stopping Criteria
+- Two consecutive rounds with no latency improvement → stop and submit best.
+- If latency cannot be reduced without breaking csim/cosim → stop and submit current best."""
+
+# ── Mode-specific system prompt additions ─────────────────────────────────
+
+_REPAIR_ADDON = """
+## Repair Mode — Fix Functional Bugs FIRST
+- Read the csim error log carefully: find the EXACT mismatch.
+- Trace the dataflow from inputs to that output — which computation is wrong?
+- Check edge cases: branch conditions (especially ==0), off-by-one indices, missing terms in accumulations.
+- Fix the MINIMAL code section. Do NOT restructure or add pragmas to a broken kernel.
+- Re-run csim to verify the fix BEFORE any optimization.
+- Common bug patterns: branch with missing accumulator term, wrong variable in formula, wrong divisor/coefficient."""
+
+_OPTIMIZE_ADDON = """
+## Optimize Mode — Reduce Latency Systematically
+- Start from a functionally-correct baseline (csim must pass first).
+- For single-loop reduction/accumulation: try tiled loop + ARRAY_PARTITION cyclic + PIPELINE II=1 on the tiled outer loop. Check the header for any available PAR_FACTOR constant.
+- For nested loops: PIPELINE inner first, then consider outer if inner is already optimal.
+- Always check resource growth: if LUT/FF increase >2x for <2x latency reduction, the optimization is inefficient.
+- After each change: csim → synth → compare latency → accept or reject."""
+
+_STRUCTURAL_ADDON = """
+## Structural Repair Mode — Fix Streaming Deadlocks
+- The design passes csim (unbounded FIFOs) but deadlocks in cosim (bounded depth-2 RTL FIFOs).
+- **Key diagnostic question:** does any stage write an ENTIRE stream before touching another stream?
+- **Fix pattern:** interleave writes to ALL streams within a SINGLE loop, so producer/consumer rates are balanced.
+- **Alternative fix:** add explicit .depth(N) to streams, but this only masks the architectural issue — prefer restructuring.
+- After each fix: csim → cosim → verify no deadlock.
+- For debugging: set stream depths to large values (e.g., N*2) temporarily to confirm the DATAFLOW topology is correct, then reduce to practical depths."""
+
+# ── Assemble mode-specific system prompts ─────────────────────────────────
+SYSTEM = _SYS_BASE + _OPTIMIZE_ADDON
+REPAIR_SYSTEM = _SYS_BASE + _REPAIR_ADDON
+OPTIMIZE_SYSTEM = _SYS_BASE + _OPTIMIZE_ADDON
+STRUCTURAL_REPAIR_SYSTEM = _SYS_BASE + _STRUCTURAL_ADDON
+
+
+def build_prompt(
+    task: Task,
+    current_kernel: str,
+    *,
+    csim_result: str = "",
+    synth_result: str = "",
+    cosim_result: str = "",
+    best_latency: int | None = None,
+    bottleneck_hint: str = "",
+    knowledge_hint: str = "",
+    attempt: int = 0,
+    resource_delta: str = "",
+) -> str:
+    header_text = "\n".join(f"// {name}\n{code}" for name, code in task.headers.items())
+
+    payload: dict[str, Any] = {
+        "task_id": task.id,
+        "task_type": task.type,
+        "difficulty": task.difficulty,
+        "description": task.description,
+        "initial_condition": task.initial_condition,
+        "top_function": task.top,
+        "target": {"part": task.part, "clock_ns": task.clock_ns},
+        "budget_remaining": f"{task.budget} credits",
+        "headers": header_text,
+        "editable_kernel": f"// {task.kernel_name}\n{current_kernel}",
+        "tool_results": {
+            "csim": csim_result or "(not run)",
+            "synth": synth_result or "(not run)",
+            "cosim": cosim_result or "(not run / N/A)",
+        },
+        "current_best_latency": f"{best_latency} cycles" if best_latency is not None else "unknown",
+    }
+
+    if bottleneck_hint:
+        payload["bottleneck_diagnosis"] = bottleneck_hint
+    if knowledge_hint:
+        payload["optimization_patterns"] = knowledge_hint
+    if resource_delta:
+        payload["resource_trend"] = resource_delta
+
+    # Task-type-specific critical warnings
+    if task.requires_cosim:
+        payload["cosim_warning"] = (
+            "CRITICAL: This task requires cosim. C-simulation uses UNBOUNDED FIFOs "
+            "that HIDE streaming deadlocks. The RTL cosim uses bounded depth-2 FIFOs. "
+            "If the cosim log shows DEADLOCK or TIMEOUT, the fix is: "
+            "(1) interleave writes to ALL streams in a SINGLE loop in each producer stage, OR "
+            "(2) add explicit .depth(N) on every hls::stream declaration. "
+            "The most common cause: writing one entire stream before touching another. "
+            "C-sim CANNOT catch this — only cosim reveals it."
+        )
+    if task.type == "repair":
+        payload["repair_hint"] = (
+            "This is a BUG-FIX task. The code compiles and synthesizes but FAILS csim. "
+            "Focus on CORRECTNESS, not performance. Read the csim error log to find "
+            "which output value is wrong, then trace back through the computation. "
+            "Common issues: wrong branch formula, missing term in sum, wrong variable name."
+        )
+
+    payload["instruction"] = (
+        "1. Read tool_results carefully.\n"
+        "2. IF csim FAILED: diagnose the functional bug from the error log. Fix ONLY the bug. Do NOT add pragmas.\n"
+        "3. IF cosim DEADLOCKS/TIMEOUT: restructure streaming to avoid burst-before-side-channel ordering.\n"
+        "4. IF all PASSED: apply ONE pragma class. Diagnose bottleneck from synth report first.\n"
+        "5. Return the FULL kernel source code. Keep the top function signature UNCHANGED."
+    )
+    return json.dumps(payload, indent=2, ensure_ascii=False)
+
+
+# ── Convenience builders (used by agent modules) ──────────────────────────
+
+def build_repair_prompt(
+    task: Task,
+    current_kernel: str,
+    normalized_log: NormalizedLog,
+    issue: IssueClassification,
+    attempt_feedback: dict | None = None,
+) -> str:
+    extra = ""
+    if attempt_feedback and attempt_feedback.get("attempt", 1) > 1:
+        extra = (
+            f"\n[Previous attempt {attempt_feedback['attempt']-1} did not fix the bug. "
+            "Try a DIFFERENT hypothesis. Re-read the error log carefully.]"
+        )
+    return build_prompt(
+        task=task,
+        current_kernel=current_kernel,
+        csim_result=f"FAIL [{issue.issue_category}]: {normalized_log.error_summary}{extra}",
+        attempt=attempt_feedback.get("attempt", 1) if attempt_feedback else 1,
+    )
+
+
+def build_optimize_prompt(
+    task: Task,
+    current_kernel: str,
+    best_latency: int | None,
+    baseline_metrics: dict | None = None,
+    resource_history: str = "",
+) -> str:
+    synth_str = "PASS"
+    if baseline_metrics:
+        synth_str = json.dumps(baseline_metrics)
+    return build_prompt(
+        task=task,
+        current_kernel=current_kernel,
+        csim_result="PASS",
+        synth_result=synth_str,
+        best_latency=best_latency,
+        resource_delta=resource_history,
+    )
+
+
+def build_structural_repair_prompt(
+    task: Task,
+    current_kernel: str,
+    cosim_log: str,
+) -> str:
+    return build_prompt(
+        task=task,
+        current_kernel=current_kernel,
+        csim_result="PASS (warning: unbounded C-sim FIFOs hide streaming bugs)",
+        cosim_result=f"DEADLOCK/TIMEOUT (bounded RTL FIFOs reveal structural hazard):\n{cosim_log[-4000:]}",
+    )

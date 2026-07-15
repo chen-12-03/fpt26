@@ -16,15 +16,16 @@ Each step below is a pure function ``RunState -> RunState``.  Open
 from __future__ import annotations
 
 import re
+import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
 from llm4hls.budget import BudgetExceeded
 from llm4hls.harness import ToolServer
-from llm4hls.scoring import grade as official_grade
 from llm4hls.task import Task
-from llm4hls.tools import ToolResult
+from llm4hls.tools import CoSimTool, CSimTool, SynthTool, ToolResult
 
 from agent.agents.base import AgentConfig, RunState
 
@@ -149,13 +150,167 @@ def step_cosim(state: RunState) -> RunState:
 
 
 def step_score(state: RunState) -> RunState:
-    """Run official hidden-testbench grading (outside the metered budget)."""
+    """Run V3 scoring: hidden-csim → synth(cand) → synth(baseline) → cosim(if needed).
+
+    Uses the unified scoring_v3.grade() formula:
+        score = 100 * validity * sqrt(q_perf * q_area) * efficiency
+    """
     if not state.config.score:
         return state
-    grade_root = Path(state.config.output_root) / state.task.id / "grade"
-    state.scorecard = official_grade(state.task, state.kernel, grade_root)
-    if state.scorecard is not None:
-        state.log(f"score: {state.scorecard.score:.4f}  (functional={state.scorecard.functional_pass})")
+
+    from scoring.scoring_v3 import (
+        Anchor, QoREvidence, TaskScoringConfig, ValidityGates, grade as v3_grade,
+    )
+
+    task = state.task
+    kernel = state.kernel
+    grade_root = Path(state.config.output_root) / task.id / "grade"
+    _start = time.monotonic()
+
+    # ── 1. Hidden functional test (C-simulation) ──────────────────────────
+    hidden_files = task.assemble(kernel, task.hidden_tb_code, task.hidden_tb_name)
+    csim = CSimTool().run(
+        grade_root / "grade_csim", hidden_files,
+        top=task.top, part=task.part, clock_ns=task.clock_ns,
+    )
+
+    # ── 2. Hidden cosim (if required) ─────────────────────────────────────
+    cosim_ok: bool | None = None
+    cosim_latency: int | None = None
+    if task.requires_cosim:
+        cosim = CoSimTool().run(
+            grade_root / "grade_cosim", hidden_files,
+            synth_sources=[task.kernel_name],
+            tb_sources=[task.hidden_tb_name],
+            top=task.top, part=task.part, clock_ns=task.clock_ns,
+        )
+        cosim_ok = cosim.ok
+        if cosim.report and cosim.report.latency_worst:
+            cosim_latency = cosim.report.latency_worst
+
+    # ── 3. Candidate synthesis ────────────────────────────────────────────
+    cand_files = dict(task.headers)
+    cand_files[task.kernel_name] = kernel
+    cand_synth = SynthTool().run(
+        grade_root / "grade_synth_cand", cand_files,
+        synth_sources=[task.kernel_name],
+        top=task.top, part=task.part, clock_ns=task.clock_ns,
+    )
+
+    # ── 4. Baseline (starter) synthesis ────────────────────────────────────
+    base_files = dict(task.headers)
+    base_files[task.kernel_name] = task.kernel_code
+    base_synth = SynthTool().run(
+        grade_root / "grade_synth_base", base_files,
+        synth_sources=[task.kernel_name],
+        top=task.top, part=task.part, clock_ns=task.clock_ns,
+    )
+
+    # ── 5. Build V3 data structures ───────────────────────────────────────
+    cfg = TaskScoringConfig(
+        task_id=task.id,
+        task_type=task.type,
+        difficulty=task.difficulty,
+        requires_cosim=task.requires_cosim,
+        budget_limit=task.budget,
+        task_clock_ns=task.clock_ns,
+    )
+
+    # Anchor: starter code synthesis results
+    starter_lat = (
+        base_synth.report.latency_worst or base_synth.report.latency_avg
+        if base_synth.ok and base_synth.report else None
+    )
+    starter_ii = (
+        base_synth.report.interval_max
+        if base_synth.ok and base_synth.report else None
+    )
+    starter_clock = (
+        base_synth.report.clock_period_ns
+        if base_synth.ok and base_synth.report else task.clock_ns
+    )
+    starter_resources = (
+        base_synth.report.resources
+        if base_synth.ok and base_synth.report else {}
+    )
+    starter_valid = base_synth.ok
+
+    # Check if reference solution exists for anchor fallback
+    ref_lat = None; ref_ii = None; ref_clock = None; ref_resources = {}
+    if task.reference_code:
+        ref_files = dict(task.headers)
+        ref_files[task.kernel_name] = task.reference_code
+        ref_synth = SynthTool().run(
+            grade_root / "grade_synth_ref", ref_files,
+            synth_sources=[task.kernel_name],
+            top=task.top, part=task.part, clock_ns=task.clock_ns,
+        )
+        if ref_synth.ok and ref_synth.report:
+            ref_lat = ref_synth.report.latency_worst or ref_synth.report.latency_avg
+            ref_ii = ref_synth.report.interval_max
+            ref_clock = ref_synth.report.clock_period_ns
+            ref_resources = ref_synth.report.resources
+
+    anchor = Anchor(
+        source="starter" if starter_valid else ("reference" if ref_lat else "none"),
+        valid=starter_valid or ref_lat is not None,
+        latency=starter_lat if starter_valid else ref_lat,
+        ii=starter_ii if starter_valid else ref_ii,
+        clock_ns=starter_clock if starter_valid else ref_clock,
+        resources=starter_resources if starter_valid else ref_resources,
+        available={},
+    )
+
+    # Evidence: candidate synthesis results
+    cand_lat = (
+        cand_synth.report.latency_worst or cand_synth.report.latency_avg
+        if cand_synth.ok and cand_synth.report else None
+    )
+    cand_ii = (
+        cand_synth.report.interval_max
+        if cand_synth.ok and cand_synth.report else None
+    )
+    cand_clock = (
+        cand_synth.report.clock_period_ns
+        if cand_synth.ok and cand_synth.report else task.clock_ns
+    )
+    cand_resources = (
+        cand_synth.report.resources
+        if cand_synth.ok and cand_synth.report else {}
+    )
+
+    evidence = QoREvidence(
+        candidate_latency=cand_lat,
+        candidate_ii=cand_ii,
+        candidate_clock_ns=cand_clock,
+        cosim_latency=cosim_latency,
+        candidate_resources=cand_resources,
+    )
+
+    # Gates
+    gates = ValidityGates(
+        hidden_csim_pass=csim.ok,
+        hidden_cosim_pass=cosim_ok,
+        synth_pass=cand_synth.ok,
+        resource_capacity_pass=True,
+    )
+
+    # Budget & wall time
+    budget = state.server.budget
+    cost_spent = budget.spent if hasattr(budget, 'spent') else 0
+    wall_time_s = time.monotonic() - _start
+
+    # ── 6. Call V3 grade ──────────────────────────────────────────────────
+    scorecard = v3_grade(
+        task_cfg=cfg,
+        anchor=anchor,
+        evidence=evidence,
+        cost_spent=cost_spent,
+        wall_time_s=wall_time_s,
+        gates=gates,
+    )
+    state.scorecard = scorecard
+    state.log(f"V3 score: {scorecard.score:.2f}/100  (valid={scorecard.valid}, q_hw={scorecard.q_hw:.4f}, eff={scorecard.efficiency:.4f})")
     return state
 
 
@@ -282,7 +437,7 @@ def build_pipeline(
         state.log(f"task={task.id}  type={task.type}  mode={mode}  budget={server.budget.total}")
         return state
 
-    pipeline = Pipeline(name=f"fpt26-v2/{mode}")
+    pipeline = Pipeline(name=f"fpt26-v3/{mode}")
     pipeline.steps.append(Step("init", _init, desc="initialise run state"))
 
     # ---- Stage 1: Baseline correctness check ----

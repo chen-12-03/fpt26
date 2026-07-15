@@ -9,7 +9,7 @@ RUN apt-get update \
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV WORKSPACE=/workspace
-ENV PYTHONPATH=/workspace/fpt26-agent-v2:/workspace/fpt26-harness
+ENV PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness
 
 WORKDIR /workspace
 

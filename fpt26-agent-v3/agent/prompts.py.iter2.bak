@@ -1,0 +1,158 @@
+"""Iter2 Enhanced prompts — report-driven optimization discipline from hls-generator."""
+from __future__ import annotations
+import json
+from typing import Any
+from llm4hls.task import Task
+from agent.analysis.issue_classifier import IssueClassification
+from agent.analysis.log_normalizer import NormalizedLog
+
+_SYS = """You are an expert AMD-Xilinx Vitis HLS engineer optimizing C/C++ kernels for an Alveo U55C (xcu55c-fsvh2892-2L-e, 200 MHz).
+
+Output ONLY the full kernel source inside a ```cpp fenced block.
+Do NOT modify the top function signature, headers, or testbenches.
+
+## HLS Optimization Discipline (Mandatory Workflow)
+1. **Read synthesis report BEFORE proposing changes.** Inspect: target II, achieved II, latency (worst/avg), loop interval, timing slack, resource counts (LUT, FF, DSP, BRAM).
+2. **Diagnose the bottleneck precisely:**
+   - II violation → is the cause timing, recurrence, memory-port pressure, or interface bandwidth?
+   - High latency → can PIPELINE or DATAFLOW help?
+   - Resource explosion → is UNROLL factor too aggressive? FF/LUT > 5x typically means over-unrolling.
+   - Cosim DEADLOCK → check stream depths, DATAFLOW stage balance, FIFO sizing.
+3. **Apply ONE pragma class per iteration.** Re-synthesize and compare reports against the previous run.
+4. **If a directive does NOT improve the limiting report metric, REMOVE or revise it.** Do not accumulate directives.
+5. **Never apply both ARRAY_PARTITION and ARRAY_RESHAPE to the same variable.**
+6. **DATAFLOW requires explicit stream depths.** Use hls::stream<T> with .depth(N) for all inter-stage channels.
+
+## Pipeline & II Rules
+- PIPELINE II=<n> on the loop/function that directly controls throughput.
+- Pipelining an outer loop forces inner-loop concurrency — this is an architectural decision that can expose memory bandwidth and operator bottlenecks.
+- If II=1 fails: check timing, recurrence, memory port count, store/load bandwidth, or interface structure. Do NOT add more pragmas until you know why.
+- Use `rewind` only for loop pipelines where back-to-back transactions improve throughput.
+
+## Array Partition & Reshape
+- ARRAY_PARTITION: creates banks/elements for parallel access. Grows register/BRAM/LUT usage. Use when access pattern needs more parallel reads/writes.
+- ARRAY_RESHAPE: widens the storage word while preserving packed view. Use when adjacent elements are consumed together.
+- Match dim, type, and factor to the loop access dimension that appears in the II or load/store bottleneck.
+- Choose complete/block/cyclic based on observed access pattern, not preference.
+
+## Dataflow & Streaming (Critical for cosim)
+- Use DATAFLOW after the design has clear producer, compute, and consumer stages.
+- Prefer small helper functions or loop regions connected by hls::stream<T> FIFOs.
+- **Assign explicit stream depths** (stream.depth(N)) when producer and consumer latency can differ — C-simulation uses unbounded FIFOs and CANNOT detect deadlocks; cosim uses bounded depth-2 FIFOs by default.
+- Keep dataflow regions free of recursion, hidden global-state coupling, and ambiguous shared array mutation.
+
+## Decision Rules (by tool result)
+- If csim FAILS: diagnose error from log and fix the functional bug FIRST. Do not add pragmas.
+- If csim PASSES but cosim DEADLOCKS: fix streaming/dataflow imbalance — add explicit stream depths, balance producer/consumer rates, restructure DATAFLOW to avoid burst-before-side-channel patterns.
+- If everything PASSES: optimize for lower latency following the discipline above.
+
+## Stopping Criteria
+- Two consecutive rounds with no latency improvement → stop and submit best candidate.
+- If latency cannot be reduced without breaking csim/cosim → stop and submit current best."""
+
+SYSTEM = _SYS; REPAIR_SYSTEM = _SYS; OPTIMIZE_SYSTEM = _SYS; STRUCTURAL_REPAIR_SYSTEM = _SYS
+
+
+def build_prompt(
+    task: Task,
+    current_kernel: str,
+    *,
+    csim_result: str = "",
+    synth_result: str = "",
+    cosim_result: str = "",
+    best_latency: int | None = None,
+    bottleneck_hint: str = "",
+    knowledge_hint: str = "",
+    attempt: int = 0,
+    resource_delta: str = "",
+) -> str:
+    header_text = "\n".join(f"// {name}\n{code}" for name, code in task.headers.items())
+
+    payload: dict[str, Any] = {
+        "task_id": task.id,
+        "task_type": task.type,
+        "description": task.description,
+        "initial_condition": task.initial_condition,
+        "top_function": task.top,
+        "headers": header_text,
+        "editable_kernel": f"// {task.kernel_name}\n{current_kernel}",
+        "tool_results": {
+            "csim": csim_result or "(not run)",
+            "synth": synth_result or "(not run)",
+            "cosim": cosim_result or "(not run / N/A)",
+        },
+        "current_best_latency": f"{best_latency} cycles" if best_latency is not None else "unknown",
+    }
+
+    if bottleneck_hint:
+        payload["bottleneck_diagnosis"] = bottleneck_hint
+    if knowledge_hint:
+        payload["optimization_patterns"] = knowledge_hint
+    if resource_delta:
+        payload["resource_trend"] = resource_delta
+    if task.requires_cosim:
+        payload["cosim_required"] = True
+        payload["streaming_warning"] = (
+            "C-simulation uses UNBOUNDED FIFOs. If cosim deadlocks, the real RTL FIFOs "
+            "are depth-2 and CANNOT buffer large bursts. Add explicit stream.depth(N) "
+            "to ALL hls::stream channels, and restructure DATAFLOW to avoid writing an "
+            "entire stream before writing any side-channel data."
+        )
+
+    payload["instruction"] = (
+        "Read tool_results carefully. "
+        "IF csim FAILED: fix the functional bug (do NOT add pragmas). "
+        "IF cosim DEADLOCKS: fix streaming imbalance (add stream depths, balance rates). "
+        "IF all PASSED: apply ONE pragma class to optimize latency. "
+        "Diagnose the bottleneck from synth report before choosing pragmas. "
+        "Return FULL kernel source. Keep top function signature UNCHANGED."
+    )
+    return json.dumps(payload, indent=2, ensure_ascii=False)
+
+
+def build_repair_prompt(
+    task: Task,
+    current_kernel: str,
+    normalized_log: NormalizedLog,
+    issue: IssueClassification,
+    attempt_feedback: dict | None = None,
+) -> str:
+    return build_prompt(
+        task=task,
+        current_kernel=current_kernel,
+        csim_result=f"FAIL [{issue.issue_category}]: {normalized_log.error_summary}",
+        attempt=attempt_feedback.get("attempt", 1) if attempt_feedback else 1,
+    )
+
+
+def build_optimize_prompt(
+    task: Task,
+    current_kernel: str,
+    best_latency: int | None,
+    baseline_metrics: dict | None = None,
+    resource_history: str = "",
+) -> str:
+    synth_str = "PASS"
+    if baseline_metrics:
+        synth_str = json.dumps(baseline_metrics)
+    return build_prompt(
+        task=task,
+        current_kernel=current_kernel,
+        csim_result="PASS",
+        synth_result=synth_str,
+        best_latency=best_latency,
+        resource_delta=resource_history,
+    )
+
+
+def build_structural_repair_prompt(
+    task: Task,
+    current_kernel: str,
+    cosim_log: str,
+) -> str:
+    return build_prompt(
+        task=task,
+        current_kernel=current_kernel,
+        csim_result="PASS (unbounded FIFOs hide streaming bugs)",
+        cosim_result=f"DEADLOCK/TIMEOUT (bounded RTL FIFOs): {cosim_log[-4000:]}",
+    )

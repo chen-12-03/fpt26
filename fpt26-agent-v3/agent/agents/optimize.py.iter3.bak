@@ -27,8 +27,8 @@ def _report(r: Any) -> str:
         f"DSP={rp.resources.get('DSP','?')} BRAM={rp.resources.get('BRAM_18K','?')}"
     )
 
-def _diagnose(r: Any) -> str:
-    """Report-driven bottleneck diagnosis from synthesis report metrics."""
+def _diagnose(r: Any, task_type: str = "optimize") -> str:
+    """Report-driven bottleneck diagnosis with task-type awareness."""
     if not r or not r.report:
         return "No synth data available. Run synthesis first."
 
@@ -81,12 +81,13 @@ def _diagnose(r: Any) -> str:
         elif slack < clock * 0.1:
             issues.append(f"Tight slack ({slack:.2f}ns) — near timing limit.")
 
-    # 5. General high-latency-with-II=1 hint
-    if lat > 500 and achieved_ii <= 1:
-        issues.append(
-            "II=1 achieved but latency still high. Consider: "
-            "tiled loop + ARRAY_PARTITION + PIPELINE on tiled outer loop."
-        )
+    # 5. Task-type-specific hints
+    if task_type == "optimize":
+        if lat > 500 and achieved_ii <= 1:
+            issues.append(
+                "II=1 achieved but latency still high. Consider: "
+                "tiled loop + ARRAY_PARTITION + PIPELINE on tiled outer loop."
+            )
 
     if not issues:
         issues.append(
@@ -148,7 +149,7 @@ class OptimizeAgent:
                 resource_history.append(cr.report.resources)
 
             report_str = _report(cr) if cr.ok else f"SYNTH FAIL: {getattr(cr, 'log', '')[-500:]}"
-            diag = _diagnose(cr)
+            diag = _diagnose(cr, task.type)
             rsrc_trend = _resource_delta(resource_history)
 
             state.log(f"opt r{rnd}: lat={best_lat} | {report_str}")
@@ -160,7 +161,7 @@ class OptimizeAgent:
             know = ""
             try:
                 from agent.knowledge import lookup_patterns, format_for_prompt
-                m = lookup_patterns(task.description or "")
+                m = lookup_patterns(task.description or "", task.type)
                 know = format_for_prompt(m) if m else ""
                 if know:
                     state.log(f"opt r{rnd}: knowledge ×{len(m)} patterns")

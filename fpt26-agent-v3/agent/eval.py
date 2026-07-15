@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-run evaluation tool for FPT26 agent v2.
+"""Cross-run evaluation tool for FPT26 agent v3.
 
 Reads ``run_report.json`` files from an output root and produces a
 comparison table with per-task and aggregate metrics.

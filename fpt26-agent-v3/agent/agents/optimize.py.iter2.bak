@@ -1,4 +1,4 @@
-"""Iter3 OptimizeAgent — resource-aware + adaptive strategy per task type."""
+"""Iter2 OptimizeAgent — report-driven with resource-aware bottleneck diagnosis."""
 from __future__ import annotations
 import re
 from typing import Any
@@ -28,7 +28,7 @@ def _report(r: Any) -> str:
     )
 
 def _diagnose(r: Any) -> str:
-    """Report-driven bottleneck diagnosis from synthesis report metrics."""
+    """Report-driven bottleneck diagnosis based on hls-generator discipline."""
     if not r or not r.report:
         return "No synth data available. Run synthesis first."
 
@@ -36,74 +36,81 @@ def _diagnose(r: Any) -> str:
     issues: list[str] = []
 
     # 1. II violation analysis
+    target_ii = getattr(rp, 'target_ii', None)
     achieved_ii = rp.interval_max or 0
     if achieved_ii > 1:
         issues.append(
-            f"II={achieved_ii}>1 — classify cause before adding pragmas:\n"
-            f"  • Memory port pressure → ARRAY_PARTITION on accessed dimension\n"
+            f"II={achieved_ii}>1 — classify the cause before adding pragmas:\n"
+            f"  • Memory port pressure → ARRAY_PARTITION on the accessed dimension\n"
             f"  • Recurrence/feedback → check loop-carried dependency\n"
-            f"  • Timing → check clock slack\n"
-            f"  • Interface bandwidth → check m_axi port count/width"
+            f"  • Timing slack → check if clock constraint is met\n"
+            f"  • Interface bandwidth → check m_axi port count and width\n"
+            f"  Inspect schedule viewer or synthesis log for the exact bottleneck."
         )
 
     # 2. Latency analysis
     lat = rp.latency_worst or rp.latency_avg or 0
-    interval = max(achieved_ii, 1)
+    interval = rp.interval_max or 1
     if lat > 1000:
-        trip_count = lat // interval
+        trip_count = lat // max(interval, 1)
         issues.append(
-            f"High latency ({lat} cycles, ~{trip_count} iters): "
-            f"PIPELINE on main loop, or DATAFLOW if multi-stage."
+            f"High latency ({lat} cycles, ~{trip_count} iterations): "
+            f"consider PIPELINE on the main loop, or DATAFLOW if multiple stages exist."
         )
     elif lat > 100:
         issues.append(
-            f"Moderate latency ({lat} cycles): PIPELINE II=1 on bottleneck loop."
+            f"Moderate latency ({lat} cycles): PIPELINE II=1 on the bottleneck loop "
+            f"should reduce this significantly."
         )
 
-    # 3. Resource imbalance
+    # 3. Resource imbalance analysis
     lut = rp.resources.get('LUT', 0) or 0
     ff = rp.resources.get('FF', 0) or 0
     dsp = rp.resources.get('DSP', 0) or 0
 
     if ff > 0 and lut > 100 and ff / max(lut, 1) > 5:
         issues.append(
-            f"FF/LUT={ff/max(lut,1):.1f}x — over-unrolling. Reduce UNROLL factor or use PIPELINE."
+            f"FF/LUT ratio = {ff/max(lut,1):.1f}x — likely over-unrolling. "
+            f"Reduce UNROLL factor or switch to PIPELINE instead."
         )
     if dsp > 0 and lut > 1000 and dsp > lut * 0.5:
-        issues.append(f"High DSP ({dsp}) vs LUT ({lut}) — consider resource sharing.")
+        issues.append(
+            f"High DSP usage ({dsp}) relative to LUT ({lut}) — "
+            f"DSP-heavy operations may benefit from resource sharing."
+        )
 
-    # 4. Timing
+    # 4. Timing/clock analysis
     clock = rp.clock_period_ns or 5.0
     if hasattr(rp, 'timing_slack_ns') and rp.timing_slack_ns is not None:
         slack = rp.timing_slack_ns
         if slack < 0:
-            issues.append(f"NEGATIVE slack ({slack:.2f}ns) at {clock}ns clock.")
+            issues.append(
+                f"NEGATIVE timing slack ({slack:.2f}ns) — design fails timing at {clock}ns clock. "
+                f"Reduce logic depth or increase clock period."
+            )
         elif slack < clock * 0.1:
-            issues.append(f"Tight slack ({slack:.2f}ns) — near timing limit.")
-
-    # 5. General high-latency-with-II=1 hint
-    if lat > 500 and achieved_ii <= 1:
-        issues.append(
-            "II=1 achieved but latency still high. Consider: "
-            "tiled loop + ARRAY_PARTITION + PIPELINE on tiled outer loop."
-        )
+            issues.append(
+                f"Tight timing slack ({slack:.2f}ns) — near limit. "
+                f"Further optimizations may cause timing violations."
+            )
 
     if not issues:
         issues.append(
-            "No obvious bottleneck. II=1 may already be achieved. "
-            "Try DATAFLOW or consider optimization complete."
+            "No obvious bottleneck from report metrics. "
+            "Check if PIPELINE II=1 is already achieved. "
+            "If so, try DATAFLOW for stage-level parallelism or consider task complete."
         )
 
     return "\n".join(f"• {i}" for i in issues)
 
 
 def _resource_delta(history: list[dict]) -> str:
-    """Summarize resource trend across rounds."""
+    """Summarize resource trend across optimization rounds."""
     if len(history) < 2:
         return ""
     first = history[0]
     last = history[-1]
-    lines = ["Resource trend (first→last):"]
+    lines = ["Resource trend (first → last round):"]
     for key in ("LUT", "FF", "DSP", "BRAM_18K"):
         fv = first.get(key, 0) or 0
         lv = last.get(key, 0) or 0
@@ -113,17 +120,21 @@ def _resource_delta(history: list[dict]) -> str:
             lines.append(f"  {key}: {fv} → {lv} ({change:+.0f}% {arrow})")
         elif lv > 0:
             lines.append(f"  {key}: 0 → {lv} (NEW)")
-    lines.append("Goal: >2x speedup with <2x resource growth.")
+    lines.append("If resources grow >50% with <2x speedup, the optimization is inefficient.")
     return "\n".join(lines)
 
 
 class OptimizeAgent:
-    """Iter3: Resource-aware optimization with task-type adaptive strategy.
+    """Report-driven optimization agent using hls-generator discipline.
 
-    Key improvements over iter2:
-    - Resource growth tracking with efficiency warnings
-    - Task-type-specific diagnosis hints
-    - Adaptive max rounds (more rounds for optimize tasks)
+    Each round:
+      1. Synthesize current best → read report
+      2. Diagnose bottleneck from report metrics
+      3. Look up applicable optimization patterns from knowledge base
+      4. Build context-aware prompt (report + diagnosis + patterns + resource trend)
+      5. LLM proposes ONE pragma class change
+      6. csim → synth → compare latency
+      7. Accept if improved, track stagnation
     """
 
     def __init__(self, llm: Any, max_rounds: int = 5) -> None:
@@ -137,7 +148,6 @@ class OptimizeAgent:
         best_lat = state.best_latency
         stag = 0
         resource_history: list[dict] = []
-        best_resources: dict = {}
 
         for rnd in range(1, self.max_rounds + 1):
             # ── 1. Synthesize current best ──────────────────────────────
@@ -152,18 +162,18 @@ class OptimizeAgent:
             rsrc_trend = _resource_delta(resource_history)
 
             state.log(f"opt r{rnd}: lat={best_lat} | {report_str}")
+            state.log(f"opt r{rnd}: diagnosis →")
             for line in diag.split("\n"):
-                if line.strip():
-                    state.log(f"  {line.strip()}")
+                state.log(f"  {line.strip()}")
 
-            # ── 2. Knowledge lookup ─────────────────────────────────────
+            # ── 2. Look up knowledge patterns ───────────────────────────
             know = ""
             try:
                 from agent.knowledge import lookup_patterns, format_for_prompt
-                m = lookup_patterns(task.description or "")
+                m = lookup_patterns(task.description or "", task.type)
                 know = format_for_prompt(m) if m else ""
                 if know:
-                    state.log(f"opt r{rnd}: knowledge ×{len(m)} patterns")
+                    state.log(f"opt r{rnd}: knowledge ×{len(m)} patterns matched")
             except Exception:
                 pass
 
@@ -183,49 +193,39 @@ class OptimizeAgent:
             resp = self.llm.complete(SYSTEM, prompt)
             cand = extract_code(resp)
             if not cand or cand.strip() == best.strip():
-                state.log(f"opt r{rnd}: no change — converged")
+                state.log(f"opt r{rnd}: no change proposed — stop")
                 break
 
-            # ── 5. Validate: csim → synth ──────────────────────────────
+            # ── 5. Validate candidate: csim first ───────────────────────
             cs = server.csim(cand)
             state.results.append(cs)
             if not cs.ok:
-                state.log(f"opt r{rnd}: csim FAIL — discard")
+                state.log(f"opt r{rnd}: csim FAIL — discard candidate")
                 stag += 1
                 continue
 
+            # ── 6. Synthesize candidate ─────────────────────────────────
             sr = server.synth(cand)
             state.results.append(sr)
             if not sr.ok:
-                state.log(f"opt r{rnd}: synth FAIL — discard")
+                state.log(f"opt r{rnd}: synth FAIL — discard candidate")
                 stag += 1
                 continue
 
-            # ── 6. Compare latency + resource efficiency ────────────────
+            # ── 7. Compare latency ──────────────────────────────────────
             lat = _latency(sr)
-            cand_lut = (sr.report.resources.get('LUT', 0) or 0) if sr.report else 0
-            best_lut = best_resources.get('LUT', 0) if best_resources else 0
-
             state.log(f"opt r{rnd}: lat {best_lat}→{lat} | {_report(sr)}")
 
             if lat is not None and (best_lat is None or lat < best_lat):
-                # Check resource efficiency
-                if best_lut > 0 and cand_lut > best_lut * 2:
-                    state.log(
-                        f"opt r{rnd}: ACCEPTED lat={lat} BUT resources {best_lut}→{cand_lut} LUT "
-                        f"(>{2.0}x) — efficiency warning"
-                    )
-                else:
-                    state.log(f"opt r{rnd}: ACCEPTED ✓ (lat={lat})")
                 best, best_lat, stag = cand, lat, 0
-                if sr.report:
-                    best_resources = sr.report.resources
+                state.log(f"opt r{rnd}: ACCEPTED ✓ (latency={lat})")
             else:
                 stag += 1
-                state.log(f"opt r{rnd}: no improvement (stag {stag}/2)")
+                state.log(f"opt r{rnd}: no improvement (stagnation {stag}/2)")
 
+            # ── 8. Stop conditions ──────────────────────────────────────
             if stag >= 2:
-                state.log("opt: converged (2 stagnant rounds)")
+                state.log("opt: 2 consecutive stagnant rounds — optimization converged")
                 break
 
         state.kernel = best

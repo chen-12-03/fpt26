@@ -83,33 +83,46 @@ def _compute_derived(state: RunState) -> dict[str, Any]:
     # Budget efficiency: score points per credit spent
     if state.scorecard is not None and total_spent > 0:
         sc = state.scorecard
-        if sc.score > 0:
-            metrics["budget_efficiency"] = round(sc.score / max(metrics["budget_utilization"], 0.001), 3)
+        score_val = sc.score if hasattr(sc, 'score') else 0
+        if score_val > 0:
+            metrics["budget_efficiency"] = round(score_val / max(metrics["budget_utilization"], 0.001), 3)
 
     # Resource efficiency: acceleration per unit area growth
     if state.scorecard is not None:
         sc = state.scorecard
-        cand_rep = sc.candidate_report
-        base_rep = sc.baseline_report
-        if cand_rep is not None and base_rep is not None:
-            cand_r = cand_rep.resources if hasattr(cand_rep, "resources") else {}
-            base_r = base_rep.resources if hasattr(base_rep, "resources") else {}
-            growth = _resource_growth(cand_r, base_r)
-            metrics["resource_growth"] = growth
-            metrics["baseline_resources"] = base_r
-            metrics["candidate_resources"] = cand_r
-
-            if growth and sc.acceleration and sc.acceleration > 0:
-                # Use max LUT/FF growth as primary area cost
-                max_growth = max(
-                    growth.get("LUT", 1.0),
-                    growth.get("FF", 1.0),
-                    growth.get("DSP", 1.0),
+        is_v3 = hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
+        if is_v3 and sc.valid:
+            # V3 scorecard: use latency_ratio and area_growth
+            metrics["resource_growth"] = sc.growth_by_resource
+            metrics["baseline_resources"] = sc.baseline_resources
+            metrics["candidate_resources"] = sc.candidate_resources
+            if sc.latency_ratio > 0 and sc.area_growth > 0:
+                metrics["resource_efficiency"] = round(
+                    sc.latency_ratio / max(sc.area_growth, 1.0), 3
                 )
-                if max_growth > 0:
-                    metrics["resource_efficiency"] = round(
-                        sc.acceleration / max(max_growth, 1.0), 3
+        elif not is_v3:
+            # Legacy scorecard fields
+            cand_rep = getattr(sc, 'candidate_report', None)
+            base_rep = getattr(sc, 'baseline_report', None)
+            if cand_rep is not None and base_rep is not None:
+                cand_r = cand_rep.resources if hasattr(cand_rep, "resources") else {}
+                base_r = base_rep.resources if hasattr(base_rep, "resources") else {}
+                growth = _resource_growth(cand_r, base_r)
+                metrics["resource_growth"] = growth
+                metrics["baseline_resources"] = base_r
+                metrics["candidate_resources"] = cand_r
+
+                accel = getattr(sc, 'acceleration', None)
+                if growth and accel and accel > 0:
+                    max_growth = max(
+                        growth.get("LUT", 1.0),
+                        growth.get("FF", 1.0),
+                        growth.get("DSP", 1.0),
                     )
+                    if max_growth > 0:
+                        metrics["resource_efficiency"] = round(
+                            accel / max(max_growth, 1.0), 3
+                        )
 
     return metrics
 
@@ -149,18 +162,46 @@ def write_run_report(state: RunState) -> Path:
 
     if state.scorecard is not None:
         sc = state.scorecard
-        report["scoring"] = {
-            "score": sc.score,
-            "score_max": sc.difficulty,  # theoretical max = difficulty × 1.0
-            "score_pct": round(sc.score / max(sc.difficulty, 1) * 100, 1),
-            "functional_pass": sc.functional_pass,
-            "synth_pass": sc.synth_pass,
-            "cosim_pass": sc.cosim_pass,
-            "baseline_latency": sc.baseline_latency,
-            "candidate_latency": sc.candidate_latency,
-            "acceleration": sc.acceleration,
-            "is_opt": sc.is_opt,
-        }
+        # Support both V3 (scoring_v3) and legacy (llm4hls) scorecard formats
+        is_v3 = hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
+        if is_v3:
+            report["scoring"] = {
+                "schema_version": sc.schema_version,
+                "score": sc.score,
+                "score_max": sc.score_max,
+                "score_pct": round(sc.score / max(sc.score_max, 1) * 100, 1),
+                "valid": sc.valid,
+                "gate_reason": sc.gate_reason,
+                "csim_pass": sc.csim_pass,
+                "synth_pass": sc.synth_pass,
+                "cosim_pass": sc.cosim_pass,
+                "anchor_source": sc.anchor_source,
+                "latency_ratio": sc.latency_ratio,
+                "area_growth": sc.area_growth,
+                "bottleneck_resource": sc.bottleneck_resource,
+                "q_perf": sc.q_perf,
+                "q_area": sc.q_area,
+                "q_hw": sc.q_hw,
+                "efficiency": sc.efficiency,
+                "growth_by_resource": sc.growth_by_resource,
+                "baseline_resources": sc.baseline_resources,
+                "candidate_resources": sc.candidate_resources,
+                "cost_spent": sc.cost_spent,
+                "cost_limit": sc.cost_limit,
+            }
+        else:
+            report["scoring"] = {
+                "score": sc.score,
+                "score_max": getattr(sc, 'difficulty', 1),
+                "score_pct": round(sc.score / max(getattr(sc, 'difficulty', 1), 1) * 100, 1),
+                "functional_pass": getattr(sc, 'functional_pass', None),
+                "synth_pass": getattr(sc, 'synth_pass', None),
+                "cosim_pass": getattr(sc, 'cosim_pass', None),
+                "baseline_latency": getattr(sc, 'baseline_latency', None),
+                "candidate_latency": getattr(sc, 'candidate_latency', None),
+                "acceleration": getattr(sc, 'acceleration', None),
+                "is_opt": getattr(sc, 'is_opt', None),
+            }
 
     report_path = out_dir / "run_report.json"
     report_path.write_text(
@@ -204,10 +245,26 @@ def print_evaluation(state: RunState) -> None:
     # Score
     if state.scorecard is not None:
         sc = state.scorecard
-        score_pct = round(sc.score / max(sc.difficulty, 1) * 100, 1)
-        print(f"  Score:        {sc.score:.3f} / {sc.difficulty} ({score_pct}%)")
-        if sc.acceleration is not None:
-            print(f"  Acceleration: {sc.acceleration:.2f}x  (baseline={sc.baseline_latency} → candidate={sc.candidate_latency} cyc)")
+        is_v3 = hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
+        if is_v3:
+            score_pct = round(sc.score / max(sc.score_max, 1) * 100, 1)
+            print(f"  Score:        {sc.score:.2f} / {sc.score_max:.0f} ({score_pct}%)  [V3]")
+            print(f"  Valid:        {'PASS' if sc.valid else 'FAIL'}  ({sc.gate_reason})")
+            if sc.valid:
+                print(f"  Latency ratio:{sc.latency_ratio:.2f}x  (anchor={sc.anchor_source})")
+                print(f"  Q_perf:       {sc.q_perf:.4f}  Q_area: {sc.q_area:.4f}  Q_HW: {sc.q_hw:.4f}")
+                print(f"  Efficiency:   {sc.efficiency:.4f}  (cost {sc.cost_spent}/{sc.cost_limit})")
+                print(f"  Area growth:  {sc.area_growth:.2f}x  bottleneck={sc.bottleneck_resource}")
+                if sc.growth_by_resource:
+                    gr = ", ".join(f"{k}={v:.1f}x" for k, v in sc.growth_by_resource.items() if v != 1.0)
+                    if gr:
+                        print(f"  Resources:    {gr}")
+        else:
+            score_pct = round(sc.score / max(getattr(sc, 'difficulty', 1), 1) * 100, 1)
+            print(f"  Score:        {sc.score:.3f} / {getattr(sc, 'difficulty', '?')} ({score_pct}%)")
+            accel = getattr(sc, 'acceleration', None)
+            if accel is not None:
+                print(f"  Acceleration: {accel:.2f}x  (baseline={getattr(sc, 'baseline_latency', '?')} → candidate={getattr(sc, 'candidate_latency', '?')} cyc)")
         if derived["budget_efficiency"] is not None:
             print(f"  Score/credit: {derived['budget_efficiency']:.3f}")
         if derived["resource_efficiency"] is not None:

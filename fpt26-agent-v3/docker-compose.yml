@@ -2,7 +2,7 @@ services:
   agent:
     build:
       context: ${FPT26_REPO_ROOT:-..}
-      dockerfile: fpt26-agent-v2/Dockerfile
+      dockerfile: fpt26-agent-v3/Dockerfile
       args:
         BASE_IMAGE: ${FPT26_AGENT_BASE_IMAGE:-vitis_runtime:2025.2}
     image: ${FPT26_AGENT_IMAGE:-fpt26-agent:latest}
@@ -36,7 +36,7 @@ services:
       FPT26_LLM_MAX_TOTAL_TOKENS: ${FPT26_LLM_MAX_TOTAL_TOKENS:-}
       LLM4HLS_VITIS_HLS_ROOT: ${VITIS:?set VITIS to the host Vitis 2025.2 path}
       LLM4HLS_PART: ${HLS_PART:-xcu55c-fsvh2892-2L-e}
-      PYTHONPATH: /workspace/fpt26-agent-v2:/workspace/fpt26-harness
+      PYTHONPATH: /workspace/fpt26-agent-v3:/workspace/fpt26-harness
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
       USER: ${USER:-fpt26}

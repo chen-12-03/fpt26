@@ -37,15 +37,26 @@ xsim.dir/
 *.xo
 *.xclbin
 *.ltx
+*.bit
+*.dcp
+*.aps
 *_x/
-*.app/
+*_proj/
+*.app
 
 # Project run outputs and logs
-fpt26-agent/runs/
-fpt26-agent/logs/
-fpt26-agent/hls_prj/
-fpt26-agent/agent_runs/
-fpt26-agent/generated/
+**/runs/
+**/logs/
+**/hls_prj/
+**/agent_runs/
+**/generated/
+*.7z
+*.zip
+*.tar.gz
+
+# IDE
+.vscode/
+.idea/
 
 # Temporary files
 tmp/

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI entry point for the fpt26-agent-v2 pipeline.
+"""CLI entry point for the fpt26-agent-v3 pipeline.
 
 Usage::
 
@@ -36,7 +36,7 @@ def _env_int(name: str, default: int) -> int:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="FPT26 Track-A agent v2 — pipeline-based LLM4HLS agent"
+        description="FPT26 Track-A agent v3 — pipeline-based LLM4HLS agent with V3 scoring"
     )
     p.add_argument("--task", required=True, type=Path, help="Path to official task directory")
     p.add_argument(

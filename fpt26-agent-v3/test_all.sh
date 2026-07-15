@@ -16,7 +16,7 @@ export FPT26_LLM_TEMPERATURE=0
 export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)
 export HOME=$HOME
-COMPOSE_FILE=/home/chen1/projects/fpt26_new/fpt26-agent-v2/docker-compose.yml
+COMPOSE_FILE=/home/chen1/projects/fpt26_new/fpt26-agent-v3/docker-compose.yml
 
 run_test() {
     local name="$1"
@@ -28,7 +28,7 @@ run_test() {
 pip3 install -q tomli 2>/dev/null
 source /tools/Xilinx/Vitis/2025.2/settings64.sh
 source /opt/xilinx/xrt/setup.sh
-cd /workspace/fpt26-agent-v2
+cd /workspace/fpt26-agent-v3
 python3 -m agent.main --task $task --mode $mode $extra
 " || echo "[$name] exit code: $?"
     echo ""

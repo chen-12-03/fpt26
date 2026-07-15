@@ -1,0 +1,25 @@
+"""HLS optimization pattern lookup for agent decision support."""
+from __future__ import annotations
+from typing import Any
+
+_PATTERNS = [
+    {"keywords":["single loop","vector","dot product","accumulate","reduction"],"family":"Simple pipeline","steps":["1. PIPELINE II=1 on the loop","2. If II>1, check array access → ARRAY_PARTITION"],"signal":"II=1, latency ≈ trip_count","warning":"Do NOT fully unroll if trip_count>64. Use PIPELINE."},
+    {"keywords":["nested loop","double loop","2d","matrix"],"family":"Nested-loop pipeline","steps":["1. PIPELINE inner loop first (best ROI)","2. If outer loop is bottleneck, PIPELINE outer","3. UNROLL inner by 2-4 + PIPELINE outer"],"signal":"lower latency, moderate FF growth","warning":"Outer PIPELINE forces inner concurrency. Check memory ports."},
+    {"keywords":["parallel array","multiple access","bank","memory port"],"family":"Array partition","steps":["1. Identify loop dim with multi-port access","2. ARRAY_PARTITION dim=<access_dim> factor=<N> cyclic","3. Match UNROLL factor=N on same loop"],"signal":"II decreases, LUT/FF grow","warning":"PARTITION+RESHAPE on same variable = waste."},
+    {"keywords":["producer consumer","stream","stage","dataflow","fifo"],"family":"Dataflow","steps":["1. Split into stages (producer, compute, consumer)","2. Connect with hls::stream<T> FIFOs","3. DATAFLOW on top function","4. Set explicit stream depth for cosim"],"signal":"stages run concurrently","warning":"DATAFLOW without stream depth → cosim DEADLOCK."},
+    {"keywords":["matmul","matrix multiply","gemm","triple loop","blocked","tile"],"family":"Matmul blocked","steps":["1. PIPELINE outermost loop","2. UNROLL innermost factor 4-8","3. ARRAY_PARTITION accumulator dim=2","4. For large: tile buffers + DATAFLOW"],"signal":"dramatic latency reduction","warning":"O(N²) resource growth. Start factor=2."},
+    {"keywords":["fir","filter","tap","coefficient","symmetric"],"family":"FIR filter","steps":["1. PIPELINE II=1 on sample loop","2. Symmetric: halve MACs by reusing taps","3. ARRAY_PARTITION coefficients","4. Streaming: AXIS + DATAFLOW"],"signal":"II=1, DSP≈taps/2","warning":"Full unroll of large FIR → massive DSP."},
+    {"keywords":["fft","dft","butterfly","twiddle","radix"],"family":"FFT/DFT","steps":["1. PIPELINE each butterfly stage","2. ARRAY_PARTITION twiddle table","3. Per-stage scaling"],"signal":"throughput=sample_rate/stages","warning":"Float FFT is DSP-heavy."},
+    {"keywords":["cordic","trig","sin","cos","atan","rotation","fixed point"],"family":"CORDIC","steps":["1. ap_fixed<W,I> with documented bits","2. PIPELINE iterative shift-add","3. UNROLL stages for latency (costs DSP)"],"signal":"no DSP for trig, lower latency","warning":"Fixed-point range violations SILENT in csim. Add assertions."},
+]
+
+def lookup_patterns(desc):
+    d=desc.lower(); scored=[(sum(1 for kw in p["keywords"] if kw in d),p) for p in _PATTERNS]; scored.sort(key=lambda x:x[0],reverse=True)
+    return [p for s,p in scored[:3] if s>0]
+
+def format_for_prompt(matches):
+    if not matches: return ""
+    lines=["## Optimization Patterns"]
+    for i,m in enumerate(matches,1): lines.append(f"\n### {i}. {m['family']}"); lines.extend(m["steps"]); lines.append(f"Expected: {m['signal']}"); lines.append(f"Warning: {m['warning']}")
+    lines.append("\nApply ONE pattern. Re-synth. Verify. If no improvement, REMOVE pragma.")
+    return "\n".join(lines)
