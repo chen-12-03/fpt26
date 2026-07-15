@@ -1,0 +1,57 @@
+"""LLM prompt builders — unified, task-type-free. Agent self-determines repair/optimize."""
+
+from __future__ import annotations
+import json
+from typing import Any
+from llm4hls.task import Task
+from agent.analysis.issue_classifier import IssueClassification
+from agent.analysis.log_normalizer import NormalizedLog
+
+_SYSTEM_BASE = """You are an expert FPGA/HLS engineer.
+Output ONLY the full kernel source inside a ```cpp fenced block.
+Do NOT modify the top function signature, headers, or testbenches.
+
+## Decision Rules
+- If csim FAILS: diagnose the error from the log and fix it.
+- If cosim DEADLOCKS: fix streaming/dataflow imbalance (add stream depths, balance rates).
+- If everything PASSES: optimize for lower latency.
+
+## Optimization Discipline
+1. Read synthesis report BEFORE proposing changes.
+2. Diagnose bottleneck: II violation → memory port pressure → timing slack → resource ceiling.
+3. ONE pragma class per iteration, re-synth, verify.
+4. If a pragma does NOT improve the limiting metric, REMOVE it.
+5. Do NOT apply both PARTITION and RESHAPE to the same variable.
+6. DATAFLOW needs explicit stream depth.
+
+## Stopping Criteria
+- Two consecutive rounds with no improvement → stop and submit.
+- Resource explosion without latency gain → roll back."""
+
+SYSTEM = _SYSTEM_BASE
+REPAIR_SYSTEM = _SYSTEM_BASE
+OPTIMIZE_SYSTEM = _SYSTEM_BASE
+STRUCTURAL_REPAIR_SYSTEM = _SYSTEM_BASE
+
+def build_prompt(task, current_kernel, *, csim_result="", synth_result="", cosim_result="", best_latency=None, bottleneck_hint="", knowledge_hint="", attempt=0):
+    header_text = "\n".join(f"// {name}\n{code}" for name, code in task.headers.items())
+    payload = {
+        "task_id": task.id, "description": task.description, "top_function": task.top,
+        "headers": header_text,
+        "editable_kernel": f"// {task.kernel_name}\n{current_kernel}",
+        "tool_results": {"csim": csim_result or "(not run)", "synth": synth_result or "(not run)", "cosim": cosim_result or "(not run / N/A)"},
+        "current_best_latency": f"{best_latency} cycles" if best_latency is not None else "unknown",
+    }
+    if bottleneck_hint: payload["bottleneck_diagnosis"] = bottleneck_hint
+    if knowledge_hint: payload["optimization_patterns"] = knowledge_hint
+    payload["instruction"] = "Read tool_results. IF csim FAILED: fix the bug. IF cosim FAILED: fix streaming. IF all PASSED: optimize latency. Return FULL kernel, keep top function signature UNCHANGED."
+    return json.dumps(payload, indent=2, ensure_ascii=False)
+
+def build_repair_prompt(task, current_kernel, normalized_log, issue, attempt_feedback=None):
+    return build_prompt(task, current_kernel, csim_result=f"FAIL: {normalized_log.error_summary}", attempt=attempt_feedback.get("attempt",1) if attempt_feedback else 1)
+
+def build_optimize_prompt(task, current_kernel, best_latency, baseline_metrics=None):
+    return build_prompt(task, current_kernel, csim_result="PASS", synth_result=json.dumps(baseline_metrics) if baseline_metrics else "PASS", best_latency=best_latency)
+
+def build_structural_repair_prompt(task, current_kernel, cosim_log):
+    return build_prompt(task, current_kernel, csim_result="PASS", cosim_result=f"DEADLOCK: {cosim_log[-3000:]}")
