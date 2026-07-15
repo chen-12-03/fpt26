@@ -64,6 +64,33 @@ Agent 根据工具结果（csim fail / cosim deadlock / all pass）自行判断�
 
 ## 3. 目录结构
 
+### 3.1 工作区总览
+
+```
+fpt26_new/                  ← 仓库根目录
+├── tasks/                  ← 🆕 统一测试任务库（97 个 task）
+│   ├── official/           ← 官方 3 个竞赛任务
+│   │   ├── dotProduct_optimize/
+│   │   ├── projection_bugfix/
+│   │   └── residual_stream_deadlock/
+│   └── generated/          ← 自动生成 94 个任务（8 个来源）
+│       ├── c2hlsc__*/      ← C2HLSC 加密/HLS 任务
+│       ├── chstone__*/     ← CHStone HLS benchmark
+│       ├── flowgnn__*/     ← FlowGNN 图神经网络
+│       ├── gnnbuilder__*/  ← GNNBuilder 图处理
+│       ├── machsuite__*/   ← MachSuite FPGA benchmark
+│       ├── polybench__*/   ← PolyBench 数值计算
+│       ├── pp4fpga__*/     ← PP4FPGA 并行模式
+│       └── rosetta__*/     ← Rosetta HLS benchmark
+├── fpt26-agent-v3/         ← 当前 agent（v3）
+├── fpt26-harness/          ← 官方 harness（llm4hls/）
+├── third_party/            ← 第三方参考（hls-generator）
+├── runs/                   ← 运行输出
+└── docs/                   ← 设计文档
+```
+
+### 3.2 Agent 目录
+
 ```
 fpt26-agent-v3/
 ├── scoring/              ← 🆕 V3 统一评分引擎
@@ -91,7 +118,7 @@ fpt26-agent-v3/
 ├── Makefile
 ├── run-agent.sh
 ├── test_all.sh
-└── tasks/                ← symlink → ../fpt26-harness/tasks/
+└── tasks → ../tasks/     ← symlink → 统一任务库
 ```
 
 ## 4. 核心架构
@@ -144,30 +171,54 @@ class RunState:
 
 ## 5. 运行方式
 
+### 5.1 任务路径
+
+所有任务统一位于 `/workspace/tasks/`：
+
+| 类别 | 路径 | 数量 |
+|------|------|:----:|
+| 官方竞赛任务 | `/workspace/tasks/official/<name>` | 3 |
+| 自动生成任务 | `/workspace/tasks/generated/<name>` | 94 |
+
+### 5.2 测试优先级 ⚠️
+
+**必须优先使用 official 任务进行测试和优化。** 只有 official 任务表现理想后，才引入 generated 任务扩展测试。
+
+```
+official (3 tasks) → 理想 → generated (94 tasks)
+                     ↓ 不理想
+              继续优化 official，不碰 generated
+```
+
+原因：避免对 generated 任务过拟合，确保 agent 优化策略的泛化能力。official 任务覆盖了三种核心场景（repair / optimize / structural），是衡量 agent 性能的最小完备集。
+
+### 5.2 Docker 运行命令
+
 ```bash
 # 构建镜像
 docker build -t fpt26-agent-v3:latest -f fpt26-agent-v3/Dockerfile .
 
-# 基线模式（只跑 csim+synth，不调 LLM）
+# 官方任务 — 基线模式（只跑 csim+synth，不调 LLM）
 docker run --rm \
   -v $(pwd):/workspace -v /tools/Xilinx:/tools/Xilinx:ro \
   --env-file /tmp/fpt26.env \
   -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
   -w /workspace fpt26-agent-v3:latest \
   bash -c "source /tools/Xilinx/Vitis/2025.2/settings64.sh && \
-    python3 -m agent.main --task /workspace/fpt26-harness/tasks/projection_bugfix --mode baseline"
+    python3 -m agent.main --task /workspace/tasks/official/projection_bugfix --mode baseline"
 
-# 修复模式
-docker run ... python3 -m agent.main --task .../projection_bugfix --mode repair
+# 官方任务 — 修复模式
+docker run ... python3 -m agent.main --task /workspace/tasks/official/projection_bugfix --mode repair
 
-# 优化模式
-docker run ... python3 -m agent.main --task .../dotProduct_optimize --mode optimize
+# 官方任务 — 优化模式
+docker run ... python3 -m agent.main --task /workspace/tasks/official/dotProduct_optimize --mode optimize
 
-# 结构修复模式（含 cosim）
-docker run ... python3 -m agent.main --task .../residual_stream_deadlock --mode structural
+# 官方任务 — 结构修复模式（含 cosim）
+docker run ... python3 -m agent.main --task /workspace/tasks/official/residual_stream_deadlock --mode structural
 
-# 全流程
-docker run ... python3 -m agent.main --task .../dotProduct_optimize --mode full
+# 生成任务示例
+docker run ... python3 -m agent.main --task /workspace/tasks/generated/polybench__seidel_2d --mode optimize
+docker run ... python3 -m agent.main --task /workspace/tasks/generated/machsuite__aes_aes --mode full
 
 # 常用参数
 --output-root runs/iter1        # 输出目录（默认 runs/）
