@@ -204,6 +204,19 @@ class OptimizationControllerFakeTests(unittest.TestCase):
         self.assertIn("#pragma HLS PIPELINE II=1", result.final_kernel)
         self.assertLess(result.final_metrics["latency_max"], result.baseline_metrics["latency_max"])
 
+    def test_selection_uses_official_latency_acceleration_not_ii(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            result, _backend, _server = self.run_agent(
+                Path(tmp_name),
+                pipeline_metrics=metrics(latency=12, ii=99, clock=4.2, lut=130),
+            )
+
+        self.assertEqual(result.optimization_status, "improved")
+        self.assertEqual(result.selected_candidate_id, "c001_pipeline_01")
+        self.assertEqual(result.selection_reason, "official_latency_acceleration_improved")
+        proxy = result.optimization_candidates[0].comparison_to_baseline["official_score_proxy"]
+        self.assertAlmostEqual(proxy["acceleration"], 80 / 12)
+
     def test_candidate_csim_failure_does_not_run_synth(self):
         with tempfile.TemporaryDirectory() as tmp_name:
             result, backend, _server = self.run_agent(Path(tmp_name), fail_pipeline_csim=True)
@@ -266,7 +279,7 @@ class OptimizationControllerFakeTests(unittest.TestCase):
 
         self.assertEqual(result.optimization_status, "no_improvement")
         self.assertEqual(result.selected_candidate_id, "c000_baseline")
-        self.assertEqual(result.selection_reason, "no_candidate_strictly_improved_key_ppa_metric")
+        self.assertEqual(result.selection_reason, "no_candidate_official_latency_acceleration_improvement")
 
     def test_budget_insufficient_stops_before_candidate_hls(self):
         with tempfile.TemporaryDirectory() as tmp_name:

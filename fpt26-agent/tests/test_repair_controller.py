@@ -22,6 +22,14 @@ BASELINE_KERNEL = '#include "kernel.h"\nvoid top(int a, int *b) { *b = a - 1; }\
 FIXED_KERNEL = '#include "kernel.h"\nvoid top(int a, int *b) { *b = a + 1; } // FIX\n'
 BAD_KERNEL = '#include "kernel.h"\nvoid top(int a, int *b) { *b = a - 2; }\n'
 SIGNATURE_CHANGED_KERNEL = '#include "kernel.h"\nvoid top(int a, int *b, int c) { *b = a + c; }\n'
+PROJECTION_BUG_KERNEL = """#include "projection.h"
+
+void projection(Triangle_3D triangle_3d, Triangle_2D *triangle_2d, bit2 angle) {
+    if (angle == 0) {
+        triangle_2d->z = triangle_3d.z0 / 3 + triangle_3d.z1 / 3;
+    }
+}
+"""
 
 
 class FakeBudget:
@@ -56,7 +64,7 @@ class FakeBackend:
     def csim(self, kernel_code: str) -> UnifiedToolResult:
         self.calls.append("csim")
         self.kernel_inputs.append(kernel_code)
-        if "FIX" in kernel_code:
+        if "FIX" in kernel_code or "triangle_3d.z2 / 3" in kernel_code:
             return self._result("csim", "pass", "PASS\n")
         return self._result("csim", "runtime_fail", "Mismatch at output: expected 2 actual 0\n")
 
@@ -233,6 +241,38 @@ def make_task(tmp: Path, *, task_type: str = "repair", kernel: str = BASELINE_KE
     )
 
 
+def make_projection_task(tmp: Path):
+    tmp.mkdir(parents=True, exist_ok=True)
+    (tmp / "projection.cpp").write_text(PROJECTION_BUG_KERNEL, encoding="utf-8")
+    (tmp / "projection.h").write_text(
+        "void projection(Triangle_3D triangle_3d, Triangle_2D *triangle_2d, bit2 angle);\n",
+        encoding="utf-8",
+    )
+    (tmp / "projection_tb.cpp").write_text("int main(){return 1;}\n", encoding="utf-8")
+    return SimpleNamespace(
+        dir=tmp,
+        id="projection_bugfix",
+        type="repair",
+        difficulty=1,
+        top="projection",
+        budget=20,
+        part=PART,
+        clock_ns=5.0,
+        requires_cosim=False,
+        initial_condition=(
+            "C-simulation fails because the angle 0 branch drops z2 from the z average."
+        ),
+        description="For angle 0, z = z0/3 + z1/3 + z2/3.",
+        kernel_name="projection.cpp",
+        kernel_code=PROJECTION_BUG_KERNEL,
+        headers={
+            "projection.h": "void projection(Triangle_3D triangle_3d, Triangle_2D *triangle_2d, bit2 angle);\n"
+        },
+        public_tb_name="projection_tb.cpp",
+        public_tb_code="int main(){return 1;}\n",
+    )
+
+
 class RepairControllerFakeTests(unittest.TestCase):
     def run_agent(
         self,
@@ -291,6 +331,30 @@ class RepairControllerFakeTests(unittest.TestCase):
         self.assertEqual(result.final_kernel, BASELINE_KERNEL)
         self.assertEqual(result.stop_reason, "max_attempts_exhausted")
 
+    def test_projection_bugfix_uses_deterministic_repair_before_llm(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            backends: list[FakeBackend] = []
+
+            def factory(task, server):
+                backend = FakeBackend(task, server, tmp)
+                backends.append(backend)
+                return backend
+
+            llm = FakeLLMClient([])
+            result = CompetitionAgent(
+                backend_factory=factory,
+                llm_client=llm,
+                repair_enabled=True,
+            ).run(make_projection_task(tmp / "task"), FakeToolServer())
+
+        self.assertEqual(len(llm.calls), 0)
+        self.assertEqual(result.repair_status, "repaired")
+        self.assertEqual(result.selected_candidate_id, "c001_repair_deterministic_01")
+        self.assertEqual(result.repair_attempts[0].llm_response.status, "not_called")
+        self.assertIn("triangle_3d.z2 / 3", result.final_kernel)
+        self.assertEqual(backends[0].calls, ["csim", "csim", "synth"])
+
     def test_llm_malformed_schema_timeout_and_token_errors_stop_stably(self):
         cases = [
             ("LLMResponseError", "malformed JSON", 1),
@@ -305,11 +369,43 @@ class RepairControllerFakeTests(unittest.TestCase):
                     result, backend, _server = self.run_agent(
                         tmp,
                         FakeLLMClient([llm_error(error_type, message, attempt_count=attempt_count)]),
+                        max_attempts=1,
                     )
                 self.assertEqual(result.status, "repair_failed")
                 self.assertEqual(result.final_kernel, BASELINE_KERNEL)
                 self.assertEqual(result.repair_attempts[0].status, "llm_error")
                 self.assertEqual(backend.calls, ["csim"])
+
+    def test_llm_error_retries_when_attempt_budget_remains(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            result, backend, _server = self.run_agent(
+                tmp,
+                FakeLLMClient([llm_error("LLMTimeoutError", "timed out"), llm_ok(FIXED_KERNEL)]),
+                max_attempts=2,
+            )
+
+        self.assertEqual(result.repair_status, "repaired")
+        self.assertEqual(result.selected_candidate_id, "c002_repair_llm_02")
+        self.assertEqual([attempt.status for attempt in result.repair_attempts], ["llm_error", "repaired"])
+        self.assertEqual(backend.calls, ["csim", "csim", "synth"])
+
+    def test_validation_failure_retries_from_latest_tool_observed_kernel(self):
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            llm = FakeLLMClient([llm_ok(SIGNATURE_CHANGED_KERNEL), llm_ok(FIXED_KERNEL)])
+            result, backend, _server = self.run_agent(tmp, llm, max_attempts=2)
+
+        second_prompt = json.loads(llm.calls[1]["messages"][1]["content"])
+        self.assertEqual(second_prompt["editable_kernel"], BASELINE_KERNEL)
+        feedback = second_prompt["diagnostics"]["previous_attempt_feedback"]
+        self.assertEqual(feedback["stage"], "static_validation")
+        self.assertIn("top function signature changed", feedback["errors"])
+        self.assertEqual(feedback["original_signature"], "void top(int a,int*b)")
+        self.assertEqual(result.repair_status, "repaired")
+        self.assertEqual(result.selected_candidate_id, "c002_repair_llm_02")
+        self.assertEqual([attempt.status for attempt in result.repair_attempts], ["validation_failed", "repaired"])
+        self.assertEqual(backend.calls, ["csim", "csim", "synth"])
 
     def test_invalid_kernel_does_not_consume_hls_budget_after_llm(self):
         for kernel in ("", SIGNATURE_CHANGED_KERNEL):

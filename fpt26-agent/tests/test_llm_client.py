@@ -9,6 +9,8 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from llm4hls import config as official_harness_config
+
 from agent.llm import LLMClient, LLMConfig, LLMConfigError, TokenTracker, prompt_sha256
 
 
@@ -132,6 +134,24 @@ def messages() -> list[dict[str, str]]:
 
 
 class LLMConfigTests(unittest.TestCase):
+    def test_from_env_defaults_to_official_openrouter_config(self):
+        loaded = LLMConfig.from_env({"OPENROUTER_API_KEY": "official-token"})
+
+        self.assertEqual(loaded.chat_completions_url, official_harness_config.OPENROUTER_BASE_URL)
+        self.assertEqual(loaded.model, official_harness_config.DEFAULT_LLM_MODEL)
+        self.assertEqual(loaded.api_key, "official-token")
+        self.assertEqual(loaded.timeout_seconds, 180.0)
+        self.assertEqual(loaded.max_output_tokens, 4096)
+        self.assertEqual(loaded.temperature, 0.7)
+        self.assertEqual(loaded.max_retries, 0)
+        self.assertEqual(loaded.source, "OpenRouter")
+
+    def test_official_openrouter_default_requires_token(self):
+        with self.assertRaises(LLMConfigError) as ctx:
+            LLMConfig.from_env({})
+
+        self.assertIn("OPENROUTER_API_KEY", str(ctx.exception))
+
     def test_from_env_reads_metadata_and_does_not_require_api_key(self):
         env = dict(BASE_ENV)
         env["FPT26_LLM_API_KEY"] = ""
@@ -144,12 +164,12 @@ class LLMConfigTests(unittest.TestCase):
         self.assertEqual(loaded.source, "local-test-server")
         self.assertEqual(loaded.model_version, "2025-01-local")
 
-    def test_missing_open_source_metadata_fails_without_api_key_leak(self):
+    def test_invalid_open_source_metadata_fails_without_api_key_leak(self):
         env = dict(BASE_ENV)
-        del env["FPT26_LLM_LICENSE"]
+        env["FPT26_LLM_MAX_RETRIES"] = "bad"
         with self.assertRaises(LLMConfigError) as ctx:
             LLMConfig.from_env(env)
-        self.assertIn("FPT26_LLM_LICENSE", str(ctx.exception))
+        self.assertIn("FPT26_LLM_MAX_RETRIES", str(ctx.exception))
         self.assertNotIn("secret-token", str(ctx.exception))
 
 

@@ -82,6 +82,7 @@ def build_experimental_report(
             "optimization_status": result.optimization_status,
             "structural_repair_status": result.structural_repair_status,
         },
+        "workflow": _workflow_summary(result, mode),
         "verification": _verification_summary(stage_results),
         "ppa": _ppa_summary(result, stage_results, scoring),
         "budget": result.budget,
@@ -99,6 +100,7 @@ def render_experimental_report(report: dict[str, Any]) -> str:
     task = report["task"]
     agent = report["agent"]
     verification = report["verification"]
+    workflow = report["workflow"]
     ppa = report["ppa"]
     scoring = report.get("scoring")
     lines = [
@@ -110,6 +112,13 @@ def render_experimental_report(report: dict[str, Any]) -> str:
         f"  status                 : {agent['status']}",
         f"  selected candidate     : {agent['selected_candidate_id']}",
         f"  initial condition      : {agent['initial_condition']['condition']}",
+        "",
+        "--- Workflow ---",
+        f"  repair controller      : {workflow['controllers']['repair']['state']} ({workflow['controllers']['repair']['reason']})",
+        f"  optimization controller: {workflow['controllers']['optimization']['state']} ({workflow['controllers']['optimization']['reason']})",
+        f"  structural controller  : {workflow['controllers']['structural_repair']['state']} ({workflow['controllers']['structural_repair']['reason']})",
+        f"  repair attempts        : {workflow['controllers']['repair']['attempts']}",
+        f"  structural attempts    : {workflow['controllers']['structural_repair']['attempts']}",
         "",
         "--- Verification ---",
         f"  csim                   : {verification.get('csim_status')}",
@@ -161,6 +170,78 @@ def _verification_summary(stage_results: list[dict[str, Any]]) -> dict[str, Any]
         summary[f"{stage}_summary"] = latest.get("summary") if latest else None
     summary["stage_results"] = stage_results
     return summary
+
+
+def _workflow_summary(result: AgentRunResult, mode: str) -> dict[str, Any]:
+    task_type = result.task_context.task_type
+    return {
+        "mode": mode,
+        "task_type": task_type,
+        "controllers": {
+            "repair": _repair_controller_summary(result, mode, task_type),
+            "optimization": _optimization_controller_summary(result, mode, task_type),
+            "structural_repair": _structural_controller_summary(result, mode, task_type),
+        },
+        "budget": {
+            "spent": result.budget.get("spent") if isinstance(result.budget, dict) else None,
+            "remaining": result.budget.get("remaining") if isinstance(result.budget, dict) else None,
+            "total": result.budget.get("total") if isinstance(result.budget, dict) else None,
+        },
+    }
+
+
+def _repair_controller_summary(result: AgentRunResult, mode: str, task_type: str) -> dict[str, Any]:
+    attempts = len(result.repair_attempts)
+    expected = task_type in {"repair", "generate", "synth_fix", "unknown", "mixed"}
+    enabled = mode == "repair" or (mode == "full" and expected)
+    return {
+        "state": _controller_state(enabled, attempts, result.repair_status),
+        "reason": _controller_reason(enabled, expected, mode, result.repair_status),
+        "attempts": attempts,
+        "status": result.repair_status,
+    }
+
+
+def _optimization_controller_summary(result: AgentRunResult, mode: str, task_type: str) -> dict[str, Any]:
+    attempts = len(result.optimization_candidates)
+    expected = task_type in {"optimize", "mixed"}
+    enabled = mode == "optimize" or (mode == "full" and expected)
+    return {
+        "state": _controller_state(enabled, attempts, result.optimization_status),
+        "reason": _controller_reason(enabled, expected, mode, result.optimization_status),
+        "attempts": attempts,
+        "status": result.optimization_status,
+    }
+
+
+def _structural_controller_summary(result: AgentRunResult, mode: str, task_type: str) -> dict[str, Any]:
+    attempts = len(result.structural_repair_attempts)
+    expected = task_type in {"structural", "mixed"}
+    enabled = mode == "structural" or (mode == "full" and expected)
+    return {
+        "state": _controller_state(enabled, attempts, result.structural_repair_status),
+        "reason": _controller_reason(enabled, expected, mode, result.structural_repair_status),
+        "attempts": attempts,
+        "status": result.structural_repair_status,
+    }
+
+
+def _controller_state(enabled: bool, attempts: int, status: str | None) -> str:
+    if not enabled:
+        return "disabled"
+    if attempts > 0:
+        return "attempted"
+    if status and status != "not_attempted":
+        return "attempted"
+    return "enabled_not_triggered"
+
+
+def _controller_reason(enabled: bool, expected: bool, mode: str, status: str | None) -> str:
+    if not enabled:
+        return "disabled_by_mode" if expected else "not_applicable_to_task_type"
+    if status and status != "not_attempted":
+        return status
+    return "waiting_for_matching_failure_or_candidate"
 
 
 def _ppa_summary(
@@ -230,6 +311,7 @@ def _report_manifest_summary(report: dict[str, Any]) -> dict[str, Any]:
         "report_json": paths.get("report_json"),
         "report_txt": paths.get("report_txt"),
         "verification": report.get("verification"),
+        "workflow": report.get("workflow"),
         "ppa": report.get("ppa"),
     }
 

@@ -8,6 +8,7 @@ from typing import Any, Callable
 from agent.analysis.cosim_analyzer import CoSimAnalyzer, CoSimDiagnosis
 from agent.analysis.initial_condition_classifier import InitialCondition, InitialConditionClassifier
 from agent.analysis.log_normalizer import LogNormalizer
+from agent.config import OFFICIAL_REFERENCE_MAX_ROUNDS
 from agent.core.candidate_store import CandidateStore
 from agent.core.task_context import TaskContext
 from agent.execution.harness_backend import HarnessBackend
@@ -116,9 +117,9 @@ class CompetitionAgent:
         repair_enabled: bool = False,
         optimize_enabled: bool = False,
         structural_repair_enabled: bool = False,
-        max_repair_attempts: int = 2,
-        max_optimization_candidates: int = 3,
-        max_structural_repair_attempts: int = 2,
+        max_repair_attempts: int = OFFICIAL_REFERENCE_MAX_ROUNDS,
+        max_optimization_candidates: int = OFFICIAL_REFERENCE_MAX_ROUNDS,
+        max_structural_repair_attempts: int = OFFICIAL_REFERENCE_MAX_ROUNDS,
     ) -> None:
         self.backend_factory = backend_factory or HarnessBackend
         self.classifier = classifier or InitialConditionClassifier()
@@ -173,11 +174,11 @@ class CompetitionAgent:
                 repair_status = repair.status
                 selected_candidate_id = repair.selected_candidate.candidate_id
                 stop_reason = repair.stop_reason
+                for attempt in repair.attempts:
+                    stage_results.extend(attempt.stage_results)
                 if repair.status == "repaired":
                     final_kernel = repair.final_kernel
                     status = "completed"
-                    for attempt in repair.attempts:
-                        stage_results.extend(attempt.stage_results)
                 else:
                     final_kernel = baseline_kernel
                     status = "repair_failed"
@@ -193,6 +194,7 @@ class CompetitionAgent:
                 selected_candidate_id=selected_candidate_id,
                 stop_reason=stop_reason,
                 status=status,
+                classification_results=[csim_result],
             )
 
         synth_result = backend.synth(baseline_kernel)
@@ -315,6 +317,7 @@ class CompetitionAgent:
                 list(stage_results),
                 backend,
                 candidate_store,
+                llm_client=self.llm_client,
                 max_candidates=self.max_optimization_candidates,
             )
             optimization_status = optimization.status

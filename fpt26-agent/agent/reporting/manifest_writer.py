@@ -308,6 +308,8 @@ def _write_optimization_candidate(layout: RunLayout, record: dict[str, Any], ker
             "schema_version": "candidate-manifest-v1",
             **candidate,
             "actions": record.get("actions", []),
+            "llm_response": record.get("llm_response"),
+            "llm_call_record": record.get("llm_call_record"),
             "validation_result": record.get("validation_result"),
             "stage_results": record.get("stage_results", []),
             "metrics": record.get("metrics", {}),
@@ -344,6 +346,7 @@ def _write_optimization_audit(layout: RunLayout, result: Any, records: list[dict
                 "status": record.get("status"),
                 "selection_status": record.get("selection_status"),
                 "actions": record.get("actions", []),
+                "llm_call_record": record.get("llm_call_record"),
             }
             for record in records
         ],

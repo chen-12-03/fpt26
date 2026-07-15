@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from agent.config import OFFICIAL_CREDIT_COST
 from agent.core.task_context import TaskContext
 from agent.execution.result_adapter import UnifiedToolResult
 
@@ -57,7 +58,7 @@ def _cosim_cost(budget_view: Any) -> int | None:
         costs = budget_view.get("cost")
         if isinstance(costs, dict) and isinstance(costs.get("cosim"), int):
             return costs["cosim"]
-    return None
+    return int(OFFICIAL_CREDIT_COST["cosim"])
 
 
 def _remaining_budget(budget_view: Any) -> int | None:

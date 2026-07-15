@@ -260,6 +260,7 @@ def _report_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
     return {
         "report_json": paths.get("report_json"),
         "report_txt": paths.get("report_txt"),
+        "workflow": report.get("workflow"),
         "verification": report.get("verification"),
         "ppa": report.get("ppa"),
     }

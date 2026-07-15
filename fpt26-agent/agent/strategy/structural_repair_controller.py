@@ -8,6 +8,7 @@ from agent.analysis.cosim_analyzer import CoSimAnalyzer, CoSimDiagnosis
 from agent.analysis.kernel_validator import KernelValidationResult, KernelValidator
 from agent.analysis.log_normalizer import LogNormalizer
 from agent.analysis.stream_analyzer import StreamAnalysis, StreamAnalyzer
+from agent.config import OFFICIAL_CREDIT_COST
 from agent.core.candidate import Candidate
 from agent.core.candidate_store import CandidateStore
 from agent.core.task_context import TaskContext
@@ -380,15 +381,19 @@ def _initial_kernel(task_context: TaskContext) -> str:
 
 def _budget_summary(harness_backend: HarnessBackend, safety_margin: int) -> dict[str, Any]:
     budget = getattr(getattr(harness_backend, "tool_server", None), "budget", None)
-    costs = getattr(budget, "cost", {}) or {}
+    costs = getattr(budget, "cost", {}) or OFFICIAL_CREDIT_COST
     remaining = _budget_remaining(harness_backend)
-    required = int(costs.get("csim", 1)) + int(costs.get("synth", 4)) + int(costs.get("cosim", 20))
+    required = (
+        int(costs.get("csim", OFFICIAL_CREDIT_COST["csim"]))
+        + int(costs.get("synth", OFFICIAL_CREDIT_COST["synth"]))
+        + int(costs.get("cosim", OFFICIAL_CREDIT_COST["cosim"]))
+    )
     required_with_margin = required + int(safety_margin)
     return {
         "remaining": remaining,
-        "candidate_csim_cost": int(costs.get("csim", 1)),
-        "candidate_synth_cost": int(costs.get("synth", 4)),
-        "candidate_cosim_cost": int(costs.get("cosim", 20)),
+        "candidate_csim_cost": int(costs.get("csim", OFFICIAL_CREDIT_COST["csim"])),
+        "candidate_synth_cost": int(costs.get("synth", OFFICIAL_CREDIT_COST["synth"])),
+        "candidate_cosim_cost": int(costs.get("cosim", OFFICIAL_CREDIT_COST["cosim"])),
         "safety_margin": int(safety_margin),
         "required_for_candidate": required,
         "required_with_safety_margin": required_with_margin,

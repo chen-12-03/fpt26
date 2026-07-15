@@ -4,8 +4,18 @@ import os
 from dataclasses import dataclass
 from typing import Mapping
 
+from llm4hls import config as official_harness_config
+
 
 CHAT_COMPLETIONS_PATH = "/chat/completions"
+DEFAULT_BASE_URL = official_harness_config.OPENROUTER_BASE_URL
+DEFAULT_MODEL = official_harness_config.DEFAULT_LLM_MODEL
+DEFAULT_TIMEOUT_SECONDS = 180.0
+DEFAULT_MAX_OUTPUT_TOKENS = 4096
+DEFAULT_TEMPERATURE = 0.7
+DEFAULT_LICENSE = "Open-source model required by LLM4HLS Track-A"
+DEFAULT_SOURCE = "OpenRouter"
+DEFAULT_MAX_RETRIES = 0
 
 
 class LLMConfigError(ValueError):
@@ -23,7 +33,7 @@ class LLMConfig:
     license: str
     source: str
     model_version: str | None = None
-    max_retries: int = 1
+    max_retries: int = DEFAULT_MAX_RETRIES
     max_call_total_tokens: int | None = None
     max_total_tokens: int | None = None
 
@@ -31,26 +41,37 @@ class LLMConfig:
     def from_env(cls, env: Mapping[str, str] | None = None) -> "LLMConfig":
         source = os.environ if env is None else env
         errors: list[str] = []
-        base_url = _required(source, "FPT26_LLM_BASE_URL", errors)
-        model = _required(source, "FPT26_LLM_MODEL", errors)
-        timeout = _positive_float(_required(source, "FPT26_LLM_TIMEOUT_SECONDS", errors), "FPT26_LLM_TIMEOUT_SECONDS", errors)
+        base_url = _value_or_default(source, "FPT26_LLM_BASE_URL", DEFAULT_BASE_URL)
+        model = _value_or_default(source, "FPT26_LLM_MODEL", DEFAULT_MODEL)
+        timeout = _positive_float(
+            _value_or_default(source, "FPT26_LLM_TIMEOUT_SECONDS", str(DEFAULT_TIMEOUT_SECONDS)),
+            "FPT26_LLM_TIMEOUT_SECONDS",
+            errors,
+        )
         max_output = _positive_int(
-            _required(source, "FPT26_LLM_MAX_OUTPUT_TOKENS", errors),
+            _value_or_default(source, "FPT26_LLM_MAX_OUTPUT_TOKENS", str(DEFAULT_MAX_OUTPUT_TOKENS)),
             "FPT26_LLM_MAX_OUTPUT_TOKENS",
             errors,
         )
         temperature = _non_negative_float(
-            _required(source, "FPT26_LLM_TEMPERATURE", errors),
+            _value_or_default(source, "FPT26_LLM_TEMPERATURE", str(DEFAULT_TEMPERATURE)),
             "FPT26_LLM_TEMPERATURE",
             errors,
         )
-        license_text = _required(source, "FPT26_LLM_LICENSE", errors)
-        model_source = _required(source, "FPT26_LLM_SOURCE", errors)
-        api_key = _optional(source, "FPT26_LLM_API_KEY")
+        license_text = _value_or_default(source, "FPT26_LLM_LICENSE", DEFAULT_LICENSE)
+        model_source = _value_or_default(source, "FPT26_LLM_SOURCE", DEFAULT_SOURCE)
+        api_key = _optional(source, "FPT26_LLM_API_KEY") or _optional(source, "OPENROUTER_API_KEY")
         model_version = _optional(source, "FPT26_LLM_MODEL_VERSION")
-        max_retries = _non_negative_int(source.get("FPT26_LLM_MAX_RETRIES", "1"), "FPT26_LLM_MAX_RETRIES", errors)
+        max_retries = _non_negative_int(
+            _value_or_default(source, "FPT26_LLM_MAX_RETRIES", str(DEFAULT_MAX_RETRIES)),
+            "FPT26_LLM_MAX_RETRIES",
+            errors,
+        )
         max_call_total = _optional_positive_int(source, "FPT26_LLM_MAX_CALL_TOTAL_TOKENS", errors)
         max_total = _optional_positive_int(source, "FPT26_LLM_MAX_TOTAL_TOKENS", errors)
+
+        if _is_official_openrouter_base(base_url) and api_key is None:
+            errors.append("missing OpenRouter token: set FPT26_LLM_API_KEY or OPENROUTER_API_KEY")
 
         if errors:
             raise LLMConfigError("; ".join(errors))
@@ -85,11 +106,10 @@ class LLMConfig:
         }
 
 
-def _required(env: Mapping[str, str], name: str, errors: list[str]) -> str:
+def _value_or_default(env: Mapping[str, str], name: str, default: str) -> str:
     value = env.get(name)
     if value is None or not value.strip():
-        errors.append(f"missing required environment variable: {name}")
-        return ""
+        return default
     return value.strip()
 
 
@@ -149,3 +169,7 @@ def _optional_positive_int(env: Mapping[str, str], name: str, errors: list[str])
     if value is None:
         return None
     return _positive_int(value, name, errors)
+
+
+def _is_official_openrouter_base(base_url: str) -> bool:
+    return base_url.rstrip("/") == DEFAULT_BASE_URL.rstrip("/")

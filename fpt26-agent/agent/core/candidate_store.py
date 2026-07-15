@@ -126,6 +126,29 @@ class CandidateStore:
             lineage=lineage,
         )
 
+    def deterministic_repair_candidate(
+        self,
+        task_context: TaskContext,
+        kernel_code: str,
+        *,
+        attempt_index: int,
+        parent_candidate: Candidate,
+        action: dict[str, Any],
+    ) -> Candidate:
+        if attempt_index <= 0:
+            raise ValueError("attempt_index must be positive")
+        candidate_id = f"c{attempt_index:03d}_repair_deterministic_{attempt_index:02d}"
+        lineage = [*parent_candidate.lineage, parent_candidate.candidate_id]
+        return Candidate(
+            candidate_id=candidate_id,
+            label=f"repair_deterministic_{attempt_index:02d}",
+            kernel_sha256=sha256_text(kernel_code),
+            task_context_sha256=sha256_json(task_context.to_dict()),
+            parent_candidate_id=parent_candidate.candidate_id,
+            action=action,
+            lineage=lineage,
+        )
+
     def optimization_candidate(
         self,
         task_context: TaskContext,
@@ -155,6 +178,29 @@ class CandidateStore:
                 "type": "deterministic_optimization",
                 "actions": [action],
             },
+            lineage=lineage,
+        )
+
+    def llm_optimization_candidate(
+        self,
+        task_context: TaskContext,
+        kernel_code: str,
+        *,
+        attempt_index: int,
+        parent_candidate: Candidate,
+        action: dict[str, Any],
+    ) -> Candidate:
+        if attempt_index <= 0:
+            raise ValueError("attempt_index must be positive")
+        candidate_id = f"c{attempt_index:03d}_opt_llm_{attempt_index:02d}"
+        lineage = [*parent_candidate.lineage, parent_candidate.candidate_id]
+        return Candidate(
+            candidate_id=candidate_id,
+            label=f"opt_llm_{attempt_index:02d}",
+            kernel_sha256=sha256_text(kernel_code),
+            task_context_sha256=sha256_json(task_context.to_dict()),
+            parent_candidate_id=parent_candidate.candidate_id,
+            action=action,
             lineage=lineage,
         )
 

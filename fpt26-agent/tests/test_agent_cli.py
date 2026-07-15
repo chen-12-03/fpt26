@@ -14,10 +14,16 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from agent.config import (
+    DEFAULT_MAX_OPTIMIZATION_CANDIDATES,
+    DEFAULT_MAX_REPAIR_ATTEMPTS,
+    DEFAULT_MAX_STRUCTURAL_REPAIR_ATTEMPTS,
+    OFFICIAL_REFERENCE_MAX_ROUNDS,
+    config_from_args,
+)
 from agent.main import (
     EXIT_BASELINE_CORRECTNESS_FAILURE,
     EXIT_INPUT_OR_CONFIG_ERROR,
-    EXIT_SAFE_FALLBACK,
     EXIT_SUCCESS,
     main,
     parse_args,
@@ -227,6 +233,20 @@ def _structural_payload(kernel: str) -> dict:
     )
 
 
+def _optimization_payload(kernel: str) -> dict:
+    return _chat_payload(
+        {
+            "diagnosis": "sequential dot product loop has high latency",
+            "optimization_strategy": "partition arrays and pipeline the reduction loop",
+            "replacement_kernel": kernel,
+            "changes": ["add array partition pragmas", "pipeline the tiled loop"],
+            "expected_latency_impact": "lower latency through parallel memory access and II=1 pipeline",
+            "confidence": "high",
+        },
+        tokens=55,
+    )
+
+
 def _llm_env(base_url: str, *, api_key: str = "secret-cli-key") -> dict[str, str]:
     return {
         "FPT26_LLM_BASE_URL": base_url,
@@ -352,6 +372,18 @@ class AgentCliTests(unittest.TestCase):
         self.assertEqual(args.mode, "repair")
         self.assertEqual(args.output_root, Path("runs/cli"))
 
+    def test_default_agent_round_limits_match_official_reference_agent(self):
+        args = parse_args(["--task", str(PROJECTION), "--mode", "repair"])
+        config = config_from_args(args, env={})
+
+        self.assertEqual(OFFICIAL_REFERENCE_MAX_ROUNDS, 6)
+        self.assertEqual(DEFAULT_MAX_REPAIR_ATTEMPTS, OFFICIAL_REFERENCE_MAX_ROUNDS)
+        self.assertEqual(DEFAULT_MAX_STRUCTURAL_REPAIR_ATTEMPTS, OFFICIAL_REFERENCE_MAX_ROUNDS)
+        self.assertEqual(DEFAULT_MAX_OPTIMIZATION_CANDIDATES, OFFICIAL_REFERENCE_MAX_ROUNDS)
+        self.assertEqual(config.max_repair_attempts, OFFICIAL_REFERENCE_MAX_ROUNDS)
+        self.assertEqual(config.max_structural_repair_attempts, OFFICIAL_REFERENCE_MAX_ROUNDS)
+        self.assertEqual(config.max_optimization_candidates, OFFICIAL_REFERENCE_MAX_ROUNDS)
+
     def test_missing_task_and_invalid_mode_return_2(self):
         with tempfile.TemporaryDirectory() as tmp_name:
             stdout = io.StringIO()
@@ -415,7 +447,7 @@ class AgentCliTests(unittest.TestCase):
         self.assertEqual(code, EXIT_INPUT_OR_CONFIG_ERROR)
         self.assertEqual(stdout.getvalue(), "")
         self.assertEqual(FakeBackend.instances, [])
-        self.assertIn("FPT26_LLM_BASE_URL", stderr.getvalue())
+        self.assertIn("OPENROUTER_API_KEY", stderr.getvalue())
 
     def test_projection_repair_cli_with_fake_api(self):
         fixed = (PROJECTION / "reference" / "projection.cpp").read_text(encoding="utf-8")
@@ -432,43 +464,38 @@ class AgentCliTests(unittest.TestCase):
             final_kernel = (run_dir / "final" / "kernel.cpp").read_text(encoding="utf-8")
 
         self.assertEqual(code, EXIT_SUCCESS, stderr)
-        self.assertEqual(server.request_count, 1)
+        self.assertEqual(server.request_count, 0)
         self.assertEqual(summary["task_id"], "projection_bugfix")
         self.assertEqual(summary["repair_status"], "repaired")
-        self.assertEqual(summary["selected_candidate_id"], "c001_repair_llm_01")
+        self.assertEqual(summary["selected_candidate_id"], "c001_repair_deterministic_01")
         self.assertEqual([item["status"] for item in summary["stage_statuses"]], ["runtime_fail", "pass", "pass"])
-        self.assertEqual(final_kernel, fixed)
+        self.assertIn("triangle_3d.z2 / 3", final_kernel)
 
-    def test_dot_product_optimize_cli_uses_only_optimization(self):
-        with tempfile.TemporaryDirectory() as tmp_name:
+    def test_dot_product_full_cli_calls_llm_for_optimization(self):
+        optimized = (DOT_PRODUCT / "reference" / "dotProduct.cpp").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as tmp_name, FakeLLMServer([_optimization_payload(optimized)]) as server:
             tmp = Path(tmp_name)
-            FakeBackend.instances = []
-
-            def no_llm():
-                raise AssertionError("LLM must not be loaded for optimize")
-
-            stdout = io.StringIO()
-            code = run_agent(
-                task_path=DOT_PRODUCT,
-                mode="optimize",
-                output_root=tmp / "runs",
-                tool_server_factory=FakeToolServer,
-                backend_factory=FakeBackend,
-                llm_client_factory=no_llm,
+            code, summary, stderr = _run_cli(
+                DOT_PRODUCT,
+                "full",
+                tmp / "runs",
+                env=_llm_env(server.base_url),
                 max_optimization_candidates=1,
-                stdout=stdout,
-                stderr=io.StringIO(),
             )
-            summary = json.loads(stdout.getvalue())
             run_dir = Path(summary["run_directory"])
             final_kernel = (run_dir / "final" / "kernel.cpp").read_text(encoding="utf-8")
-            selected_kernel = (run_dir / "candidates" / "c001_pipeline_01" / "kernel.cpp").read_text(encoding="utf-8")
+            selected_kernel = (run_dir / "candidates" / "c001_opt_llm_01" / "kernel.cpp").read_text(encoding="utf-8")
+            llm_calls = (run_dir / "llm" / "calls.jsonl").read_text(encoding="utf-8")
 
-        self.assertEqual(code, EXIT_SUCCESS)
+        self.assertEqual(code, EXIT_SUCCESS, stderr)
+        self.assertEqual(server.request_count, 1)
         self.assertEqual(summary["optimization_status"], "improved")
         self.assertEqual(summary["repair_status"], "not_attempted")
         self.assertEqual(summary["structural_repair_status"], "not_attempted")
-        self.assertEqual(summary["selected_candidate_id"], "c001_pipeline_01")
+        self.assertEqual(summary["selected_candidate_id"], "c001_opt_llm_01")
+        self.assertEqual(summary["llm_usage"]["attempt_count"], 1)
+        self.assertEqual(summary["llm_usage"]["total_tokens"], 111)
+        self.assertIn('"purpose": "optimization"', llm_calls)
         self.assertEqual(final_kernel, selected_kernel)
 
     def test_residual_structural_cli_with_fake_api(self):
@@ -492,10 +519,11 @@ class AgentCliTests(unittest.TestCase):
         self.assertEqual([item["stage"] for item in summary["stage_statuses"]], ["csim", "synth", "cosim", "csim", "synth", "cosim"])
         self.assertEqual(final_kernel, fixed)
 
-    def test_baseline_failure_exit_code_is_3_and_repair_failure_is_safe_fallback(self):
+    def test_baseline_failure_exit_code_is_3_and_deterministic_repair_succeeds(self):
         with tempfile.TemporaryDirectory() as tmp_name:
             tmp = Path(tmp_name)
             baseline_code, baseline_summary, _stderr = _run_cli(PROJECTION, "baseline", tmp / "baseline")
+            baseline_report = json.loads(Path(baseline_summary["report"]["report_json"]).read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as tmp_name, FakeLLMServer([_repair_payload((PROJECTION / "projection.cpp").read_text(encoding="utf-8"))]) as server:
             tmp = Path(tmp_name)
             repair_code, repair_summary, _stderr = _run_cli(
@@ -508,8 +536,14 @@ class AgentCliTests(unittest.TestCase):
 
         self.assertEqual(baseline_code, EXIT_BASELINE_CORRECTNESS_FAILURE)
         self.assertEqual(baseline_summary["status"], "stopped")
-        self.assertEqual(repair_code, EXIT_SAFE_FALLBACK)
-        self.assertEqual(repair_summary["status"], "repair_failed")
+        self.assertEqual(baseline_report["workflow"]["controllers"]["repair"]["state"], "disabled")
+        self.assertEqual(baseline_report["workflow"]["controllers"]["repair"]["reason"], "disabled_by_mode")
+        self.assertEqual(server.request_count, 0)
+        self.assertEqual(repair_code, EXIT_SUCCESS)
+        self.assertEqual(repair_summary["status"], "completed")
+        self.assertEqual(repair_summary["selected_candidate_id"], "c001_repair_deterministic_01")
+        self.assertEqual([item["status"] for item in repair_summary["stage_statuses"]], ["runtime_fail", "pass", "pass"])
+        self.assertEqual(repair_summary["report"]["workflow"]["controllers"]["repair"]["state"], "attempted")
 
     def test_api_key_is_redacted_from_stdout_stderr_and_manifest(self):
         secret = "super-secret-cli-token"
@@ -592,6 +626,7 @@ class AgentCliTests(unittest.TestCase):
         self.assertEqual(report["task"]["task_id"], "dotProduct_optimize")
         self.assertEqual(report["verification"]["csim_status"], "pass")
         self.assertEqual(report["verification"]["synth_status"], "pass")
+        self.assertEqual(report["workflow"]["controllers"]["optimization"]["reason"], "disabled_by_mode")
         self.assertEqual(report["ppa"]["latency_max"], 120)
         self.assertEqual(report["paths"]["run_directory"], str(run_dir))
         self.assertIn("Experimental Report", report_text)

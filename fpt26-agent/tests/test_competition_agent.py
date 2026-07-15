@@ -9,6 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from agent.config import OFFICIAL_CREDIT_COST
 from agent.competition_agent import CompetitionAgent
 from agent.execution.result_adapter import UnifiedToolResult
 
@@ -17,16 +18,17 @@ PART = "xcu55c-fsvh2892-2L-e"
 
 
 class FakeBudget:
-    def __init__(self, total: int = 10) -> None:
+    def __init__(self, total: int = 40) -> None:
         self.total = total
         self.spent = 0
+        self.cost = dict(OFFICIAL_CREDIT_COST)
         self.calls: list[SimpleNamespace] = []
 
     def remaining(self) -> int:
         return self.total - self.spent
 
     def charge(self, kind: str) -> None:
-        cost = {"csim": 1, "synth": 4, "cosim": 8}.get(kind, 1)
+        cost = self.cost.get(kind, 1)
         self.spent += cost
         self.calls.append(SimpleNamespace(kind=kind, cost=cost, spent_after=self.spent))
 
@@ -88,7 +90,7 @@ def make_task(tmp: Path, *, task_type: str = "optimize", requires_cosim: bool = 
         type=task_type,
         difficulty=1,
         top="top",
-        budget=10,
+        budget=40,
         part=PART,
         clock_ns=5.0,
         requires_cosim=requires_cosim,

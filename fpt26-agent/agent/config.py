@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from inspect import signature
 from pathlib import Path
 from typing import Mapping
+
+from llm4hls import config as official_harness_config
+from llm4hls.agent import ReferenceAgent
 
 
 SUPPORTED_MODES = {"baseline", "repair", "optimize", "structural", "full"}
@@ -17,9 +21,13 @@ EXIT_TOOL_ERROR = 6
 EXIT_LLM_ERROR = 7
 
 DEFAULT_OUTPUT_ROOT = Path("fpt26-agent/runs/cli")
-DEFAULT_MAX_REPAIR_ATTEMPTS = 2
-DEFAULT_MAX_STRUCTURAL_REPAIR_ATTEMPTS = 2
-DEFAULT_MAX_OPTIMIZATION_CANDIDATES = 3
+OFFICIAL_REFERENCE_MAX_ROUNDS = int(signature(ReferenceAgent).parameters["max_rounds"].default)
+OFFICIAL_CREDIT_COST = dict(official_harness_config.CREDIT_COST)
+OFFICIAL_DEFAULT_PART = official_harness_config.DEFAULT_PART
+OFFICIAL_DEFAULT_CLOCK_NS = official_harness_config.DEFAULT_CLOCK_NS
+DEFAULT_MAX_REPAIR_ATTEMPTS = OFFICIAL_REFERENCE_MAX_ROUNDS
+DEFAULT_MAX_STRUCTURAL_REPAIR_ATTEMPTS = OFFICIAL_REFERENCE_MAX_ROUNDS
+DEFAULT_MAX_OPTIMIZATION_CANDIDATES = OFFICIAL_REFERENCE_MAX_ROUNDS
 
 
 class AgentConfigError(ValueError):
@@ -47,7 +55,7 @@ class ModeFlags:
 
     @property
     def needs_llm(self) -> bool:
-        return self.repair_enabled or self.structural_repair_enabled
+        return self.repair_enabled or self.optimize_enabled or self.structural_repair_enabled
 
 
 def config_from_args(args: object, env: Mapping[str, str] | None = None) -> AgentCLIConfig:
