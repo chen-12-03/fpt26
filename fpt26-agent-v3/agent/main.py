@@ -126,9 +126,7 @@ def main(argv: list[str] | None = None) -> int:
     for entry in server.transcript:
         print(f"  #{entry.n:<2} {entry.detail}   [spent {entry.spent}/{total_budget}]")
     print(f"  {budget.summary()}")
-
-    if final_state.scorecard is not None:
-        print(f"\n{final_state.scorecard.render()}")
+    print()
 
     if final_state.status == "completed":
         return 0

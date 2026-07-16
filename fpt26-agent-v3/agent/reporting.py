@@ -279,121 +279,248 @@ def write_run_report(state: RunState) -> Path:
 
 
 def print_evaluation(state: RunState) -> None:
-    """Print a structured evaluation summary to stdout."""
+    """Print a structured optimization report to stdout."""
     derived = _compute_derived(state)
     breakdown = derived["tool_breakdown"]
+    budget = state.server.budget
+    total_budget = getattr(budget, "total", "?")
+    spent = getattr(budget, "spent", "?")
+    sc = state.scorecard
+    rsc = state.ref_scorecard
+    is_v3 = sc is not None and hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
 
-    print(f"\n{'='*60}")
-    print(f"  Evaluation: {state.task.id}  [{state.config.mode}]")
-    print(f"{'='*60}")
+    # ── Extract synthesis candidates from results ──────────────────────
+    baseline_synth = None
+    candidate_synths: list = []  # list of (index, ToolResult)
+    for r in state.results:
+        if r.kind == "synth" and r.report is not None:
+            if baseline_synth is None:
+                baseline_synth = r
+            else:
+                candidate_synths.append(r)
 
-    # Gates
+    # ── Candidate table rows ───────────────────────────────────────────
+    def _res_str(r: dict) -> str:
+        """Compact resource string."""
+        parts = []
+        for k in ("LUT", "FF", "DSP", "BRAM_18K", "URAM"):
+            v = r.get(k, 0)
+            if v or k in ("LUT", "FF"):
+                parts.append(f"{k}={v}")
+        return " ".join(parts)
+
+    def _loop_str(report) -> str:
+        if not report or not report.loop_metrics:
+            return ""
+        loops = []
+        for lm in report.loop_metrics:
+            trip = lm.get("trip_count", "?")
+            lat = lm.get("latency", "?")
+            ii = lm.get("pipeline_ii", "?")
+            name = lm.get("name", "?")
+            loops.append(f"{name}(trip={trip},lat={lat},II={ii})")
+        return ", ".join(loops)
+
+    # ── Header ─────────────────────────────────────────────────────────
+    task_id = state.task.id
+    print(f"\n{'='*80}")
+    print(f"  OPTIMIZATION REPORT — {task_id}")
+    print(f"{'='*80}")
+
     gates = [
         ("csim", state.csim_ok),
         ("synth", state.synth_ok),
         ("cosim", _reported_cosim_status(state)),
     ]
-    gate_str = "  ".join(
-        f"{name}={'N/A' if value is None else ('PASS' if value else 'FAIL')}"
-        for name, value in gates
+    gate_str = ", ".join(
+        f"{n}={('N/A' if v is None else ('PASS' if v else 'FAIL'))}"
+        for n, v in gates
     )
-    print(f"  Gates:        {gate_str}")
+    status = "PASS" if (is_v3 and sc.valid) else ("FAIL" if is_v3 else "?")
+    stage = getattr(sc, 'stage', '?') if is_v3 else "?"
+    grading_time = sc.wall_time_s if is_v3 else 0
+    print(f"  Status: {status} | Stage: {stage} | Gates: {gate_str}")
+    print(f"  Budget: {spent}/{total_budget} credits ({derived['budget_utilization']*100:.0f}%) | "
+          f"Wall: {derived['wall_time_seconds']:.0f}s | Grading: {grading_time:.0f}/3600s | "
+          f"Tools: csim×{breakdown.get('csim',0)}, synth×{breakdown.get('synth',0)}, cosim×{breakdown.get('cosim',0)}")
 
-    # Budget
-    budget = state.server.budget
-    total = getattr(budget, "total", "?")
-    spent = getattr(budget, "spent", "?")
-    print(f"  Budget:       {spent}/{total} credits ({derived['budget_utilization']*100:.0f}%)")
-    print(f"  Wall time:    {derived['wall_time_seconds']:.0f}s")
-    print(f"  Tools:        csim={breakdown.get('csim',0)}  synth={breakdown.get('synth',0)}  cosim={breakdown.get('cosim',0)}")
+    # ── Score ───────────────────────────────────────────────────────────
+    print(f"\n  {'SCORE':─^76}")
+    if is_v3:
+        starter_score = f"{sc.score:.2f}/{sc.score_max:.0f} ({round(sc.score / max(sc.score_max, 1) * 100, 1)}%)"
+        print(f"  Starter anchor  : {starter_score} | Q_perf={sc.q_perf:.4f} | Q_area={sc.q_area:.4f} | Q_HW={sc.q_hw:.4f}")
+        if rsc is not None:
+            ref_score_str = f"{rsc.score:.2f}/{rsc.score_max:.0f} ({round(rsc.score / max(rsc.score_max, 1) * 100, 1)}%)"
+            print(f"  Reference anchor: {ref_score_str} | Q_HW={rsc.q_hw:.4f} | Valid={rsc.valid}")
+        eff_str = f"Efficiency={sc.efficiency:.4f}" if sc.valid else f"Efficiency={sc.efficiency:.4f}"
+        print(f"  {eff_str} | HW ratio={getattr(sc, 'hardware_ratio', 1.0):.4f}x | "
+              f"Speed/area={derived.get('resource_efficiency', 0):.3f} | Score/credit={derived.get('budget_efficiency', 0):.3f}")
+    else:
+        print(f"  Score: {sc.score:.3f} / {getattr(sc, 'difficulty', '?')}")
 
-    # Score
-    if state.scorecard is not None:
-        sc = state.scorecard
-        is_v3 = hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
-        if is_v3:
-            score_pct = round(sc.score / max(sc.score_max, 1) * 100, 1)
-            print(f"  Score:        {sc.score:.2f} / {sc.score_max:.0f} ({score_pct}%)  [V{sc.schema_version}]")
-            print(f"  Valid:        {'PASS' if sc.valid else 'FAIL'}  ({sc.gate_reason})")
-            if sc.valid:
-                print(f"  Latency ratio:{sc.latency_ratio:.2f}x  (anchor={sc.anchor_source})")
-                print(f"  Q_perf:       {sc.q_perf:.4f}  Q_area: {sc.q_area:.4f}  Q_HW: {sc.q_hw:.4f}")
-                if getattr(sc, "hardware_ratio", None) is not None:
-                    print(f"  HW ratio:     {sc.hardware_ratio:.4f}x  (log-symmetric perf/area)")
-                print(
-                    f"  Efficiency:   {sc.efficiency:.4f}  "
-                    f"(cost {sc.cost_spent}/{sc.cost_limit}, "
-                    f"grading time {sc.wall_time_s:.0f}/{sc.time_limit_s:.0f}s)"
-                )
-                print(f"  Area growth:  {sc.area_growth:.2f}x  bottleneck={sc.bottleneck_resource}")
-                if sc.growth_by_resource:
-                    gr = ", ".join(f"{k}={v:.1f}x" for k, v in sc.growth_by_resource.items() if v != 1.0)
-                    if gr:
-                        print(f"  Resources:    {gr}")
-            # Reference-anchored score
-            if state.ref_scorecard is not None:
-                rsc = state.ref_scorecard
-                print(f"  ── vs reference ──")
-                print(f"  Score (ref):  {rsc.score:.2f} / {rsc.score_max:.0f}  "
-                      f"(valid={rsc.valid}, q_hw={rsc.q_hw:.4f})")
-                if rsc.valid:
-                    print(f"  Ref anchor:   latency={rsc.anchor_latency} cyc  "
-                          f"II={rsc.anchor_ii}  clock={rsc.anchor_clock_ns}ns")
-                    print(f"  Ref latency ratio: {rsc.latency_ratio:.2f}x  "
-                          f"area growth: {rsc.area_growth:.2f}x")
-                    if rsc.growth_by_resource:
-                        gr = ", ".join(
-                            f"{k}={v:.1f}x" for k, v in rsc.growth_by_resource.items()
-                            if v != 1.0
-                        )
-                        if gr:
-                            print(f"  Ref resources: {gr}  (cand vs ref)")
-                    # Show reference anchor resource counts
-                    if rsc.baseline_resources:
-                        rr = ", ".join(
-                            f"{k}={v}" for k, v in rsc.baseline_resources.items()
-                        )
-                        print(f"  Ref baseline:  {rr}")
-        else:
-            score_pct = round(sc.score / max(getattr(sc, 'difficulty', 1), 1) * 100, 1)
-            print(f"  Score:        {sc.score:.3f} / {getattr(sc, 'difficulty', '?')} ({score_pct}%)")
-            accel = getattr(sc, 'acceleration', None)
-            if accel is not None:
-                print(f"  Acceleration: {accel:.2f}x  (baseline={getattr(sc, 'baseline_latency', '?')} → candidate={getattr(sc, 'candidate_latency', '?')} cyc)")
-        if derived["budget_efficiency"] is not None:
-            print(f"  Score/credit: {derived['budget_efficiency']:.3f}")
-        if derived["resource_efficiency"] is not None:
-            print(f"  Speed/area:   {derived['resource_efficiency']:.3f}  (growth={derived['resource_growth']})")
+    # ── BASELINE / BEST / REFERENCE table ───────────────────────────────
+    print(f"\n  {'BASELINE / BEST / REFERENCE':─^76}")
 
-    # LLM usage (server-reported only; never estimate missing token counts)
+    # Gather data
+    base_lat = baseline_synth.report.latency_worst if baseline_synth and baseline_synth.report else None
+    base_ii = baseline_synth.report.interval_max if baseline_synth and baseline_synth.report else None
+    base_clk = baseline_synth.report.clock_period_ns if baseline_synth and baseline_synth.report else None
+    base_res = baseline_synth.report.resources if baseline_synth and baseline_synth.report else {}
+
+    if is_v3 and sc.valid:
+        best_res = sc.candidate_resources
+        best_lat = sc.anchor_latency
+        best_ii = sc.anchor_ii
+        best_clk = base_clk
+        # If agent accepted a candidate (latency changed), use last accepted synth metrics
+        improved = (sc.latency_ratio is not None and sc.latency_ratio != 1.0) or \
+                   (sc.area_growth is not None and sc.area_growth != 1.0)
+        if improved and candidate_synths:
+            last = candidate_synths[-1]
+            if last.report and last.ok:
+                best_lat = last.report.latency_worst or best_lat
+                best_ii = last.report.interval_max or best_ii
+                best_clk = last.report.clock_period_ns or best_clk
+                best_res = last.report.resources or best_res
+        elif improved and sc.anchor_latency and sc.latency_ratio:
+            best_lat = int(sc.anchor_latency * sc.latency_ratio)
+    else:
+        best_res = base_res
+        best_lat = base_lat
+        best_ii = base_ii
+        best_clk = base_clk
+
+    ref_lat = rsc.anchor_latency if rsc else None
+    ref_ii = rsc.anchor_ii if rsc else None
+    ref_clk = rsc.anchor_clock_ns if rsc else None
+    ref_res = rsc.baseline_resources if rsc else {}
+
+    # Compute ratios
+    def _ratio(cand, base_val):
+        if base_val and cand and base_val > 0:
+            return f"{cand/base_val:.2f}x"
+        return "N/A"
+
+    base_ratio_str = "latency=1.00x, area=1.00x"
+    best_lat_ratio = _ratio(best_lat, base_lat)
+    best_area_ratio = _ratio(
+        (best_res.get("LUT", 0) + best_res.get("FF", 0) + best_res.get("DSP", 0)),
+        (base_res.get("LUT", 0) + base_res.get("FF", 0) + base_res.get("DSP", 0))
+    ) if base_res else "1.00x"
+    ref_lat_ratio = _ratio((best_lat or base_lat), ref_lat)
+    ref_area_ratio = _ratio(
+        (best_res.get("LUT", 0) + best_res.get("FF", 0) + best_res.get("DSP", 0)),
+        (ref_res.get("LUT", 0) + ref_res.get("FF", 0) + ref_res.get("DSP", 0))
+    ) if ref_res else "N/A"
+
+    print(f"  {'':<22} {'Starter':<20} {'Best':<20} {'Reference':<20}")
+    print(f"  {'─'*22} {'─'*20} {'─'*20} {'─'*20}")
+    print(f"  {'Latency / II':<22} {str(base_lat)+' / '+str(base_ii):<20} {str(best_lat)+' / '+str(best_ii):<20} {str(ref_lat)+' / '+str(ref_ii):<20}")
+    print(f"  {'Clock':<22} {str(base_clk)+' ns' if base_clk else 'N/A':<20} {str(best_clk)+' ns' if best_clk else 'N/A':<20} {str(ref_clk)+' ns' if ref_clk else 'N/A':<20}")
+    print(f"  {'Power':<22} {'N/A':<20} {'N/A':<20} {'N/A':<20}")
+    print(f"  {'Area':<22} {_res_str(base_res):<20} {_res_str(best_res):<20} {_res_str(ref_res):<20}")
+    print(f"  {'Ratios':<22} {'latency=1.00x area=1.00x':<20} {f'latency={best_lat_ratio} area={best_area_ratio}':<20} {f'latency={ref_lat_ratio} area={ref_area_ratio}':<20}")
+
+    # Bottleneck
+    if is_v3 and sc.valid:
+        bottleneck = sc.bottleneck_resource
+        growth_str = ", ".join(
+            f"{k}={v:.2f}x" for k, v in sc.growth_by_resource.items()
+        ) if sc.growth_by_resource else "N/A"
+        print(f"\n  Area bottleneck: {bottleneck} | Growth: {growth_str}")
+
+    # ── SYNTHESIS CANDIDATES ────────────────────────────────────────────
+    all_synths = ([baseline_synth] if baseline_synth else []) + candidate_synths
+    if all_synths:
+        print(f"\n  {'SYNTHESIS CANDIDATES':─^76}")
+        print(f"  {'Candidate':<15} {'Latency / II':<18} {'Clock':<10} {'Area':<35} {'Runtime':<10}")
+        print(f"  {'─'*15} {'─'*18} {'─'*10} {'─'*35} {'─'*10}")
+        for i, r in enumerate(all_synths):
+            report = r.report
+            if report is None:
+                continue
+            lat = report.latency_worst or "?"
+            ii = report.interval_max or "?"
+            clk = f"{report.clock_period_ns} ns" if report.clock_period_ns else "?"
+            res = _res_str(report.resources)
+            elapsed = f"{r.elapsed_s:.1f}s"
+            label = f"Baseline (#{i+2})" if i == 0 else f"Candidate (#{i+2})"
+            if i == 0 and len(candidate_synths) == 0:
+                label = "Baseline (only)"
+            print(f"  {label:<15} {str(lat)+' / '+str(ii)+' cyc':<18} {clk:<10} {res:<35} {elapsed:<10}")
+
+        # Loop details for baseline and last candidate
+        if baseline_synth and baseline_synth.report:
+            bl = _loop_str(baseline_synth.report)
+            if bl:
+                print(f"\n  Baseline loops: {bl}")
+        if candidate_synths:
+            last_cand = candidate_synths[-1]
+            if last_cand.report:
+                cl = _loop_str(last_cand.report)
+                if cl:
+                    print(f"  Best loops:     {cl}")
+
+            # Trade-off analysis between baseline and best candidate
+            if len(candidate_synths) >= 1 and baseline_synth and baseline_synth.report:
+                cand = candidate_synths[-1]
+                if cand.report and cand.report.latency_worst and baseline_synth.report.latency_worst:
+                    lat_diff = cand.report.latency_worst - baseline_synth.report.latency_worst
+                    lat_pct = abs(lat_diff) / max(baseline_synth.report.latency_worst, 1) * 100
+                    direction = "reduces" if lat_diff < 0 else "increases"
+                    # Resource diff
+                    blut_diff = cand.report.resources.get("LUT", 0) - baseline_synth.report.resources.get("LUT", 0)
+                    ff_diff = cand.report.resources.get("FF", 0) - baseline_synth.report.resources.get("FF", 0)
+                    res_parts = []
+                    if blut_diff > 0:
+                        res_parts.append(f"LUT +{blut_diff}")
+                    elif blut_diff < 0:
+                        res_parts.append(f"LUT {blut_diff}")
+                    if ff_diff > 0:
+                        res_parts.append(f"FF +{ff_diff}")
+                    elif ff_diff < 0:
+                        res_parts.append(f"FF {ff_diff}")
+                    if res_parts:
+                        print(f"\n  Trade-off: Candidate {direction} latency by {abs(lat_diff)} cycles ({lat_pct:.1f}%), "
+                              f"{', '.join(res_parts)}")
+
+    # ── MODEL / TOKEN / COST ────────────────────────────────────────────
     llm = _llm_summary(state)
     if llm is not None:
         usage = llm.get("token_usage")
-        print(f"  LLM:          {llm.get('model') or llm.get('client')}")
+        print(f"\n  {'MODEL / TOKEN / COST':─^76}")
+        model_str = llm.get("model") or llm.get("client") or "?"
         if isinstance(usage, dict):
             requests = usage.get("request_count", 0)
             reported = usage.get("reported_usage_count", 0)
-            if usage.get("complete"):
-                print(
-                    "  API tokens:   "
-                    f"prompt={usage.get('prompt_tokens')}  "
-                    f"completion={usage.get('completion_tokens')}  "
-                    f"total={usage.get('total_tokens')}  "
-                    f"({reported}/{requests} requests reported)"
-                )
-            else:
-                print(
-                    "  API tokens:   incomplete server usage "
-                    f"({reported}/{requests} requests reported; exact total unavailable)"
-                )
+            prompt_t = usage.get("prompt_tokens", 0)
+            compl_t = usage.get("completion_tokens", 0)
+            total_t = usage.get("total_tokens", 0)
+            print(f"  Model={model_str} | API={reported}/{requests} | Prompt={prompt_t} | Completion={compl_t} | Total={total_t} tokens")
+        else:
+            print(f"  Model={model_str} | API tokens: unavailable")
 
-    # Repair stats
-    if derived["csim_attempts"] > 1:
-        print(f"  Repair:       {derived['csim_attempts']} csim attempts to pass")
-    if derived.get("cosim_attempts", 0) > 1:
-        print(f"  Struct repair:{derived['cosim_attempts']} cosim attempts to pass")
+    # Tool times
+    csim_times = ", ".join(f"{r.elapsed_s:.1f}s" for r in state.results if r.kind == "csim")
+    synth_times = ", ".join(f"{r.elapsed_s:.1f}s" for r in state.results if r.kind == "synth")
+    print(f"  Credits={spent}/{total_budget} | CSIM time={csim_times} | Synthesis time={synth_times}")
 
-    print(f"{'='*60}\n")
+    # ── OPTIMIZATION TARGETS ────────────────────────────────────────────
+    print(f"\n  {'OPTIMIZATION TARGETS':─^76}")
+    base_lat_str = f"{base_lat} cyc" if base_lat else "?"
+    print(f"  Latency : {base_lat_str} → reduce loop II and loop latency")
+    if base_res:
+        res_parts = ", ".join(f"{k}={v}" for k, v in base_res.items() if v)
+        bt = sc.bottleneck_resource if (is_v3 and sc.valid) else "N/A"
+        print(f"  Area    : {res_parts} → {bt} is the current bottleneck")
+    print(f"  Power   : N/A → add total, dynamic and static power measurements")
+    llm_tokens_val = 0
+    if llm is not None and isinstance(llm.get("token_usage"), dict):
+        llm_tokens_val = llm["token_usage"].get("total_tokens", 0)
+    print(f"  Token   : {llm_tokens_val} → reduce prompt size and unnecessary repeated tool calls")
+    wall_s = derived['wall_time_seconds']
+    print(f"  Time    : {wall_s:.0f}s wall / {grading_time:.0f}s grading → reduce unsuccessful synthesis iterations")
+    print(f"{'='*80}\n")
 
 
 def print_transcript(state: RunState) -> None:
