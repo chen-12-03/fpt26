@@ -1,6 +1,6 @@
-# V6 统一评分 — log-symmetric hardware ratio
+# V8 统一评分 — measured-cosim, capacity-integrated hardware ratio
 
-**版本：6.0 | 日期：2026-07-16 | 当前权威 schema：6**
+**版本：8.0 | 日期：2026-07-16 | 当前权威 schema：8**
 
 ## 核心公式
 
@@ -25,7 +25,46 @@ efficiency = max(0.80, 1 - 0.10*cost_ratio - 0.10*time_ratio)
 score = 100 * validity * q_hw * efficiency
 ```
 
-## V5 → V6 变更理由
+`validity` 还要求来自冻结 anchor synth report 的完整 device capacity：LUT、FF、DSP、
+BRAM_18K、URAM 五项必须都是正整数。缺失/partial capacity 以
+`required_metric_missing` fail closed；candidate 任一资源超过 total 时以
+`resource_capacity_exceeded` 得 0。相同 capacity 同时用于显著资源 floor，避免把器件
+规模信息丢失后用无设备默认值评价 area growth。
+
+对 `requires_cosim=True` 的 task，`candidate_effective_time` 中的 cycles 必须来自通过的
+RTL co-simulation `latency_max`；synth report 只继续提供 clock、II、resources 与 synth
+gate。Cosim gate 未明确 PASS 时以 `hidden_cosim_fail` 失败；PASS 但缺少 measured latency
+时以 `required_metric_missing` fail closed。非 cosim task 仍使用 synthesis latency。
+
+## V7 → V8 变更理由
+
+`CoSimTool` 同时返回 synthesis estimate（`ToolResult.report`）与 RTL measured result
+（`ToolResult.cosim`）。V7 的 `step_score()` 错把前者的 `latency_worst` 写进
+`QoREvidence.cosim_latency`，导致 scorecard 虽声明 `acceleration_source=cosim`，实际按
+synth estimate 计分。
+
+V8 不改变公式、权重、utility、capacity 或效率策略，只把 required-cosim 的 evidence
+路由到 `cosim.latency_max`，缺失时 fail closed，并在 `run_report` 记录
+`acceleration_source` 与 `cosim_latency_used`。这是评分证据一致性修复，不是 Agent 性能
+提升；V7/V8 必须以同一真实 artifact 双评分，不能直接作为连续趋势。
+
+## V6 → V7 capacity 历史
+
+V6 的 scorer 已实现容量 hard gate，但最终 workflow 与 optimization-time proxy 构造
+`Anchor` 时显式传入 `available={}`。真实 Vitis `csynth.xml` 已包含完整 device totals，
+集成层却丢弃该字段，导致 `check_capacity()` 从不执行，resource-floor 也退化。
+
+V7 不改变 V6 的任何公式、权重、utility、correctness gate 或效率策略，只完成三件事：
+
+- 验证并传播 anchor synth report 的五项 device totals；
+- 缺失 capacity 时 fail closed，超容量时保留独立 gate reason；
+- 在 `Scorecard`/`run_report` 中记录 `available_resources` 与
+  `resource_capacity_pass`，使判定可审计。
+
+V6 → V7 是 capacity 集成修复；其同产物双评分和 fresh V7 基线记录在
+`docs/iteration-log.md`。
+
+## V5 → V6 公式历史
 
 V5 先分别压缩 performance/area ratio，再做
 `sqrt(q_perf*q_area)`。这破坏 reciprocal symmetry：等比例 speedup 与 resource
@@ -40,8 +79,8 @@ V6 先在 log-ratio 域做等权几何折中，再映射一次。它保证：
 - 任意有限 resource growth 都可被足够大的真实 performance improvement 超越；
 - 极端 area bloat、性能回退仍连续、单调地受罚。
 
-这次版本变化是评价一致性修复，不是 Agent 性能提升。V5 与 V6 score 不得直接作为
-连续趋势；切换轮必须双重评分并建立 V6 新基线。
+V5 → V6 是公式一致性修复；其同产物双评分和 V6 基线记录在
+`docs/iteration-log.md`，不得与 V7 趋势混用。
 
 ## 保持不变
 
@@ -58,8 +97,11 @@ V6 先在 log-ratio 域做等权几何折中，再映射一次。它保证：
 
 ## 版本边界
 
-- `scoring/__init__.py`: `__version__ = "6.0.0"`
+- `scoring/__init__.py`: `__version__ = "8.0.0"`
 - `scoring/scoring_v3.py`: 当前实现文件（文件名为兼容 harness 保持不变）
-- `Scorecard.schema_version = 6`
-- 2026-07-16 之前的 schema 5 是旧基线；此前实验性 token V6/V7 run 不是本公式，
-  不得混用。当前 V6 的识别特征是 `hardware_ratio` 字段和本文件所述公式。
+- `Scorecard.schema_version = 8`
+- Schema 7 是相同公式/capacity 但 required-cosim 仍路由 synth estimate 的旧基线；
+  schema 6 是未集成 capacity 的旧基线；schema 5 是更早的 pre-composition 公式。此前
+  实验性 token V6/V7 run 与这些权威 schema 无关，不得混用。当前 V8 的识别特征是
+  `hardware_ratio`、`available_resources`、`resource_capacity_pass`、
+  `acceleration_source` 和 `cosim_latency_used` 字段。

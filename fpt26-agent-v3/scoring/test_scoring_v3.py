@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V6 log-symmetric unified scoring engine — test suite.
+"""V8 measured-cosim, capacity-integrated scoring engine — test suite.
 
 All tasks use the single ``valid_then_optimize`` objective.
 Task type labels do not affect scoring.
@@ -39,6 +39,7 @@ from scoring_v3 import (
     performance_quality,
     ratio_quality,
     select_anchor,
+    verified_available_resources,
 )
 
 U55C = {"LUT": 872640, "FF": 1745280, "DSP": 9024, "BRAM_18K": 2016, "URAM": 960}
@@ -103,7 +104,7 @@ class TestRatioQuality:
 
 
 class TestLogSymmetricHardwareRatio:
-    """Schema 6 composes raw ratios before applying bounded utility."""
+    """Schema 8 retains V6 raw-ratio composition before bounded utility."""
 
     @pytest.mark.parametrize("growth", [1.0, 1.25, 1.5, 2.0, 4.0, 10.0])
     def test_equal_speedup_and_growth_are_baseline_neutral(self, growth):
@@ -119,6 +120,61 @@ class TestLogSymmetricHardwareRatio:
         for growth in (2.0, 4.0, 10.0, 1000.0):
             assert hardware_qor(growth * 2.0, 1.0 / growth) > 0.75
 
+
+class TestCapacityEvidence:
+    def test_complete_positive_integer_totals_are_verified(self):
+        assert verified_available_resources(U55C) == U55C
+
+    @pytest.mark.parametrize(
+        "available",
+        [
+            None,
+            {},
+            {**U55C, "URAM": None},
+            {**U55C, "URAM": 0},
+            {**U55C, "URAM": 960.0},
+        ],
+    )
+    def test_partial_or_placeholder_totals_are_not_verified(self, available):
+        assert verified_available_resources(available) == {}
+        assert not check_capacity(BASE_RES, available or {})
+
+    def test_missing_capacity_fails_closed_as_required_metric(self):
+        anchor = _anchor()
+        anchor.available = {}
+        card = grade(
+            TaskScoringConfig(task_id="missing_capacity"),
+            anchor,
+            _ev(),
+            gates=_gates(),
+        )
+        assert not card.valid
+        assert card.gate_reason == "required_metric_missing"
+        assert card.score == 0.0
+        assert card.available_resources == {}
+
+    def test_over_capacity_is_a_distinct_hard_gate(self):
+        candidate = dict(BASE_RES)
+        candidate["DSP"] = U55C["DSP"] + 1
+        card = grade(
+            TaskScoringConfig(task_id="over_capacity"),
+            _anchor(),
+            _ev(res=candidate),
+            gates=_gates(),
+        )
+        assert not card.valid
+        assert card.gate_reason == "resource_capacity_exceeded"
+        assert card.resource_capacity_pass is False
+        assert card.available_resources == U55C
+        assert card.score == 0.0
+
+    def test_gate_reason_does_not_mislabel_false_infrastructure_flag(self):
+        gates = _gates()
+        gates.resource_capacity_pass = False
+        assert gates.first_failure == "resource_capacity_exceeded"
+
+
+class TestLogSymmetricHardwareRatioExamples:
     def test_optional_ii_uses_weighted_geometric_ratio(self):
         combined = aggregate_performance_ratio(
             latency_ratio=4.0, ii_ratio=1.0, ii_applicable=True
@@ -222,6 +278,36 @@ class TestLabelIndependence:
         assert card_pass.score > 0
         assert not card_fail.valid
         assert card_fail.score == 0.0
+
+    def test_required_cosim_pass_without_measured_latency_fails_closed(self):
+        cfg = TaskScoringConfig(task_id="t", requires_cosim=True)
+        evidence = QoREvidence(
+            candidate_latency=50,
+            candidate_ii=1,
+            cosim_latency=None,
+            candidate_resources=dict(BASE_RES),
+        )
+        gates = ValidityGates(
+            hidden_csim_pass=True,
+            synth_pass=True,
+            hidden_cosim_pass=True,
+        )
+        card = grade(cfg, _anchor(), evidence, gates=gates)
+        assert not card.valid
+        assert card.gate_reason == "required_metric_missing"
+
+    def test_required_cosim_with_unset_gate_is_not_trivially_optional(self):
+        cfg = TaskScoringConfig(task_id="t", requires_cosim=True)
+        evidence = QoREvidence(
+            candidate_latency=50,
+            candidate_ii=1,
+            cosim_latency=60,
+            candidate_resources=dict(BASE_RES),
+        )
+        gates = ValidityGates(hidden_csim_pass=True, synth_pass=True)
+        card = grade(cfg, _anchor(), evidence, gates=gates)
+        assert not card.valid
+        assert card.gate_reason == "hidden_cosim_fail"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -373,7 +459,7 @@ class TestScoreRange:
 
     def test_scorecard_audit_fields(self):
         card = grade(TaskScoringConfig(task_id="audit"), _anchor(), _ev(), gates=_gates())
-        assert card.schema_version == 6
+        assert card.schema_version == 8
         assert card.latency_ratio > 0
         assert card.performance_ratio > 0
         assert card.q_perf > 0
@@ -421,7 +507,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 406, "FF": 231, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
 
-        print(f"\nprojection_bugfix V6:")
+        print(f"\nprojection_bugfix V8:")
         print(card.render())
 
         assert card.valid
@@ -442,7 +528,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 13189, "FF": 54194, "DSP": 64, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=15, gates=_gates())
 
-        print(f"\ndotProduct_optimize V6:")
+        print(f"\ndotProduct_optimize V8:")
         print(card.render())
 
         assert card.valid
@@ -471,7 +557,7 @@ class TestRealTasks:
         cc = c(68, 68, 2000, 800, 8)            # C: balanced
         cd = c(10, 10, 50000, 200000, 200)      # D: extreme
 
-        print(f"\ndotProduct V6 — 4 candidates:")
+        print(f"\ndotProduct V8 — 4 candidates:")
         for name, card in [("A", ca), ("B", cb), ("C", cc), ("D", cd)]:
             print(f"  {name}: score={card.score:.2f}  q_perf={card.q_perf:.4f}  "
                   f"q_area={card.q_area:.4f}  bottleneck={card.bottleneck_resource}")
@@ -498,7 +584,7 @@ class TestRealTasks:
         gates = ValidityGates(hidden_csim_pass=True, synth_pass=True, hidden_cosim_pass=True)
         card = grade(cfg, a, ev, cost_spent=66, gates=gates)
 
-        print(f"\nresidual_stream_deadlock V6:")
+        print(f"\nresidual_stream_deadlock V8:")
         print(card.render())
 
         assert card.valid
@@ -518,7 +604,7 @@ class TestRealTasks:
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("  FPT26 V6 Log-Symmetric Scoring Engine — Test Suite")
+    print("  FPT26 V8 Measured-CoSim Scoring Engine — Test Suite")
     print("=" * 70)
 
     trt = TestRealTasks()

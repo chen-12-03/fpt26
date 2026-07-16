@@ -119,6 +119,7 @@ def build_prompt(
     attempt: int = 0,
     resource_delta: str = "",
     rejection_feedback: dict[str, Any] | None = None,
+    action_contract: dict[str, Any] | None = None,
 ) -> str:
     header_text, omitted_attachments = _prompt_header_context(task.headers)
 
@@ -147,6 +148,8 @@ def build_prompt(
         payload["resource_trend"] = resource_delta
     if rejection_feedback:
         payload["previous_candidate_feedback"] = rejection_feedback
+    if action_contract:
+        payload["measured_action_contract"] = action_contract
 
     # Streaming context — derived from task properties, not task type label
     if task.requires_cosim:
@@ -169,6 +172,7 @@ def build_prompt(
         "and failed_candidate_diff. Apply required_next_action before considering any new architecture; never blindly "
         "repeat the failed source.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
+        "- If measured_action_contract is present: treat its target, required_candidate_delta, forbidden_as_non_responsive, dimension policy, and verification as hard planning constraints. Implement one recommended minimal trial only when the editable source proves the required dimension; otherwise use its locality alternative or return editable_kernel unchanged.\n"
         "- For other previous_candidate_feedback: the prior candidate was measured and rejected by scoring. "
         "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; never "
         "increase a factor when measured resource growth outweighed speedup. If there is no report-supported "

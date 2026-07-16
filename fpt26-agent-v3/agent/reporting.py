@@ -201,8 +201,15 @@ def write_run_report(state: RunState) -> Path:
                 "csim_pass": sc.csim_pass,
                 "synth_pass": sc.synth_pass,
                 "cosim_pass": sc.cosim_pass,
+                "resource_capacity_pass": getattr(
+                    sc, "resource_capacity_pass", None
+                ),
                 "anchor_source": sc.anchor_source,
                 "latency_ratio": sc.latency_ratio,
+                "acceleration_source": getattr(
+                    sc, "acceleration_source", "synth"
+                ),
+                "cosim_latency_used": getattr(sc, "cosim_latency_used", None),
                 "performance_ratio": getattr(sc, "performance_ratio", sc.latency_ratio),
                 "area_growth": sc.area_growth,
                 "area_ratio": getattr(
@@ -217,6 +224,7 @@ def write_run_report(state: RunState) -> Path:
                 "growth_by_resource": sc.growth_by_resource,
                 "baseline_resources": sc.baseline_resources,
                 "candidate_resources": sc.candidate_resources,
+                "available_resources": getattr(sc, "available_resources", {}),
                 "cost_spent": sc.cost_spent,
                 "cost_limit": sc.cost_limit,
                 "wall_time_s": sc.wall_time_s,

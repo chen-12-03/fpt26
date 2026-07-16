@@ -4,6 +4,7 @@ import difflib
 import re
 from typing import Any
 from agent.agents.base import RunState
+from agent.analysis.action_contract import build_ii_resource_action_contract
 from agent.analysis.log_normalizer import LogNormalizer
 from agent.analysis.synth_diagnostics import extract_ii_resource_limits
 from agent.prompts import SYSTEM, build_prompt
@@ -13,6 +14,7 @@ from scoring.scoring_v3 import (
     TaskScoringConfig,
     ValidityGates,
     grade as v3_grade,
+    verified_available_resources,
 )
 
 _CODE_RE = re.compile(r"```(?:cpp|c\+\+|c)?\s*\n(.*?)```", re.DOTALL)
@@ -63,10 +65,23 @@ def _hls_pragmas(code: str) -> list[str]:
     ]
 
 
+def _source_array_rank(code: str, variable: str) -> int | None:
+    """Return the largest visible bracket rank for an array identifier."""
+    ranks = [
+        brackets.count("[")
+        for brackets in re.findall(
+            rf"\b{re.escape(variable)}\s*((?:\[[^\[\]]*\]\s*)+)",
+            code,
+        )
+    ]
+    return max(ranks) if ranks else None
+
+
 def _ii_resource_intent_feedback(
     synth_result: Any,
     best: str,
     candidate: str,
+    action_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Reject pragma-only actions that cannot resolve a measured port limit."""
     limits = extract_ii_resource_limits(
@@ -83,9 +98,99 @@ def _ii_resource_intent_feedback(
         for pragma in _hls_pragmas(candidate)
         if pragma.lower() not in best_pragmas
     ]
-    if not added_pragmas or not all(
-        re.search(r"\b(?:PIPELINE|UNROLL)\b", pragma, re.IGNORECASE)
-        for pragma in added_pragmas
+    if not added_pragmas:
+        return None
+
+    evidence_arrays = {
+        limit.array.lower() for limit in limits if limit.array
+    }
+    banking_actions: list[dict[str, Any]] = []
+    recognized_only = True
+    for pragma in added_pragmas:
+        banking = re.search(
+            r"\b(ARRAY_PARTITION|ARRAY_RESHAPE)\b.*?"
+            r"\bvariable\s*=\s*([A-Za-z_]\w*)",
+            pragma,
+            re.IGNORECASE,
+        )
+        if banking:
+            style = re.search(
+                r"\b(cyclic|block|complete)\b", pragma, re.IGNORECASE
+            )
+            factor = re.search(
+                r"\bfactor\s*=\s*(\d+)", pragma, re.IGNORECASE
+            )
+            dimension = re.search(
+                r"\bdim\s*=\s*(\d+)", pragma, re.IGNORECASE
+            )
+            banking_actions.append(
+                {
+                    "pragma": pragma,
+                    "pragma_class": banking.group(1).upper(),
+                    "variable": banking.group(2),
+                    "style": style.group(1).lower() if style else None,
+                    "factor": int(factor.group(1)) if factor else None,
+                    "dimension": (
+                        int(dimension.group(1)) if dimension else None
+                    ),
+                }
+            )
+            continue
+        if re.search(r"\b(?:PIPELINE|UNROLL)\b", pragma, re.IGNORECASE):
+            continue
+        recognized_only = False
+        break
+
+    # Preserve an escape hatch for storage directives whose effects this
+    # narrow contract cannot prove, and for candidates with real code changes.
+    if not recognized_only:
+        return None
+
+    contract = action_contract or build_ii_resource_action_contract(
+        getattr(synth_result, "log", "") or ""
+    )
+    contract_violations: list[str] = []
+    if contract:
+        if len(added_pragmas) != 1:
+            contract_violations.append(
+                "expected exactly one newly added HLS pragma"
+            )
+        if len(banking_actions) != 1:
+            contract_violations.append(
+                "the single action must be ARRAY_PARTITION"
+            )
+        else:
+            action = banking_actions[0]
+            variable = action["variable"]
+            rank = _source_array_rank(best, variable)
+            if action["pragma_class"] != "ARRAY_PARTITION":
+                contract_violations.append(
+                    "pragma class must be ARRAY_PARTITION"
+                )
+            if variable.lower() not in evidence_arrays:
+                contract_violations.append(
+                    f"variable '{variable}' is not a reported target"
+                )
+            if action["style"] != "cyclic":
+                contract_violations.append("partition style must be cyclic")
+            if action["factor"] != 2:
+                contract_violations.append("partition factor must be 2")
+            dimension = action["dimension"]
+            if dimension is None:
+                contract_violations.append(
+                    "partition dim must be explicit and source-supported"
+                )
+            elif dimension < 1:
+                contract_violations.append("partition dim must be positive")
+            elif rank is not None and dimension > rank:
+                contract_violations.append(
+                    f"partition dim={dimension} exceeds visible array rank={rank}"
+                )
+        if not contract_violations:
+            return None
+    elif any(
+        action["variable"].lower() in evidence_arrays
+        for action in banking_actions
     ):
         return None
 
@@ -104,18 +209,27 @@ def _ii_resource_intent_feedback(
     return {
         "status": "REJECTED_BY_SYNTH_EVIDENCE_INTENT",
         "candidate_pragmas": added_pragmas,
+        "unmatched_banking_variables": [
+            action["variable"]
+            for action in banking_actions
+            if action["variable"].lower() not in evidence_arrays
+        ],
+        "contract_violations": contract_violations,
         "ii_resource_limits": evidence,
         "reason": (
-            "The candidate changes only PIPELINE/UNROLL directives, but Vitis "
-            "already proved that memory ports set the II lower bound. More "
-            "concurrent accesses without changing storage bandwidth cannot "
-            "resolve that measured bottleneck. No candidate tool was run."
+            "The candidate changes only concurrency directives and/or banks "
+            "arrays other than the one named by Vitis HLS 200-448. Vitis "
+            "already proved which memory ports set the II lower bound, so this "
+            "action does not address the measured bottleneck. No candidate "
+            "tool was run."
         ),
         "required_next_action": (
-            f"Address the reported array(s) {arrays} with one minimal matched "
-            "banking/reshape action, or make a real code-locality change such as "
-            "a line buffer/cache that reduces external reads. Otherwise return "
-            "the current editable kernel unchanged to stop."
+            f"Apply exactly one evidence-matched ARRAY_PARTITION cyclic "
+            f"factor=2 pragma to reported array(s) {arrays}, with an explicit "
+            "dimension no larger than that array's visible source rank; or make "
+            "a real code-locality change such as a line buffer/cache that "
+            "reduces external reads. Otherwise return the current editable "
+            "kernel unchanged to stop."
         ),
     }
 
@@ -195,7 +309,9 @@ def _score_candidate(task: Any, anchor_report: Any, candidate_report: Any) -> An
         ii=anchor_report.interval_max,
         clock_ns=anchor_report.clock_period_ns or task.clock_ns,
         resources=dict(anchor_report.resources),
-        available={},
+        available=verified_available_resources(
+            getattr(anchor_report, "available", None)
+        ),
     )
     evidence = QoREvidence(
         candidate_latency=_report_latency(candidate_report),
@@ -540,12 +656,22 @@ class OptimizeAgent:
                     f"bottleneck={current_card.bottleneck_resource})"
                 )
             diag = _diagnose(cr)
+            action_contract = build_ii_resource_action_contract(
+                getattr(cr, "log", "") or ""
+            )
             rsrc_trend = _resource_delta(resource_history)
 
             state.log(f"opt r{rnd}: lat={best_lat} | {report_str}")
             for line in diag.split("\n"):
                 if line.strip():
                     state.log(f"  {line.strip()}")
+            if action_contract:
+                targets = [
+                    target["array"] for target in action_contract["targets"]
+                ]
+                state.log(
+                    f"opt r{rnd}: measured action contract targets={targets}"
+                )
 
             # ── 2. Knowledge lookup ─────────────────────────────────────
             know = ""
@@ -569,6 +695,7 @@ class OptimizeAgent:
                 knowledge_hint=know,
                 resource_delta=rsrc_trend,
                 rejection_feedback=rejection_feedback,
+                action_contract=action_contract,
             )
 
             # ── 4. LLM proposes optimization ────────────────────────────
@@ -593,7 +720,9 @@ class OptimizeAgent:
                 )
                 break
 
-            intent_feedback = _ii_resource_intent_feedback(cr, best, cand)
+            intent_feedback = _ii_resource_intent_feedback(
+                cr, best, cand, action_contract
+            )
             if intent_feedback is not None:
                 ii_resource_intent_rejections += 1
                 rejected_fingerprints.add(candidate_fingerprint)

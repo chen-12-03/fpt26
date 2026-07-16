@@ -174,15 +174,17 @@ def step_cosim(state: RunState) -> RunState:
 def step_score(state: RunState) -> RunState:
     """Run current scoring: hidden-csim → synth(cand) → synth(base) → optional cosim.
 
-    Uses the unified scoring_v3.grade() formula:
+    Uses the current scoring_v3.grade() formula and verified device capacity:
         hardware_ratio = sqrt(performance_ratio * area_ratio)
         score = 100 * validity * ratio_quality(hardware_ratio) * efficiency
+        missing/over-capacity evidence = invalid
     """
     if not state.config.score:
         return state
 
     from scoring.scoring_v3 import (
-        Anchor, QoREvidence, TaskScoringConfig, ValidityGates, grade as v3_grade,
+        Anchor, QoREvidence, TaskScoringConfig, ValidityGates,
+        grade as v3_grade, verified_available_resources,
     )
 
     task = state.task
@@ -208,8 +210,8 @@ def step_score(state: RunState) -> RunState:
             top=task.top, part=task.part, clock_ns=task.clock_ns,
         )
         cosim_ok = cosim.ok
-        if cosim.report and cosim.report.latency_worst:
-            cosim_latency = cosim.report.latency_worst
+        if cosim.cosim and cosim.cosim.latency_max is not None:
+            cosim_latency = cosim.cosim.latency_max
 
     # ── 3. Candidate synthesis ────────────────────────────────────────────
     cand_files = dict(task.headers)
@@ -256,10 +258,15 @@ def step_score(state: RunState) -> RunState:
         base_synth.report.resources
         if base_synth.ok and base_synth.report else {}
     )
+    starter_available = verified_available_resources(
+        getattr(base_synth.report, "available", None)
+        if base_synth.ok and base_synth.report else None
+    )
     starter_valid = base_synth.ok
 
     # Check if reference solution exists for anchor fallback
-    ref_lat = None; ref_ii = None; ref_clock = None; ref_resources = {}
+    ref_lat = None; ref_ii = None; ref_clock = None
+    ref_resources = {}; ref_available = {}
     if task.reference_code:
         ref_files = dict(task.headers)
         ref_files[task.kernel_name] = task.reference_code
@@ -273,6 +280,9 @@ def step_score(state: RunState) -> RunState:
             ref_ii = ref_synth.report.interval_max
             ref_clock = ref_synth.report.clock_period_ns
             ref_resources = ref_synth.report.resources
+            ref_available = verified_available_resources(
+                getattr(ref_synth.report, "available", None)
+            )
 
     anchor = Anchor(
         source="starter" if starter_valid else ("reference" if ref_lat else "none"),
@@ -281,7 +291,7 @@ def step_score(state: RunState) -> RunState:
         ii=starter_ii if starter_valid else ref_ii,
         clock_ns=starter_clock if starter_valid else ref_clock,
         resources=starter_resources if starter_valid else ref_resources,
-        available={},
+        available=starter_available if starter_valid else ref_available,
     )
 
     # Evidence: candidate synthesis results
@@ -318,7 +328,7 @@ def step_score(state: RunState) -> RunState:
         resource_capacity_pass=True,
     )
 
-    # Budget & grading wall time. API tokens are observability-only in V6.
+    # Budget & grading wall time. API tokens are observability-only in V8.
     budget = state.server.budget
     cost_spent = budget.spent if hasattr(budget, 'spent') else 0
     wall_time_s = time.monotonic() - _start

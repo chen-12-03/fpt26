@@ -19,9 +19,10 @@ Core formula (fits on one screen)::
     def efficiency():       return max(0.80, 1 - 0.10*ucost - 0.10*utime)
     def score():            return 100 * validity * q_hw * efficiency
 
-Schema 6 composes trade-offs in log-ratio space before applying the bounded
-utility.  Equal proportional performance gain and resource growth are neutral;
-unlike schema 5, no finite resource growth creates a performance hard ceiling.
+Schema 8 retains the schema-6 log-ratio formula and schema-7 capacity gate,
+while requiring measured RTL latency for tasks that require co-simulation.
+Equal proportional performance gain and resource growth are neutral; any
+reported resource above capacity is invalid.
 """
 
 from __future__ import annotations
@@ -34,7 +35,7 @@ from dataclasses import dataclass, field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 RESOURCES = ("LUT", "FF", "DSP", "BRAM_18K", "URAM")
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 8
 W_LATENCY = 0.85
 W_II = 0.15
 LAMBDA_COST = 0.10
@@ -219,17 +220,35 @@ def area_quality(
 # Capacity gate
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def verified_available_resources(
+    available: dict[str, int] | None,
+) -> dict[str, int]:
+    """Return a canonical capacity map only when all device totals are valid.
+
+    Capacity is a hard validity boundary, so partial or placeholder values must
+    not silently turn into either unlimited resources or zero-capacity devices.
+    """
+    if not isinstance(available, dict):
+        return {}
+    verified: dict[str, int] = {}
+    for resource in RESOURCES:
+        value = available.get(resource)
+        if type(value) is not int or value <= 0:
+            return {}
+        verified[resource] = value
+    return verified
+
 def check_capacity(
     candidate: dict[str, int],
     available: dict[str, int],
 ) -> bool:
     """Hard gate: any resource > available → False."""
+    verified = verified_available_resources(available)
+    if not verified:
+        return False
     for r in RESOURCES:
         c = candidate.get(r, 0)
-        a = available.get(r, 0)
-        if a > 0 and c > a:
-            return False
-        if a == 0 and c > 0:
+        if c > verified[r]:
             return False
     return True
 
@@ -315,8 +334,9 @@ class ValidityGates:
 
     @property
     def first_failure(self) -> str:
+        if self.infrastructure_error:
+            return "infrastructure_error"
         checks = [
-            ("infrastructure_error", "infrastructure_error"),
             ("hidden_csim_pass", "hidden_csim_fail"),
             ("hidden_cosim_pass", "hidden_cosim_fail"),
             ("synth_pass", "synth_fail"),
@@ -391,6 +411,7 @@ class Scorecard:
     csim_pass: bool = False
     synth_pass: bool = False
     cosim_pass: bool | None = None
+    resource_capacity_pass: bool | None = None
     stage: str = "unknown"
 
     # Performance
@@ -403,6 +424,7 @@ class Scorecard:
     # Resources
     baseline_resources: dict[str, int] = field(default_factory=dict)
     candidate_resources: dict[str, int] = field(default_factory=dict)
+    available_resources: dict[str, int] = field(default_factory=dict)
     growth_by_resource: dict[str, float] = field(default_factory=dict)
     bottleneck_resource: str = ""
     area_growth: float = 1.0
@@ -505,10 +527,24 @@ def grade(
             valid=False, gate_reason="no_valid_anchor",
         )
 
-    # Capacity check
-    if evidence.candidate_resources and anchor.available:
-        if not check_capacity(evidence.candidate_resources, anchor.available):
+    # Capacity evidence is mandatory and must be complete.  Parser or
+    # integration regressions therefore fail closed instead of bypassing the
+    # hard gate.  A genuine over-capacity result keeps its distinct gate reason.
+    available = verified_available_resources(anchor.available)
+    if not available:
+        gates.metric_completeness_pass = False
+    elif evidence.candidate_resources:
+        if not check_capacity(evidence.candidate_resources, available):
             gates.resource_capacity_pass = False
+
+    # A required RTL co-simulation must both pass and expose its measured
+    # latency.  Falling back to a synthesis estimate would make the scorecard's
+    # ``acceleration_source=cosim`` claim inconsistent with the actual evidence.
+    if task_cfg.requires_cosim:
+        if gates.hidden_cosim_pass is None:
+            gates.hidden_cosim_pass = False
+        elif gates.hidden_cosim_pass and evidence.cosim_latency is None:
+            gates.metric_completeness_pass = False
 
     # Progress stage
     stage = "unknown"
@@ -528,7 +564,11 @@ def grade(
             csim_pass=gates.hidden_csim_pass,
             synth_pass=gates.synth_pass,
             cosim_pass=gates.hidden_cosim_pass,
+            resource_capacity_pass=gates.resource_capacity_pass,
             stage=stage,
+            baseline_resources=dict(anchor.resources),
+            candidate_resources=dict(evidence.candidate_resources),
+            available_resources=dict(available),
         )
 
     if not evidence.required_metrics_complete:
@@ -541,7 +581,11 @@ def grade(
             csim_pass=gates.hidden_csim_pass,
             synth_pass=gates.synth_pass,
             cosim_pass=gates.hidden_cosim_pass,
+            resource_capacity_pass=gates.resource_capacity_pass,
             stage=stage,
+            baseline_resources=dict(anchor.resources),
+            candidate_resources=dict(evidence.candidate_resources),
+            available_resources=dict(available),
         )
 
     # ── Effective latency (cosim overrides synth for requires_cosim) ─────
@@ -573,7 +617,7 @@ def grade(
 
     # ── Resources ────────────────────────────────────────────────────────
     q_area, growth, bottleneck = area_quality(
-        evidence.candidate_resources, anchor.resources, anchor.available)
+        evidence.candidate_resources, anchor.resources, available)
     area_growth = growth.get(bottleneck, 1.0)
     area_ratio = 1.0 / max(area_growth, 1e-9)
 
@@ -597,6 +641,7 @@ def grade(
         csim_pass=gates.hidden_csim_pass,
         synth_pass=gates.synth_pass,
         cosim_pass=gates.hidden_cosim_pass,
+        resource_capacity_pass=gates.resource_capacity_pass,
         stage=stage,
         latency_ratio=round(latency_ratio, 2),
         ii_ratio=round(ii_ratio, 2),
@@ -604,6 +649,7 @@ def grade(
         q_perf=round(q_perf, 4),
         baseline_resources=dict(anchor.resources),
         candidate_resources=dict(evidence.candidate_resources),
+        available_resources=dict(available),
         growth_by_resource={r: round(v, 2) for r, v in growth.items()},
         bottleneck_resource=bottleneck,
         area_growth=round(area_growth, 2),

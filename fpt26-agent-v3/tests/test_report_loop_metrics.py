@@ -30,6 +30,13 @@ def test_parse_csynth_xml_exposes_pipeline_and_loop_metrics(tmp_path) -> None:
 
     report = parse_csynth_xml(report_path)
 
+    assert report.available == {
+        "LUT": 1000,
+        "FF": 1000,
+        "DSP": 100,
+        "BRAM_18K": 100,
+        "URAM": 10,
+    }
     assert report.pipeline_type == "loop auto-rewind stp (delay=1 cycles)"
     assert report.loop_metrics == [
         {

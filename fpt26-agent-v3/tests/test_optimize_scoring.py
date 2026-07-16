@@ -11,8 +11,18 @@ from agent.agents.optimize import (
     _latest_successful_synth,
     _rejection_feedback,
     _score_candidate,
+    _source_array_rank,
 )
+from agent.analysis.action_contract import build_ii_resource_action_contract
 from agent.analysis.synth_diagnostics import extract_ii_resource_limits
+
+_AVAILABLE = {
+    "LUT": 1303680,
+    "FF": 2607360,
+    "DSP": 9024,
+    "BRAM_18K": 4032,
+    "URAM": 960,
+}
 
 
 def _report(
@@ -23,6 +33,7 @@ def _report(
     lut: int,
     ff: int,
     dsp: int,
+    available: dict | None = None,
     pipeline_type: str | None = None,
     loop_metrics: list[dict] | None = None,
 ):
@@ -32,6 +43,7 @@ def _report(
         interval_max=ii,
         clock_period_ns=clock,
         resources={"LUT": lut, "FF": ff, "DSP": dsp, "BRAM_18K": 0, "URAM": 0},
+        available=dict(_AVAILABLE if available is None else available),
         pipeline_type=pipeline_type,
         loop_metrics=loop_metrics or [],
     )
@@ -73,6 +85,48 @@ def test_scorer_aligned_quality_accepts_real_improvement_without_area_growth() -
     balanced_card = _score_candidate(task, starter, balanced)
 
     assert balanced_card.q_hw > starter_card.q_hw
+
+
+def test_scorer_aligned_quality_rejects_candidate_over_device_capacity() -> None:
+    task = SimpleNamespace(
+        id="capacity",
+        type="optimize",
+        difficulty=3,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+    )
+    small_device = {
+        "LUT": 200,
+        "FF": 200,
+        "DSP": 10,
+        "BRAM_18K": 10,
+        "URAM": 10,
+    }
+    starter = _report(
+        latency=1000,
+        ii=1000,
+        clock=5.0,
+        lut=100,
+        ff=100,
+        dsp=2,
+        available=small_device,
+    )
+    over_capacity = _report(
+        latency=100,
+        ii=100,
+        clock=5.0,
+        lut=201,
+        ff=100,
+        dsp=2,
+        available=small_device,
+    )
+
+    card = _score_candidate(task, starter, over_capacity)
+
+    assert not card.valid
+    assert card.gate_reason == "resource_capacity_exceeded"
+    assert card.q_hw == 0.0
 
 
 def test_rejection_feedback_contains_metrics_and_pragma_evidence() -> None:
@@ -209,7 +263,37 @@ def test_diagnosis_extracts_vitis_memory_port_ii_limit() -> None:
     assert "another PIPELINE directive alone cannot lower II" in diagnosis
 
 
-def test_ii_resource_intent_gate_only_blocks_standalone_concurrency() -> None:
+def test_action_contract_targets_measured_array_with_one_bounded_trial() -> None:
+    warning = (
+        "WARNING: [HLS 200-448] Lower bound of II is 5 due to multiple "
+        "'load' operation 32 bit ('orig_load', stencil.cpp:20) on array "
+        "'orig' accessing core:RAM:orig"
+    )
+
+    contract = build_ii_resource_action_contract(warning)
+
+    assert contract is not None
+    assert contract["kind"] == "measured_memory_port_ii"
+    assert contract["evidence_id"] == "HLS 200-448"
+    target = contract["targets"][0]
+    assert target["array"] == "orig"
+    assert target["observed_ii_lower_bound"] == 5
+    assert target["recommended_minimal_trial"] == {
+        "pragma_class": "ARRAY_PARTITION",
+        "variable": "orig",
+        "style": "cyclic",
+        "factor": 2,
+        "dimension_policy": (
+            "Choose only the dimension indexed by concurrent loop "
+            "iterations. Omit this trial when the source does not prove "
+            "that dimension."
+        ),
+    }
+    assert "unreported array" in contract["forbidden_as_non_responsive"][1]
+    assert build_ii_resource_action_contract("Synthesis completed") is None
+
+
+def test_ii_resource_intent_gate_requires_evidence_matched_banking() -> None:
     best = """void top(int orig[64]) {
   for (int i = 0; i < 64; ++i) { orig[i] += 1; }
 }
@@ -227,8 +311,30 @@ def test_ii_resource_intent_gate_only_blocks_standalone_concurrency() -> None:
         "  for",
         "  #pragma HLS ARRAY_PARTITION variable=orig cyclic factor=2 dim=1\n  for",
     )
+    unmatched_partition = best.replace(
+        "  for",
+        "  #pragma HLS ARRAY_PARTITION variable=filter complete dim=1\n"
+        "  #pragma HLS UNROLL factor=2\n  for",
+    )
+    matched_partition_and_unroll = best.replace(
+        "  for",
+        "  #pragma HLS ARRAY_RESHAPE variable = orig cyclic factor=2 dim=1\n"
+        "  #pragma HLS UNROLL factor=2\n  for",
+    )
+    wrong_style = best.replace(
+        "  for",
+        "  #pragma HLS ARRAY_PARTITION variable=orig block factor=2 dim=1\n  for",
+    )
+    invalid_dimension = best.replace(
+        "  for",
+        "  #pragma HLS ARRAY_PARTITION variable=orig cyclic factor=2 dim=2\n  for",
+    )
     locality_change = best.replace(
         "  for", "  int cached = orig[0];\n  for"
+    )
+    other_storage_action = best.replace(
+        "  for",
+        "  #pragma HLS BIND_STORAGE variable=orig type=ram_2p\n  for",
     )
 
     feedback = _ii_resource_intent_feedback(
@@ -239,14 +345,55 @@ def test_ii_resource_intent_gate_only_blocks_standalone_concurrency() -> None:
     assert feedback["status"] == "REJECTED_BY_SYNTH_EVIDENCE_INTENT"
     assert feedback["ii_resource_limits"][0]["array"] == "orig"
     assert "No candidate tool was run" in feedback["reason"]
+    unmatched_feedback = _ii_resource_intent_feedback(
+        synth_result, best, unmatched_partition
+    )
+    assert unmatched_feedback is not None
+    assert unmatched_feedback["unmatched_banking_variables"] == ["filter"]
     assert (
         _ii_resource_intent_feedback(synth_result, best, matched_partition)
         is None
+    )
+    multi_action_feedback = _ii_resource_intent_feedback(
+        synth_result, best, matched_partition_and_unroll
+    )
+    assert multi_action_feedback is not None
+    assert "expected exactly one" in " ".join(
+        multi_action_feedback["contract_violations"]
+    )
+    assert "pragma class must be ARRAY_PARTITION" in multi_action_feedback[
+        "contract_violations"
+    ]
+    style_feedback = _ii_resource_intent_feedback(
+        synth_result, best, wrong_style
+    )
+    assert style_feedback is not None
+    assert "partition style must be cyclic" in style_feedback[
+        "contract_violations"
+    ]
+    dimension_feedback = _ii_resource_intent_feedback(
+        synth_result, best, invalid_dimension
+    )
+    assert dimension_feedback is not None
+    assert "dim=2 exceeds visible array rank=1" in " ".join(
+        dimension_feedback["contract_violations"]
     )
     assert (
         _ii_resource_intent_feedback(synth_result, best, locality_change)
         is None
     )
+    assert (
+        _ii_resource_intent_feedback(synth_result, best, other_storage_action)
+        is None
+    )
+
+
+def test_source_array_rank_handles_flattened_and_multidimensional_arrays() -> None:
+    source = "void top(int flat[64], int matrix[8][8]) { flat[0] = matrix[0][0]; }"
+
+    assert _source_array_rank(source, "flat") == 1
+    assert _source_array_rank(source, "matrix") == 2
+    assert _source_array_rank(source, "unknown") is None
 
 
 def test_optimize_reflects_ii_intent_rejection_without_candidate_tools() -> None:
@@ -278,12 +425,14 @@ def test_optimize_reflects_ii_intent_rejection_without_candidate_tools() -> None
         "'load' operation 32 bit ('orig_load', top.cpp:2) on array 'orig' "
         "accessing core:RAM:orig"
     )
-    starter = """void top(int orig[100]) {
+    starter = """void top(int orig[100], int filter[3]) {
   for (int i = 0; i < 100; ++i) { orig[i] += 1; }
 }
 """
-    unroll = starter.replace(
-        "  for", "  #pragma HLS UNROLL factor=2\n  for"
+    unmatched_banking = starter.replace(
+        "  for",
+        "  #pragma HLS ARRAY_PARTITION variable=filter complete dim=1\n"
+        "  #pragma HLS UNROLL factor=2\n  for",
     )
 
     class Llm:
@@ -293,11 +442,17 @@ def test_optimize_reflects_ii_intent_rejection_without_candidate_tools() -> None
         def complete(self, system, prompt):
             self.calls += 1
             if self.calls == 1:
-                return unroll
+                contract = json.loads(prompt)["measured_action_contract"]
+                assert contract["targets"][0]["array"] == "orig"
+                assert contract["targets"][0]["recommended_minimal_trial"][
+                    "factor"
+                ] == 2
+                return unmatched_banking
             payload = json.loads(prompt)
             feedback = payload["previous_candidate_feedback"]
             assert feedback["status"] == "REJECTED_BY_SYNTH_EVIDENCE_INTENT"
             assert feedback["ii_resource_limits"][0]["array"] == "orig"
+            assert feedback["unmatched_banking_variables"] == ["filter"]
             assert "no candidate tool was run" in payload["instruction"].lower()
             return "// stop after evidence reflection\n" + starter
 
