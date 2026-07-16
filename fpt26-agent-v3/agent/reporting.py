@@ -279,12 +279,11 @@ def write_run_report(state: RunState) -> Path:
 
 
 def _res_str(r: dict) -> str:
-    """Compact resource string."""
+    """Full resource string — all five resources."""
     parts = []
     for k in ("LUT", "FF", "DSP", "BRAM_18K", "URAM"):
         v = r.get(k, 0)
-        if v or k in ("LUT", "FF"):
-            parts.append(f"{k}={v}")
+        parts.append(f"{k}={v}")
     return " ".join(parts)
 
 
@@ -394,6 +393,7 @@ def print_evaluation(state: RunState) -> None:
     base_clk = baseline_info.get("clock_ns") if baseline_info else None
 
     # Best = what was ultimately submitted
+    best_lii = base_lii  # Loop II of final best (same as baseline unless improved)
     if is_v3 and sc.valid:
         best_res = sc.candidate_resources
         best_lat = sc.anchor_latency
@@ -409,6 +409,7 @@ def print_evaluation(state: RunState) -> None:
                     best_ti = c.get("top_interval", best_ti)
                     best_clk = c.get("clock_ns", best_clk)
                     best_res = c.get("resources", best_res)
+                    best_lii = c.get("loop_ii", best_lii)
                     break
     else:
         best_res = base_res
@@ -427,13 +428,13 @@ def print_evaluation(state: RunState) -> None:
     print(f"\n  {'STARTER / FINAL BEST / REFERENCE':─^76}")
     print(f"  {'':<22} {'Starter':<20} {'Final Best':<20} {'Reference':<20}")
     print(f"  {'─'*22} {'─'*20} {'─'*20} {'─'*20}")
-    print(f"  {'Latency / Top Interval':<22} {str(base_lat)+' / '+str(base_ti):<20} {str(best_lat)+' / '+str(best_ti):<20} {str(ref_lat)+' / '+str(ref_ti):<20}")
-    print(f"  {'Loop II':<22} {str(base_lii) if base_lii is not None else 'N/A':<20} {'N/A':<20} {'N/A':<20}")
+    print(f"  {'Lat / Top Int (cyc)':<22} {str(base_lat)+' / '+str(base_ti):<20} {str(best_lat)+' / '+str(best_ti):<20} {str(ref_lat)+' / '+str(ref_ti):<20}")
+    print(f"  {'Loop II':<22} {str(base_lii) if base_lii is not None else 'N/A':<20} {str(best_lii) if best_lii is not None else 'N/A':<20} {'N/A':<20}")
     print(f"  {'Clock':<22} {str(base_clk)+' ns' if base_clk else 'N/A':<20} {str(best_clk)+' ns' if best_clk else 'N/A':<20} {str(ref_clk)+' ns' if ref_clk else 'N/A':<20}")
     print(f"  {'Power':<22} {'N/A':<20} {'N/A':<20} {'N/A':<20}")
     print(f"  {'Area':<22} {_res_str(base_res):<20} {_res_str(best_res):<20} {_res_str(ref_res):<20}")
 
-    # Ratios: split into two rows
+    # Ratios: placed below table to avoid column-alignment ambiguity
     def _lat_ratio(cand_lat, anchor_lat):
         if anchor_lat and cand_lat and anchor_lat > 0:
             return f"{cand_lat / anchor_lat:.2f}x"
@@ -449,9 +450,9 @@ def print_evaluation(state: RunState) -> None:
     best_vs_ref_lat = _lat_ratio((best_lat or base_lat), ref_lat)
     best_vs_ref_area = _area_ratio((best_res if best_res else base_res), ref_res)
 
-    print(f"  {'Best vs Starter':<22} {f'latency={best_vs_starter_lat}  area={best_vs_starter_area}':<20} {'':<20}")
-    ref_ratio_str = f"latency={best_vs_ref_lat}  area={best_vs_ref_area}" if ref_lat else "N/A"
-    print(f"  {'Best vs Reference':<22} {'':<20} {ref_ratio_str:<20}")
+    print(f"  Final Best vs Starter  : latency={best_vs_starter_lat} | area={best_vs_starter_area}")
+    if ref_lat:
+        print(f"  Final Best vs Reference: latency={best_vs_ref_lat} | area={best_vs_ref_area}")
 
     # Bottleneck
     if is_v3 and sc.valid:
@@ -490,7 +491,7 @@ def print_evaluation(state: RunState) -> None:
             res = _res_str(c.get("resources", {}))
             lat_ti = f"{lat} / {ti} cyc"
             lii_str = str(lii) if lii is not None else "?"
-            dec_str = decision if decision != "BASELINE" else "—"
+            dec_str = "SELECTED" if decision == "BASELINE" else ("ACCEPTED" if decision == "ACCEPTED" else "REJECTED")
             print(f"  {label:<22} {lat_ti:<17} {lii_str:<10} {clk:<10} {res:<40} {dec_str:<12}")
 
     # ── Loop details ────────────────────────────────────────────────────
@@ -529,6 +530,11 @@ def print_evaluation(state: RunState) -> None:
                     arrow = "↓" if diff < 0 else "↑"
                     parts.append(f"{res_key} {arrow}{abs(diff)} ({pct:.1f}%)")
             if parts:
+                qhwb = last_cand.get("q_hw_before")
+                qhwa = last_cand.get("q_hw_after")
+                dec = last_cand.get("decision", "REJECTED")
+                if qhwb is not None and qhwa is not None:
+                    parts.append(f"Q_HW {qhwb:.4f} → {qhwa:.4f} | {dec}")
                 print(f"\n  Trade-off: {' | '.join(parts)}")
 
     # ── MODEL / TOKEN / COST ────────────────────────────────────────────
