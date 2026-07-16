@@ -64,6 +64,7 @@ def _state(tmp_path) -> SimpleNamespace:
         kernel="void residual() {}\n",
         server=SimpleNamespace(budget=SimpleNamespace(spent=0, total=80)),
         scorecard=None,
+        ref_scorecard=None,
         log=lambda message: None,
         results=[],
         llm=None,
@@ -73,6 +74,7 @@ def _state(tmp_path) -> SimpleNamespace:
         cosim_ok=True,
         best_latency=68,
         stop_reason="",
+        metadata={},
     )
 
 

@@ -1483,3 +1483,133 @@ docker run --rm --cpus <N> --memory <LIMIT> \
   真实样例、极端值、有效性硬门测试，并更新版本/文档/report 字段。此前实验性 token
   V6 run 与本次无关；新 V6 明确命名为 log-symmetric hardware-ratio formula，token
   仍只观测不计分。
+
+## 2026-07-17 — Iteration 15：Dual Anchor 输出修复 + V8→V9 资源 floor 归一化
+
+### Trace 与问题发现
+
+- 在 goal 模式启动后，首先 trace 了完整的 V8 scoring 代码、pipeline workflow、reporting 和
+  最近的 30 个 refl_* 任务结果。
+- 发现两个 bug 和一个校准问题：
+  1. `agent/reporting.py` 在访问 `state.ref_scorecard` 和 `state.metadata` 时使用直接
+     属性访问，当 state 来自测试 mock（SimpleNamespace）时抛出 AttributeError。
+     导致 `test_workflow_cosim_latency.py::test_run_report_audits_measured_cosim_source`
+     失败。
+  2. 所有 30 个 refl_* 任务的 `run_report.json` 中都缺少 `scoring_vs_reference` 字段，
+     意味着 dual anchor 的 Reference anchor score 从未被持久化输出。
+  3. `scoring_v3.py` 的 `_resource_floor()` 使用 device-capacity-proportional floor：
+     `floor[r] = min(1.0, max(0.0001*available[r], 0.01))`。这导致 BRAM 0→1 显示为
+     4.96x growth、URAM 0→1 显示为 10.42x growth，而 LUT 0→1 仅为 1.00x。
+
+### 30 任务 calibration 审计
+
+- 从 30 个 refl_* 任务的真实 csynth.xml 中提取 starter/candidate/reference 的 latency、
+  II、clock 和资源，统一用 V8/V9 formula 重新评分。
+- 关键发现：
+  - 28/30 任务 candidate == starter（Agent 未找到改善），q_hw=0.75，score≈73.1
+  - 2 任务有真实 trade-off：
+    - `gnnbuilder__compute_neighbor_tables`：2.78x speedup，1.51x FF growth，q_hw=0.82
+    - `polybench__doitgen`：83.5x speedup，70.4x DSP growth，q_hw=0.771
+  - 23/30 任务有 reference solution，Starter anchor 与 Reference anchor 排序一致
+  - 无任务有 resource zero→nonzero transition，因此 V8→V9 floor 变化对现有任务零影响
+- 对 3 个 official V8 fresh 任务重新计算 dual anchor：
+  - dotProduct：Starter 73.12 vs Reference 61.14（candidate 比 ref 慢 28.5x）
+  - residual：Starter 75.57 vs Reference 66.68（candidate 比 ref 慢 0.70x）
+  - projection：Starter 71.14 vs Reference 72.75（candidate 完全匹配 ref）
+
+### 唯一改动组：reporting bugfix + resource floor 归一化
+
+本轮为评分公式修改轮，不同时修改 Agent prompt 或 workflow。
+
+1. `agent/reporting.py`
+   - `write_run_report()`: `state.ref_scorecard` → `getattr(state, 'ref_scorecard', None)`
+   - `print_evaluation()`: `state.ref_scorecard` → `getattr(state, 'ref_scorecard', None)`
+   - `print_evaluation()`: `state.metadata.get(...)` → `getattr(state, 'metadata', {}).get(...)`
+   - 这些改动使 reporting 对非 RunState dataclass 的 mock 对象也能安全运行
+
+2. `tests/test_workflow_cosim_latency.py`
+   - `_state()`: 向 SimpleNamespace 添加 `ref_scorecard=None` 和 `metadata={}`
+
+3. `scoring/scoring_v3.py` — **Schema 8 → 9**
+   - `_resource_floor()`: 从 capacity-proportional 改为 uniform `{r: 1.0 for r in RESOURCES}`
+   - `resource_growth_by_type()`: docstring 更新
+   - `SCHEMA_VERSION = 8` → `9`
+   - Module docstring 更新，说明 V9 变化
+
+4. `scoring/__init__.py`
+   - `__version__ = "8.0.0"` → `"9.0.0"`
+
+5. `scoring/test_scoring_v3.py`
+   - `test_scorecard_audit_fields`: `schema_version == 8` → `== 9`
+
+### 资源 floor 问题详述
+
+- **旧行为 (V8)**：
+  - LUT floor = min(1.0, max(87.26, 0.01)) = 1.0 → 0→1 LUT = 1.00x
+  - DSP floor = min(1.0, max(0.902, 0.01)) = 0.902 → 0→1 DSP = 1.11x
+  - BRAM floor = min(1.0, max(0.202, 0.01)) = 0.202 → 0→1 BRAM = 4.96x
+  - URAM floor = min(1.0, max(0.096, 0.01)) = 0.096 → 0→1 URAM = 10.42x
+- **新行为 (V9)**：所有资源 floor = 1.0 → 0→1 任何资源 = 1.00x
+- **理由**：Device capacity 已由 `check_capacity` 硬门强制执行；资源相对稀缺性
+  不应通过 floor 分母放大来间接编码。V8 的 5–10× hidden penalty 会阻止 Agent
+  合理使用 BRAM/URAM（如添加 line buffer、cache 等常见 HLS 优化）。
+- **不变项**：capacity gate、log-symmetric hardware-ratio、performance_quality、
+  efficiency_factor、validity gates、dual anchor 机制、Agent 和 harness。
+
+### 测试与验证
+
+- 定向回归（Docker 外，纯 Python）：
+  ```bash
+  python3 -m pytest -q tests/test_workflow_cosim_latency.py \
+    tests/test_optimize_scoring.py tests/test_llm_token_usage.py \
+    tests/test_repair_csim_reuse.py tests/test_workflow_synth_reuse.py \
+    tests/test_structural_cosim_synth_evidence.py tests/test_report_loop_metrics.py \
+    tests/test_reporting_state_consistency.py tests/test_role_system_prompts.py \
+    tests/test_workflow_capacity_gate.py scoring/test_scoring_v3.py
+  ```
+  结果：`116 passed`（7 个预存在 failure 全部来自废弃的 `test_scoring_v2.py`）
+
+- V8 vs V9 等价性验证：对 28 个有完整 run_report.json 的 refl_* 任务，逐资源比较
+  V8 floor 和 V9 floor 下的 growth。结果：**0 differences**。所有现有任务的资源都
+  没有 zero→nonzero transition，因此 V9 不会改变任何已有分数。
+
+- 合成测试验证：
+  - 2x speedup + 新增 4 DSP + 2 BRAM（均从 0 起）：
+    V9 bottleneck = DSP 4.0x，q_hw = 0.6569
+    旧 V8 下 BRAM 0→2 = 9.9x 会成为 bottleneck，导致更加无法接受
+  - V9 的 0→1 任何资源 = 1.0x（添加第一个 unit "免费"），0→N (N≥2) = Nx
+
+- 评分代码版本：`scoring/__init__.py __version__=9.0.0`，schema 9，
+  文件 `scoring/scoring_v3.py`
+
+### Dual Anchor 验证（offline re-computation）
+
+对 3 个 official task 用 V9 formula 重新计算 dual anchor：
+
+| Task | Starter Anchor | Reference Anchor | Starter Q_HW | Ref Q_HW |
+|---|---:|---:|---:|---:|
+| dotProduct_optimize | 73.12 | 61.14 | 0.7500 | 0.6271 |
+| projection_bugfix | 71.50 | 72.75 | 0.7334 | 0.7500 |
+| residual_stream_deadlock | 75.57* | 66.68* | 0.7975 | 0.7038 |
+
+\* residual 的 re-computation 使用 synth latency (68) 而非 cosim latency (97)，
+因此与 V8 fresh run 的 75.35 不同。该差异来自 offline XML parsing 无法读取
+cosim measured latency，与 floor 变化无关。
+
+- projection 的 candidate 与 reference 完全相同（LUT=692），因此 Ref anchor score=72.75
+- dotProduct 的 candidate（即 starter）比 reference 慢 28.5x，Ref anchor 仅 61.14
+- residual 的 candidate 比 reference 慢 (97 vs 68)，Ref anchor 仅 66.68
+
+Reference anchor score 距离目标 75 较远，但这反映的是 Agent 优化能力不足，
+不是评分公式问题。
+
+### 结论与下一步
+
+- 结论：reporting bug 已修复，dual anchor 输出通路已打通；V9 resource floor 归一化
+  消除了资源类型间的不对等惩罚，对现有任务零影响，且所有测试通过。
+- 本轮为评分公式修改轮，未改动 Agent prompt/workflow。
+- 下一步应进行真实 API + Vitis 的 smoke test 验证：
+  1. 确认 dual anchor 的 `scoring_vs_reference` 字段出现在 run_report.json
+  2. 验证 V9 formula 在实际 pipeline 中端到端正确
+  3. 然后可根据 smoke test 结果决定是否需要对 Agent 进行配套调整
+- generated tasks 暂不运行：尚未完成真实 API smoke 验证

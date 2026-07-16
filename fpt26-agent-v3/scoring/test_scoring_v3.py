@@ -459,7 +459,7 @@ class TestScoreRange:
 
     def test_scorecard_audit_fields(self):
         card = grade(TaskScoringConfig(task_id="audit"), _anchor(), _ev(), gates=_gates())
-        assert card.schema_version == 8
+        assert card.schema_version == 9
         assert card.latency_ratio > 0
         assert card.performance_ratio > 0
         assert card.q_perf > 0

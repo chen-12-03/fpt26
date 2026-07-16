@@ -19,10 +19,13 @@ Core formula (fits on one screen)::
     def efficiency():       return max(0.80, 1 - 0.10*ucost - 0.10*utime)
     def score():            return 100 * validity * q_hw * efficiency
 
-Schema 8 retains the schema-6 log-ratio formula and schema-7 capacity gate,
-while requiring measured RTL latency for tasks that require co-simulation.
-Equal proportional performance gain and resource growth are neutral; any
-reported resource above capacity is invalid.
+Schema 9 retains the schema-8 log-symmetric hardware-ratio formula, schema-7
+capacity gate, and schema-8 measured-cosim requirement, while replacing the
+device-capacity-proportional resource floor with a uniform floor of 1.0 for
+all resource types.  This eliminates the hidden 5–10× penalty on BRAM/URAM
+zero→nonzero transitions relative to LUT/FF, so that per-resource growth
+ratios reflect actual count changes rather than device-capacity scaling.
+Device capacity is still enforced by the hard check_capacity gate.
 """
 
 from __future__ import annotations
@@ -35,7 +38,7 @@ from dataclasses import dataclass, field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 RESOURCES = ("LUT", "FF", "DSP", "BRAM_18K", "URAM")
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 W_LATENCY = 0.85
 W_II = 0.15
 LAMBDA_COST = 0.10
@@ -168,9 +171,16 @@ def aggregate_performance_ratio(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _resource_floor(available: dict[str, int]) -> dict[str, float]:
-    """Tiny floor to handle zero-baseline without epsilon=1 distortion."""
-    return {r: min(1.0, max(0.0001 * available.get(r, 1), 0.01))
-            for r in RESOURCES}
+    """Uniform floor of 1.0 to handle zero-baseline without resource-type bias.
+
+    All resources use the same floor so that zero→nonzero transitions produce
+    natural count ratios (e.g. 0→5 BRAM = 5x) instead of being amplified by a
+    device-capacity-proportional denominator.
+
+    Device capacity is enforced by the hard ``check_capacity`` gate, not by
+    per-resource floor multipliers.
+    """
+    return {r: 1.0 for r in RESOURCES}
 
 
 def resource_growth_by_type(
@@ -178,10 +188,10 @@ def resource_growth_by_type(
     anchor: dict[str, int],
     available: dict[str, int],
 ) -> tuple[dict[str, float], list[str]]:
-    """Per-resource growth with capacity-aware floor.
+    """Per-resource growth with uniform floor of 1.0.
 
     Returns (growth_by_resource, significant_resources).
-    Significant = baseline or candidate exceeds floor.
+    Significant = baseline or candidate exceeds floor (i.e. ≥ 1).
     """
     floor = _resource_floor(available)
     growth = {}

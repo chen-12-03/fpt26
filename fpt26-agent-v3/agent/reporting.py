@@ -231,7 +231,7 @@ def write_run_report(state: RunState) -> Path:
                 "time_limit_s": sc.time_limit_s,
             }
             # Reference-anchored scorecard (vs golden answer)
-            if state.ref_scorecard is not None:
+            if getattr(state, 'ref_scorecard', None) is not None:
                 rsc = state.ref_scorecard
                 report["scoring_vs_reference"] = {
                     "anchor": "reference",
@@ -309,7 +309,7 @@ def print_evaluation(state: RunState) -> None:
     total_budget = getattr(budget, "total", "?")
     spent = getattr(budget, "spent", "?")
     sc = state.scorecard
-    rsc = state.ref_scorecard
+    rsc = getattr(state, 'ref_scorecard', None)
     is_v3 = sc is not None and hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
 
     # ── Extract synth transcript indices ────────────────────────────────
@@ -319,7 +319,7 @@ def print_evaluation(state: RunState) -> None:
             synth_tx_indices.append(entry.n)
 
     # ── Structured candidate data (from OptimizeAgent) ──────────────────
-    structured = state.metadata.get("synth_candidates", [])
+    structured = getattr(state, 'metadata', {}).get("synth_candidates", [])
 
     # ── Build candidate list from structured data (preferred) or results ─
     baseline_info: dict | None = None
