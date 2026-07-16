@@ -211,16 +211,29 @@ class CoSimTool:
 
         r = vitis.run_vitis_tcl(tcl, work, config.COSIM_TIMEOUT_S)
         log = _truncate(r.stdout + "\n" + r.stderr)
+        sol = work / "cosim_proj" / "sol"
+        synth_report_fp = sol / "syn" / "report" / "csynth.xml"
+        synth_report = (
+            parse_csynth_xml(synth_report_fp)
+            if synth_report_fp.exists()
+            else None
+        )
         if r.timeout:
             # A hung RTL sim is the classic deadlock signature.
-            return ToolResult("cosim", False, "timeout", -1, log, r.elapsed_s)
+            return ToolResult(
+                "cosim",
+                False,
+                "timeout",
+                -1,
+                log,
+                r.elapsed_s,
+                report=synth_report,
+            )
 
-        sol = work / "cosim_proj" / "sol"
-        synth_ok = (sol / "syn" / "report" / "csynth.xml").exists()
         rpt_fp = sol / "sim" / "report" / f"{top}_cosim.rpt"
         cosim = parse_cosim_rpt(rpt_fp) if rpt_fp.exists() else None
 
-        if not synth_ok:
+        if synth_report is None:
             return ToolResult(
                 "cosim", False, "synth_error", r.return_code, log, r.elapsed_s
             )
@@ -232,8 +245,16 @@ class CoSimTool:
                 r.return_code,
                 log,
                 r.elapsed_s,
+                report=synth_report,
                 cosim=cosim,
             )
         return ToolResult(
-            "cosim", True, "pass", r.return_code, log, r.elapsed_s, cosim=cosim
+            "cosim",
+            True,
+            "pass",
+            r.return_code,
+            log,
+            r.elapsed_s,
+            report=synth_report,
+            cosim=cosim,
         )

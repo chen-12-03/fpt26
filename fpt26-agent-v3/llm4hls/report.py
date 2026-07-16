@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 _RESOURCES = ("LUT", "FF", "DSP", "BRAM_18K", "URAM")
@@ -35,16 +35,24 @@ class SynthReport:
     resources: dict  # used: {LUT, FF, DSP, BRAM_18K, URAM}
     available: dict  # device totals
     utilization: dict  # used / available, in %
+    pipeline_type: str | None = None
+    loop_metrics: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
 
     def summary(self) -> str:
         lat = self.latency_worst if self.latency_worst is not None else "?"
-        ii = self.interval_max if self.interval_max is not None else "?"
+        interval = self.interval_max if self.interval_max is not None else "?"
         r = self.resources
+        loops = ", ".join(
+            f"{loop['name']}(trip={loop['trip_count']},lat={loop['latency']},II={loop['pipeline_ii']})"
+            for loop in self.loop_metrics
+        ) or "none"
         return (
-            f"latency(worst)={lat} cyc  II={ii}  clk~{self.clock_period_ns}ns  "
+            f"latency(worst)={lat} cyc  top_interval={interval}  "
+            f"clk~{self.clock_period_ns}ns  pipeline={self.pipeline_type or '?'}  "
+            f"loops={loops}  "
             f"LUT={r['LUT']} FF={r['FF']} DSP={r['DSP']} BRAM={r['BRAM_18K']} URAM={r['URAM']}"
         )
 
@@ -55,6 +63,7 @@ def parse_csynth_xml(xml_fp: Path) -> SynthReport:
     perf = root.find("PerformanceEstimates")
     timing = perf.find("SummaryOfTimingAnalysis") if perf is not None else None
     latency = perf.find("SummaryOfOverallLatency") if perf is not None else None
+    loop_summary = perf.find("SummaryOfLoopLatency") if perf is not None else None
 
     clock = None
     if timing is not None:
@@ -81,6 +90,19 @@ def parse_csynth_xml(xml_fp: Path) -> SynthReport:
         u, a = used[k], avail[k]
         util[k] = round(100.0 * u / a, 3) if (u is not None and a) else 0.0
 
+    loop_metrics = []
+    if loop_summary is not None:
+        for loop in list(loop_summary):
+            loop_metrics.append(
+                {
+                    "name": loop.tag,
+                    "trip_count": _to_int(loop.findtext("TripCount")),
+                    "latency": _to_int(loop.findtext("Latency")),
+                    "pipeline_ii": _to_int(loop.findtext("PipelineII")),
+                    "pipeline_depth": _to_int(loop.findtext("PipelineDepth")),
+                }
+            )
+
     return SynthReport(
         clock_period_ns=clock,
         latency_best=lat("Best-caseLatency"),
@@ -91,6 +113,8 @@ def parse_csynth_xml(xml_fp: Path) -> SynthReport:
         resources=used,
         available=avail,
         utilization=util,
+        pipeline_type=perf.findtext("PipelineType") if perf is not None else None,
+        loop_metrics=loop_metrics,
     )
 
 

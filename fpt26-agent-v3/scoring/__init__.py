@@ -15,4 +15,4 @@ use it as a package name. Import modules directly by adding this directory
 to sys.path, or set PYTHONPATH.
 """
 
-__version__ = "3.0.0"
+__version__ = "5.0.0"

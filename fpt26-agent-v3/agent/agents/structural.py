@@ -31,7 +31,7 @@ class StructuralRepairAgent:
 
     The loop::
 
-        1. cosim(current_kernel) → get ToolResult
+        1. reuse the pipeline's failed cosim result, or run cosim(current_kernel)
         2. if pass → done
         3. if fail → build prompt with cosim log
         4. llm.complete(prompt) → get response
@@ -49,15 +49,39 @@ class StructuralRepairAgent:
         server = state.server
         code = state.kernel
 
+        # The workflow invokes this agent immediately after step_cosim failed.
+        # Reuse that result for the first prompt instead of spending another
+        # 20 credits to cosim the same, unchanged kernel a second time.  When
+        # the agent is used standalone (or the latest result is not a failed
+        # cosim), it retains the original behavior and runs cosim itself.
+        initial_cosim = state.results[-1] if state.results else None
+        reuse_initial_cosim = (
+            getattr(initial_cosim, "kind", None) == "cosim"
+            and not getattr(initial_cosim, "ok", False)
+        )
+
         for attempt in range(1, self.max_attempts + 1):
             # ── 1. Run cosim ─────────────────────────────────────────
-            r = server.cosim(code)
-            state.results.append(r)
+            if attempt == 1 and reuse_initial_cosim:
+                r = initial_cosim
+                state.log("structural repair: reusing pipeline cosim failure")
+            else:
+                r = server.cosim(code)
+                state.results.append(r)
             state.log(f"structural repair attempt {attempt}: cosim {r.brief()}")
 
             if r.ok:
                 state.kernel = code
                 state.cosim_ok = True
+                if r.report is not None:
+                    state.synth_ok = True
+                    latency = (
+                        r.report.latency_worst
+                        if r.report.latency_worst is not None
+                        else r.report.latency_avg
+                    )
+                    if latency is not None:
+                        state.best_latency = latency
                 state.status = "completed"
                 state.log("structural repair: cosim passed")
                 return state

@@ -1,4 +1,4 @@
-"""Iter3 Unified prompts — agent self-determines action from tool results only."""
+"""Role-scoped prompts driven by real tool results."""
 from __future__ import annotations
 import json
 from typing import Any
@@ -18,8 +18,9 @@ Do NOT modify the top function signature, headers, or testbenches.
 
 ## HLS Optimization Discipline (from hls-generator)
 1. **Read synthesis report BEFORE proposing changes.** Inspect: target II, achieved II, latency, loop interval, timing slack, LUT/FF/DSP/BRAM counts.
+   The objective is the current unified hardware quality, NOT cycle latency alone. Effective latency is `max(target clock, estimated clock) × worst-case cycles`; area quality is limited by the WORST resource growth. A lower cycle count can be a worse design when clock period or any resource explodes.
 2. **Diagnose the bottleneck precisely:**
-   - II violation → timing? recurrence? memory-port pressure? interface bandwidth?
+   - Loop PipelineII violation → timing? recurrence? memory-port pressure? interface bandwidth? The top-function transaction Interval is NOT a loop's achieved II.
    - High latency → which loop dominates? Try PIPELINE on that loop.
    - Resource explosion → FF/LUT > 5x usually means over-unrolling. Reduce UNROLL factor.
    - Cosim DEADLOCK → stream depth, DATAFLOW ordering, producer/consumer rate balance.
@@ -27,9 +28,12 @@ Do NOT modify the top function signature, headers, or testbenches.
 4. **If a directive does NOT improve the limiting metric, REMOVE or revise it.** Do not accumulate ineffective directives.
 5. **Never apply both ARRAY_PARTITION and ARRAY_RESHAPE to the same variable.**
 6. **DATAFLOW regions need explicit stream depths** for cosim safety.
+7. Prefer a conservative partial UNROLL first for long loops. Add matching partial ARRAY_PARTITION only after Vitis reports memory-port pressure; never speculatively partition large top-level arrays. Never fully unroll a long reduction just to minimize cycle count; keep the worst resource growth controlled and check estimated clock after synthesis.
 
 ## Pipeline & II Rules
 - PIPELINE II=<n> on the loop/function that directly controls throughput.
+- A loop-scoped PIPELINE or UNROLL directive belongs inside the loop body immediately after its opening brace. A PIPELINE at function-body scope pipelines the function and may flatten/auto-unroll contained loops.
+- If a loop already reports PipelineII=1, do not add another PIPELINE or infer a memory-port problem from the top-function transaction Interval.
 - If II=1 fails: classify cause (timing/recurrence/memory-port/bandwidth) before adding more pragmas.
 - Pipelining an outer loop forces inner-loop concurrency — this is an architectural decision that can expose memory bandwidth bottlenecks.
 
@@ -37,7 +41,7 @@ Do NOT modify the top function signature, headers, or testbenches.
 - ARRAY_PARTITION: creates parallel banks/elements for concurrent access. Grows LUT/FF/BRAM.
 - ARRAY_RESHAPE: widens storage word while preserving packed view. Use when adjacent elements move together.
 - Match dim, type, factor to the access pattern in the bottleneck.
-- For long vector reduction loops: tiled loop + ARRAY_PARTITION cyclic + PIPELINE II=1 on the tiled outer loop is the canonical high-efficiency pattern. Check headers for any available parallel-factor constants.
+- For a long vector reduction already at PipelineII=1: first test a small loop-local partial UNROLL factor such as 2 while leaving top-level arrays unchanged. Add banking only if the next Vitis report proves port pressure.
 
 ## Dataflow & Streaming
 - DATAFLOW: use after design has clear producer/compute/consumer stages.
@@ -46,14 +50,33 @@ Do NOT modify the top function signature, headers, or testbenches.
 - C-simulation CANNOT detect streaming deadlocks — only cosim reveals them.
 
 ## Stopping Criteria
-- Two consecutive rounds with no latency improvement → stop and submit best candidate.
-- If latency cannot be reduced without breaking csim/cosim → stop and submit current best."""
+- Two consecutive rounds with no scoring_v3 Q_HW improvement → stop and submit best candidate.
+- Reject a candidate when reduced cycles are outweighed by clock-period or worst-resource growth.
+- If Q_HW cannot be improved without breaking csim/cosim → stop and submit current best."""
 
-# Unified — all modes use the same system prompt
-SYSTEM = _SYS
-REPAIR_SYSTEM = _SYS
+REPAIR_SYSTEM = """You are an expert AMD-Xilinx Vitis HLS C/C++ repair engineer.
+
+Output ONLY the full kernel source inside a ```cpp fenced block.
+Do NOT modify the top function signature, headers, or testbenches.
+
+The public C-simulation failed. Read the provided failure log and make the smallest functional correction supported by that evidence. Preserve every unrelated branch, expression, type, interface, and comment when practical. Common defects are a missing arithmetic term, wrong variable, wrong branch formula, or off-by-one bound.
+
+Do NOT add, remove, or tune HLS pragmas while repairing functional correctness. Do not optimize latency, resources, or style. If a prior attempt failed, change the bug hypothesis rather than accumulating edits. Return the complete corrected kernel source."""
+
+STRUCTURAL_REPAIR_SYSTEM = """You are an expert AMD-Xilinx Vitis HLS streaming and DATAFLOW repair engineer.
+
+Output ONLY the full kernel source inside a ```cpp fenced block.
+Do NOT modify the top function signature, headers, or testbenches.
+
+C-simulation passed but real RTL co-simulation deadlocked or timed out. C-sim hls::stream FIFOs are unbounded and can hide this bug; RTL FIFOs are bounded. Diagnose producer/consumer ordering and rate balance from the kernel and cosim log. The primary fix for sibling-stream bursts is to interleave writes to all sibling streams in one producer loop. Never produce an entire sibling stream before touching the others in the same DATAFLOW path.
+
+If streams already have explicit positive depths, preserve those depth pragmas exactly. Do NOT increase FIFO depth to mask sequential producer ordering: it adds FF/LUT and leaves the structural cause in place. Consider a depth change only when ordering and rates are already balanced and the log/kernel proves an unavoidable bounded burst.
+
+Make only the minimal structural fix. Preserve arithmetic, interfaces, and unrelated pragmas; do not perform QoR optimization. Return the complete corrected kernel source."""
+
+# OptimizeAgent retains the full scorer-aware HLS discipline.
 OPTIMIZE_SYSTEM = _SYS
-STRUCTURAL_REPAIR_SYSTEM = _SYS
+SYSTEM = OPTIMIZE_SYSTEM
 
 
 def build_prompt(
@@ -68,6 +91,7 @@ def build_prompt(
     knowledge_hint: str = "",
     attempt: int = 0,
     resource_delta: str = "",
+    rejection_feedback: dict[str, Any] | None = None,
 ) -> str:
     header_text = "\n".join(f"// {name}\n{code}" for name, code in task.headers.items())
 
@@ -91,6 +115,8 @@ def build_prompt(
         payload["optimization_patterns"] = knowledge_hint
     if resource_delta:
         payload["resource_trend"] = resource_delta
+    if rejection_feedback:
+        payload["previous_candidate_feedback"] = rejection_feedback
 
     # Streaming context — derived from task properties, not task type label
     if task.requires_cosim:
@@ -106,7 +132,13 @@ def build_prompt(
         "Read tool_results carefully. Determine the situation from results alone:\n"
         "- If csim FAILED: fix the functional bug. Do NOT add pragmas.\n"
         "- If cosim DEADLOCKS/TIMEOUT: fix streaming imbalance (interleave writes, add stream depths).\n"
-        "- If all PASSED: apply ONE pragma class to optimize latency, guided by bottleneck diagnosis.\n"
+        "- If all PASSED: apply ONE pragma class to improve scoring_v3 Q_HW, guided by bottleneck diagnosis. "
+        "Balance effective latency (clock period × cycles) against the worst resource growth; "
+        "do not optimize cycle count alone. Prefer a small loop-local partial unroll first; add array partition only for measured port pressure.\n"
+        "- If previous_candidate_feedback is present: the prior candidate was measured and rejected. "
+        "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; "
+        "never increase a factor when measured resource growth outweighed speedup. If the feedback allows convergence "
+        "and there is no report-supported resource-neutral alternative, return editable_kernel unchanged.\n"
         "Return the FULL kernel source code. Keep the top function signature UNCHANGED."
     )
     return json.dumps(payload, indent=2, ensure_ascii=False)

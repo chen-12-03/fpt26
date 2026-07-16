@@ -127,8 +127,23 @@ def step_synth(state: RunState) -> RunState:
     if not state.csim_ok:
         state.log("synth: skipped (csim not ok)")
         return state
-    r = state.server.synth(state.kernel)
-    state.results.append(r)
+
+    # RepairAgent validates its accepted kernel with synthesis before returning.
+    # When that successful result is the immediately preceding transcript item,
+    # it is for the same current kernel and can be reused by the adjacent pipeline
+    # step.  Requiring both synth_ok and adjacency avoids stale-result reuse.
+    previous = state.results[-1] if state.results else None
+    if (
+        state.synth_ok
+        and getattr(previous, "kind", None) == "synth"
+        and getattr(previous, "ok", False)
+        and getattr(previous, "report", None) is not None
+    ):
+        r = previous
+        state.log("synth: reusing upstream successful synth report")
+    else:
+        r = state.server.synth(state.kernel)
+        state.results.append(r)
     state.synth_ok = r.ok
     lat = _latency(r)
     if lat is not None:
@@ -144,13 +159,20 @@ def step_cosim(state: RunState) -> RunState:
         return state
     r = state.server.cosim(state.kernel)
     state.results.append(r)
+    if r.report is not None:
+        # CoSimTool runs csynth_design before RTL simulation.  Preserve that
+        # real report as the synthesis gate/evidence for structural-only mode.
+        state.synth_ok = True
+        lat = _latency(r)
+        if lat is not None:
+            state.best_latency = lat
     state.cosim_ok = r.ok
     state.log(f"cosim: {r.brief()}")
     return state
 
 
 def step_score(state: RunState) -> RunState:
-    """Run V3 scoring: hidden-csim → synth(cand) → synth(baseline) → cosim(if needed).
+    """Run V5 scoring: hidden-csim → synth(cand) → synth(baseline) → cosim(if needed).
 
     Uses the unified scoring_v3.grade() formula:
         score = 100 * validity * sqrt(q_perf * q_area) * efficiency
@@ -206,7 +228,7 @@ def step_score(state: RunState) -> RunState:
         top=task.top, part=task.part, clock_ns=task.clock_ns,
     )
 
-    # ── 5. Build V3 data structures ───────────────────────────────────────
+    # ── 5. Build current scoring data structures ──────────────────────────
     cfg = TaskScoringConfig(
         task_id=task.id,
         task_type=task.type,
@@ -295,12 +317,12 @@ def step_score(state: RunState) -> RunState:
         resource_capacity_pass=True,
     )
 
-    # Budget & wall time
+    # Budget & grading wall time. API tokens are observability-only in V5.
     budget = state.server.budget
     cost_spent = budget.spent if hasattr(budget, 'spent') else 0
     wall_time_s = time.monotonic() - _start
 
-    # ── 6. Call V3 grade ──────────────────────────────────────────────────
+    # ── 6. Call the authoritative grade function ──────────────────────────
     scorecard = v3_grade(
         task_cfg=cfg,
         anchor=anchor,
@@ -310,7 +332,11 @@ def step_score(state: RunState) -> RunState:
         gates=gates,
     )
     state.scorecard = scorecard
-    state.log(f"V3 score: {scorecard.score:.2f}/100  (valid={scorecard.valid}, q_hw={scorecard.q_hw:.4f}, eff={scorecard.efficiency:.4f})")
+    state.log(
+        f"V{scorecard.schema_version} score: {scorecard.score:.2f}/100  "
+        f"(valid={scorecard.valid}, q_hw={scorecard.q_hw:.4f}, "
+        f"eff={scorecard.efficiency:.4f})"
+    )
     return state
 
 
@@ -452,11 +478,21 @@ def build_pipeline(
         )
 
     # ---- Stage 3: Synthesis ----
-    pipeline.steps.append(Step("synth", step_synth, desc="C synthesis (baseline PPA)"))
+    # Structural-only co-simulation already runs csynth_design and now returns
+    # that report.  Other modes keep the standalone synthesis stage because
+    # optimization/full workflows consume it before later stages.
+    if not (mode == "structural" and task.requires_cosim):
+        pipeline.steps.append(Step("synth", step_synth, desc="C synthesis (baseline PPA)"))
 
     # ---- Stage 4: Co-simulation (structural tasks) ----
     if task.requires_cosim and mode in ("structural", "full"):
-        pipeline.steps.append(Step("cosim", step_cosim, desc="C/RTL co-simulation"))
+        pipeline.steps.append(
+            Step(
+                "cosim",
+                step_cosim,
+                desc="C/RTL co-simulation (includes synthesis evidence)",
+            )
+        )
 
     # ---- Stage 5: Structural repair ----
     if task.requires_cosim and mode in ("structural", "full"):

@@ -42,7 +42,7 @@ class RepairAgent:
 
     The loop::
 
-        1. csim(current_kernel) → get ToolResult
+        1. reuse pipeline failed csim, or csim(current_kernel) → ToolResult
         2. if pass → done (repair succeeded)
         3. if fail → normalize log, classify issue
         4. build prompt with error context
@@ -69,10 +69,23 @@ class RepairAgent:
         server = state.server
         code = state.kernel
 
+        # The repair pipeline invokes this agent immediately after baseline
+        # C-sim failed.  Reuse that adjacent result for the first diagnosis;
+        # standalone calls without such an upstream result still run C-sim.
+        initial_csim = state.results[-1] if state.results else None
+        reuse_initial_csim = (
+            getattr(initial_csim, "kind", None) == "csim"
+            and not getattr(initial_csim, "ok", False)
+        )
+
         for attempt in range(1, self.max_attempts + 1):
             # ── 1. C-simulate current code ────────────────────────────────
-            r = server.csim(code)
-            state.results.append(r)
+            if attempt == 1 and reuse_initial_csim:
+                r = initial_csim
+                state.log("repair: reusing pipeline C-sim failure")
+            else:
+                r = server.csim(code)
+                state.results.append(r)
             state.log(f"repair attempt {attempt}: {r.brief()}")
 
             if r.ok:
@@ -124,4 +137,3 @@ class RepairAgent:
         state.status = "repair_failed"
         state.log(f"repair: failed after {self.max_attempts} attempts")
         return state
-

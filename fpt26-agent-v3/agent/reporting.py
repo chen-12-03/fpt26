@@ -127,6 +127,31 @@ def _compute_derived(state: RunState) -> dict[str, Any]:
     return metrics
 
 
+def _llm_summary(state: RunState) -> dict[str, Any] | None:
+    """Return non-sensitive LLM configuration and exact token accounting."""
+    client = state.llm
+    if client is None:
+        return None
+
+    summary: dict[str, Any] = {
+        "client": type(client).__name__,
+        "model": getattr(client, "model", None),
+        "temperature": getattr(client, "temperature", None),
+        "max_tokens": getattr(client, "max_tokens", None),
+    }
+    token_usage = getattr(client, "token_usage", None)
+    snapshot = getattr(token_usage, "snapshot", None)
+    summary["token_usage"] = snapshot() if callable(snapshot) else None
+    return summary
+
+
+def _reported_cosim_status(state: RunState) -> bool | None:
+    """Return N/A for tasks whose validity does not require RTL co-sim."""
+    if not state.task.requires_cosim:
+        return None
+    return state.cosim_ok
+
+
 # ---------------------------------------------------------------------------
 # Report writer
 # ---------------------------------------------------------------------------
@@ -148,7 +173,7 @@ def write_run_report(state: RunState) -> Path:
         "status": state.status,
         "csim_ok": state.csim_ok,
         "synth_ok": state.synth_ok,
-        "cosim_ok": state.cosim_ok,
+        "cosim_ok": _reported_cosim_status(state),
         "best_latency": state.best_latency,
         "stop_reason": state.stop_reason,
         "tool_call_count": len(state.results),
@@ -158,6 +183,7 @@ def write_run_report(state: RunState) -> Path:
         },
         # Derived metrics
         "evaluation": derived,
+        "llm": _llm_summary(state),
     }
 
     if state.scorecard is not None:
@@ -188,6 +214,8 @@ def write_run_report(state: RunState) -> Path:
                 "candidate_resources": sc.candidate_resources,
                 "cost_spent": sc.cost_spent,
                 "cost_limit": sc.cost_limit,
+                "wall_time_s": sc.wall_time_s,
+                "time_limit_s": sc.time_limit_s,
             }
         else:
             report["scoring"] = {
@@ -229,9 +257,12 @@ def print_evaluation(state: RunState) -> None:
     gates = [
         ("csim", state.csim_ok),
         ("synth", state.synth_ok),
-        ("cosim", state.cosim_ok),
+        ("cosim", _reported_cosim_status(state)),
     ]
-    gate_str = "  ".join(f"{n}={('PASS' if v else 'FAIL')}" for n, v in gates)
+    gate_str = "  ".join(
+        f"{name}={'N/A' if value is None else ('PASS' if value else 'FAIL')}"
+        for name, value in gates
+    )
     print(f"  Gates:        {gate_str}")
 
     # Budget
@@ -248,12 +279,16 @@ def print_evaluation(state: RunState) -> None:
         is_v3 = hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
         if is_v3:
             score_pct = round(sc.score / max(sc.score_max, 1) * 100, 1)
-            print(f"  Score:        {sc.score:.2f} / {sc.score_max:.0f} ({score_pct}%)  [V3]")
+            print(f"  Score:        {sc.score:.2f} / {sc.score_max:.0f} ({score_pct}%)  [V{sc.schema_version}]")
             print(f"  Valid:        {'PASS' if sc.valid else 'FAIL'}  ({sc.gate_reason})")
             if sc.valid:
                 print(f"  Latency ratio:{sc.latency_ratio:.2f}x  (anchor={sc.anchor_source})")
                 print(f"  Q_perf:       {sc.q_perf:.4f}  Q_area: {sc.q_area:.4f}  Q_HW: {sc.q_hw:.4f}")
-                print(f"  Efficiency:   {sc.efficiency:.4f}  (cost {sc.cost_spent}/{sc.cost_limit})")
+                print(
+                    f"  Efficiency:   {sc.efficiency:.4f}  "
+                    f"(cost {sc.cost_spent}/{sc.cost_limit}, "
+                    f"grading time {sc.wall_time_s:.0f}/{sc.time_limit_s:.0f}s)"
+                )
                 print(f"  Area growth:  {sc.area_growth:.2f}x  bottleneck={sc.bottleneck_resource}")
                 if sc.growth_by_resource:
                     gr = ", ".join(f"{k}={v:.1f}x" for k, v in sc.growth_by_resource.items() if v != 1.0)
@@ -269,6 +304,28 @@ def print_evaluation(state: RunState) -> None:
             print(f"  Score/credit: {derived['budget_efficiency']:.3f}")
         if derived["resource_efficiency"] is not None:
             print(f"  Speed/area:   {derived['resource_efficiency']:.3f}  (growth={derived['resource_growth']})")
+
+    # LLM usage (server-reported only; never estimate missing token counts)
+    llm = _llm_summary(state)
+    if llm is not None:
+        usage = llm.get("token_usage")
+        print(f"  LLM:          {llm.get('model') or llm.get('client')}")
+        if isinstance(usage, dict):
+            requests = usage.get("request_count", 0)
+            reported = usage.get("reported_usage_count", 0)
+            if usage.get("complete"):
+                print(
+                    "  API tokens:   "
+                    f"prompt={usage.get('prompt_tokens')}  "
+                    f"completion={usage.get('completion_tokens')}  "
+                    f"total={usage.get('total_tokens')}  "
+                    f"({reported}/{requests} requests reported)"
+                )
+            else:
+                print(
+                    "  API tokens:   incomplete server usage "
+                    f"({reported}/{requests} requests reported; exact total unavailable)"
+                )
 
     # Repair stats
     if derived["csim_attempts"] > 1:

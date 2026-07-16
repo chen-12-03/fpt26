@@ -1,6 +1,6 @@
 # V5 统一评分 — 一致性保证
 
-**版本：5.0 | 日期：2026-07-15**
+**版本：5.0 | 日期：2026-07-16**
 
 ## 核心公式
 
@@ -21,3 +21,8 @@ score      = 100 * validity * q_hw * efficiency
 - **统一 utility**：`1-1/(1+r)²`，baseline(1x)=0.75，无需逐任务锚点
 - **Anchor 选择**：starter valid → starter；starter invalid → reference；none → reject
 - **requires_cosim**：仅为验证门，不改变评分
+- **Token 暂不计分**：API 服务端上报的 prompt/completion/total token 继续写入
+  `run_report.json.llm.token_usage`，用于预算观察和工作流诊断，但不进入
+  `efficiency` 或最终 score，避免抑制合理的多 Agent、reflection 和反馈回环
+- **Schema**：当前权威 scorecard 保持 `schema_version=5`；实验性 V6/V7
+  结果不得作为当前最终 score

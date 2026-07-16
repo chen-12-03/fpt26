@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import urllib.error
 import urllib.request
 from typing import Protocol
@@ -24,6 +25,89 @@ from . import config
 
 class LLMClient(Protocol):
     def complete(self, system: str, user: str) -> str: ...
+
+
+class TokenUsage:
+    """Thread-safe accumulator for server-reported chat-completion usage.
+
+    Totals are exposed only when every request completed and every response
+    reported the corresponding field.  Partial observations remain available
+    separately, so reports never present an incomplete subtotal as an exact
+    run total.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._request_count = 0
+        self._response_count = 0
+        self._reported_usage_count = 0
+        self._prompt_tokens = 0
+        self._completion_tokens = 0
+        self._total_tokens = 0
+        self._prompt_reports = 0
+        self._completion_reports = 0
+        self._total_reports = 0
+
+    def begin_request(self) -> None:
+        with self._lock:
+            self._request_count += 1
+
+    @staticmethod
+    def _token_value(usage: dict[str, object], key: str) -> int | None:
+        value = usage.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            return value
+        return None
+
+    def record_response(self, body: object) -> None:
+        usage_obj = body.get("usage") if isinstance(body, dict) else None
+        usage = usage_obj if isinstance(usage_obj, dict) else {}
+        prompt = self._token_value(usage, "prompt_tokens")
+        completion = self._token_value(usage, "completion_tokens")
+        total = self._token_value(usage, "total_tokens")
+
+        with self._lock:
+            self._response_count += 1
+            if any(value is not None for value in (prompt, completion, total)):
+                self._reported_usage_count += 1
+            if prompt is not None:
+                self._prompt_tokens += prompt
+                self._prompt_reports += 1
+            if completion is not None:
+                self._completion_tokens += completion
+                self._completion_reports += 1
+            if total is not None:
+                self._total_tokens += total
+                self._total_reports += 1
+
+    def snapshot(self) -> dict[str, int | bool | None]:
+        with self._lock:
+            requests = self._request_count
+            responses = self._response_count
+            all_responses = requests == responses
+            prompt_complete = all_responses and self._prompt_reports == responses
+            completion_complete = all_responses and self._completion_reports == responses
+            total_complete = all_responses and self._total_reports == responses
+            complete = (
+                requests == 0
+                or (prompt_complete and completion_complete and total_complete)
+            )
+            return {
+                "request_count": requests,
+                "response_count": responses,
+                "reported_usage_count": self._reported_usage_count,
+                "unreported_response_count": responses - self._reported_usage_count,
+                "failed_request_count": requests - responses,
+                "prompt_tokens": self._prompt_tokens if prompt_complete else None,
+                "completion_tokens": (
+                    self._completion_tokens if completion_complete else None
+                ),
+                "total_tokens": self._total_tokens if total_complete else None,
+                "observed_prompt_tokens": self._prompt_tokens,
+                "observed_completion_tokens": self._completion_tokens,
+                "observed_total_tokens": self._total_tokens,
+                "complete": complete,
+            }
 
 
 class ScriptedClient:
@@ -61,6 +145,7 @@ class OpenRouterClient:
         self.base_url = config.OPENROUTER_BASE_URL
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.token_usage = TokenUsage()
 
     def complete(self, system: str, user: str) -> str:
         payload = json.dumps(
@@ -86,6 +171,7 @@ class OpenRouterClient:
             },
             method="POST",
         )
+        self.token_usage.begin_request()
         try:
             with urllib.request.urlopen(req, timeout=180) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
@@ -93,6 +179,7 @@ class OpenRouterClient:
             raise RuntimeError(
                 f"OpenRouter HTTP {e.code}: {e.read().decode('utf-8', 'replace')}"
             ) from e
+        self.token_usage.record_response(body)
         return body["choices"][0]["message"]["content"]
 
 
@@ -131,6 +218,7 @@ class OpenAICompatClient:
         )
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.token_usage = TokenUsage()
 
     def complete(self, system: str, user: str) -> str:
         payload = {
@@ -155,6 +243,7 @@ class OpenAICompatClient:
             headers=headers,
             method="POST",
         )
+        self.token_usage.begin_request()
         try:
             with urllib.request.urlopen(req, timeout=180) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
@@ -162,6 +251,7 @@ class OpenAICompatClient:
             raise RuntimeError(
                 f"LLM HTTP {e.code}: {e.read().decode('utf-8', 'replace')}"
             ) from e
+        self.token_usage.record_response(body)
         return body["choices"][0]["message"]["content"]
 
 
