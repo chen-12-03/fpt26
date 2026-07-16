@@ -12,11 +12,16 @@ No task-type-specific formulas.  No preserve/improve policy switching.
 Core formula (fits on one screen)::
 
     def ratio_quality(r):   return 1 - 1/(1+r)**2
-    def latency_quality():  return ratio_quality(anchor_time / candidate_time)
-    def area_quality():     return ratio_quality(1 / max(growth_by_resource))
-    def q_hw():             return sqrt(q_perf * q_area)
+    performance_ratio       = anchor_time / candidate_time
+    area_ratio              = 1 / max(growth_by_resource)
+    hardware_ratio          = sqrt(performance_ratio * area_ratio)
+    q_hw                    = ratio_quality(hardware_ratio)
     def efficiency():       return max(0.80, 1 - 0.10*ucost - 0.10*utime)
     def score():            return 100 * validity * q_hw * efficiency
+
+Schema 6 composes trade-offs in log-ratio space before applying the bounded
+utility.  Equal proportional performance gain and resource growth are neutral;
+unlike schema 5, no finite resource growth creates a performance hard ceiling.
 """
 
 from __future__ import annotations
@@ -29,6 +34,7 @@ from dataclasses import dataclass, field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 RESOURCES = ("LUT", "FF", "DSP", "BRAM_18K", "URAM")
+SCHEMA_VERSION = 6
 W_LATENCY = 0.85
 W_II = 0.15
 LAMBDA_COST = 0.10
@@ -143,6 +149,19 @@ def performance_quality(
     return q_lat
 
 
+def aggregate_performance_ratio(
+    latency_ratio: float,
+    ii_ratio: float = 1.0,
+    ii_applicable: bool = False,
+) -> float:
+    """Combine performance ratios geometrically before utility mapping."""
+    if latency_ratio <= 0:
+        return 0.0
+    if ii_applicable and ii_ratio > 0:
+        return latency_ratio ** W_LATENCY * ii_ratio ** (1.0 - W_LATENCY)
+    return latency_ratio
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Resource quality
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -219,9 +238,16 @@ def check_capacity(
 # QoR & Efficiency
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def hardware_qor(q_perf: float, q_area: float) -> float:
-    """Geometric mean: sqrt(q_perf * q_area)."""
-    return math.sqrt(max(q_perf, 0.0) * max(q_area, 0.0))
+def hardware_ratio(performance_ratio: float, area_ratio: float) -> float:
+    """Equal-log-weight performance/resource trade-off ratio."""
+    return math.sqrt(
+        max(performance_ratio, 0.0) * max(area_ratio, 0.0)
+    )
+
+
+def hardware_qor(performance_ratio: float, area_ratio: float) -> float:
+    """Map the composite hardware ratio once through the unified utility."""
+    return ratio_quality(hardware_ratio(performance_ratio, area_ratio))
 
 
 def efficiency_factor(
@@ -349,7 +375,7 @@ class TaskScoringConfig:
 class Scorecard:
     """Unified scorecard with all intermediate values for audit."""
 
-    schema_version: int = 5
+    schema_version: int = SCHEMA_VERSION
     task_id: str = ""
     task_type: str = ""             # label only
     difficulty: int = 1
@@ -370,6 +396,7 @@ class Scorecard:
     # Performance
     latency_ratio: float = 1.0
     ii_ratio: float = 1.0
+    performance_ratio: float = 1.0
     utility_name: str = "1-1/(1+r)²"
     q_perf: float = 0.0
 
@@ -379,6 +406,7 @@ class Scorecard:
     growth_by_resource: dict[str, float] = field(default_factory=dict)
     bottleneck_resource: str = ""
     area_growth: float = 1.0
+    area_ratio: float = 1.0
     q_area: float = 0.0
 
     # Efficiency
@@ -389,6 +417,7 @@ class Scorecard:
     efficiency: float = 1.0
 
     # Final
+    hardware_ratio: float = 1.0
     q_hw: float = 0.0
     score: float = 0.0
     score_max: float = 100.0
@@ -402,7 +431,7 @@ class Scorecard:
         co = "PASS" if self.cosim_pass else ("FAIL" if self.cosim_pass is False else "N/A")
 
         lines = [
-            f"╔══ Scorecard V5: {self.task_id} (label={self.task_type}, d={self.difficulty}) ══╗",
+            f"╔══ Scorecard V{self.schema_version}: {self.task_id} (label={self.task_type}, d={self.difficulty}) ══╗",
             f"║  VALID: {v:<8}  gate={self.gate_reason:<32}  stage={self.stage:<10} ║",
             f"║  anchor: {self.anchor_source:<10}  valid={str(self.anchor_valid):<5}  hash={self.anchor_hash:<20} ║",
             f"║  csim={cs:<5}  synth={sy:<5}  cosim={co:<5}                                  ║",
@@ -413,6 +442,7 @@ class Scorecard:
                 f"║  latency_ratio: {self.latency_ratio:>8.2f}x   ii_ratio: {self.ii_ratio:>8.2f}x                    ║",
                 f"║  q_perf:        {self.q_perf:>8.4f}   ({self.utility_name})                         ║",
                 f"║  area_growth:   {self.area_growth:>8.2f}x   bottleneck: {self.bottleneck_resource:<10}  q_area: {self.q_area:.4f}   ║",
+                f"║  hardware_ratio:{self.hardware_ratio:>8.4f}x   (sqrt(performance_ratio × area_ratio))      ║",
                 f"║  efficiency:    {self.efficiency:>8.4f}   (cost {self.cost_spent}/{self.cost_limit}, time {self.wall_time_s:.0f}s/{self.time_limit_s:.0f}s)   ║",
                 f"╠{'─'*75}╣",
                 f"║  Q_HW:          {self.q_hw:>8.4f}                                                  ║",
@@ -455,7 +485,7 @@ def grade(
     # Infrastructure error → evaluation invalid
     if evidence.infrastructure_error or gates.infrastructure_error:
         return Scorecard(
-            schema_version=5, task_id=task_cfg.task_id,
+            schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=anchor.valid,
@@ -468,7 +498,7 @@ def grade(
     # No valid anchor → cannot score
     if not anchor.valid or anchor.latency is None:
         return Scorecard(
-            schema_version=5, task_id=task_cfg.task_id,
+            schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=False,
@@ -490,7 +520,7 @@ def grade(
     # Hard gate
     if not gates.all_required_pass:
         return Scorecard(
-            schema_version=5, task_id=task_cfg.task_id,
+            schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=anchor.valid,
@@ -503,7 +533,7 @@ def grade(
 
     if not evidence.required_metrics_complete:
         return Scorecard(
-            schema_version=5, task_id=task_cfg.task_id,
+            schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=anchor.valid,
@@ -536,21 +566,26 @@ def grade(
     if has_ii:
         ii_ratio = (anchor.ii or 1) / max(evidence.candidate_ii or 1, 1)
 
+    performance_ratio = aggregate_performance_ratio(
+        latency_ratio, ii_ratio, has_ii
+    )
     q_perf = performance_quality(latency_ratio, ii_ratio, has_ii)
 
     # ── Resources ────────────────────────────────────────────────────────
     q_area, growth, bottleneck = area_quality(
         evidence.candidate_resources, anchor.resources, anchor.available)
     area_growth = growth.get(bottleneck, 1.0)
+    area_ratio = 1.0 / max(area_growth, 1e-9)
 
     # ── QoR, efficiency, score ───────────────────────────────────────────
-    q_hw = hardware_qor(q_perf, q_area)
+    composite_hardware_ratio = hardware_ratio(performance_ratio, area_ratio)
+    q_hw = hardware_qor(performance_ratio, area_ratio)
     eff = efficiency_factor(cost_spent, task_cfg.budget_limit,
                             wall_time_s, task_cfg.time_limit_s)
     score = combine_score(valid=True, q_hw=q_hw, efficiency=eff)
 
     return Scorecard(
-        schema_version=5,
+        schema_version=SCHEMA_VERSION,
         task_id=task_cfg.task_id,
         task_type=task_cfg.task_type,
         difficulty=task_cfg.difficulty,
@@ -565,18 +600,21 @@ def grade(
         stage=stage,
         latency_ratio=round(latency_ratio, 2),
         ii_ratio=round(ii_ratio, 2),
+        performance_ratio=round(performance_ratio, 4),
         q_perf=round(q_perf, 4),
         baseline_resources=dict(anchor.resources),
         candidate_resources=dict(evidence.candidate_resources),
         growth_by_resource={r: round(v, 2) for r, v in growth.items()},
         bottleneck_resource=bottleneck,
         area_growth=round(area_growth, 2),
+        area_ratio=round(area_ratio, 4),
         q_area=round(q_area, 4),
         cost_spent=cost_spent,
         cost_limit=task_cfg.budget_limit,
         wall_time_s=wall_time_s,
         time_limit_s=task_cfg.time_limit_s,
         efficiency=round(eff, 4),
+        hardware_ratio=round(composite_hardware_ratio, 4),
         q_hw=round(q_hw, 4),
         score=round(score, 2),
         acceleration_source=accel_source,

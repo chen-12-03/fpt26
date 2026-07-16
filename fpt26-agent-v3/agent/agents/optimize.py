@@ -1,8 +1,11 @@
 """OptimizeAgent — report-driven proposals with scorer-aligned selection."""
 from __future__ import annotations
+import difflib
 import re
 from typing import Any
 from agent.agents.base import RunState
+from agent.analysis.log_normalizer import LogNormalizer
+from agent.analysis.synth_diagnostics import extract_ii_resource_limits
 from agent.prompts import SYSTEM, build_prompt
 from scoring.scoring_v3 import (
     Anchor,
@@ -50,6 +53,71 @@ def _without_hls_pragmas_fingerprint(code: str) -> str:
             continue
         normalized.append(line)
     return "\n".join(normalized)
+
+
+def _hls_pragmas(code: str) -> list[str]:
+    return [
+        re.sub(r"\s+", " ", line).strip()
+        for line in code.splitlines()
+        if re.match(r"^\s*#\s*pragma\s+HLS\b", line, re.IGNORECASE)
+    ]
+
+
+def _ii_resource_intent_feedback(
+    synth_result: Any,
+    best: str,
+    candidate: str,
+) -> dict[str, Any] | None:
+    """Reject pragma-only actions that cannot resolve a measured port limit."""
+    limits = extract_ii_resource_limits(
+        getattr(synth_result, "log", "") or ""
+    )
+    if not limits or _without_hls_pragmas_fingerprint(
+        best
+    ) != _without_hls_pragmas_fingerprint(candidate):
+        return None
+
+    best_pragmas = {pragma.lower() for pragma in _hls_pragmas(best)}
+    added_pragmas = [
+        pragma
+        for pragma in _hls_pragmas(candidate)
+        if pragma.lower() not in best_pragmas
+    ]
+    if not added_pragmas or not all(
+        re.search(r"\b(?:PIPELINE|UNROLL)\b", pragma, re.IGNORECASE)
+        for pragma in added_pragmas
+    ):
+        return None
+
+    evidence = [
+        {
+            "message_id": "HLS 200-448",
+            "ii_lower_bound": limit.lower_bound,
+            "operation": limit.operation,
+            "array": limit.array,
+            "source": limit.source,
+            "core": limit.core,
+        }
+        for limit in limits[:3]
+    ]
+    arrays = [limit.array for limit in limits if limit.array]
+    return {
+        "status": "REJECTED_BY_SYNTH_EVIDENCE_INTENT",
+        "candidate_pragmas": added_pragmas,
+        "ii_resource_limits": evidence,
+        "reason": (
+            "The candidate changes only PIPELINE/UNROLL directives, but Vitis "
+            "already proved that memory ports set the II lower bound. More "
+            "concurrent accesses without changing storage bandwidth cannot "
+            "resolve that measured bottleneck. No candidate tool was run."
+        ),
+        "required_next_action": (
+            f"Address the reported array(s) {arrays} with one minimal matched "
+            "banking/reshape action, or make a real code-locality change such as "
+            "a line buffer/cache that reduces external reads. Otherwise return "
+            "the current editable kernel unchanged to stop."
+        ),
+    }
 
 
 def _is_minimum_unroll_frontier(
@@ -200,6 +268,55 @@ def _rejection_feedback(
     return feedback
 
 
+def _candidate_diff(best: str, candidate: str, max_chars: int = 4000) -> str:
+    """Return a bounded source diff for reflection after tool failure."""
+    lines = difflib.unified_diff(
+        best.splitlines(),
+        candidate.splitlines(),
+        fromfile="current_best",
+        tofile="failed_candidate",
+        n=2,
+        lineterm="",
+    )
+    text = "\n".join(lines)
+    if len(text) > max_chars:
+        return text[: max_chars - 16].rstrip() + "\n... [truncated]"
+    return text
+
+
+def _csim_failure_feedback(result: Any, best: str, candidate: str) -> dict[str, Any]:
+    """Build concise compiler/runtime evidence for the next candidate round."""
+    phase = getattr(result, "phase", "unknown") or "unknown"
+    normalized = LogNormalizer(max_key_lines=8, max_warnings=4).normalize(
+        "csim", phase, getattr(result, "log", "") or ""
+    )
+    status_phase = re.sub(r"[^A-Z0-9]+", "_", phase.upper()).strip("_")
+    if phase == "compile_error":
+        required_next_action = (
+            "Correct the exact compiler error in the failed candidate with the "
+            "smallest change (for example, add the required existing header for "
+            "an undeclared HLS type). Do not invent another unrelated architecture "
+            "before this evidence is resolved. Return current_best unchanged if the "
+            "optimization is not justified."
+        )
+    else:
+        required_next_action = (
+            "The candidate compiled but failed functional C-simulation. Restore the "
+            "current_best behavior and remove the semantic change that caused the "
+            "failure; do not repeat the failed candidate. Return current_best "
+            "unchanged if no pragma-only correction is justified."
+        )
+    return {
+        "status": f"REJECTED_BY_CSIM_{status_phase or 'UNKNOWN'}",
+        "phase": phase,
+        "error_summary": normalized.error_summary,
+        "key_lines": normalized.key_lines,
+        "failed_candidate_diff": _candidate_diff(best, candidate),
+        "reason": "The previous optimization candidate failed real C-simulation.",
+        "required_next_action": required_next_action,
+    }
+
+
 class SimpleToolResult:
     """Minimal adapter allowing synthesis-report formatting without a tool call."""
 
@@ -255,11 +372,21 @@ def _diagnose(r: Any) -> str:
     ]
     violating_loops = [ii for ii in loop_iis if ii > 1]
     if violating_loops:
-        issues.append(
-            f"Measured loop PipelineII={max(violating_loops)}>1 — classify the "
-            "reported loop violation (recurrence, timing, or memory ports) before "
-            "adding a matching directive."
+        ii_resource_limits = extract_ii_resource_limits(
+            getattr(r, "log", "") or ""
         )
+        if ii_resource_limits:
+            issues.extend(
+                f"Measured loop PipelineII={max(violating_loops)}>1. "
+                f"{limit.summary()}"
+                for limit in ii_resource_limits[:3]
+            )
+        else:
+            issues.append(
+                f"Measured loop PipelineII={max(violating_loops)}>1 — classify the "
+                "reported loop violation (recurrence, timing, or memory ports) before "
+                "adding a matching directive."
+            )
     elif loop_iis:
         issues.append(
             f"Measured loop PipelineII={max(loop_iis)} is already optimal. "
@@ -378,6 +505,8 @@ class OptimizeAgent:
         best_synth_result = _latest_successful_synth(state.results)
         rejected_fingerprints: set[str] = set()
         semantic_duplicate_skips = 0
+        semantic_current_best_skips = 0
+        ii_resource_intent_rejections = 0
         minimum_factor_convergence = False
 
         for rnd in range(1, self.max_rounds + 1):
@@ -449,6 +578,13 @@ class OptimizeAgent:
                 state.log(f"opt r{rnd}: no change — converged")
                 break
             candidate_fingerprint = _candidate_fingerprint(cand)
+            if candidate_fingerprint == _candidate_fingerprint(best):
+                semantic_current_best_skips += 1
+                state.log(
+                    f"opt r{rnd}: semantic no-op versus current best — "
+                    "skip csim/synth and converge"
+                )
+                break
             if candidate_fingerprint in rejected_fingerprints:
                 semantic_duplicate_skips += 1
                 state.log(
@@ -457,10 +593,24 @@ class OptimizeAgent:
                 )
                 break
 
+            intent_feedback = _ii_resource_intent_feedback(cr, best, cand)
+            if intent_feedback is not None:
+                ii_resource_intent_rejections += 1
+                rejected_fingerprints.add(candidate_fingerprint)
+                rejection_feedback = intent_feedback
+                state.log(
+                    f"opt r{rnd}: pragma-only action conflicts with measured "
+                    "HLS 200-448 memory-port limit — skip csim/synth and reflect"
+                )
+                stag += 1
+                continue
+
             # ── 5. Validate: csim → synth ──────────────────────────────
             cs = server.csim(cand)
             state.results.append(cs)
             if not cs.ok:
+                rejected_fingerprints.add(candidate_fingerprint)
+                rejection_feedback = _csim_failure_feedback(cs, best, cand)
                 state.log(f"opt r{rnd}: csim FAIL — discard")
                 stag += 1
                 continue
@@ -542,5 +692,9 @@ class OptimizeAgent:
         state.metadata["resource_history"] = resource_history
         state.metadata["best_q_hw"] = best_q_hw
         state.metadata["semantic_duplicate_skips"] = semantic_duplicate_skips
+        state.metadata["semantic_current_best_skips"] = semantic_current_best_skips
+        state.metadata["ii_resource_intent_rejections"] = (
+            ii_resource_intent_rejections
+        )
         state.metadata["minimum_factor_convergence"] = minimum_factor_convergence
         return state

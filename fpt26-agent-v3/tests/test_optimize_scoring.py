@@ -1,14 +1,18 @@
+import json
 from types import SimpleNamespace
 
 from agent.agents.optimize import (
     OptimizeAgent,
     _candidate_fingerprint,
+    _csim_failure_feedback,
     _diagnose,
+    _ii_resource_intent_feedback,
     _is_minimum_unroll_frontier,
     _latest_successful_synth,
     _rejection_feedback,
     _score_candidate,
 )
+from agent.analysis.synth_diagnostics import extract_ii_resource_limits
 
 
 def _report(
@@ -49,7 +53,7 @@ def test_scorer_aligned_quality_rejects_cycle_only_area_explosion() -> None:
     extreme_card = _score_candidate(task, starter, extreme)
 
     assert starter_card.q_hw == 0.75
-    assert extreme_card.q_hw == 0.1585
+    assert extreme_card.q_hw == 0.3631
     assert extreme_card.q_hw < starter_card.q_hw
 
 
@@ -94,7 +98,7 @@ def test_rejection_feedback_contains_metrics_and_pragma_evidence() -> None:
     feedback = _rejection_feedback(card, rejected, code, best_q_hw=0.75)
 
     assert feedback["status"] == "REJECTED_BY_SCORING_V3_Q_HW"
-    assert feedback["candidate_q_hw"] == 0.0385
+    assert feedback["candidate_q_hw"] == 0.0909
     assert feedback["current_best_q_hw"] == 0.75
     assert feedback["bottleneck_resource"] in {"LUT", "FF"}
     assert feedback["candidate_pragmas"] == [
@@ -108,6 +112,26 @@ def test_rejection_feedback_contains_metrics_and_pragma_evidence() -> None:
     assert "return the current editable kernel unchanged" in feedback[
         "required_next_action"
     ]
+
+
+def test_csim_failure_feedback_contains_concise_error_and_candidate_diff() -> None:
+    best = "void top() {}\n"
+    failed = '#include "top.h"\nvoid top() { hls::stream<int> q; }\n'
+    result = SimpleNamespace(
+        phase="compile_error",
+        log=(
+            "/tmp/run/top.cpp:2:14: error: use of undeclared identifier 'hls'\n"
+            "1 error generated.\n"
+        ),
+    )
+
+    feedback = _csim_failure_feedback(result, best, failed)
+
+    assert feedback["status"] == "REJECTED_BY_CSIM_COMPILE_ERROR"
+    assert "undeclared identifier 'hls'" in feedback["error_summary"]
+    assert "hls::stream<int> q" in feedback["failed_candidate_diff"]
+    assert "/tmp/run" not in json.dumps(feedback)
+    assert "add the required existing header" in feedback["required_next_action"]
 
 
 def test_latest_successful_synth_ignores_failures_and_other_tools() -> None:
@@ -145,6 +169,164 @@ def test_diagnosis_uses_loop_ii_not_top_function_interval() -> None:
     assert "TopInterval=1025 is the function transaction interval" in diagnosis
     assert "partial UNROLL factor=2 inside that loop body" in diagnosis
     assert "II=1025>1" not in diagnosis
+
+
+def test_diagnosis_extracts_vitis_memory_port_ii_limit() -> None:
+    report = _report(
+        latency=39069,
+        ii=39070,
+        clock=3.17,
+        lut=909,
+        ff=649,
+        dsp=6,
+        loop_metrics=[
+            {
+                "name": "stencil_label1_stencil_label2",
+                "trip_count": 7812,
+                "latency": 39061,
+                "pipeline_ii": 5,
+            }
+        ],
+    )
+    warning = (
+        "WARNING: [HLS 200-448] Lower bound of II is 5 due to multiple "
+        "'load' operation 32 bit ('orig_load', stencil_stencil2d.cpp:20) "
+        "on array 'orig', 'load' operation 32 bit ('orig_load_1', "
+        "stencil_stencil2d.cpp:20) on array 'orig' accessing core:RAM:orig"
+    )
+
+    limits = extract_ii_resource_limits(warning + "\n" + warning)
+    diagnosis = _diagnose(SimpleNamespace(report=report, log=warning))
+
+    assert len(limits) == 1
+    assert limits[0].lower_bound == 5
+    assert limits[0].array == "orig"
+    assert limits[0].source == "stencil_stencil2d.cpp:20"
+    assert limits[0].core == "RAM:orig"
+    assert "Measured loop PipelineII=5>1" in diagnosis
+    assert "memory-port resource limit on array 'orig'" in diagnosis
+    assert "II lower bound=5" in diagnosis
+    assert "another PIPELINE directive alone cannot lower II" in diagnosis
+
+
+def test_ii_resource_intent_gate_only_blocks_standalone_concurrency() -> None:
+    best = """void top(int orig[64]) {
+  for (int i = 0; i < 64; ++i) { orig[i] += 1; }
+}
+"""
+    warning = (
+        "WARNING: [HLS 200-448] Lower bound of II is 5 due to multiple "
+        "'load' operation 32 bit ('orig_load', top.cpp:2) on array 'orig' "
+        "accessing core:RAM:orig"
+    )
+    synth_result = SimpleNamespace(log=warning)
+    standalone_unroll = best.replace(
+        "  for", "  #pragma HLS UNROLL factor=2\n  for"
+    )
+    matched_partition = best.replace(
+        "  for",
+        "  #pragma HLS ARRAY_PARTITION variable=orig cyclic factor=2 dim=1\n  for",
+    )
+    locality_change = best.replace(
+        "  for", "  int cached = orig[0];\n  for"
+    )
+
+    feedback = _ii_resource_intent_feedback(
+        synth_result, best, standalone_unroll
+    )
+
+    assert feedback is not None
+    assert feedback["status"] == "REJECTED_BY_SYNTH_EVIDENCE_INTENT"
+    assert feedback["ii_resource_limits"][0]["array"] == "orig"
+    assert "No candidate tool was run" in feedback["reason"]
+    assert (
+        _ii_resource_intent_feedback(synth_result, best, matched_partition)
+        is None
+    )
+    assert (
+        _ii_resource_intent_feedback(synth_result, best, locality_change)
+        is None
+    )
+
+
+def test_optimize_reflects_ii_intent_rejection_without_candidate_tools() -> None:
+    task = SimpleNamespace(
+        id="ii_intent",
+        type="optimize",
+        difficulty=3,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+        description="",
+        headers={},
+        top="top",
+        kernel_name="top.cpp",
+    )
+    report = _report(
+        latency=500,
+        ii=500,
+        clock=5.0,
+        lut=200,
+        ff=100,
+        dsp=0,
+        loop_metrics=[
+            {"name": "loop", "trip_count": 100, "latency": 499, "pipeline_ii": 5}
+        ],
+    )
+    warning = (
+        "WARNING: [HLS 200-448] Lower bound of II is 5 due to multiple "
+        "'load' operation 32 bit ('orig_load', top.cpp:2) on array 'orig' "
+        "accessing core:RAM:orig"
+    )
+    starter = """void top(int orig[100]) {
+  for (int i = 0; i < 100; ++i) { orig[i] += 1; }
+}
+"""
+    unroll = starter.replace(
+        "  for", "  #pragma HLS UNROLL factor=2\n  for"
+    )
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            if self.calls == 1:
+                return unroll
+            payload = json.loads(prompt)
+            feedback = payload["previous_candidate_feedback"]
+            assert feedback["status"] == "REJECTED_BY_SYNTH_EVIDENCE_INTENT"
+            assert feedback["ii_resource_limits"][0]["array"] == "orig"
+            assert "no candidate tool was run" in payload["instruction"].lower()
+            return "// stop after evidence reflection\n" + starter
+
+    class Server:
+        def csim(self, kernel):
+            raise AssertionError("intent-rejected candidate must skip C-sim")
+
+        def synth(self, kernel):
+            raise AssertionError("intent-rejected candidate must skip synthesis")
+
+    llm = Llm()
+    state = SimpleNamespace(
+        task=task,
+        server=Server(),
+        kernel=starter,
+        best_latency=500,
+        results=[
+            SimpleNamespace(kind="synth", ok=True, report=report, log=warning)
+        ],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=2).run(state)
+
+    assert result.kernel == starter
+    assert llm.calls == 2
+    assert result.metadata["ii_resource_intent_rejections"] == 1
+    assert result.metadata["semantic_current_best_skips"] == 1
 
 
 def test_candidate_fingerprint_ignores_comments_and_layout_not_factor() -> None:
@@ -415,3 +597,168 @@ def test_optimize_stops_api_after_rejected_minimum_unroll() -> None:
     assert server.csim_calls == 1
     assert server.synth_calls == 1
     assert result.metadata["minimum_factor_convergence"] is True
+
+
+def test_optimize_reflects_csim_compile_error_into_next_round() -> None:
+    task = SimpleNamespace(
+        id="compile_reflection",
+        type="optimize",
+        difficulty=3,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+        description="",
+        headers={"top.h": "void top(int *out);"},
+        top="top",
+        kernel_name="top.cpp",
+    )
+    starter_report = _report(
+        latency=100,
+        ii=100,
+        clock=5.0,
+        lut=200,
+        ff=100,
+        dsp=0,
+    )
+    improved_report = _report(
+        latency=50,
+        ii=50,
+        clock=5.0,
+        lut=200,
+        ff=100,
+        dsp=0,
+    )
+    starter = '#include "top.h"\nvoid top(int *out) { *out = 1; }\n'
+    failed = starter.replace(
+        "void top", "void helper() { hls::stream<int> q; }\nvoid top"
+    )
+    corrected = '#include "hls_stream.h"\n' + failed
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            if self.calls == 1:
+                return failed
+            payload = json.loads(prompt)
+            feedback = payload["previous_candidate_feedback"]
+            assert feedback["status"] == "REJECTED_BY_CSIM_COMPILE_ERROR"
+            assert "undeclared identifier 'hls'" in feedback["error_summary"]
+            assert "hls::stream<int> q" in feedback["failed_candidate_diff"]
+            return corrected
+
+    class Server:
+        def __init__(self) -> None:
+            self.csim_calls = 0
+            self.synth_calls = 0
+
+        def csim(self, kernel):
+            self.csim_calls += 1
+            if '#include "hls_stream.h"' not in kernel:
+                return SimpleNamespace(
+                    kind="csim",
+                    ok=False,
+                    phase="compile_error",
+                    report=None,
+                    log="top.cpp:2:17: error: use of undeclared identifier 'hls'",
+                )
+            return SimpleNamespace(
+                kind="csim", ok=True, phase="pass", report=None, log=""
+            )
+
+        def synth(self, kernel):
+            self.synth_calls += 1
+            return SimpleNamespace(
+                kind="synth",
+                ok=True,
+                phase="pass",
+                report=improved_report,
+                log="",
+            )
+
+    llm = Llm()
+    server = Server()
+    state = SimpleNamespace(
+        task=task,
+        server=server,
+        kernel=starter,
+        best_latency=100,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=starter_report, log=""
+            )
+        ],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=2).run(state)
+
+    assert result.kernel == corrected
+    assert result.best_latency == 50
+    assert llm.calls == 2
+    assert server.csim_calls == 2
+    assert server.synth_calls == 1
+
+
+def test_optimize_skips_tools_for_semantic_current_best_noop() -> None:
+    task = SimpleNamespace(
+        id="semantic_noop",
+        type="optimize",
+        difficulty=2,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+        description="",
+        headers={"top.h": "void top(int *out);"},
+        top="top",
+        kernel_name="top.cpp",
+    )
+    starter_report = _report(
+        latency=100,
+        ii=100,
+        clock=5.0,
+        lut=200,
+        ff=100,
+        dsp=0,
+    )
+    starter = '#include "top.h"\nvoid top(int *out) { *out = 1; }\n'
+    comment_only = "// top.cpp\n" + starter
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            return comment_only
+
+    class Server:
+        def csim(self, kernel):
+            raise AssertionError("semantic current-best no-op must skip C-sim")
+
+        def synth(self, kernel):
+            raise AssertionError("semantic current-best no-op must skip synthesis")
+
+    llm = Llm()
+    state = SimpleNamespace(
+        task=task,
+        server=Server(),
+        kernel=starter,
+        best_latency=100,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=starter_report, log=""
+            )
+        ],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=5).run(state)
+
+    assert result.kernel == starter
+    assert llm.calls == 1
+    assert result.metadata["semantic_current_best_skips"] == 1

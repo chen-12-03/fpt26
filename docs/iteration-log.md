@@ -987,3 +987,499 @@ docker run --rm --cpus <N> --memory <LIMIT> \
 - 最新各 relevant path 的真实结果：projection Iteration 13 `70.96`、residual Iteration 14 `78.01`、dot Iteration 11 `73.00`；三项 hidden correctness 全 PASS。
 - 任务平均 current score 约 `73.99`，相对 Iteration 5 fresh `72.93` 提升 `1.06`；总 Agent credits `58`（Iteration 5 为 72），total API tokens `7895`（Iteration 5 为 12641）。这些是各 path 最新真实 API/Vitis run_report，不用旧评分字段；后续若需同轮总体结论，将重新 fresh 运行而非回放。
 - official correctness 无回退且评分/预算出现有效改善，满足少量 generated 补充验证门。下一轮先只读列出 generated tasks，选择最多两个分别覆盖 role-specific repair/structural 或 optimize frontier，记录选择理由，不运行全集。
+
+## 2026-07-16 — Generated Audit 1：三类 HLS-Eval 泛化质量
+
+### 数据源、选择理由与任务适配
+
+- 仓库中的 `fpt26-agent-v3/tasks -> ../tasks` 目标缺失，Git 历史也没有提交 generated 数据；因此没有把缺目录或伪造 case 计作 Agent 结果。
+- 从公开 [HLS-Eval](https://github.com/sharc-lab/hls-eval) 固定提交
+  `e628c0ad9b58d3890fbc350e9b37470cc92bf183` 恢复少量 benchmark。该数据源正好对应
+  `AGENTS.md` 所列的 94 designs / 8 sources。本轮只适配 3 个强校验 testbench，不运行全集：
+  - `machsuite__stencil_stencil2d`：无 pragma 的四层局部 stencil，覆盖通用 nested-loop 优化与资源门。
+  - `pp4fpga__parallel_merge_sort`：已有 PIPELINE/DATAFLOW/UNROLL/partition，覆盖成熟架构非回退。
+  - `chstone__df_shift64RightJamming`：无 loop 的分支/位运算，覆盖“无 report-supported 空间时停止”。
+- 三项原始 testbench 都以非零退出码报告错误；排除了只打印输出或失败仍返回 0 的弱校验 case。
+- 只新增 harness-native `task.toml`/description 和原始 kernel/header/testbench/data task 输入，没有修改 Agent、scorer 或只读 harness。
+- MachSuite testbench 原本假设从 design root 运行；当前 `CSimTool` 从
+  `csim_proj/sol/csim/build` 运行 executable。首次 stencil preflight 因找不到 `.data` 得到
+  `SIGABRT`、0 API requests，属于 adapter infrastructure failure，不纳入质量表。仅将该 generated
+  task 的两个 immutable data 相对路径改为 `../../../../{input,check}.data` 后 fresh 重跑通过。
+
+### 配置、测试、真实 API/Vitis 与评分命令
+
+- Docker daemon：18 CPU / 15.43 GiB；启动前 MemAvailable 11.31 GiB。按资源限制使用 2+1 调度，每个容器 `--cpus 4 --memory 4g`，没有 3 容器同时争用内存/license。
+- Current 回归（Docker 内）：
+  `python3 -m pytest -q tests/test_role_system_prompts.py tests/test_reporting_state_consistency.py tests/test_structural_cosim_synth_evidence.py tests/test_optimize_scoring.py tests/test_repair_csim_reuse.py tests/test_workflow_synth_reuse.py tests/test_report_loop_metrics.py tests/test_llm_token_usage.py scoring/test_scoring_v3.py`，`58 passed`。
+- 额外全量 `tests/` 探测为 `78 passed, 7 failed`；7 项全来自已废弃
+  `tests/test_scoring_v2.py` 的旧公式断言，与 current schema-v5 文档冲突，未用作评分或本轮改动依据。
+- 三项均使用真实 custom OpenAI-compatible API：`qwen3-coder-plus`，temperature `0.7`，max output tokens `4096`；`--mode optimize --backend custom --max-optimization-rounds 5`。没有 mock、scripted backend 或历史回放。
+- 真实运行命令模板：
+  `docker run --rm --cpus 4 --memory 4g -v /home/chen1/projects/fpt26_new:/workspace -v /tools/Xilinx:/tools/Xilinx:ro --env-file /tmp/fpt26.env -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness -w /workspace fpt26-agent-v3:latest bash -lc 'source /tools/Xilinx/Vitis/2025.2/settings64.sh && python3 -m agent.main --task /workspace/tasks/generated/<task> --mode optimize --backend custom --max-optimization-rounds 5 --output-root /workspace/runs/<isolated-root>'`。
+- 输出：`runs/generated_audit1_merge_20260716/`、
+  `runs/generated_audit1_stencil_r2_20260716/`、
+  `runs/generated_audit1_chstone_20260716/`。
+- 唯一最终评分入口：`agent/workflow.py::step_score()` → current
+  `scoring/scoring_v3.py::grade()`；下表 score 均直接读取 fresh
+  `run_report.json.scoring.score`，且 `schema_version=5`。没有使用 HLS-Eval 外部分数、旧公式或手算替代分。
+
+### Fresh generated 结果
+
+| 指标 | MachSuite stencil2d | PP4FPGA merge sort | CHStone shift/jam |
+|---|---:|---:|---:|
+| hidden correctness / synth | PASS / PASS | PASS / PASS | PASS / PASS |
+| current schema-v5 score | 73.07 | 73.06 | 74.00 |
+| final latency / top interval | 39069 / 39070 | 75 / 16 | 0 / 1 |
+| final clock | 3.170 ns | 10.607 ns | 3.458 ns |
+| final LUT / FF / DSP / BRAM | 909 / 649 / 6 / 0 | 3131 / 1056 / 0 / 0 | 606 / 0 / 0 / 0 |
+| final latency ratio / area growth / Q_HW | 1.00x / 1.00x / 0.7500 | 1.00x / 1.00x / 0.7500 | 1.00x / 1.00x / 0.7500 |
+| credits / budget | 10 / 40 | 10 / 40 | 5 / 40 |
+| C-sim / synth calls | 2 / 2 | 6 / 1 | 1 / 1 |
+| Agent tool time | 39.7 s | 41.0 s | 17.5 s |
+| approximate end-to-end time | 98 s | 112 s | 48 s |
+| API requests | 2 | 5 | 1 |
+| prompt / completion tokens | 197074 / 456 | 17075 / 2884 | 2603 / 119 |
+| total server-reported tokens | 197530 | 19959 | 2722 |
+
+### Transcript 分析、结论与下一步
+
+- 三项最终都保持 valid starter，说明 current Q_HW acceptance gate 在 generated 上没有功能/QoR 回退；但平均 current score 为 `73.38`，所有 final Q_HW 都停在 baseline `0.7500`，本轮没有产生可接受硬件改善。
+- Stencil round 1 的真实 candidate 只在 outer `r` loop 加 `PIPELINE II=1`：latency
+  `39069 → 12105`（cycles 约 3.23x），但 LUT `909 → 4802`、FF `649 → 1724`、DSP
+  `6 → 18`，Q_HW `0.7500 → 0.5259`，被 current scorer 正确拒绝；round 2 返回 unchanged。
+- Merge Sort 的 5 个真实 API candidate 都引入 `hls::stream`，却没有包含 `hls_stream.h`；5 次真实 C-sim 均 compile error。最终 correctness/score 保持，但浪费 5 credits、约 20k tokens，说明 compile-failure log 没有进入下一轮 OptimizeAgent feedback，模型重复同一错误架构。
+- CHStone 在 baseline latency 0 / top interval 1 时第一次 API 就返回 unchanged，无 candidate tool，证明简单 no-op convergence 正常。
+- 当前最大且最可归因瓶颈是 prompt asset leakage：MachSuite 的 `input.data` + `check.data`
+  共 95164 bytes，为了让 fixed harness assembly 携带数据而存在于 `task.headers`；
+  `build_prompt()` 无差别串入所有 headers，导致两次请求服务端上报 197074 prompt tokens。
+- 下一轮只实施一组 prompt-context 改进：向 LLM 仅暴露 C/C++ interface/source header，过滤 `.data` 等非代码附件；Vitis task assembly 和 testbench data 保持不变。用同一 stencil task、模型、参数 fresh 重跑，验证 correctness/Q_HW 不退且 prompt tokens 显著下降。之后再考虑把 normalized C-sim compile failure 反馈回 OptimizeAgent，避免 merge-sort 类重复失败。
+
+## 2026-07-16 — Generated Iteration 2：过滤 prompt 中的非代码附件
+
+### Trace、假设与唯一改动组
+
+- Generated Audit 1 的 MachSuite task 为让 fixed harness 携带 testbench 数据，将
+  `input.data` / `check.data` 放在 `Task.headers`；两文件共 95164 bytes。
+- `agent/prompts.py::build_prompt()` 旧实现无差别串入 `task.headers`，使每次 LLM request
+  都携带大段输入/expected data；两次响应的服务端真实 usage 为 197074 prompt tokens。
+- 假设：LLM 只需要 C/C++ interface/source context，不需要 immutable raw test vectors；过滤非代码
+  attachments 可显著降 token，同时 Vitis assembly 仍保留数据，correctness/Q_HW 不变。
+- 唯一改动组：
+  - `agent/prompts.py` 新增 code suffix allowlist，只把 `.c/.cc/.cpp/.cxx/.h/.hh/.hpp/.hxx/.inc/.ipp/.tpp`
+    内容放入 prompt；只列出 omitted attachment 文件名，不序列化内容。
+  - `tests/test_role_system_prompts.py` 验证 `.h/.inc` 仍可见、`.data` payload 完全不可见，并验证 omitted 名单。
+- 不变项：`Task.headers`、`Task.assemble()`、public/hidden testbench、Vitis tool、OptimizeAgent candidate/acceptance、budget、scorer 和只读 harness。
+
+### 测试、真实配置与命令
+
+- Docker current 回归：与 Audit 1 相同定向集合，新增 attachment test 后 `59 passed`；`git diff --check` 通过。
+- Fresh 对照任务：`machsuite__stencil_stencil2d`；custom `qwen3-coder-plus`；temperature
+  `0.7`；max output tokens `4096`；4 CPU/4 GiB；
+  `--mode optimize --backend custom --max-optimization-rounds 5`。
+- 输出：`runs/generated_iter2_stencil_asset_filter_20260716/`。
+- 真实命令与 Generated Audit 1 模板相同，仅替换 output root；真实 API 与 Vitis HLS 均执行，没有 mock/scripted/history replay。
+- 评分入口仍为 `agent/workflow.py::step_score()` → current
+  `scoring/scoring_v3.py::grade()`；score 直接读取 fresh schema-v5 `run_report.json`。
+
+### Fresh A/B 结果
+
+| 指标 | Audit 1（附件泄漏） | Iteration 2（过滤后） | 变化 |
+|---|---:|---:|---:|
+| hidden correctness / synth | PASS / PASS | PASS / PASS | 无回退 |
+| current schema-v5 score | 73.07 | 73.07 | +0.00 |
+| final latency / top interval | 39069 / 39070 | 39069 / 39070 | 0 |
+| final LUT / FF / DSP | 909 / 649 / 6 | 909 / 649 / 6 | 0 |
+| final Q_HW / area growth | 0.7500 / 1.00x | 0.7500 / 1.00x | 0 |
+| credits / C-sim / synth | 10 / 2 / 2 | 10 / 2 / 2 | 0 |
+| Agent tool time | 39.7 s | 34.3 s | -5.4 s |
+| approximate end-to-end time | 98 s | 69 s | -29 s |
+| API requests | 2 | 2 | 0 |
+| prompt tokens | 197074 | 6699 | -190375（-96.6%） |
+| completion tokens | 456 | 462 | +6 |
+| total tokens | 197530 | 7161 | -190369（-96.4%） |
+
+- 过滤后 candidate 真实 C-sim+synth PASS，但只增加注释，QoR 与 starter 完全相同，因 Q_HW 未严格改善而被拒；第二 API candidate 语义重复，现有 fingerprint 在再次执行工具前收敛。
+- 本轮没有声称 score/correctness 提升；直接收益是 token 与端到端效率，且 final hardware/correctness 完全保持。
+
+### 结论与下一步
+
+- 假设成立，保留 attachment filtering。Generated Audit 1 与本轮连续两轮 average score 提升不足 1 且无 correctness 新改善，按目标规则转向 workflow/reflection feedback。
+- 当前最大可操作瓶颈是 PP4FPGA Merge Sort：5 个 candidate 均因缺少 `hls_stream.h` 编译失败，而 OptimizeAgent 只记录 `csim FAIL — discard`，没有把 compiler evidence 带入下一 request。
+- 下一轮只实现 OptimizeAgent candidate C-sim failure feedback：传递 concise phase/compiler evidence 和明确修复动作；不同时改变 scorer acceptance、prompt asset filter 或 tool budget。用同一 Merge Sort、模型和参数 fresh 验证 compile-failure 次数、correctness、score、tokens 与工具预算。
+
+## 2026-07-16 — Generated Iteration 3：candidate C-sim failure reflection
+
+### Trace、阈值响应与唯一改动组
+
+- Audit 1 的 Merge Sort 连续 5 个 API candidate 都因 `hls::stream` 未声明而 compile error；OptimizeAgent 只写日志后进入下一 round，没有把任何 compiler evidence 发回 LLM，并且 failure branch 的 `continue` 绕过了底部 stagnant convergence。
+- Generated Audit 1 + Iteration 2 连续两轮 score 提升不足 1 且无 correctness 新改善，本轮按规则转向 reflection feedback。
+- 唯一改动组：
+  - `agent/agents/optimize.py` 在 candidate C-sim failure 后用现有 `LogNormalizer` 保留最多 8 条关键行，附带不超过 4000 chars 的 failed-candidate diff、phase 和 required action；失败 fingerprint 进入 rejected 集。
+  - `agent/prompts.py` 区分 `REJECTED_BY_CSIM_*` 与 scorer rejection：前者必须先处理真实 compiler/runtime evidence，后者继续遵守 Q_HW directional feedback。
+  - `tests/test_optimize_scoring.py` 覆盖路径清洗/有界 diff，以及第二 round 读取 compiler evidence、修正 missing HLS include、再通过 C-sim+synth 的完整 loop。
+- 不变项：最大 rounds、API/model 参数、Vitis tools/budget、current Q_HW 接受门、attachment filter、final scorer 和 harness。
+
+### 测试与真实验证设计
+
+- Docker current 回归：同一套定向命令，`61 passed`；`git diff --check` 通过。
+- 任务/配置：`pp4fpga__parallel_merge_sort`；custom `qwen3-coder-plus`；temperature
+  `0.7`；max output tokens `4096`；`--mode optimize --max-optimization-rounds 5`；每容器 4 CPU/4 GiB。
+- 首个 post-change fresh run 输出：`runs/generated_iter3_merge_csim_reflection_20260716/`。
+  本次随机样本的两个 candidate 都直接通过 C-sim，因此没有命中 failure feedback；final correctness/Q_HW 保持，但 3 次 synth 使 credits 15、score 72.13。该 run 只作非回退/随机性 guard，不能用于声称 reflection 有效。
+- 为得到可归因证据，随后同时启动 paired guard：
+  - baseline：只读挂载 `git archive HEAD` 的提交态旧流程，输出
+    `runs/generated_iter3_pair_baseline_20260716/`。
+  - reflection：当前改动，输出 `runs/generated_iter3_pair_reflection_20260716/`。
+  - 两边同一时刻、同任务/model/temperature/max tokens/CPU/memory；均真实 API + Vitis，没有 mock、scripted 或 replay。
+- 最终 score 均由各自 fresh `agent/workflow.py::step_score()` 调用 current
+  `scoring/scoring_v3.py::grade()`，run_report `schema_version=5`。
+
+### Paired fresh 结果
+
+| 指标 | 提交态 baseline | C-sim reflection | 变化 |
+|---|---:|---:|---:|
+| hidden correctness / synth | PASS / PASS | PASS / PASS | 无回退 |
+| current schema-v5 score | 73.06 | 72.88 | -0.18 |
+| final latency / top interval | 75 / 16 | 75 / 16 | 0 |
+| final LUT / FF / Q_HW | 3131 / 1056 / 0.7500 | 3131 / 1056 / 0.7500 | 0 |
+| credits / budget | 10 / 40 | 11 / 40 | +1 |
+| candidate compile errors | 5 | 1 | -4 |
+| C-sim / synth calls | 6 / 1 | 3 / 2 | -3 / +1 |
+| Agent tool time | 41.0 s | 40.6 s | -0.4 s |
+| approximate end-to-end time | 113 s | 82 s | -31 s |
+| API requests | 5 | 2 | -3 |
+| prompt / completion tokens | 17075 / 3129 | 7442 / 947 | -9633 / -2182 |
+| total tokens | 20204 | 8389 | -11815（-58.5%） |
+
+- Paired baseline 重现 5 次相同类型 stream compile error。Reflection round 1 同样失败；round 2 收到真实 evidence 后放弃 stream architecture，返回 current best 加一行文件名注释，真实 C-sim+synth 都 PASS 且 QoR 与 baseline 完全相同，随后按 2 stagnant rounds 收敛。
+- 因此 reflection 确实减少盲试、API/token 和端到端时间，但当前 score/credit 尚未过门：round 2 实际是 semantic no-op，原文比较因注释差异未识别；`_candidate_fingerprint()` 虽忽略注释，却只检查 rejected fingerprints，没有与 current best 比较，浪费 1 C-sim + 1 synth（5 credits），造成 paired score -0.18。
+
+### 结论与下一步
+
+- 本轮 correctness/Q_HW 无回退且 failure recovery/token stability 显著改善，但 current score 轻微回退，不能作为完整 score 改善结束。
+- 下一轮只补 current-best semantic no-op convergence：LLM response fingerprint 与 current best 相同（仅注释/空白差异）时，在任何 candidate tool 前停止；不改变 failure feedback/scorer。先用单元测试覆盖，再用相同 Merge Sort fresh 运行验证省掉 5 credits 后 score、tokens 和 correctness。
+
+## 2026-07-16 — Generated Iteration 4：current-best semantic no-op convergence
+
+### Trace、假设与唯一改动组
+
+- Iteration 3 paired reflection 的 round 2 实际只在 current best 前增加文件名注释；原文比较失败后仍执行 1 次 C-sim + 1 次 synth，浪费 5 credits 并使 score 回退 0.18。
+- 现有 `_candidate_fingerprint()` 已忽略注释/空白，但只用于“是否重复已拒 candidate”，没有与动态 current best 比较。
+- 假设：response fingerprint 等于 current best 时在任何 candidate tool 前收敛，可保持最终硬件/正确性并提高 current score、token 和时间效率。
+- 唯一改动：`agent/agents/optimize.py` 增加 current-best fingerprint equality guard 和
+  `semantic_current_best_skips` metadata；`tests/test_optimize_scoring.py` 验证 comment-only full source 不调用 C-sim/synth。
+- 不变项：C-sim reflection、scorer rejection feedback、Q_HW 接受门、API prompt、最大 rounds、Vitis/budget/scoring/harness。
+
+### 测试与真实验证
+
+- Docker current 回归：同一套定向命令，`62 passed`；`git diff --check` 通过。
+- 先冻结 Iteration 3 reflection 版本到只读 `/tmp/fpt26-iter4-baseline`，并与 guard 并行 fresh 运行 Merge Sort。两边均真实 API/Vitis、相同 `qwen3-coder-plus` / temperature 0.7 / max tokens 4096 / 4 CPU / 4 GiB。
+- Merge paired 输出：`runs/generated_iter4_pair_baseline_20260716/` 与
+  `runs/generated_iter4_pair_noop_guard_20260716/`。该采样中两边 response 不同且 guard 未命中；guard 侧 score 72.12、baseline 71.94，但差异不可归因，只作为 correctness/Q_HW 非回退 guard。
+- 为命中目标路径，使用 Iteration 2 已真实出现 comment-only response 的
+  `machsuite__stencil_stencil2d` 做一次 fresh（没有 replay）：
+  `runs/generated_iter4_stencil_noop_guard_20260716/`。同模型/参数/容器限制，真实 API + Vitis。
+- 最终 score 仍由 fresh `agent/workflow.py::step_score()` → current
+  `scoring/scoring_v3.py::grade()` 产生，schema-v5 run_report 为唯一分数。
+
+### Stencil 命中结果
+
+| 指标 | Iteration 2（无 guard） | Iteration 4（guard 命中） | 变化 |
+|---|---:|---:|---:|
+| hidden correctness / synth | PASS / PASS | PASS / PASS | 无回退 |
+| current schema-v5 score | 73.07 | 74.00 | +0.93 |
+| final latency / top interval | 39069 / 39070 | 39069 / 39070 | 0 |
+| final LUT / FF / DSP / Q_HW | 909 / 649 / 6 / 0.7500 | 909 / 649 / 6 / 0.7500 | 0 |
+| credits / budget | 10 / 40 | 5 / 40 | -5 |
+| C-sim / synth calls | 2 / 2 | 1 / 1 | -1 / -1 |
+| Agent tool time | 34.3 s | 18.6 s | -15.7 s |
+| approximate end-to-end time | 69 s | 50 s | -19 s |
+| API requests | 2 | 1 | -1 |
+| prompt / completion tokens | 6699 / 462 | 3208 / 231 | -3491 / -231 |
+| total tokens | 7161 | 3439 | -3722（-52.0%） |
+
+- Fresh 日志明确出现 `semantic no-op versus current best — skip csim/synth and converge`；只有 baseline C-sim+synth 两个真实 agent tools。最终 source/hardware 与 starter 相同。
+- Merge paired 虽未命中 guard，current side 仍 hidden correctness PASS，并正确拒绝 synth failure 和一个 latency 75→56 但 LUT 3131→4561、FF 1056→5050、Q_HW 0.5127 的低质 candidate；没有 QoR 回退。
+
+### 结论与下一步
+
+- 假设成立，保留 semantic current-best guard。它与 failure reflection 合并后覆盖“失败→反馈→comment-only best”的安全收敛链路。
+- Iteration 3 paired score -0.18、Iteration 4 target +0.93，连续两轮平均提升仍不足 1 且无 correctness 新改善；按规则继续转向专用证据/tool，而不是继续扩写通用 prompt。
+- 两个 generated compute task 的 fresh synthesis 均显示 `Loops=[none]`：Stencil 源码有四层 loop，Merge Sort 也有多级 loops/dataflow，但 OptimizeAgent 看不到 loop latency/PipelineII，只能猜 outer PIPELINE 或 stream architecture。
+- 下一轮先完整 trace Vitis 2025.2 的 generated `csynth.xml/csynth.rpt` 与
+  `llm4hls/report.py::parse_csynth_xml()`，只在真实报告确有结构化 loop evidence 时做最小 parser 扩展；若报告本身没有，则不伪造指标，转向显式 report extraction tool。
+
+## 2026-07-16 — Generated Iteration 5：Vitis 2025.2 nested loop evidence
+
+### Trace、假设与唯一改动组
+
+- 完整检查 Iteration 4 Stencil 与 Iteration 3 Merge Sort 的真实
+  `agent/synth_*/synth_proj/sol/syn/report/csynth.xml`、console transcript 和
+  `run_report.json`。根因不是 Vitis 缺少 loop 数据，而是当前
+  `llm4hls/report.py::parse_csynth_xml()` 只读取顶层
+  `PerformanceEstimates/SummaryOfLoopLatency`；Vitis 2025.2 将这两项 generated
+  task 的 loop summary 放在
+  `ModuleInformation/Module/PerformanceEstimates/SummaryOfLoopLatency`。
+- 原始 Stencil XML 给出 loop `stencil_label1_stencil_label2`：trip count 7812、
+  latency 39061、PipelineII 5、depth 7；Merge Sort 给出 `merge_arrays`：trip
+  count 16、latency 16、PipelineII 1、depth 2。旧 parser 均错误显示 `Loops=[none]`。
+- 假设：把真实 nested loop metrics 送入现有诊断/提示回环，可用综合器证据替代
+  猜测，同时保持旧 Vitis 顶层格式兼容且不因 replicated modules 重复膨胀 prompt。
+- 唯一改动组：`llm4hls/report.py` 同时收集顶层与 module-nested loop summary，
+  优先使用 XML `<Name>`，按 name/trip/latency/II/depth 完整指纹去重；
+  `tests/test_report_loop_metrics.py` 增加 Vitis 2025.2 nested + replicated-module
+  fixture。没有改变优化 prompt、接受门、rounds、budget、scoring 或 harness。
+
+### 测试、真实配置与命令
+
+- Docker 定向回归：
+  `python3 -m pytest -q tests/test_role_system_prompts.py tests/test_reporting_state_consistency.py tests/test_structural_cosim_synth_evidence.py tests/test_optimize_scoring.py tests/test_repair_csim_reuse.py tests/test_workflow_synth_reuse.py tests/test_report_loop_metrics.py tests/test_llm_token_usage.py scoring/test_scoring_v3.py`，结果 `63 passed`。
+- 用当前 parser 在 Docker 内重新读取两份历史**原始 XML 文件**仅用于 parser
+  诊断，不作评测/跑分：Stencil 正确显示
+  `stencil_label1_stencil_label2(trip=7812,lat=39061,II=5)`；Merge 正确显示
+  `merge_arrays(trip=16,lat=16,II=1)`，replicated modules 未重复输出。
+- Fresh 评测命令：
+  `docker run --rm --cpus 4 --memory 4g -v /home/chen1/projects/fpt26_new:/workspace -v /tools/Xilinx:/tools/Xilinx:ro --env-file /tmp/fpt26.env -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness -w /workspace fpt26-agent-v3:latest bash -lc 'source /tools/Xilinx/Vitis/2025.2/settings64.sh && python3 -m agent.main --task /workspace/tasks/generated/machsuite__stencil_stencil2d --mode optimize --backend custom --max-optimization-rounds 5 --output-root /workspace/runs/generated_iter5_stencil_nested_loop_evidence_20260716'`。
+- 真实 API：custom OpenAI-compatible，`qwen3-coder-plus`，temperature 0.7，
+  max output tokens 4096；API key 由 env-file 注入且未记录。任务仍为 U55C、5 ns、
+  optimize budget 40；与前轮 Stencil 配置一致。
+- 评分命令/路径：同一 fresh `agent.main` workflow 的 `step_score()` 调用当前
+  `scoring/scoring_v3.py::grade()`；输出
+  `runs/generated_iter5_stencil_nested_loop_evidence_20260716/machsuite__stencil_stencil2d/run_report.json`
+  的 `scoring.schema_version=5` 与 `scoring.score` 是唯一最终 score，未手算或引用旧字段。
+
+### Fresh Stencil 结果
+
+| 指标 | Iteration 4 | Iteration 5 | 变化 |
+|---|---:|---:|---:|
+| hidden correctness / synth | PASS / PASS | PASS / PASS | 无回退 |
+| current schema-v5 score | 74.00 | 74.00 | 0.00 |
+| final latency / top interval | 39069 / 39070 | 39069 / 39070 | 0 |
+| loop trip / latency / II | none | 7812 / 39061 / 5 | 真实证据可见 |
+| final LUT / FF / DSP / Q_HW | 909 / 649 / 6 / 0.7500 | 909 / 649 / 6 / 0.7500 | 0 |
+| credits / budget | 5 / 40 | 5 / 40 | 0 |
+| C-sim / synth calls | 1 / 1 | 1 / 1 | 0 |
+| Agent tool wall time | 18.6 s | 17.8 s | -0.8 s（噪声范围） |
+| scoring wall time | 未单列 | 29.06 s | — |
+| API requests | 1 | 1 | 0 |
+| prompt / completion tokens | 3208 / 231 | 3225 / 231 | +17 / 0 |
+| total tokens | 3439 | 3456 | +17 |
+
+- Fresh transcript 的 baseline synth 行与 round-1 report 均明确含 nested loop；诊断变为
+  `Measured loop PipelineII=5>1 — classify ... recurrence, timing, or memory ports`
+  和基于 dominant loop evidence 的高延迟建议。模型返回 semantic current-best，guard
+  在任何 candidate C-sim/synth 前安全收敛；最终 source/hardware 与 starter 相同。
+
+### 结论与下一步
+
+- Parser 假设成立，保留改动：它修复了专用证据通道，旧格式单测与全部定向回归通过，
+  fresh correctness/Q_HW/预算无回退。但本次模型未利用证据生成新 candidate，score
+  提升为 0，因此不能声称 QoR 改善。
+- 当前最大瓶颈已从“看不到 loop”收敛为“只有 loop II 数字，没有 II=5 的具体限制原因；
+  通用模型在不确定时返回 unchanged”。下一轮只扩展一组可验证的 loop bottleneck
+  evidence：先 trace Vitis schedule/bind 报告与 XML 是否已有 dependence/memory-port
+  reason；仅在报告含结构化、稳定字段时解析并反馈。若没有，则不猜测，转向最小的
+  HLS log diagnostic extraction tool。
+
+## 2026-07-16 — Generated Iteration 6：HLS 200-448 II resource diagnostic
+
+### Trace、假设与唯一改动组
+
+- Trace Iteration 5 的真实 `sol.log`、`hls_run_tcl.log`、主/子模块
+  `csynth.rpt`、schedule/bind/ADB XML。主 `csynth.rpt` 将
+  `stencil_label1_stencil_label2` 标成 `Issue=II / Violation=Resource Limitation`；
+  synth log 的稳定消息 `HLS 200-448` 进一步给出：9 个 32-bit `orig` loads（源码
+  `stencil_stencil2d.cpp:20`）访问 `RAM:orig`，II resource lower bound=5。
+- 同一 `csynth.xml` 的 `SummaryOfLoopViolations` 却错误填 `IssueType=-`、
+  `ViolationType=-`；因此不解析该不一致 XML 字段，也不靠易变的人类表格列。
+- 假设：将稳定 message ID 的精简结构化证据加入现有 bottleneck feedback，会让模型
+  从 unchanged/猜测 PIPELINE 转向针对真实 memory-port 限制的候选。
+- 唯一改动组：新增 `agent/analysis/synth_diagnostics.py`，只识别
+  `HLS 200-448`，抽取 II lower bound、operation、首个 array/source/core，去重并有界
+  格式化；`OptimizeAgent::_diagnose()` 在 loop II>1 时优先使用该证据，无匹配消息时
+  保持旧诊断。没有改 scorer、接受门、budget、rounds、task/harness。
+- `tests/test_optimize_scoring.py` 覆盖真实消息形状、去重、字段抽取和诊断输出。
+
+### 测试、配置、运行与评分
+
+- Docker 定向回归与 Iteration 5 同命令，结果 `64 passed`；`git diff --check` 通过。
+- 在 Docker 中读取 Iteration 5 的真实 log，专用诊断器输出：
+  `array='orig'`、source `stencil_stencil2d.cpp:20`、core `RAM:orig`、
+  `II lower bound=5`；完整重复 load 列表未进入 prompt。
+- Fresh 运行：与 Iteration 5 相同 Docker mount、4 CPU、4 GiB、Vitis 2025.2、U55C、
+  5 ns、budget 40、generated Stencil；输出
+  `runs/generated_iter6_stencil_ii_diagnostic_20260716/`。
+- 真实 API：custom OpenAI-compatible `qwen3-coder-plus`，temperature 0.7，
+  max output tokens 4096；无 mock/replay，secret 仍只由 `/tmp/fpt26.env` 注入。
+- 运行命令仅将 Iteration 5 output root 改为
+  `/workspace/runs/generated_iter6_stencil_ii_diagnostic_20260716`；其余与上一节记录的
+  fresh Docker 命令完全一致。
+- 评分仍由同一 fresh workflow 的 `agent/workflow.py::step_score()` 调用当前
+  `scoring/scoring_v3.py::grade()`；`run_report.json` 的
+  `scoring.schema_version=5`、`scoring.score=73.06` 是唯一最终 score。
+
+### 结果与完整候选归因
+
+| 指标 | Iteration 5 | Iteration 6 | 变化 |
+|---|---:|---:|---:|
+| hidden correctness / final synth | PASS / PASS | PASS / PASS | 无回退 |
+| current schema-v5 score | 74.00 | 73.06 | -0.94 |
+| final latency / top interval / Q_HW | 39069 / 39070 / 0.7500 | 39069 / 39070 / 0.7500 | 最终硬件不变 |
+| credits / budget | 5 / 40 | 10 / 40 | +5 |
+| Agent C-sim / synth | 1 / 1 | 2 / 2 | +1 / +1 |
+| Agent tool wall time | 17.8 s | 34.4 s | +16.6 s |
+| scoring wall time | 29.06 s | 29.67 s | +0.61 s |
+| API requests | 1 | 2 | +1 |
+| prompt / completion / total tokens | 3225 / 231 / 3456 | 6969 / 485 / 7454 | +3744 / +254 / +3998 |
+
+- Round 1 首次明确记录完整 `HLS 200-448` evidence，模型不再 unchanged，并生成仅含
+  comment + `#pragma HLS UNROLL factor=2`（inner `k2`）的候选；真实 C-sim PASS。
+- 候选真实 synth：latency `39069→86185`、top interval `39070→86186`、
+  LUT `909→664`、FF `649→306`、DSP `6→6`、candidate Q_HW `0.7500→0.6284`；
+  current scoring-v3 接受门正确拒绝。它没有处理 `orig` banking，反而增加并发 load，
+  破坏原先 flatten/outer pipeline：新主报告显示外层 latency 86184，inner
+  `stencil_label3` 又同时受 `filter` 与 `orig` resource lower bound=3。
+- Round 2 使用 scorer rejection feedback 后返回 semantic current best，guard 跳过额外
+  tools 并收敛。最终 source/hardware 是 starter，所以 correctness/Q_HW 无回退；score
+  回退完全来自多一次错误方向候选的 5 credits/时间成本。
+
+### 结论与下一步
+
+- 专用诊断假设只部分成立：它成功把模型从 no-op 推到可编译、功能正确且与 loop 相关的
+  候选，说明 evidence 已进入决策；但模型忽略“array/port”约束选择 standalone UNROLL，
+  最终 score -0.94。保留 extractor，因为证据真实、稳定、兼容 fallback，但不能把本轮
+  记为质量改善。
+- 当前最大瓶颈是候选生成前缺少“动作是否响应已测瓶颈”的 workflow gate。下一轮只加
+  一个 pre-tool intent check：当 `HLS 200-448` 已证明 memory-port 限制、candidate 与
+  current best 的非 pragma 代码完全相同、且只新增 standalone PIPELINE/UNROLL 而未对
+  报告数组做 banking/reshape 时，禁止浪费 C-sim/synth，注入结构化 reflection 后再给
+  模型一次修正机会；真实代码级 line buffer/cache 方案不拦截。
+
+## 2026-07-16 — Generated Iteration 7：pre-tool II intent gate
+
+### Trace、假设与唯一改动组
+
+- Iteration 6 的唯一被测 candidate 仅增加 `UNROLL factor=2`，没有改变
+  `HLS 200-448` 指出的 `orig` storage bandwidth，真实 latency 反而 2.21× 变差；这类
+  pragma-only intent 在工具前即可由已有证据判定为不响应瓶颈。
+- 假设：在 candidate C-sim 前增加一个严格、窄范围 intent gate，并把拒绝原因送入
+  reflection，可避免明显相反的工具成本，同时不拦截正确 banking 或 line-buffer 代码。
+- 唯一改动组：
+  1. `_ii_resource_intent_feedback()` 仅在非 pragma 源码 fingerprint 完全相同、所有新增
+     pragma 均为 standalone PIPELINE/UNROLL、且已有 `HLS 200-448` 时返回结构化拒绝；
+  2. Optimize workflow 在 C-sim/synth 前跳过该 candidate、记录 fingerprint/metadata，
+     下一轮通过 `REJECTED_BY_SYNTH_EVIDENCE_INTENT` reflection 明确说明“未测量”；
+  3. prompt 增加对应 feedback 语义，禁止把 pre-tool rejection 伪称 scorer 测量。
+- 明确放行：新增 ARRAY_PARTITION/ARRAY_RESHAPE，或任何真实非 pragma locality/code
+  变化。scoring、tool 计费、接受门、rounds、task/harness 均未修改。
+
+### 测试、真实配置与评分版本
+
+- Docker 定向回归：`66 passed`；新增单测覆盖 standalone UNROLL 被拦截、matched
+  partition 和代码 locality 放行，以及“拒绝→reflection→semantic current best”全链路
+  0 candidate tools；`git diff --check` 通过。
+- Fresh 真实配置/命令与 Iteration 6 相同，仅 output root 改为
+  `runs/generated_iter7_stencil_ii_intent_gate_20260716/`。真实
+  `qwen3-coder-plus`、temperature 0.7、max output 4096、Vitis 2025.2、U55C 5 ns、
+  4 CPU/4 GiB、budget 40；无 mock/replay。
+- 最终评分代码版本：`scoring/__init__.py __version__=5.0.0`，schema 5，评分文件
+  `scoring/scoring_v3.py`。执行路径仍是 fresh `python3 -m agent.main ...` →
+  `agent/workflow.py::step_score()` → `scoring.scoring_v3.grade()`；唯一最终 score 来自
+  `runs/generated_iter7_stencil_ii_intent_gate_20260716/machsuite__stencil_stencil2d/run_report.json`。
+
+### Fresh 结果
+
+| 指标 | Iteration 6 | Iteration 7 | 变化 |
+|---|---:|---:|---:|
+| hidden correctness / final synth | PASS / PASS | PASS / PASS | 无回退 |
+| current V5 score | 73.06 | 73.07 | +0.01（无有效提升） |
+| final latency / interval / Q_HW | 39069 / 39070 / 0.7500 | 39069 / 39070 / 0.7500 | final 不变 |
+| credits / budget | 10 / 40 | 10 / 40 | 0 |
+| Agent C-sim / synth | 2 / 2 | 2 / 2 | 0 |
+| Agent wall / grading wall | 34.4 / 29.67 s | 34.7 / 28.67 s | 噪声范围 |
+| 顺序阶段和（近似 E2E） | 64.1 s | 63.4 s | -0.7 s；未独立 instrument |
+| API requests | 2 | 2 | 0 |
+| prompt / completion / total tokens | 6969 / 485 / 7454 | 7136 / 510 / 7646 | +167 / +25 / +192 |
+| cached / reasoning tokens | unavailable | unavailable | provider 未上报，未估算 |
+
+- 本次随机采样没有命中 gate：round 1 同时新增
+  `ARRAY_PARTITION variable=filter complete dim=1` 与 outer-context `UNROLL factor=2`，因此
+  按规则放行。真实 C-sim PASS，真实 synth latency `39069→23439`（1.667× cycles
+  speedup）、interval `39070→23436`、clock 3.17 ns 不变；LUT `909→1241`
+  （1.365×）、FF `649→873`（1.345×）、DSP `6→9`（1.5×）。
+- Candidate 主报告仍显示 `orig` memory resource lower bound，II `5→6`；filter complete
+  partition 消除了 filter interface，但没有处理证据指定的 `orig`。当前 optimization-time
+  V5 Q_HW 为 `0.7416`，低于 baseline `0.7500`，所以接受门拒绝；round 2 semantic no-op
+  后收敛。最终 correctness/Q_HW 无回退，额外 5 credits 使 final V5 score 仅 73.07。
+- 因采样未走到 intent rejection 分支，本次真实跑分只能证明 gate 对“非 standalone”
+  candidate 无误拦截，不能宣称它节省了真实工具；保留单测，但下一次命中前不计收益。
+
+### 结论与下一步：独立评分一致性审计
+
+- 连续 Iteration 6/7 平均 score 改善远低于 1 且 correctness 无新增，继续扩 prompt 的
+  边际价值低。Iteration 7 产生了一个新的真实 Pareto trade-off 证据：有效时间 1.667×
+  改善、worst relative resource 1.5×，绝对占用仍远低于 U55C capacity，却被 V5
+  Q_HW 排在 unchanged baseline 之后（0.7416 < 0.7500）。
+- 这可能是 current formula 对 ratio utility 分别非线性压缩后再做几何平均造成的
+  trade-off 边界偏置，也可能是有意的资源优先策略；证据尚不足以直接改公式。
+- 下一轮严格作为**评分公式独立审计**：不再修改 Agent/gate。先记录失败案例与期望排序，
+  用同一批真实 official/generated synth 产物计算 V5 分量，检查 reciprocal symmetry、
+  Pareto/边界/异常值，并提出候选公式；只有多案例和边界测试证明与任务目标更一致时才
+  修改 scoring。若修改，建立新 schema/version 分界，双重评分且不计为 Agent 提升。
+
+## 2026-07-16 — Scoring Audit 1（修改前证据与预期行为）
+
+### 审计边界
+
+- 本轮是独立评分审计，不修改 Agent prompt、workflow、tool、task 或 harness；评分变化
+  本身不计作 Agent 性能提升。
+- 当前权威版本：`scoring/__init__.py __version__=5.0.0`、schema 5，文件
+  `scoring/scoring_v3.py`。V5 核心为
+  `q_hw = sqrt(ratio_quality(speedup) * ratio_quality(1/worst_growth))`，其中
+  `ratio_quality(r)=1-1/(1+r)^2`。
+- 审计只读复用已经由真实 API + Vitis 生成的原始 `csynth.xml`。这是新 goal 明确要求的
+  same-artifact 双重评分，不是新的 Agent evaluation，不回放结果冒充 fresh run。
+
+### 失败案例、公式问题与期望行为
+
+- 真实 Iteration 7 Stencil candidate：speedup 1.666837×、worst growth 1.5×（DSP
+  6→9），`speedup/growth=1.111225`，V5 Q_HW 0.741628，低于 unchanged baseline
+  0.750000。绝对最大器件利用率只有 0.099734%。
+- Reciprocal symmetry 审计发现，V5 对等比例交换并不中性：speedup 与 growth 同为
+  1.25/1.5/2/4/10× 时，Q_HW 分别是
+  0.744845/0.733212/0.702728/0.587878/0.414873，而不是 baseline 0.75。
+- 更严重的是隐含硬上限：worst growth=2× 时，即使 speedup→∞，
+  `sqrt(1 * ratio_quality(0.5))=0.74536 < 0.75`；任何翻倍某一资源的 candidate 都
+  永远不可能胜过 starter。growth 1.5× 则至少需要 1.873685× speedup，而不是等权
+  ratio 目标下自然的 1.5×。这与 V5 文档宣称的有限 ratio 无 hard cap 不一致，并形成
+  容易驱动 Agent 投机/过度保守的边界。
+- 预期评价行为：正确性仍为硬门；固定资源时更快严格更高，固定性能时更小严格更高；
+  equal-log-weight 的 speedup==worst_growth 应与 baseline 中性；speedup/growth>1 应
+  高于 baseline，<1 应低于；明显资源爆炸与性能回退仍必须低分；任何有限 growth 都不
+  应制造“无穷性能也无法改善”的隐式 ceiling。
+
+### 只读真实产物审计命令与结果
+
+- 命令：
+  `docker run --rm --cpus 1 --memory 1g -v /home/chen1/projects/fpt26_new:/workspace:ro -v /tmp:/host-tmp:ro -e PYTHONPATH=/workspace/fpt26-agent-v3 -w /workspace/fpt26-agent-v3 fpt26-agent-v3:latest python3 /host-tmp/scoring_tradeoff_audit.py`。
+- 候选式仅用于审计，尚未写入 scorer：
+  `hardware_ratio = sqrt(performance_ratio * (1/worst_growth))`，
+  `q_hw = ratio_quality(hardware_ratio)`；这等价于在 log-ratio 域对性能与最差资源做
+  等权几何折中，然后只映射一次。
+
+| 真实 candidate | speedup | worst growth | speed/growth | V5 Q_HW | 候选 Q_HW | 期望排序 |
+|---|---:|---:|---:|---:|---:|---|
+| Generated Stencil near-Pareto | 1.6668 | 1.5000 | 1.1112 | 0.7416 | 0.7630 | 高于 baseline |
+| Generated Stencil slow/smaller | 0.4533 | 1.0000 | 0.4533 | 0.6284 | 0.6428 | 低于 baseline |
+| Generated Stencil outer bloat | 3.2275 | 5.2827 | 0.6110 | 0.5259 | 0.6850 | 低于 baseline |
+| Official Dot factor=2 | 1.9942 | 2.0000 | 0.9971 | 0.7026 | 0.7496 | 略低于 baseline |
+| Official Dot factor=4 | 1.9942 | 2.8590 | 0.6975 | 0.6331 | 0.7031 | 低于 factor=2/baseline |
+| Generated Merge FF bloat | 1.4386 | 4.7822 | 0.3008 | 0.5127 | 0.5829 | 低于 baseline |
+
+- 候选式保持这 6 个真实样例的功能无关 Pareto/方向排序，并只翻转问题样例：Stencil
+  near-Pareto 从低于 baseline 变为高于；Dot factor=2 因 speedup 略小于 2× growth，
+  仍略低；其它回退/膨胀点仍低。
+- 证据充分，下一步把候选式作为新的权威 schema 6 独立实现，增加 reciprocal、ceiling、
+  真实样例、极端值、有效性硬门测试，并更新版本/文档/report 字段。此前实验性 token
+  V6 run 与本次无关；新 V6 明确命名为 log-symmetric hardware-ratio formula，token
+  仍只观测不计分。

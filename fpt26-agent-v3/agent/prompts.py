@@ -78,6 +78,33 @@ Make only the minimal structural fix. Preserve arithmetic, interfaces, and unrel
 OPTIMIZE_SYSTEM = _SYS
 SYSTEM = OPTIMIZE_SYSTEM
 
+_PROMPT_CODE_SUFFIXES = {
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".inc",
+    ".ipp",
+    ".tpp",
+}
+
+
+def _prompt_header_context(headers: dict[str, str]) -> tuple[str, list[str]]:
+    """Expose interface code to the LLM without serializing data attachments."""
+    code_headers: list[str] = []
+    omitted: list[str] = []
+    for name, code in headers.items():
+        suffix = "." + name.rsplit(".", 1)[-1].lower() if "." in name else ""
+        if suffix in _PROMPT_CODE_SUFFIXES:
+            code_headers.append(f"// {name}\n{code}")
+        else:
+            omitted.append(name)
+    return "\n".join(code_headers), omitted
+
 
 def build_prompt(
     task: Task,
@@ -93,7 +120,7 @@ def build_prompt(
     resource_delta: str = "",
     rejection_feedback: dict[str, Any] | None = None,
 ) -> str:
-    header_text = "\n".join(f"// {name}\n{code}" for name, code in task.headers.items())
+    header_text, omitted_attachments = _prompt_header_context(task.headers)
 
     payload: dict[str, Any] = {
         "task_id": task.id,
@@ -108,6 +135,9 @@ def build_prompt(
         },
         "current_best_latency": f"{best_latency} cycles" if best_latency is not None else "unknown",
     }
+
+    if omitted_attachments:
+        payload["omitted_non_code_attachments"] = sorted(omitted_attachments)
 
     if bottleneck_hint:
         payload["bottleneck_diagnosis"] = bottleneck_hint
@@ -135,10 +165,14 @@ def build_prompt(
         "- If all PASSED: apply ONE pragma class to improve scoring_v3 Q_HW, guided by bottleneck diagnosis. "
         "Balance effective latency (clock period × cycles) against the worst resource growth; "
         "do not optimize cycle count alone. Prefer a small loop-local partial unroll first; add array partition only for measured port pressure.\n"
-        "- If previous_candidate_feedback is present: the prior candidate was measured and rejected. "
-        "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; "
-        "never increase a factor when measured resource growth outweighed speedup. If the feedback allows convergence "
-        "and there is no report-supported resource-neutral alternative, return editable_kernel unchanged.\n"
+        "- If previous_candidate_feedback.status starts with REJECTED_BY_CSIM: use its exact compiler/runtime evidence "
+        "and failed_candidate_diff. Apply required_next_action before considering any new architecture; never blindly "
+        "repeat the failed source.\n"
+        "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
+        "- For other previous_candidate_feedback: the prior candidate was measured and rejected by scoring. "
+        "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; never "
+        "increase a factor when measured resource growth outweighed speedup. If there is no report-supported "
+        "resource-neutral alternative, return editable_kernel unchanged.\n"
         "Return the FULL kernel source code. Keep the top function signature UNCHANGED."
     )
     return json.dumps(payload, indent=2, ensure_ascii=False)

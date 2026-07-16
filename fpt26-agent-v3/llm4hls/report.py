@@ -90,18 +90,31 @@ def parse_csynth_xml(xml_fp: Path) -> SynthReport:
         u, a = used[k], avail[k]
         util[k] = round(100.0 * u / a, 3) if (u is not None and a) else 0.0
 
+    # Vitis 2025 may emit loop summaries only under
+    # ModuleInformation/Module/PerformanceEstimates.  Collect both layouts and
+    # collapse identical summaries from replicated module instances.
+    loop_summaries = [loop_summary] if loop_summary is not None else []
+    loop_summaries.extend(
+        summary
+        for module in root.findall("./ModuleInformation/Module")
+        if (summary := module.find("./PerformanceEstimates/SummaryOfLoopLatency"))
+        is not None
+    )
     loop_metrics = []
-    if loop_summary is not None:
-        for loop in list(loop_summary):
-            loop_metrics.append(
-                {
-                    "name": loop.tag,
-                    "trip_count": _to_int(loop.findtext("TripCount")),
-                    "latency": _to_int(loop.findtext("Latency")),
-                    "pipeline_ii": _to_int(loop.findtext("PipelineII")),
-                    "pipeline_depth": _to_int(loop.findtext("PipelineDepth")),
-                }
-            )
+    seen_loop_metrics: set[tuple] = set()
+    for summary in loop_summaries:
+        for loop in list(summary):
+            metric = {
+                "name": loop.findtext("Name") or loop.tag,
+                "trip_count": _to_int(loop.findtext("TripCount")),
+                "latency": _to_int(loop.findtext("Latency")),
+                "pipeline_ii": _to_int(loop.findtext("PipelineII")),
+                "pipeline_depth": _to_int(loop.findtext("PipelineDepth")),
+            }
+            fingerprint = tuple(metric.values())
+            if fingerprint not in seen_loop_metrics:
+                seen_loop_metrics.add(fingerprint)
+                loop_metrics.append(metric)
 
     return SynthReport(
         clock_period_ns=clock,

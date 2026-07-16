@@ -172,10 +172,11 @@ def step_cosim(state: RunState) -> RunState:
 
 
 def step_score(state: RunState) -> RunState:
-    """Run V5 scoring: hidden-csim → synth(cand) → synth(baseline) → cosim(if needed).
+    """Run current scoring: hidden-csim → synth(cand) → synth(base) → optional cosim.
 
     Uses the unified scoring_v3.grade() formula:
-        score = 100 * validity * sqrt(q_perf * q_area) * efficiency
+        hardware_ratio = sqrt(performance_ratio * area_ratio)
+        score = 100 * validity * ratio_quality(hardware_ratio) * efficiency
     """
     if not state.config.score:
         return state
@@ -317,7 +318,7 @@ def step_score(state: RunState) -> RunState:
         resource_capacity_pass=True,
     )
 
-    # Budget & grading wall time. API tokens are observability-only in V5.
+    # Budget & grading wall time. API tokens are observability-only in V6.
     budget = state.server.budget
     cost_spent = budget.spent if hasattr(budget, 'spent') else 0
     wall_time_s = time.monotonic() - _start

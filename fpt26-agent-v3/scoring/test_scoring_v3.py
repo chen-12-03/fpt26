@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V5 Unified Scoring Engine — test suite.
+"""V6 log-symmetric unified scoring engine — test suite.
 
 All tasks use the single ``valid_then_optimize`` objective.
 Task type labels do not affect scoring.
@@ -28,11 +28,13 @@ from scoring_v3 import (
     Scorecard,
     TaskScoringConfig,
     ValidityGates,
+    aggregate_performance_ratio,
     area_quality,
     check_capacity,
     combine_score,
     efficiency_factor,
     grade,
+    hardware_ratio,
     hardware_qor,
     performance_quality,
     ratio_quality,
@@ -98,6 +100,44 @@ class TestRatioQuality:
         """1x baseline gets 0.75 — decent but not perfect."""
         assert ratio_quality(1.0) > 0.70
         assert ratio_quality(1.0) < 0.80
+
+
+class TestLogSymmetricHardwareRatio:
+    """Schema 6 composes raw ratios before applying bounded utility."""
+
+    @pytest.mark.parametrize("growth", [1.0, 1.25, 1.5, 2.0, 4.0, 10.0])
+    def test_equal_speedup_and_growth_are_baseline_neutral(self, growth):
+        assert hardware_ratio(growth, 1.0 / growth) == pytest.approx(1.0)
+        assert hardware_qor(growth, 1.0 / growth) == pytest.approx(0.75)
+
+    def test_speed_per_growth_controls_baseline_order(self):
+        assert hardware_qor(1.6, 1.0 / 1.5) > 0.75
+        assert hardware_qor(1.5, 1.0 / 1.5) == pytest.approx(0.75)
+        assert hardware_qor(1.4, 1.0 / 1.5) < 0.75
+
+    def test_no_finite_resource_growth_creates_performance_ceiling(self):
+        for growth in (2.0, 4.0, 10.0, 1000.0):
+            assert hardware_qor(growth * 2.0, 1.0 / growth) > 0.75
+
+    def test_optional_ii_uses_weighted_geometric_ratio(self):
+        combined = aggregate_performance_ratio(
+            latency_ratio=4.0, ii_ratio=1.0, ii_applicable=True
+        )
+        assert combined == pytest.approx(4.0 ** 0.85)
+
+    def test_real_stencil_near_pareto_beats_baseline(self):
+        q_hw = hardware_qor(1.666837, 1.0 / 1.5)
+        old_v5_q_hw = math.sqrt(
+            ratio_quality(1.666837) * ratio_quality(1.0 / 1.5)
+        )
+        assert old_v5_q_hw < 0.75
+        assert q_hw == pytest.approx(0.763006, abs=1e-6)
+        assert q_hw > 0.75
+
+    def test_real_dot_minimum_unroll_stays_below_baseline(self):
+        assert hardware_qor(1.994175, 1.0 / 2.0) == pytest.approx(
+            0.749635, abs=1e-6
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -333,9 +373,13 @@ class TestScoreRange:
 
     def test_scorecard_audit_fields(self):
         card = grade(TaskScoringConfig(task_id="audit"), _anchor(), _ev(), gates=_gates())
+        assert card.schema_version == 6
         assert card.latency_ratio > 0
+        assert card.performance_ratio > 0
         assert card.q_perf > 0
         assert card.q_area > 0
+        assert card.area_ratio > 0
+        assert card.hardware_ratio > 0
         assert card.bottleneck_resource in RESOURCES
         assert len(card.growth_by_resource) == len(RESOURCES)
         assert card.efficiency > 0
@@ -377,7 +421,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 406, "FF": 231, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
 
-        print(f"\nprojection_bugfix V5:")
+        print(f"\nprojection_bugfix V6:")
         print(card.render())
 
         assert card.valid
@@ -398,7 +442,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 13189, "FF": 54194, "DSP": 64, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=15, gates=_gates())
 
-        print(f"\ndotProduct_optimize V5:")
+        print(f"\ndotProduct_optimize V6:")
         print(card.render())
 
         assert card.valid
@@ -408,10 +452,10 @@ class TestRealTasks:
         assert card.bottleneck_resource == "FF"
         assert card.area_growth > 500
         assert card.q_area < 0.01
-        assert 2 < card.score < 6
+        assert 25 < card.score < 40
 
     def test_dotProduct_four_candidates(self):
-        """B (efficient) > C (balanced) > A (real) > D (extreme)."""
+        """Ranking follows measured speedup/worst-growth, not labels."""
         cfg = TaskScoringConfig(task_id="dp", task_type="optimize", difficulty=3, budget_limit=40)
         a = Anchor(source="starter", valid=True, latency=1027, ii=1025, clock_ns=5.0,
                     resources={"LUT": 156, "FF": 93, "DSP": 2, "BRAM_18K": 0, "URAM": 0},
@@ -427,14 +471,19 @@ class TestRealTasks:
         cc = c(68, 68, 2000, 800, 8)            # C: balanced
         cd = c(10, 10, 50000, 200000, 200)      # D: extreme
 
-        print(f"\ndotProduct V5 — 4 candidates:")
+        print(f"\ndotProduct V6 — 4 candidates:")
         for name, card in [("A", ca), ("B", cb), ("C", cc), ("D", cd)]:
             print(f"  {name}: score={card.score:.2f}  q_perf={card.q_perf:.4f}  "
                   f"q_area={card.q_area:.4f}  bottleneck={card.bottleneck_resource}")
 
-        assert cb.score > cc.score > ca.score > cd.score, (
+        # D is far larger than A, but its 102.7x speedup / 2150x worst growth
+        # is slightly better than A's 27x / 583x. Both remain far below the
+        # 1x baseline; the log-symmetric formula preserves that ratio order.
+        assert cb.score > cc.score > cd.score > ca.score, (
             f"B={cb.score:.2f} C={cc.score:.2f} A={ca.score:.2f} D={cd.score:.2f}"
         )
+        assert ca.q_hw < 0.5
+        assert cd.q_hw < 0.5
 
     def test_residual_stream_deadlock(self):
         """Structural: cosim pass, modest speedup, area improved."""
@@ -449,7 +498,7 @@ class TestRealTasks:
         gates = ValidityGates(hidden_csim_pass=True, synth_pass=True, hidden_cosim_pass=True)
         card = grade(cfg, a, ev, cost_spent=66, gates=gates)
 
-        print(f"\nresidual_stream_deadlock V5:")
+        print(f"\nresidual_stream_deadlock V6:")
         print(card.render())
 
         assert card.valid
@@ -469,7 +518,7 @@ class TestRealTasks:
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("  FPT26 V5 Unified Scoring Engine — Test Suite")
+    print("  FPT26 V6 Log-Symmetric Scoring Engine — Test Suite")
     print("=" * 70)
 
     trt = TestRealTasks()

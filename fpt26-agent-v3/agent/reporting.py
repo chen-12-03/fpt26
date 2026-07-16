@@ -203,10 +203,15 @@ def write_run_report(state: RunState) -> Path:
                 "cosim_pass": sc.cosim_pass,
                 "anchor_source": sc.anchor_source,
                 "latency_ratio": sc.latency_ratio,
+                "performance_ratio": getattr(sc, "performance_ratio", sc.latency_ratio),
                 "area_growth": sc.area_growth,
+                "area_ratio": getattr(
+                    sc, "area_ratio", 1.0 / max(sc.area_growth, 1e-9)
+                ),
                 "bottleneck_resource": sc.bottleneck_resource,
                 "q_perf": sc.q_perf,
                 "q_area": sc.q_area,
+                "hardware_ratio": getattr(sc, "hardware_ratio", None),
                 "q_hw": sc.q_hw,
                 "efficiency": sc.efficiency,
                 "growth_by_resource": sc.growth_by_resource,
@@ -284,6 +289,8 @@ def print_evaluation(state: RunState) -> None:
             if sc.valid:
                 print(f"  Latency ratio:{sc.latency_ratio:.2f}x  (anchor={sc.anchor_source})")
                 print(f"  Q_perf:       {sc.q_perf:.4f}  Q_area: {sc.q_area:.4f}  Q_HW: {sc.q_hw:.4f}")
+                if getattr(sc, "hardware_ratio", None) is not None:
+                    print(f"  HW ratio:     {sc.hardware_ratio:.4f}x  (log-symmetric perf/area)")
                 print(
                     f"  Efficiency:   {sc.efficiency:.4f}  "
                     f"(cost {sc.cost_spent}/{sc.cost_limit}, "
