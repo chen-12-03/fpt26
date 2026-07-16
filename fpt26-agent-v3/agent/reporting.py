@@ -247,6 +247,9 @@ def write_run_report(state: RunState) -> Path:
                     "reference_latency": rsc.anchor_latency,
                     "reference_ii": rsc.anchor_ii,
                     "reference_clock_ns": rsc.anchor_clock_ns,
+                    "reference_resources": rsc.baseline_resources,
+                    "candidate_resources": rsc.candidate_resources,
+                    "growth_by_resource": rsc.growth_by_resource,
                 }
         else:
             report["scoring"] = {
@@ -338,6 +341,19 @@ def print_evaluation(state: RunState) -> None:
                           f"II={rsc.anchor_ii}  clock={rsc.anchor_clock_ns}ns")
                     print(f"  Ref latency ratio: {rsc.latency_ratio:.2f}x  "
                           f"area growth: {rsc.area_growth:.2f}x")
+                    if rsc.growth_by_resource:
+                        gr = ", ".join(
+                            f"{k}={v:.1f}x" for k, v in rsc.growth_by_resource.items()
+                            if v != 1.0
+                        )
+                        if gr:
+                            print(f"  Ref resources: {gr}  (cand vs ref)")
+                    # Show reference anchor resource counts
+                    if rsc.baseline_resources:
+                        rr = ", ".join(
+                            f"{k}={v}" for k, v in rsc.baseline_resources.items()
+                        )
+                        print(f"  Ref baseline:  {rr}")
         else:
             score_pct = round(sc.score / max(getattr(sc, 'difficulty', 1), 1) * 100, 1)
             print(f"  Score:        {sc.score:.3f} / {getattr(sc, 'difficulty', '?')} ({score_pct}%)")
