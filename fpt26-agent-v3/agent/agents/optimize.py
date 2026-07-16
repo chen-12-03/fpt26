@@ -621,9 +621,28 @@ class OptimizeAgent:
         best_synth_result = _latest_successful_synth(state.results)
         rejected_fingerprints: set[str] = set()
         semantic_duplicate_skips = 0
+        synth_candidates: list[dict] = []  # structured candidate records for reporting
         semantic_current_best_skips = 0
         ii_resource_intent_rejections = 0
         minimum_factor_convergence = False
+
+        # Record baseline synth for reporting
+        if best_synth_result is not None and best_synth_result.report is not None:
+            br = best_synth_result.report
+            bl_ii = br.loop_metrics[0].get("pipeline_ii") if br.loop_metrics else None
+            synth_candidates.append({
+                "round": 0,
+                "is_baseline": True,
+                "latency": br.latency_worst,
+                "top_interval": br.interval_max,
+                "loop_ii": bl_ii,
+                "clock_ns": br.clock_period_ns,
+                "resources": dict(br.resources),
+                "loop_metrics": [dict(lm) for lm in (br.loop_metrics or [])],
+                "q_hw_before": None,
+                "q_hw_after": None,
+                "decision": "BASELINE",
+            })
 
         for rnd in range(1, self.max_rounds + 1):
             # ── 1. Synthesize current best ──────────────────────────────
@@ -812,6 +831,32 @@ class OptimizeAgent:
                     )
                     break
 
+            # Record structured candidate info for reporting
+            if sr is not None and sr.report is not None:
+                report = sr.report
+                loop_ii = None
+                if report.loop_metrics:
+                    loop_ii = report.loop_metrics[0].get("pipeline_ii")
+                entry = {
+                    "round": rnd,
+                    "latency": report.latency_worst,
+                    "top_interval": report.interval_max,
+                    "loop_ii": loop_ii,
+                    "clock_ns": report.clock_period_ns,
+                    "resources": dict(report.resources),
+                    "loop_metrics": [
+                        dict(lm) for lm in (report.loop_metrics or [])
+                    ],
+                    "q_hw_before": best_q_hw,
+                    "q_hw_after": cand_card.q_hw if cand_card else None,
+                    "decision": (
+                        "ACCEPTED" if (cand_card is not None and best_q_hw is not None
+                                       and cand_card.q_hw > best_q_hw)
+                        else "REJECTED"
+                    ),
+                }
+                synth_candidates.append(entry)
+
             if stag >= 2:
                 state.log("opt: converged (2 stagnant rounds)")
                 break
@@ -822,6 +867,7 @@ class OptimizeAgent:
         state.metadata["best_q_hw"] = best_q_hw
         state.metadata["semantic_duplicate_skips"] = semantic_duplicate_skips
         state.metadata["semantic_current_best_skips"] = semantic_current_best_skips
+        state.metadata["synth_candidates"] = synth_candidates
         state.metadata["ii_resource_intent_rejections"] = (
             ii_resource_intent_rejections
         )

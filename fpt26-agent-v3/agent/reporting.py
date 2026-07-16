@@ -278,6 +278,30 @@ def write_run_report(state: RunState) -> Path:
 # ---------------------------------------------------------------------------
 
 
+def _res_str(r: dict) -> str:
+    """Compact resource string."""
+    parts = []
+    for k in ("LUT", "FF", "DSP", "BRAM_18K", "URAM"):
+        v = r.get(k, 0)
+        if v or k in ("LUT", "FF"):
+            parts.append(f"{k}={v}")
+    return " ".join(parts)
+
+
+def _loop_str(loop_metrics: list) -> str:
+    """Format loop metrics as string."""
+    if not loop_metrics:
+        return ""
+    loops = []
+    for lm in loop_metrics:
+        trip = lm.get("trip_count", "?")
+        lat = lm.get("latency", "?")
+        ii = lm.get("pipeline_ii", "?")
+        name = lm.get("name", "?")
+        loops.append(f"{name}(trip={trip},lat={lat},II={ii})")
+    return ", ".join(loops)
+
+
 def print_evaluation(state: RunState) -> None:
     """Print a structured optimization report to stdout."""
     derived = _compute_derived(state)
@@ -289,39 +313,45 @@ def print_evaluation(state: RunState) -> None:
     rsc = state.ref_scorecard
     is_v3 = sc is not None and hasattr(sc, 'schema_version') and getattr(sc, 'schema_version', 0) >= 5
 
-    # ── Extract synthesis candidates from results ──────────────────────
-    baseline_synth = None
-    candidate_synths: list = []  # list of (index, ToolResult)
-    for r in state.results:
-        if r.kind == "synth" and r.report is not None:
-            if baseline_synth is None:
-                baseline_synth = r
-            else:
-                candidate_synths.append(r)
+    # ── Extract synth transcript indices ────────────────────────────────
+    synth_tx_indices: list[int] = []
+    for entry in state.server.transcript:
+        if entry.kind == "synth":
+            synth_tx_indices.append(entry.n)
 
-    # ── Candidate table rows ───────────────────────────────────────────
-    def _res_str(r: dict) -> str:
-        """Compact resource string."""
-        parts = []
-        for k in ("LUT", "FF", "DSP", "BRAM_18K", "URAM"):
-            v = r.get(k, 0)
-            if v or k in ("LUT", "FF"):
-                parts.append(f"{k}={v}")
-        return " ".join(parts)
+    # ── Structured candidate data (from OptimizeAgent) ──────────────────
+    structured = state.metadata.get("synth_candidates", [])
 
-    def _loop_str(report) -> str:
-        if not report or not report.loop_metrics:
-            return ""
-        loops = []
-        for lm in report.loop_metrics:
-            trip = lm.get("trip_count", "?")
-            lat = lm.get("latency", "?")
-            ii = lm.get("pipeline_ii", "?")
-            name = lm.get("name", "?")
-            loops.append(f"{name}(trip={trip},lat={lat},II={ii})")
-        return ", ".join(loops)
+    # ── Build candidate list from structured data (preferred) or results ─
+    baseline_info: dict | None = None
+    candidates_info: list[dict] = []
+    for c in structured:
+        if c.get("is_baseline") or c.get("round") == 0:
+            baseline_info = c
+        else:
+            candidates_info.append(c)
 
-    # ── Header ─────────────────────────────────────────────────────────
+    # Extract baseline from results if no structured data
+    if baseline_info is None:
+        for r in state.results:
+            if r.kind == "synth" and r.report is not None:
+                br = r.report
+                bl_ii = br.loop_metrics[0].get("pipeline_ii") if br.loop_metrics else None
+                baseline_info = {
+                    "round": 0, "is_baseline": True,
+                    "latency": br.latency_worst, "top_interval": br.interval_max,
+                    "loop_ii": bl_ii, "clock_ns": br.clock_period_ns,
+                    "resources": dict(br.resources),
+                    "loop_metrics": [dict(lm) for lm in (br.loop_metrics or [])],
+                    "decision": "BASELINE",
+                }
+                break
+
+    # ── Helper: total area ──────────────────────────────────────────────
+    def _total_area(res: dict) -> int:
+        return res.get("LUT", 0) + res.get("FF", 0) + res.get("DSP", 0)
+
+    # ── Header ──────────────────────────────────────────────────────────
     task_id = state.task.id
     print(f"\n{'='*80}")
     print(f"  OPTIMIZATION REPORT — {task_id}")
@@ -352,74 +382,76 @@ def print_evaluation(state: RunState) -> None:
         if rsc is not None:
             ref_score_str = f"{rsc.score:.2f}/{rsc.score_max:.0f} ({round(rsc.score / max(rsc.score_max, 1) * 100, 1)}%)"
             print(f"  Reference anchor: {ref_score_str} | Q_HW={rsc.q_hw:.4f} | Valid={rsc.valid}")
-        eff_str = f"Efficiency={sc.efficiency:.4f}" if sc.valid else f"Efficiency={sc.efficiency:.4f}"
-        print(f"  {eff_str} | HW ratio={getattr(sc, 'hardware_ratio', 1.0):.4f}x | "
-              f"Speed/area={derived.get('resource_efficiency', 0):.3f} | Score/credit={derived.get('budget_efficiency', 0):.3f}")
+        print(f"  Efficiency={sc.efficiency:.4f} | HW ratio={getattr(sc, 'hardware_ratio', 1.0):.4f}x")
     else:
         print(f"  Score: {sc.score:.3f} / {getattr(sc, 'difficulty', '?')}")
 
-    # ── BASELINE / BEST / REFERENCE table ───────────────────────────────
-    print(f"\n  {'BASELINE / BEST / REFERENCE':─^76}")
+    # ── STARTER / FINAL BEST / REFERENCE table ──────────────────────────
+    base_res = baseline_info.get("resources", {}) if baseline_info else {}
+    base_lat = baseline_info.get("latency") if baseline_info else None
+    base_ti = baseline_info.get("top_interval") if baseline_info else None
+    base_lii = baseline_info.get("loop_ii") if baseline_info else None
+    base_clk = baseline_info.get("clock_ns") if baseline_info else None
 
-    # Gather data
-    base_lat = baseline_synth.report.latency_worst if baseline_synth and baseline_synth.report else None
-    base_ii = baseline_synth.report.interval_max if baseline_synth and baseline_synth.report else None
-    base_clk = baseline_synth.report.clock_period_ns if baseline_synth and baseline_synth.report else None
-    base_res = baseline_synth.report.resources if baseline_synth and baseline_synth.report else {}
-
+    # Best = what was ultimately submitted
     if is_v3 and sc.valid:
         best_res = sc.candidate_resources
         best_lat = sc.anchor_latency
-        best_ii = sc.anchor_ii
+        best_ti = sc.anchor_ii
         best_clk = base_clk
-        # If agent accepted a candidate (latency changed), use last accepted synth metrics
+        # Check if agent accepted a candidate (scorecard reflects improvement)
         improved = (sc.latency_ratio is not None and sc.latency_ratio != 1.0) or \
                    (sc.area_growth is not None and sc.area_growth != 1.0)
-        if improved and candidate_synths:
-            last = candidate_synths[-1]
-            if last.report and last.ok:
-                best_lat = last.report.latency_worst or best_lat
-                best_ii = last.report.interval_max or best_ii
-                best_clk = last.report.clock_period_ns or best_clk
-                best_res = last.report.resources or best_res
-        elif improved and sc.anchor_latency and sc.latency_ratio:
-            best_lat = int(sc.anchor_latency * sc.latency_ratio)
+        if improved:
+            for c in reversed(candidates_info):
+                if c.get("decision") == "ACCEPTED":
+                    best_lat = c.get("latency", best_lat)
+                    best_ti = c.get("top_interval", best_ti)
+                    best_clk = c.get("clock_ns", best_clk)
+                    best_res = c.get("resources", best_res)
+                    break
     else:
         best_res = base_res
         best_lat = base_lat
-        best_ii = base_ii
+        best_ti = base_ti
         best_clk = base_clk
 
     ref_lat = rsc.anchor_latency if rsc else None
-    ref_ii = rsc.anchor_ii if rsc else None
+    ref_ti = rsc.anchor_ii if rsc else None
     ref_clk = rsc.anchor_clock_ns if rsc else None
     ref_res = rsc.baseline_resources if rsc else {}
 
-    # Compute ratios
-    def _ratio(cand, base_val):
-        if base_val and cand and base_val > 0:
-            return f"{cand/base_val:.2f}x"
-        return "N/A"
+    # Is final best same as baseline?
+    final_is_baseline = (best_lat == base_lat and best_res == base_res)
 
-    base_ratio_str = "latency=1.00x, area=1.00x"
-    best_lat_ratio = _ratio(best_lat, base_lat)
-    best_area_ratio = _ratio(
-        (best_res.get("LUT", 0) + best_res.get("FF", 0) + best_res.get("DSP", 0)),
-        (base_res.get("LUT", 0) + base_res.get("FF", 0) + base_res.get("DSP", 0))
-    ) if base_res else "1.00x"
-    ref_lat_ratio = _ratio((best_lat or base_lat), ref_lat)
-    ref_area_ratio = _ratio(
-        (best_res.get("LUT", 0) + best_res.get("FF", 0) + best_res.get("DSP", 0)),
-        (ref_res.get("LUT", 0) + ref_res.get("FF", 0) + ref_res.get("DSP", 0))
-    ) if ref_res else "N/A"
-
-    print(f"  {'':<22} {'Starter':<20} {'Best':<20} {'Reference':<20}")
+    print(f"\n  {'STARTER / FINAL BEST / REFERENCE':─^76}")
+    print(f"  {'':<22} {'Starter':<20} {'Final Best':<20} {'Reference':<20}")
     print(f"  {'─'*22} {'─'*20} {'─'*20} {'─'*20}")
-    print(f"  {'Latency / II':<22} {str(base_lat)+' / '+str(base_ii):<20} {str(best_lat)+' / '+str(best_ii):<20} {str(ref_lat)+' / '+str(ref_ii):<20}")
+    print(f"  {'Latency / Top Interval':<22} {str(base_lat)+' / '+str(base_ti):<20} {str(best_lat)+' / '+str(best_ti):<20} {str(ref_lat)+' / '+str(ref_ti):<20}")
+    print(f"  {'Loop II':<22} {str(base_lii) if base_lii is not None else 'N/A':<20} {'N/A':<20} {'N/A':<20}")
     print(f"  {'Clock':<22} {str(base_clk)+' ns' if base_clk else 'N/A':<20} {str(best_clk)+' ns' if best_clk else 'N/A':<20} {str(ref_clk)+' ns' if ref_clk else 'N/A':<20}")
     print(f"  {'Power':<22} {'N/A':<20} {'N/A':<20} {'N/A':<20}")
     print(f"  {'Area':<22} {_res_str(base_res):<20} {_res_str(best_res):<20} {_res_str(ref_res):<20}")
-    print(f"  {'Ratios':<22} {'latency=1.00x area=1.00x':<20} {f'latency={best_lat_ratio} area={best_area_ratio}':<20} {f'latency={ref_lat_ratio} area={ref_area_ratio}':<20}")
+
+    # Ratios: split into two rows
+    def _lat_ratio(cand_lat, anchor_lat):
+        if anchor_lat and cand_lat and anchor_lat > 0:
+            return f"{cand_lat / anchor_lat:.2f}x"
+        return "N/A"
+
+    def _area_ratio(cand_r, anchor_r):
+        if anchor_r and cand_r:
+            return f"{_total_area(cand_r) / max(_total_area(anchor_r), 1):.2f}x"
+        return "N/A"
+
+    best_vs_starter_lat = _lat_ratio(best_lat, base_lat)
+    best_vs_starter_area = _area_ratio(best_res, base_res)
+    best_vs_ref_lat = _lat_ratio((best_lat or base_lat), ref_lat)
+    best_vs_ref_area = _area_ratio((best_res if best_res else base_res), ref_res)
+
+    print(f"  {'Best vs Starter':<22} {f'latency={best_vs_starter_lat}  area={best_vs_starter_area}':<20} {'':<20}")
+    ref_ratio_str = f"latency={best_vs_ref_lat}  area={best_vs_ref_area}" if ref_lat else "N/A"
+    print(f"  {'Best vs Reference':<22} {'':<20} {ref_ratio_str:<20}")
 
     # Bottleneck
     if is_v3 and sc.valid:
@@ -430,65 +462,80 @@ def print_evaluation(state: RunState) -> None:
         print(f"\n  Area bottleneck: {bottleneck} | Growth: {growth_str}")
 
     # ── SYNTHESIS CANDIDATES ────────────────────────────────────────────
-    all_synths = ([baseline_synth] if baseline_synth else []) + candidate_synths
-    if all_synths:
+    all_entries = []
+    # Baseline
+    if baseline_info:
+        bl_idx = synth_tx_indices[0] if synth_tx_indices else 2
+        label = f"Final Best (#{bl_idx})" if final_is_baseline else f"Baseline (#{bl_idx})"
+        all_entries.append((label, baseline_info, baseline_info.get("decision", "BASELINE")))
+    # Candidates
+    for i, c in enumerate(candidates_info):
+        idx = synth_tx_indices[i + 1] if i + 1 < len(synth_tx_indices) else (i + 3)
+        qhwb = c.get("q_hw_before")
+        qhwa = c.get("q_hw_after")
+        decision = c.get("decision", "REJECTED")
+        delta_str = f"Q_HW {qhwb:.4f}→{qhwa:.4f}" if (qhwb is not None and qhwa is not None) else ""
+        label = f"{'Accepted' if decision == 'ACCEPTED' else 'Rejected'} (#{idx})"
+        all_entries.append((label, c, decision))
+
+    if all_entries:
         print(f"\n  {'SYNTHESIS CANDIDATES':─^76}")
-        print(f"  {'Candidate':<15} {'Latency / II':<18} {'Clock':<10} {'Area':<35} {'Runtime':<10}")
-        print(f"  {'─'*15} {'─'*18} {'─'*10} {'─'*35} {'─'*10}")
-        for i, r in enumerate(all_synths):
-            report = r.report
-            if report is None:
-                continue
-            lat = report.latency_worst or "?"
-            ii = report.interval_max or "?"
-            clk = f"{report.clock_period_ns} ns" if report.clock_period_ns else "?"
-            res = _res_str(report.resources)
-            elapsed = f"{r.elapsed_s:.1f}s"
-            label = f"Baseline (#{i+2})" if i == 0 else f"Candidate (#{i+2})"
-            if i == 0 and len(candidate_synths) == 0:
-                label = "Baseline (only)"
-            print(f"  {label:<15} {str(lat)+' / '+str(ii)+' cyc':<18} {clk:<10} {res:<35} {elapsed:<10}")
+        print(f"  {'Candidate':<22} {'Lat / Top Int':<17} {'Loop II':<10} {'Clock':<10} {'Area':<40} {'Decision':<12}")
+        print(f"  {'─'*22} {'─'*17} {'─'*10} {'─'*10} {'─'*40} {'─'*12}")
+        for label, c, decision in all_entries:
+            lat = c.get("latency", "?")
+            ti = c.get("top_interval", "?")
+            lii = c.get("loop_ii", "?")
+            clk = f"{c['clock_ns']} ns" if c.get("clock_ns") else "?"
+            res = _res_str(c.get("resources", {}))
+            lat_ti = f"{lat} / {ti} cyc"
+            lii_str = str(lii) if lii is not None else "?"
+            dec_str = decision if decision != "BASELINE" else "—"
+            print(f"  {label:<22} {lat_ti:<17} {lii_str:<10} {clk:<10} {res:<40} {dec_str:<12}")
 
-        # Loop details for baseline and last candidate
-        if baseline_synth and baseline_synth.report:
-            bl = _loop_str(baseline_synth.report)
-            if bl:
-                print(f"\n  Baseline loops: {bl}")
-        if candidate_synths:
-            last_cand = candidate_synths[-1]
-            if last_cand.report:
-                cl = _loop_str(last_cand.report)
-                if cl:
-                    print(f"  Best loops:     {cl}")
+    # ── Loop details ────────────────────────────────────────────────────
+    if baseline_info:
+        bl_loops = _loop_str(baseline_info.get("loop_metrics", []))
+        if bl_loops:
+            lbl = f"{'Final Best' if final_is_baseline else 'Baseline'} loops"
+            print(f"\n  {lbl}: {bl_loops}")
 
-            # Trade-off analysis between baseline and best candidate
-            if len(candidate_synths) >= 1 and baseline_synth and baseline_synth.report:
-                cand = candidate_synths[-1]
-                if cand.report and cand.report.latency_worst and baseline_synth.report.latency_worst:
-                    lat_diff = cand.report.latency_worst - baseline_synth.report.latency_worst
-                    lat_pct = abs(lat_diff) / max(baseline_synth.report.latency_worst, 1) * 100
-                    direction = "reduces" if lat_diff < 0 else "increases"
-                    # Resource diff
-                    blut_diff = cand.report.resources.get("LUT", 0) - baseline_synth.report.resources.get("LUT", 0)
-                    ff_diff = cand.report.resources.get("FF", 0) - baseline_synth.report.resources.get("FF", 0)
-                    res_parts = []
-                    if blut_diff > 0:
-                        res_parts.append(f"LUT +{blut_diff}")
-                    elif blut_diff < 0:
-                        res_parts.append(f"LUT {blut_diff}")
-                    if ff_diff > 0:
-                        res_parts.append(f"FF +{ff_diff}")
-                    elif ff_diff < 0:
-                        res_parts.append(f"FF {ff_diff}")
-                    if res_parts:
-                        print(f"\n  Trade-off: Candidate {direction} latency by {abs(lat_diff)} cycles ({lat_pct:.1f}%), "
-                              f"{', '.join(res_parts)}")
+    for i, c in enumerate(candidates_info):
+        if c.get("decision") == "REJECTED":
+            cl = _loop_str(c.get("loop_metrics", []))
+            if cl:
+                print(f"  Rejected candidate R{c.get('round','?')} loops: {cl}")
+                break  # only show last rejected
+
+    # ── Trade-off ───────────────────────────────────────────────────────
+    if baseline_info and candidates_info:
+        last_cand = candidates_info[-1]
+        base_l = baseline_info.get("latency")
+        cand_l = last_cand.get("latency")
+        if base_l and cand_l and base_l > 0:
+            lat_diff = cand_l - base_l
+            lat_pct = abs(lat_diff) / base_l * 100
+            direction = "↓" if lat_diff < 0 else "↑"
+            parts = [f"Latency {direction}{abs(lat_diff)} ({lat_pct:.1f}%)"]
+
+            base_r = baseline_info.get("resources", {})
+            cand_r = last_cand.get("resources", {})
+            for res_key in ("LUT", "FF", "DSP"):
+                bv = base_r.get(res_key, 0)
+                cv = cand_r.get(res_key, 0)
+                if bv != cv and bv > 0:
+                    diff = cv - bv
+                    pct = abs(diff) / bv * 100
+                    arrow = "↓" if diff < 0 else "↑"
+                    parts.append(f"{res_key} {arrow}{abs(diff)} ({pct:.1f}%)")
+            if parts:
+                print(f"\n  Trade-off: {' | '.join(parts)}")
 
     # ── MODEL / TOKEN / COST ────────────────────────────────────────────
     llm = _llm_summary(state)
+    print(f"\n  {'MODEL / TOKEN / COST':─^76}")
     if llm is not None:
         usage = llm.get("token_usage")
-        print(f"\n  {'MODEL / TOKEN / COST':─^76}")
         model_str = llm.get("model") or llm.get("client") or "?"
         if isinstance(usage, dict):
             requests = usage.get("request_count", 0)
@@ -499,8 +546,6 @@ def print_evaluation(state: RunState) -> None:
             print(f"  Model={model_str} | API={reported}/{requests} | Prompt={prompt_t} | Completion={compl_t} | Total={total_t} tokens")
         else:
             print(f"  Model={model_str} | API tokens: unavailable")
-
-    # Tool times
     csim_times = ", ".join(f"{r.elapsed_s:.1f}s" for r in state.results if r.kind == "csim")
     synth_times = ", ".join(f"{r.elapsed_s:.1f}s" for r in state.results if r.kind == "synth")
     print(f"  Credits={spent}/{total_budget} | CSIM time={csim_times} | Synthesis time={synth_times}")
