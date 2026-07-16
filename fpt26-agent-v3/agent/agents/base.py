@@ -82,6 +82,7 @@ class RunState:
 
     # -- scoring ---------------------------------------------------------
     scorecard: Any = None
+    ref_scorecard: Any = None  # anchored against reference solution
 
     # -- status ----------------------------------------------------------
     status: str = "running"

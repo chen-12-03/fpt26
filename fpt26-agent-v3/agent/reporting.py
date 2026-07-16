@@ -230,6 +230,24 @@ def write_run_report(state: RunState) -> Path:
                 "wall_time_s": sc.wall_time_s,
                 "time_limit_s": sc.time_limit_s,
             }
+            # Reference-anchored scorecard (vs golden answer)
+            if state.ref_scorecard is not None:
+                rsc = state.ref_scorecard
+                report["scoring_vs_reference"] = {
+                    "anchor": "reference",
+                    "score": rsc.score,
+                    "score_pct": round(rsc.score / max(rsc.score_max, 1) * 100, 1),
+                    "valid": rsc.valid,
+                    "q_hw": rsc.q_hw,
+                    "q_perf": rsc.q_perf,
+                    "q_area": rsc.q_area,
+                    "latency_ratio": rsc.latency_ratio,
+                    "area_growth": rsc.area_growth,
+                    "bottleneck_resource": rsc.bottleneck_resource,
+                    "reference_latency": rsc.anchor_latency,
+                    "reference_ii": rsc.anchor_ii,
+                    "reference_clock_ns": rsc.anchor_clock_ns,
+                }
         else:
             report["scoring"] = {
                 "score": sc.score,
@@ -309,6 +327,17 @@ def print_evaluation(state: RunState) -> None:
                     gr = ", ".join(f"{k}={v:.1f}x" for k, v in sc.growth_by_resource.items() if v != 1.0)
                     if gr:
                         print(f"  Resources:    {gr}")
+            # Reference-anchored score
+            if state.ref_scorecard is not None:
+                rsc = state.ref_scorecard
+                print(f"  ── vs reference ──")
+                print(f"  Score (ref):  {rsc.score:.2f} / {rsc.score_max:.0f}  "
+                      f"(valid={rsc.valid}, q_hw={rsc.q_hw:.4f})")
+                if rsc.valid:
+                    print(f"  Ref anchor:   latency={rsc.anchor_latency} cyc  "
+                          f"II={rsc.anchor_ii}  clock={rsc.anchor_clock_ns}ns")
+                    print(f"  Ref latency ratio: {rsc.latency_ratio:.2f}x  "
+                          f"area growth: {rsc.area_growth:.2f}x")
         else:
             score_pct = round(sc.score / max(getattr(sc, 'difficulty', 1), 1) * 100, 1)
             print(f"  Score:        {sc.score:.3f} / {getattr(sc, 'difficulty', '?')} ({score_pct}%)")

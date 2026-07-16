@@ -348,6 +348,30 @@ def step_score(state: RunState) -> RunState:
         f"(valid={scorecard.valid}, q_hw={scorecard.q_hw:.4f}, "
         f"eff={scorecard.efficiency:.4f})"
     )
+
+    # ── 7. Reference-anchored scorecard (vs golden answer) ─────────────────
+    if ref_lat is not None:
+        ref_anchor = Anchor(
+            source="reference", valid=True,
+            latency=ref_lat, ii=ref_ii, clock_ns=ref_clock,
+            resources=ref_resources,
+            available=ref_available,
+        )
+        ref_scorecard = v3_grade(
+            task_cfg=cfg,
+            anchor=ref_anchor,
+            evidence=evidence,
+            cost_spent=cost_spent,
+            wall_time_s=wall_time_s,
+            gates=gates,
+        )
+        state.ref_scorecard = ref_scorecard
+        state.log(
+            f"V{ref_scorecard.schema_version} score vs reference: "
+            f"{ref_scorecard.score:.2f}/100  "
+            f"(valid={ref_scorecard.valid}, q_hw={ref_scorecard.q_hw:.4f})"
+        )
+
     return state
 
 

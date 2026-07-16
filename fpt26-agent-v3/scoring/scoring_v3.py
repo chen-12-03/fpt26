@@ -404,6 +404,9 @@ class Scorecard:
     anchor_source: str = "none"
     anchor_hash: str = ""
     anchor_valid: bool = False
+    anchor_latency: int | None = None
+    anchor_ii: int | None = None
+    anchor_clock_ns: float | None = None
 
     # Validity
     valid: bool = False
@@ -636,6 +639,9 @@ def grade(
         anchor_source=anchor.source,
         anchor_hash=anchor.hash,
         anchor_valid=anchor.valid,
+        anchor_latency=anchor.latency,
+        anchor_ii=anchor.ii,
+        anchor_clock_ns=anchor.clock_ns,
         valid=True,
         gate_reason="passed",
         csim_pass=gates.hidden_csim_pass,
