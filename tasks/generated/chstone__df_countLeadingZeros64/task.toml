@@ -1,0 +1,13 @@
+task_id = "chstone__df_countLeadingZeros64"
+task_type = "optimize"
+difficulty = 2
+top = "countLeadingZeros64"
+kernel_file = "countLeadingZeros64.cpp"
+header_files = ["countLeadingZeros64.h"]
+public_tb = "countLeadingZeros64_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

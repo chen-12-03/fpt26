@@ -1,0 +1,13 @@
+task_id = "chstone__df_add128"
+task_type = "optimize"
+difficulty = 2
+top = "add128"
+kernel_file = "add128.cpp"
+header_files = ["add128.h"]
+public_tb = "add128_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

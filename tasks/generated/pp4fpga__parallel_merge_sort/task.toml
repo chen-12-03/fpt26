@@ -1,0 +1,13 @@
+task_id = "pp4fpga__parallel_merge_sort"
+task_type = "optimize"
+difficulty = 3
+top = "merge_sort_parallel"
+kernel_file = "merge_sort_parallel.cpp"
+header_files = ["merge_sort_parallel.h"]
+public_tb = "merge_sort_parallel_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct parallel pattern kernel. Optimize data access patterns and pipelining."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

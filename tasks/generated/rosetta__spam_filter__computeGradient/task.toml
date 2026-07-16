@@ -1,0 +1,13 @@
+task_id = "rosetta__spam_filter__computeGradient"
+task_type = "optimize"
+difficulty = 5
+top = "computeGradient"
+kernel_file = "computeGradient.cpp"
+header_files = ["computeGradient.h"]
+public_tb = "computeGradient_tb.cpp"
+budget = 80
+initial_condition = "Functionally correct real-world application kernel. Needs HLS optimization for FPGA deployment."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

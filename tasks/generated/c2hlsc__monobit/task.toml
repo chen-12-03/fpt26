@@ -1,0 +1,13 @@
+task_id = "c2hlsc__monobit"
+task_type = "optimize"
+difficulty = 3
+top = "Frequency"
+kernel_file = "monobit.cpp"
+header_files = ["monobit.h"]
+public_tb = "monobit_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct cryptographic kernel. Optimize for FPGA with appropriate pipelining and unrolling."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

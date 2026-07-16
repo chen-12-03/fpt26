@@ -1,0 +1,13 @@
+task_id = "machsuite__nw_nw"
+task_type = "optimize"
+difficulty = 4
+top = "needwun"
+kernel_file = "nw_nw.cpp"
+header_files = ["nw_nw.h"]
+public_tb = "nw_nw_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

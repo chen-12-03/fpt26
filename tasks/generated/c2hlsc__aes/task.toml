@@ -1,0 +1,13 @@
+task_id = "c2hlsc__aes"
+task_type = "optimize"
+difficulty = 3
+top = "Cipher"
+kernel_file = "aes.cpp"
+header_files = ["aes.h"]
+public_tb = "aes_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct cryptographic kernel. Optimize for FPGA with appropriate pipelining and unrolling."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

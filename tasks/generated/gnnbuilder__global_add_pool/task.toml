@@ -1,0 +1,13 @@
+task_id = "gnnbuilder__global_add_pool"
+task_type = "generate"
+difficulty = 3
+top = "global_add_pool"
+kernel_file = "global_add_pool.cpp"
+header_files = ["global_add_pool.h"]
+public_tb = "global_add_pool_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct kernel. Optimize for HLS synthesis on FPGA."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

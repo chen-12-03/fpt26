@@ -1,0 +1,13 @@
+task_id = "machsuite__bfs_queue"
+task_type = "optimize"
+difficulty = 4
+top = "bfs"
+kernel_file = "bfs_queue.cpp"
+header_files = ["bfs_queue.h"]
+public_tb = "bfs_queue_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

@@ -1,0 +1,13 @@
+task_id = "rosetta__optical_flow__outer_product"
+task_type = "optimize"
+difficulty = 5
+top = "outer_product"
+kernel_file = "outer_product.cpp"
+header_files = ["outer_product.h"]
+public_tb = "outer_product_tb.cpp"
+budget = 80
+initial_condition = "Functionally correct real-world application kernel. Needs HLS optimization for FPGA deployment."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

@@ -1,0 +1,13 @@
+task_id = "flowgnn__fgnn_linear"
+task_type = "generate"
+difficulty = 3
+top = "linear"
+kernel_file = "linear.cpp"
+header_files = ["linear.h"]
+public_tb = "linear_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct kernel. Optimize for HLS synthesis on FPGA."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

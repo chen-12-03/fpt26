@@ -1,0 +1,13 @@
+task_id = "machsuite__spmv_crs"
+task_type = "optimize"
+difficulty = 4
+top = "spmv"
+kernel_file = "spmv_crs.cpp"
+header_files = ["spmv_crs.h"]
+public_tb = "spmv_crs_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

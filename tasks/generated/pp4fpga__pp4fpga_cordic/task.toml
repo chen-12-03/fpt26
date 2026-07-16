@@ -1,0 +1,13 @@
+task_id = "pp4fpga__pp4fpga_cordic"
+task_type = "optimize"
+difficulty = 3
+top = "cordic"
+kernel_file = "cordic.cpp"
+header_files = ["cordic.h"]
+public_tb = "cordic_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct parallel pattern kernel. Optimize data access patterns and pipelining."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

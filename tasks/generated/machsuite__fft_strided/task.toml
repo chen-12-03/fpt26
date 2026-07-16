@@ -1,0 +1,13 @@
+task_id = "machsuite__fft_strided"
+task_type = "optimize"
+difficulty = 4
+top = "fft"
+kernel_file = "fft_strided.cpp"
+header_files = ["fft_strided.h"]
+public_tb = "fft_strided_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

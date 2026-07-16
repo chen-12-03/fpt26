@@ -1,0 +1,13 @@
+task_id = "c2hlsc__runs"
+task_type = "optimize"
+difficulty = 3
+top = "Runs"
+kernel_file = "runs.cpp"
+header_files = ["runs.h"]
+public_tb = "runs_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct cryptographic kernel. Optimize for FPGA with appropriate pipelining and unrolling."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

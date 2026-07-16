@@ -1,0 +1,13 @@
+task_id = "c2hlsc__shift_rows"
+task_type = "optimize"
+difficulty = 3
+top = "ShiftRows"
+kernel_file = "shift_rows.cpp"
+header_files = ["shift_rows.h"]
+public_tb = "shift_rows_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct cryptographic kernel. Optimize for FPGA with appropriate pipelining and unrolling."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

@@ -1,0 +1,13 @@
+task_id = "chstone__df_float64_le"
+task_type = "optimize"
+difficulty = 2
+top = "float64_le"
+kernel_file = "float64_le.cpp"
+header_files = ["float64_le.h"]
+public_tb = "float64_le_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

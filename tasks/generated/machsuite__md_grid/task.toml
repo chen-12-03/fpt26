@@ -1,0 +1,13 @@
+task_id = "machsuite__md_grid"
+task_type = "optimize"
+difficulty = 4
+top = "md"
+kernel_file = "md_grid.cpp"
+header_files = ["md_grid.h"]
+public_tb = "md_grid_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

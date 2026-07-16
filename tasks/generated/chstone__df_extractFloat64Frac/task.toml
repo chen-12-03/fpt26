@@ -1,0 +1,13 @@
+task_id = "chstone__df_extractFloat64Frac"
+task_type = "optimize"
+difficulty = 2
+top = "extractFloat64Frac"
+kernel_file = "extractFloat64Frac.cpp"
+header_files = ["extractFloat64Frac.h"]
+public_tb = "extractFloat64Frac_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

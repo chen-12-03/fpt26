@@ -1,0 +1,13 @@
+task_id = "machsuite__viterbi_viterbi"
+task_type = "optimize"
+difficulty = 4
+top = "viterbi"
+kernel_file = "viterbi_viterbi.cpp"
+header_files = ["viterbi_viterbi.h"]
+public_tb = "viterbi_viterbi_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

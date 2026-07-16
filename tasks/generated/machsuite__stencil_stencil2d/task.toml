@@ -1,0 +1,13 @@
+task_id = "machsuite__stencil_stencil2d"
+task_type = "optimize"
+difficulty = 4
+top = "stencil"
+kernel_file = "stencil_stencil2d.cpp"
+header_files = ["stencil_stencil2d.h"]
+public_tb = "stencil_stencil2d_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

@@ -1,0 +1,13 @@
+task_id = "chstone__df_extractFloat64Sign"
+task_type = "optimize"
+difficulty = 2
+top = "extractFloat64Sign"
+kernel_file = "extractFloat64Sign.cpp"
+header_files = ["extractFloat64Sign.h"]
+public_tb = "extractFloat64Sign_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

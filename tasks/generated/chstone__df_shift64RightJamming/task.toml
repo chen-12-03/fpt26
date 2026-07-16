@@ -1,0 +1,13 @@
+task_id = "chstone__df_shift64RightJamming"
+task_type = "optimize"
+difficulty = 2
+top = "shift64RightJamming"
+kernel_file = "shift64RightJamming.cpp"
+header_files = ["shift64RightJamming.h"]
+public_tb = "shift64RightJamming_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

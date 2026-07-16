@@ -1,0 +1,13 @@
+task_id = "c2hlsc__add_round_key"
+task_type = "optimize"
+difficulty = 3
+top = "AddRoundKey"
+kernel_file = "add_round_key.cpp"
+header_files = ["add_round_key.h"]
+public_tb = "add_round_key_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct cryptographic kernel. Optimize for FPGA with appropriate pipelining and unrolling."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

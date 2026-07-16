@@ -1,0 +1,13 @@
+task_id = "machsuite__gemm_blocked"
+task_type = "optimize"
+difficulty = 4
+top = "bbgemm"
+kernel_file = "gemm_blocked.cpp"
+header_files = ["gemm_blocked.h"]
+public_tb = "gemm_blocked_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

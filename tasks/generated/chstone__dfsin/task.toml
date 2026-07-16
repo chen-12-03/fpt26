@@ -1,0 +1,13 @@
+task_id = "chstone__dfsin"
+task_type = "optimize"
+difficulty = 2
+top = "local_sin"
+kernel_file = "dfsin.cpp"
+header_files = ["dfsin.h"]
+public_tb = "dfsin_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

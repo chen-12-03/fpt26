@@ -1,0 +1,13 @@
+task_id = "polybench__lu"
+task_type = "optimize"
+difficulty = 4
+top = "kernel_lu"
+kernel_file = "lu.cpp"
+header_files = ["lu.h"]
+public_tb = "lu_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct but unoptimized numerical kernel. Add HLS pragmas (PIPELINE, UNROLL, ARRAY_PARTITION) to reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

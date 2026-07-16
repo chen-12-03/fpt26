@@ -1,0 +1,13 @@
+task_id = "machsuite__aes_aes"
+task_type = "optimize"
+difficulty = 4
+top = "aes256_encrypt_ecb"
+kernel_file = "aes_aes.cpp"
+header_files = ["aes_aes.h"]
+public_tb = "aes_aes_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

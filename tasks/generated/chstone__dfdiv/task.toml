@@ -1,0 +1,13 @@
+task_id = "chstone__dfdiv"
+task_type = "optimize"
+difficulty = 2
+top = "float64_div"
+kernel_file = "dfdiv.cpp"
+header_files = ["dfdiv.h"]
+public_tb = "dfdiv_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

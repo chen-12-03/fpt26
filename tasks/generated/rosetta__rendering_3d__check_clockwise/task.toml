@@ -1,0 +1,13 @@
+task_id = "rosetta__rendering_3d__check_clockwise"
+task_type = "optimize"
+difficulty = 5
+top = "check_clockwise"
+kernel_file = "check_clockwise.cpp"
+header_files = ["check_clockwise.h"]
+public_tb = "check_clockwise_tb.cpp"
+budget = 80
+initial_condition = "Functionally correct real-world application kernel. Needs HLS optimization for FPGA deployment."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

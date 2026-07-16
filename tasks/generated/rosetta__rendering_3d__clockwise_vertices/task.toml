@@ -1,0 +1,13 @@
+task_id = "rosetta__rendering_3d__clockwise_vertices"
+task_type = "optimize"
+difficulty = 5
+top = "clockwise_vertices"
+kernel_file = "clockwise_vertices.cpp"
+header_files = ["clockwise_vertices.h"]
+public_tb = "clockwise_vertices_tb.cpp"
+budget = 80
+initial_condition = "Functionally correct real-world application kernel. Needs HLS optimization for FPGA deployment."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

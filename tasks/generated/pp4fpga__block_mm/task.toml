@@ -1,0 +1,13 @@
+task_id = "pp4fpga__block_mm"
+task_type = "optimize"
+difficulty = 3
+top = "blockmatmul"
+kernel_file = "block_mm.cpp"
+header_files = ["block_mm.h"]
+public_tb = "block_mm_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct parallel pattern kernel. Optimize data access patterns and pipelining."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

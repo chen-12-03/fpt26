@@ -1,0 +1,13 @@
+task_id = "polybench__heat_3d"
+task_type = "optimize"
+difficulty = 4
+top = "kernel_heat_3d"
+kernel_file = "heat-3d.cpp"
+header_files = ["heat-3d.h"]
+public_tb = "heat-3d_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct but unoptimized numerical kernel. Add HLS pragmas (PIPELINE, UNROLL, ARRAY_PARTITION) to reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

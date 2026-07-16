@@ -50,6 +50,7 @@ xsim.dir/
 **/hls_prj/
 **/agent_runs/
 **/generated/
+!tasks/generated/
 *.7z
 *.zip
 *.tar.gz

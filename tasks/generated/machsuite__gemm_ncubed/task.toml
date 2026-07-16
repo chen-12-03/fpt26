@@ -1,0 +1,13 @@
+task_id = "machsuite__gemm_ncubed"
+task_type = "optimize"
+difficulty = 4
+top = "gemm"
+kernel_file = "gemm_ncubed.cpp"
+header_files = ["gemm_ncubed.h"]
+public_tb = "gemm_ncubed_tb.cpp"
+budget = 60
+initial_condition = "Functionally correct FPGA kernel. Apply HLS optimization techniques to improve throughput and reduce latency."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

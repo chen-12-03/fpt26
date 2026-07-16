@@ -1,0 +1,13 @@
+task_id = "rosetta__rendering_3d__projection"
+task_type = "optimize"
+difficulty = 5
+top = "projection"
+kernel_file = "projection.cpp"
+header_files = ["projection.h"]
+public_tb = "projection_tb.cpp"
+budget = 80
+initial_condition = "Functionally correct real-world application kernel. Needs HLS optimization for FPGA deployment."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

@@ -1,0 +1,13 @@
+task_id = "gnnbuilder__gather_node_neighbors"
+task_type = "generate"
+difficulty = 3
+top = "gather_node_neighbors"
+kernel_file = "gather_node_neighbors.cpp"
+header_files = ["gather_node_neighbors.h"]
+public_tb = "gather_node_neighbors_tb.cpp"
+budget = 50
+initial_condition = "Functionally correct kernel. Optimize for HLS synthesis on FPGA."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

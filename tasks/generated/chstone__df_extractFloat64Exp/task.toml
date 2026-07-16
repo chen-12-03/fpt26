@@ -1,0 +1,13 @@
+task_id = "chstone__df_extractFloat64Exp"
+task_type = "optimize"
+difficulty = 2
+top = "extractFloat64Exp"
+kernel_file = "extractFloat64Exp.cpp"
+header_files = ["extractFloat64Exp.h"]
+public_tb = "extractFloat64Exp_tb.cpp"
+budget = 40
+initial_condition = "Functionally correct computation kernel. Add HLS pragmas for better synthesis results."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0

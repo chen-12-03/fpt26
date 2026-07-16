@@ -1,0 +1,13 @@
+task_id = "rosetta__digit_recognition__popcount"
+task_type = "optimize"
+difficulty = 5
+top = "popcount"
+kernel_file = "popcount.cpp"
+header_files = ["popcount.h"]
+public_tb = "popcount_tb.cpp"
+budget = 80
+initial_condition = "Functionally correct real-world application kernel. Needs HLS optimization for FPGA deployment."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
