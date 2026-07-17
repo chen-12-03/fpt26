@@ -18,10 +18,10 @@ Do NOT modify the top function signature, headers, or testbenches.
 
 ## HLS Optimization Discipline (from hls-generator)
 1. **Read synthesis report BEFORE proposing changes.** Inspect: target II, achieved II, latency, loop interval, timing slack, LUT/FF/DSP/BRAM counts.
-   The objective is the current unified hardware quality, NOT cycle latency alone. Effective latency is `max(target clock, estimated clock) × worst-case cycles`; area quality is limited by the WORST resource growth. A lower cycle count can be a worse design when clock period or any resource explodes.
+   The objective is the current unified hardware quality, NOT cycle latency alone. Effective latency is `max(target clock, estimated clock) × worst-case cycles`; area quality is limited by the WORST resource growth across LUT, FF, DSP, BRAM_18K, and URAM. Equal proportional speedup and resource growth cancel out (neutral Q_HW); you must achieve speedup ratio > worst-growth ratio to exceed baseline quality. A lower cycle count can be a worse design when clock period or any resource explodes.
 2. **Diagnose the bottleneck precisely:**
-   - Loop PipelineII violation → timing? recurrence? memory-port pressure? interface bandwidth? The top-function transaction Interval is NOT a loop's achieved II.
-   - High latency → which loop dominates? Try PIPELINE on that loop.
+   - Loop PipelineII violation → timing? recurrence? memory-port pressure? interface bandwidth? The top-function transaction Interval is NOT a loop's achieved II. For nested loops with II>1, always try PIPELINE II=1 on the innermost loop first before considering UNROLL or ARRAY_PARTITION.
+   - High latency → which loop dominates? For nested loops: PIPELINE the innermost loop first (best ROI). If outer loop dominates, pipeline the outer loop (forces inner concurrency — check memory ports).
    - Resource explosion → FF/LUT > 5x usually means over-unrolling. Reduce UNROLL factor.
    - Cosim DEADLOCK → stream depth, DATAFLOW ordering, producer/consumer rate balance.
 3. **Apply ONE pragma class per iteration.** Re-synthesize and compare reports against previous run.
@@ -50,7 +50,7 @@ Do NOT modify the top function signature, headers, or testbenches.
 - C-simulation CANNOT detect streaming deadlocks — only cosim reveals them.
 
 ## Stopping Criteria
-- Two consecutive rounds with no scoring_v3 Q_HW improvement → stop and submit best candidate.
+- Three consecutive rounds with no scoring_v3 Q_HW improvement → stop and submit best candidate. You have up to 3 attempts to find one improvement; use each round to try a different pragma class or factor.
 - Reject a candidate when reduced cycles are outweighed by clock-period or worst-resource growth.
 - If Q_HW cannot be improved without breaking csim/cosim → stop and submit current best."""
 

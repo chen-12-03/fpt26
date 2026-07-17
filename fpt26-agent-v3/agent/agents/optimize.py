@@ -347,6 +347,42 @@ def _rejection_feedback(
         for line in candidate.splitlines()
         if "#pragma HLS" in line
     ]
+    bottleneck = card.bottleneck_resource
+    growth = card.growth_by_resource
+
+    # Resource-specific guidance
+    resource_hint = ""
+    if bottleneck == "DSP" and growth.get("DSP", 1.0) > 2.0:
+        resource_hint = (
+            f"DSP grew {growth['DSP']:.1f}x — reduce UNROLL/PIPELINE factor "
+            "or switch to resource-shared implementation."
+        )
+    elif bottleneck == "LUT" and growth.get("LUT", 1.0) > 3.0:
+        resource_hint = (
+            f"LUT grew {growth['LUT']:.1f}x — try smaller UNROLL factor (2 instead of 4+) "
+            "or PIPELINE instead of UNROLL to reduce combinational duplication."
+        )
+    elif bottleneck == "FF" and growth.get("FF", 1.0) > 3.0:
+        resource_hint = (
+            f"FF grew {growth['FF']:.1f}x — reduce UNROLL factor or ARRAY_PARTITION "
+            "factor to lower register count."
+        )
+    elif bottleneck == "BRAM_18K":
+        resource_hint = (
+            "BRAM growth detected — reduce ARRAY_PARTITION factor or partition "
+            "dimension to lower memory banking cost."
+        )
+
+    # Clock degradation check
+    cand_clk = getattr(report, "clock_period_ns", None)
+    clock_hint = ""
+    if cand_clk and cand_clk > 7.0:
+        clock_hint = (
+            f"Candidate clock={cand_clk:.1f}ns is very slow — the speedup in cycles "
+            "may be offset by clock period in effective latency. Try a less aggressive "
+            "pipeline/unroll that keeps clock closer to target."
+        )
+
     feedback = {
         "status": "REJECTED_BY_SCORING_V3_Q_HW",
         "candidate_synth": _report(SimpleToolResult(report)),
@@ -354,9 +390,11 @@ def _rejection_feedback(
         "current_best_q_hw": best_q_hw,
         "candidate_latency_ratio": card.latency_ratio,
         "candidate_area_growth": card.area_growth,
-        "bottleneck_resource": card.bottleneck_resource,
-        "growth_by_resource": card.growth_by_resource,
+        "bottleneck_resource": bottleneck,
+        "growth_by_resource": growth,
         "candidate_pragmas": pragmas,
+        "resource_hint": resource_hint,
+        "clock_hint": clock_hint,
         "reason": (
             "The candidate did not improve Q_HW over the current best. "
             "Do not repeat the same pragma set or architecture."
@@ -369,18 +407,22 @@ def _rejection_feedback(
             "moves in the wrong direction and is forbidden."
         )
         feedback["required_next_action"] = (
-            "Do not increase or repeat the rejected parallelism factor. Remove "
-            "that pragma class and use a materially different, report-supported "
+            f"Do not increase or repeat the rejected parallelism factor. "
+            f"{resource_hint + ' ' if resource_hint else ''}"
+            f"{clock_hint + ' ' if clock_hint else ''}"
+            "Remove that pragma class and use a materially different, report-supported "
             "resource-neutral/resource-reducing idea. If no such evidence-based "
             "idea exists, return the current editable kernel unchanged to stop."
-        )
+        ).strip()
     else:
         feedback["required_next_action"] = (
+            f"{resource_hint + ' ' if resource_hint else ''}"
+            f"{clock_hint + ' ' if clock_hint else ''}"
             "Remove speculative top-level ARRAY_PARTITION and any function-scope "
             "PIPELINE first. Use a materially different single pragma class. If "
             "no report-supported alternative exists, return the current editable "
             "kernel unchanged to stop."
-        )
+        ).strip()
     return feedback
 
 
@@ -503,6 +545,11 @@ def _diagnose(r: Any) -> str:
                 "reported loop violation (recurrence, timing, or memory ports) before "
                 "adding a matching directive."
             )
+        issues.append(
+            "See knowledge pattern 'Pipeline II Violation Resolution' for step-by-step "
+            "II fix guidance (memory port → ARRAY_PARTITION, data dependency → restructure, "
+            "timing → reduce combinational path)."
+        )
     elif loop_iis:
         issues.append(
             f"Measured loop PipelineII={max(loop_iis)} is already optimal. "
@@ -545,10 +592,53 @@ def _diagnose(r: Any) -> str:
             "loop-level evidence before selecting PIPELINE, UNROLL, or banking."
         )
     elif lat > 100:
-        issues.append(
-            f"Moderate latency ({lat} cycles): change only the measured "
-            "bottleneck loop; do not assume it lacks pipelining."
-        )
+        loop_detail = ""
+        if dominant_loop is not None:
+            trip = dominant_loop.get("trip_count") or 0
+            lii = dominant_loop.get("pipeline_ii")
+            lname = dominant_loop.get("name", "?")
+            l_lat = dominant_loop.get("latency") or 0
+            loop_detail = (
+                f" Dominant loop: {lname} (trip={trip}, latency={l_lat}, "
+                f"PipelineII={lii})."
+            )
+            if lii is not None and lii == 1 and trip > 16:
+                issues.append(
+                    f"Moderate latency ({lat} cycles).{loop_detail} "
+                    f"The loop already achieves PipelineII=1 with trip count {trip}; "
+                    "cycles are dominated by the trip count. To reduce latency "
+                    "while keeping resource growth minimal, experiment with a "
+                    "conservative partial UNROLL factor=2 first — this halves "
+                    "the trip count at low cost. If multiple loops exist, target "
+                    "only the highest-latency loop."
+                )
+            elif lii is None and trip > 16:
+                issues.append(
+                    f"Moderate latency ({lat} cycles).{loop_detail} "
+                    f"Loop PipelineII is unavailable (may be unrolled/flattened). "
+                    "Try adding PIPELINE II=1 to the innermost loop first, or "
+                    "if already pipelined, try a small partial UNROLL factor=2 "
+                    "on the dominant loop."
+                )
+            elif lii is not None and lii > 1:
+                issues.append(
+                    f"Moderate latency ({lat} cycles).{loop_detail} "
+                    f"PipelineII={lii}>1 — there is an II violation. Classify the "
+                    "cause (timing, recurrence, or memory ports) before adding "
+                    "directives."
+                )
+            else:
+                issues.append(
+                    f"Moderate latency ({lat} cycles).{loop_detail} "
+                    "The loop has low trip count — latency improvement may be "
+                    "limited. Focus on PipelineII optimization if II>1."
+                )
+        else:
+            issues.append(
+                f"Moderate latency ({lat} cycles): loop metrics unavailable. "
+                "Synthesize first to get loop-level evidence, then target only "
+                "the measured bottleneck loop."
+            )
 
     # 3. Resource imbalance
     lut = rp.resources.get('LUT', 0) or 0
@@ -596,7 +686,8 @@ def _resource_delta(history: list[dict]) -> str:
             lines.append(f"  {key}: {fv} → {lv} ({change:+.0f}% {arrow})")
         elif lv > 0:
             lines.append(f"  {key}: 0 → {lv} (NEW)")
-    lines.append("Goal: >2x speedup with <2x resource growth.")
+    lines.append("V9 scoring: equal proportional speedup & resource growth = neutral (Q_HW=0.75).")
+    lines.append("Goal: speedup > worst resource growth to exceed baseline.")
     return "\n".join(lines)
 
 
@@ -606,6 +697,7 @@ class OptimizeAgent:
     def __init__(self, llm: Any, max_rounds: int = 5) -> None:
         self.llm = llm
         self.max_rounds = max_rounds
+        self.max_stag = 3  # rounds without Q_HW improvement before converging
 
     def run(self, state: RunState) -> RunState:
         task = state.task
@@ -785,11 +877,13 @@ class OptimizeAgent:
                 f"Q_HW {best_q_hw}→{cand_card.q_hw if cand_card else None}"
             )
 
+            old_q_hw = best_q_hw
             if (
                 cand_card is not None
                 and best_q_hw is not None
                 and cand_card.q_hw > best_q_hw
             ):
+                accepted = True
                 # Check resource efficiency
                 if best_lut > 0 and cand_lut > best_lut * 2:
                     state.log(
@@ -808,6 +902,7 @@ class OptimizeAgent:
                 if sr.report:
                     best_resources = sr.report.resources
             else:
+                accepted = False
                 stag += 1
                 if cand_card is not None and sr.report is not None:
                     rejected_fingerprints.add(candidate_fingerprint)
@@ -815,7 +910,7 @@ class OptimizeAgent:
                         cand_card, sr.report, cand, best_q_hw
                     )
                 state.log(
-                    f"opt r{rnd}: no score-aligned improvement (stag {stag}/2)"
+                    f"opt r{rnd}: no score-aligned improvement (stag {stag}/{self.max_stag})"
                 )
                 if (
                     cand_card is not None
@@ -847,18 +942,14 @@ class OptimizeAgent:
                     "loop_metrics": [
                         dict(lm) for lm in (report.loop_metrics or [])
                     ],
-                    "q_hw_before": best_q_hw,
+                    "q_hw_before": old_q_hw,
                     "q_hw_after": cand_card.q_hw if cand_card else None,
-                    "decision": (
-                        "ACCEPTED" if (cand_card is not None and best_q_hw is not None
-                                       and cand_card.q_hw > best_q_hw)
-                        else "REJECTED"
-                    ),
+                    "decision": "ACCEPTED" if accepted else "REJECTED",
                 }
                 synth_candidates.append(entry)
 
-            if stag >= 2:
-                state.log("opt: converged (2 stagnant rounds)")
+            if stag >= self.max_stag:
+                state.log(f"opt: converged ({self.max_stag} stagnant rounds)")
                 break
 
         state.kernel = best

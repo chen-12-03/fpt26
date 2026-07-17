@@ -127,6 +127,24 @@ _PATTERNS = [
         "signal": "No DSP blocks for trig; latency = stages × II.",
         "warning": "CORDIC gain factor must be compensated. Check rotation mode vs vectoring mode.",
     },
+    {
+        "keywords": ["ii violation", "pipeline ii", "ii>1", "ii=", "initiation interval",
+                     "lower bound", "resource limit", "memory port limit", "hls 200-448"],
+        "family": "Pipeline II Violation Resolution",
+        "steps": [
+            "1. CLASSIFY the cause: (a) memory port limit → HLS 200-448 names the array, "
+            "(b) data dependency / recurrence → loop-carried dependence, "
+            "(c) timing → clock too aggressive, (d) resource contention.",
+            "2. FOR MEMORY PORT: ARRAY_PARTITION cyclic on the reported array with factor matching II lower bound.",
+            "3. FOR DATA DEPENDENCY: restructure to break the recurrence, or accept II>1 and use PIPELINE II=N.",
+            "4. FOR TIMING: if estimated clock > target, reduce combinational path (fewer operations per cycle).",
+            "5. Always match ARRAY_PARTITION factor to II lower bound — factor too small = II unchanged, "
+            "factor too large = wasted resources.",
+        ],
+        "signal": "PipelineII decreases from N to 1 or to match partition factor.",
+        "warning": "ARRAY_PARTITION increases BRAM/LUT/FF linearly with factor. Only partition the dimension "
+        "that is accessed in the bottleneck loop; partition factor = II lower bound is the minimum viable.",
+    },
 ]
 
 

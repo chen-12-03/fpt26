@@ -140,17 +140,17 @@ def performance_quality(
     ii_ratio: float = 1.0,
     ii_applicable: bool = False,
 ) -> float:
-    """Performance quality from latency and optional II ratios.
+    """Performance quality — utility of the aggregate performance ratio.
 
-    All tasks use the same formula.  No preserve/improve distinction.
-    Regression (ratio < 1) naturally lowers quality; improvement raises it.
+    Uses the same combine-then-utility approach as the hardware ratio:
+    first aggregate latency and II ratios geometrically, then map once
+    through ratio_quality.  This avoids the double-mapping ceiling bug
+    and keeps q_perf consistent with the performance_ratio used in q_hw.
     """
-    q_lat = ratio_quality(latency_ratio)
-
-    if ii_applicable and ii_ratio > 0:
-        q_ii = ratio_quality(ii_ratio)
-        return W_LATENCY * q_lat + (1.0 - W_LATENCY) * q_ii
-    return q_lat
+    perf_ratio = aggregate_performance_ratio(
+        latency_ratio, ii_ratio, ii_applicable
+    )
+    return ratio_quality(perf_ratio)
 
 
 def aggregate_performance_ratio(
