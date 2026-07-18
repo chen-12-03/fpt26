@@ -56,7 +56,6 @@ class ToolServer:
             top=self.task.top,
             part=self.task.part,
             clock_ns=self.task.clock_ns,
-            data_files=self.task.data_files if self.task.data_files else None,
         )
         self._record(r)
         return r

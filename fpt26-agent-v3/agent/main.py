@@ -16,11 +16,12 @@ import sys
 from pathlib import Path
 
 from llm4hls.budget import Budget
-from llm4hls.harness import ToolServer
 from llm4hls.task import load_task
 
 from agent.agents.base import RunState
 from agent.backends import create_llm
+from agent.runner import ToolServer
+from agent.testbench import normalize_task_testbench_data
 from agent.workflow import build_pipeline
 
 
@@ -68,6 +69,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: task directory not found: {task_dir}", file=sys.stderr)
         return 2
     task = load_task(str(task_dir))
+    normalized_fixtures = normalize_task_testbench_data(task)
+    if normalized_fixtures:
+        print(
+            "Testbench text fixtures normalized to LF: "
+            + ", ".join(normalized_fixtures),
+            flush=True,
+        )
 
     # 2. Budget & ToolServer -------------------------------------------------
     total_budget = args.budget if args.budget is not None else task.budget

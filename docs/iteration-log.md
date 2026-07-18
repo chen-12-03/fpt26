@@ -2438,3 +2438,443 @@ Score 分布（94 tasks）：
 ### 数据文件修复的通用性
 
 `_discover_data_files()` 采用后缀名匹配，支持 `.data/.txt/.hex/.bin/.dat/.in/.out/.golden/.ppm/.bmp/.pgm/.raw/.coe/.mif`。任何 task 只需将数据文件放在 task 根目录或 `hidden/` 子目录下即可自动传递到 csim 运行时，无需修改 task.toml 或 harness 代码。
+
+## 2026-07-18 — Runner/Testbench 问题 1：CRLF fixture 分段解析失败
+
+### Trace、复现与根因
+
+- 完整路径：`agent.main` → `load_task()` → `ToolServer.csim()` →
+  `CSimTool.run()` → `csim_design -setup` → 独立执行 `csim.exe` →
+  `step_score()` hidden C-sim → `scoring.scoring_v3.grade()` →
+  `run_report.json`。
+- 原始 MachSuite `input.data/check.data` 使用 CRLF；例如 AES 分别含
+  50/17 个 `\r`。testbench 的 `find_section_start()` 只识别字节序列
+  `%%\n`，runner 又原样复制 fixture，导致各 section 未被读入。
+- Fresh 真实 Vitis 复现：`machsuite__aes_aes` 公开 C-sim
+  `runtime_fail (rc=255)`，hidden gate=`hidden_csim_fail`，V9 score=`0.00`。
+  失败输出首项为 `220,149,192,...`（全零 key/plaintext 的结果），而真实
+  check 首项为 `142,162,183,...`，证明不是缺文件或历史结果误判。
+
+### 唯一修改组
+
+- 新增 `agent/testbench.py::normalize_task_testbench_data()`；仅对已附加、
+  text-like、且不含 NUL 的 fixture 在内存中执行 CRLF/CR→LF，二进制、
+  已是 LF 的 fixture 和仓库原始 task 文件保持不变。
+- `agent/main.py` 在 task 加载后、runner 创建前调用该准备步骤，并在 console
+  列出被规范化的文件名。本轮未再修改只读 harness、testbench 或 scoring。
+- 新增 `tests/test_testbench_data_normalization.py`，覆盖 CRLF、孤立 CR、
+  LF no-op、binary/NUL no-op、无 fixture，以及真实 Vitis 正常/错误路径。
+
+### 测试与真实验证
+
+- 单元/fixture 回归：
+  `docker run ... python3 -m pytest -q tests/test_testbench_data_normalization.py tests/test_task_data_files.py`
+  → `9 passed`。
+- 真实 Vitis 回归（无 mock/scripted/replay）：
+  `FPT26_REAL_VITIS_TESTS=1 docker run ... python3 -m pytest -q tests/test_testbench_data_normalization.py`
+  → `5 passed in 10.54s`。正常路径为 `pass/rc=0`、log 含 `Success.`、
+  `output.data` 等于规范化 check；错误路径注入错误 check 后仍为
+  `runtime_fail/rc=255`、log 含 `Benchmark results are incorrect`，且
+  `output.data` 保留。
+- 当前 V3 非遗留测试：
+  `docker run ... python3 -m pytest -q tests --ignore=tests/test_scoring_v2.py scoring/test_scoring_v3.py`
+  → `120 passed, 2 skipped`（两个 skip 是默认关闭的真实 Vitis 专项，已由上一命令显式运行）。
+- 全量命令另发现 7 个既存 `tests/test_scoring_v2.py` 断言失败；当前权威
+  V3 测试和公式未修改，也未把这些遗留失败计入本问题回归结果。
+
+### Fresh end-to-end 关键结果
+
+- 命令：`docker run --rm ... python3 -m agent.main --task
+  /workspace/tasks/generated/machsuite__aes_aes --mode baseline --output-root
+  /workspace/runs/runner_issue1_crlf_after_20260718`。
+- 工具：真实 Vitis HLS `2025.2` build `6295257`；公开 C-sim `pass/rc=0`，
+  synth `pass/rc=0`，hidden C-sim pass；公开/隐藏 `output.data` SHA-256 均为
+  `bec0ce72b77009311996e3cf7051e603551ab004e3424061644234cc497d162d`。
+- LLM/API：baseline 路径不调用 LLM，`run_report.llm=null`；真实 API 验证
+  保留到需要 LLM 的 official task 与最终干净环境 E2E，不以 scripted backend 降级。
+- 评分命令：上述 `python3 -m agent.main ...` 的 `step_score()` 实际调用
+  `scoring.scoring_v3.grade()`；版本 `scoring.__version__=9.0.0`，
+  `schema_version=9`。结果 `valid=true`、gate=`passed`、score=`74.25`，
+  来自 fresh `run_report.json`，未手算或回放历史分数。
+- 证据：`runs/runner_issue1_crlf_before_20260718/machsuite__aes_aes/` 与
+  `runs/runner_issue1_crlf_after_20260718/machsuite__aes_aes/` 下的 transcript、
+  Vitis logs、csim/synth reports、output data 和 run_report。
+
+### 下一步
+
+保持本修改组不再扩张，进入问题 2：runner 在 validity gate 失败时仍把
+`status` 写成 `completed`、进程返回 0 的状态/返回码一致性问题。
+
+## 2026-07-18 — Runner/Testbench 问题 2：失败 run 被标成 completed 并返回 0
+
+### Trace、复现与根因
+
+- 工具与 scorer 在问题 1 修复前的 fresh AES 运行中已经给出一致错误证据：
+  public C-sim=`runtime_fail/rc=255`，hidden gate=`hidden_csim_fail`，
+  `valid=false`、score=`0.00`；但 `step_finalize()` 无条件执行
+  `state.status = "completed"`，`main()` 随后仅按该字段返回 0。
+- 根因位于 terminal-state fold，不在 Vitis、testbench 或 V3 scoring。
+  `finalize` 覆盖了上游 `csim_failed` 及 scorecard validity，导致 console、
+  run_report 和进程返回码相互矛盾。
+
+### 唯一修改组
+
+- `agent/workflow.py::step_finalize()` 仍始终保存诊断 kernel，但终态改为：
+  有 scorecard 时以 `scorecard.valid/gate_reason` 为权威；`--no-score` 时依次
+  检查 public C-sim、实际 synthesis gate，以及 structural/full 所要求的
+  co-sim gate。有效为 `completed`，无效为 `failed` 并写入精确
+  `stop_reason`。
+- 保持既有 CLI 返回码接口：`completed→0`、`budget_exceeded→5`、其他失败→4；
+  因此无需增加或改变公开参数/返回码编号。
+- 新增 `tests/test_runner_exit_status.py`，覆盖 valid/invalid scorecard、
+  no-score csim/synth/cosim 失败、kernel 产物，以及真实 official failure。
+
+### 测试与真实验证
+
+- 单元回归：`docker run ... python3 -m pytest -q tests/test_runner_exit_status.py`
+  → `5 passed, 1 skipped`。
+- 真实 Vitis official 回归（无 mock/scripted/replay）：
+  `FPT26_REAL_VITIS_TESTS=1 docker run ... python3 -m pytest -q
+  tests/test_runner_exit_status.py` → `6 passed in 71.01s`；测试直接断言
+  `agent.main()` 返回 4、run_report `status=failed`、
+  `stop_reason=hidden_csim_fail`，且 `final_projection.cpp` 存在。
+- Fresh 固定目录命令：`docker run --rm ... python3 -m agent.main --task
+  /workspace/tasks/official/projection_bugfix --mode baseline --output-root
+  /workspace/runs/runner_issue2_status_after_20260718 --quiet`。
+  容器/CLI 实际 exit code=`4`，public C-sim=`runtime_fail/rc=1`，console 最终
+  `Agent run complete: failed`；run_report 中 `status=failed`、
+  `stop_reason=hidden_csim_fail`、`scoring.valid=false`，失败 kernel 和完整
+  Vitis build/grade 目录均保留。
+- 正常路径沿用同一代码后的真实 AES pass 证据：valid scorecard 保持
+  `status=completed`、CLI exit 0、kernel/output/report 均存在。
+- LLM/API：本问题是 baseline terminal-state 回归，不调用 LLM；真实 API
+  official 与最终 clean E2E 仍待后续阶段执行，不自动降级。
+- 评分命令：上述 fresh `agent.main` 的 `step_score()` 实际调用
+  `scoring.scoring_v3.grade()`；`scoring.__version__=9.0.0`、schema 9，
+  score=`0.00`、gate=`hidden_csim_fail`。评分实现、配置和测试未修改。
+- 证据：`runs/runner_issue2_status_after_20260718/projection_bugfix/` 下的
+  run_report、公开/隐藏 C-sim、candidate/starter/reference synthesis logs 和
+  `final_projection.cpp`。
+
+### 下一步
+
+进入问题 3：失败的 `ToolResult.log/phase/return_code` 只在瞬时 console 中，
+`run_report.json` 不包含逐调用 transcript 或失败摘要，导致固定运行目录无法
+从 report 区分 compile/runtime/timeout 与复核原始错误证据。
+
+## 2026-07-18 — Runner/Testbench 问题 3：run_report 丢失逐调用与 grading 日志
+
+### Trace、复现与根因
+
+- `ToolServer._record()` 只把 `brief()` 放进内存 transcript；完整
+  `ToolResult.log` 仅存在于 `RunState.results`，`write_run_report()` 未序列化
+  任一对象。
+- `step_score()` 的 hidden C-sim/co-sim 与 candidate/starter/reference synth
+  是局部变量，函数返回后连 phase/code/log 的对象引用也丢失。
+- 因此问题 2 的固定 report 虽能看到 `hidden_csim_fail`，却不能从 report
+  判断 compile/runtime/timeout，也看不到独立执行 `csim.exe` 捕获的
+  `Test Case ... Failed!`；Vitis `csim_design -setup` log 只记录编译，不包含
+  该运行时 stderr。
+
+### 唯一修改组
+
+- `agent/workflow.py::step_score()` 将已经产生的 grading `ToolResult` 以
+  stage 名写入 `state.metadata["grading_results"]`；不新增工具调用，不改变
+  gate、budget 或 scoring 输入。
+- `agent/reporting.py` 新增只读序列化：run_report 的 `execution_trace` 包含
+  metered transcript、metered results，以及 hidden/candidate/starter/reference
+  grading results。每项保留 kind、ok、phase、return_code、elapsed、brief、
+  已截断的原 ToolResult log 与 artifact_dir。
+- 新增 `tests/test_run_report_execution_trace.py`，并扩展真实 official failure
+  测试验证 public/hidden runtime stderr 与 synth phase。
+
+### 测试与真实验证
+
+- 报告/状态/cosim 相关回归：`docker run ... python3 -m pytest -q
+  tests/test_run_report_execution_trace.py tests/test_runner_exit_status.py
+  tests/test_workflow_cosim_latency.py` → `9 passed, 1 skipped`。
+- 真实 Vitis error path：`FPT26_REAL_VITIS_TESTS=1 docker run ... python3 -m
+  pytest -q tests/test_runner_exit_status.py` → `6 passed in 67.23s`。一次先行
+  运行因测试预期写成 `Mismatch` 而真实 testbench 文本为
+  `Test Case 1 Failed!` 失败；只校正断言后 fresh 重跑通过，未改实现。
+- Fresh 固定 error 命令：`python3 -m agent.main --task
+  /workspace/tasks/official/projection_bugfix --mode baseline --output-root
+  /workspace/runs/runner_issue3_trace_after_20260718 --quiet` → exit 4。
+  report 中 public 与 hidden C-sim 均为 `runtime_fail/rc=1` 且 log 含两个失败
+  case；candidate/starter/reference synth 均为 `pass/rc=0`，artifact_dir 可定位
+  101 个 Vitis log 文件。run_report 大小 `41271` bytes。
+- Fresh 固定 normal 命令：同一真实 Vitis 环境运行
+  `machsuite__aes_aes --mode baseline --output-root
+  /workspace/runs/runner_issue3_trace_pass_20260718` → exit 0；public/hidden C-sim
+  log 均含 `Success.`、phase=`pass`、rc=0，三个 grading synth 及 metered synth
+  都为 `pass/rc=0`；status=`completed`。
+- LLM/API：两条为 runner/scorer baseline 证据，未调用 LLM；后续 official
+  repair/optimize/structural 和 clean E2E 必须使用 `/tmp/fpt26.env` 中的真实
+  API 配置，不记录 key，不允许 scripted 降级。
+- 评分命令：两条 fresh `agent.main` 均实际调用
+  `scoring.scoring_v3.grade()`；`scoring.__version__=9.0.0`、schema 9。
+  error score=`0.00`/`hidden_csim_fail`；normal score=`74.25`/`passed`。
+  scoring 实现、配置和测试未修改。
+- 证据：`runs/runner_issue3_trace_after_20260718/projection_bugfix/` 与
+  `runs/runner_issue3_trace_pass_20260718/machsuite__aes_aes/`。
+
+### 下一步
+
+进入问题 4：run_report 的 attempts 计算在“只有一次失败且从未通过”时返回 2；
+例如 projection transcript/tool_call_count 都是 1，但 `evaluation.csim_attempts=2`。
+
+## 2026-07-18 — Runner/Testbench 问题 4：失败 attempts 无条件多计一次
+
+### Trace、复现与根因
+
+- 问题 2/3 的 fresh projection report 同时记录 transcript=`1`、
+  tool_call_count=`1`、tool_breakdown.csim=`1`，但
+  `evaluation.csim_attempts=2`。
+- `_attempts_to_pass()` 原本返回“首次成功前的失败数”，调用方无条件 `+1`
+  代表成功调用；当全部失败时该成功调用不存在，空结果也会被误报为 1。
+- 这是派生报告计数错误；真实 transcript、budget、返回码和 scoring 未受影响。
+
+### 唯一修改组
+
+- `agent/reporting.py::_attempts_to_pass()` 改为统计实际调用直到首次成功；若
+  从未成功则返回该 kind 的全部真实调用数，若无调用返回 0。
+- `_compute_derived()` 不再补虚构的 `+1`；csim/cosim 使用同一规则。
+- 新增 `tests/test_reporting_attempt_counts.py`，覆盖 empty、single failure、
+  fail→fail→pass、all failures、忽略其他 kind，以及 report 聚合一致性；
+  `test_run_report_execution_trace.py` 增加原始单失败断言。
+
+### 测试与真实验证
+
+- 专项回归：`docker run ... python3 -m pytest -q
+  tests/test_reporting_attempt_counts.py tests/test_run_report_execution_trace.py
+  tests/test_workflow_capacity_gate.py` → `8 passed`。
+- 当前 V3 非遗留全量：`docker run ... python3 -m pytest -q tests
+  --ignore=tests/test_scoring_v2.py scoring/test_scoring_v3.py` →
+  `131 passed, 3 skipped`。三个 skip 是需显式开启的真实 Vitis 专项；本轮前已
+  分别以 `FPT26_REAL_VITIS_TESTS=1` fresh 运行通过。
+- 全量首次运行发现两项 existing capacity workflow tests 的轻量 state 没有
+  `metadata`；问题 3 审计保存因此在评分完成后抛 AttributeError。仅为审计
+  字典增加缺省初始化后，专项 `8 passed`、全量 `131 passed`，评分断言未改。
+- Fresh 固定 error 命令：`python3 -m agent.main --task
+  /workspace/tasks/official/projection_bugfix --mode baseline --output-root
+  /workspace/runs/runner_issue4_attempts_after_20260718 --quiet` → exit 4。
+  report 现在 transcript=`1`、tool_call_count=`1`、tool_breakdown.csim=`1`、
+  csim_attempts=`1`、cosim_attempts=`0`，并保留 `runtime_fail/rc=1`、
+  `status=failed` 与 `stop_reason=hidden_csim_fail`。
+- Normal path：真实 AES pass report 中 transcript 有 C-sim+synth 两项，
+  tool_call_count=`2`、csim_attempts=`1`、cosim_attempts=`0`、
+  status=`completed`，计数无回退。
+- LLM/API：本轮为纯 runner reporting 回归，不调用 LLM；真实 API official
+  验证是下一阶段硬门，不自动降级。
+- 评分命令：上述 fresh `agent.main` 实际调用
+  `scoring.scoring_v3.grade()`；`scoring.__version__=9.0.0`、schema 9，
+  score=`0.00`、gate=`hidden_csim_fail`。scoring 实现、配置和测试未修改。
+- 证据：`runs/runner_issue4_attempts_after_20260718/projection_bugfix/`；正常
+  对照为 `runs/runner_issue3_trace_pass_20260718/machsuite__aes_aes/`。
+
+### 下一步
+
+四个 runner/testbench 问题的最小修复与专项真实 Vitis 回归已完成。进入冻结
+前验证：先审计并恢复只读 harness 污染，确认 agent-side runner 仍能承载所需
+fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + Vitis HLS，
+执行权威 V3 scoring、正确性无回退与干净容器 E2E，最后冻结公共执行接口。
+
+## 2026-07-18 — 执行层冻结验证：official、干净镜像与真实 Vitis 全套回归
+
+### 只读边界恢复与执行层归属
+
+- Iteration 21 曾把 fixture 发现/复制和 C++17 compatibility 直接写入
+  `fpt26-harness/llm4hls`。冻结前已逐文件恢复 official harness 与 agent 内
+  harness mirror 的既有实现，未修改 task testbench、task 配置或 scoring。
+- 新增 agent-owned `agent/runner.py` adapter；保持 `ToolServer`、CSim、Synth、
+  CoSim 的公开调用接口，并在 agent 执行层完成 public/hidden fixture 隔离、
+  换行规范化后的 fixture 注入和 C++17 source 准备。
+- `tests/test_execution_layer_freeze.py` 与 `execution-freeze.json` 固化关键 runner、
+  testbench preparation、harness scripts、两个 harness Python tree 和 356 个 task
+  testbench assets 的 SHA-256。后续只有稳定复现的执行层缺陷可做最小修改，且
+  必须增加回归并重新执行本节门禁。
+
+### 三个 official task：真实 API + 真实 Vitis HLS
+
+- 通用环境：最多 1 个容器串行运行；真实 Vitis HLS `2025.2` build
+  `6295257`；真实 `OpenAICompatClient`，模型 `qwen3-coder-plus`，temperature
+  `0.7`，max tokens `4096`。API 配置由 `/tmp/fpt26.env` 注入，未记录 key；
+  没有 mock、scripted backend 或历史结果回放。
+- projection 命令：`python3 -m agent.main --task
+  /workspace/tasks/official/projection_bugfix --mode repair --max-repair-rounds 2
+  --output-root /workspace/runs/freeze_official_projection_20260718`。真实 API
+  1 request/2424 tokens；public C-sim fail 后修复为 pass，synth/hidden 均 pass；
+  exit 0、status=`completed`、gate=`passed`、V9 score=`71.01`，reference=`72.62`。
+- dotProduct 命令：`python3 -m agent.main --task
+  /workspace/tasks/official/dotProduct_optimize --mode optimize
+  --max-opt-rounds 2 --output-root
+  /workspace/runs/freeze_official_dotproduct_20260718`。真实 API 1 request/3042
+  tokens；baseline gates pass；候选把 latency 1027→515，但质量指标略降，runner
+  正确拒绝候选并回退；exit 0、status=`completed`、gate=`passed`、V9
+  score=`72.99`，reference=`61.03`。
+- residual 命令：`python3 -m agent.main --task
+  /workspace/tasks/official/residual_stream_deadlock --mode structural
+  --max-structural-rounds 2 --output-root
+  /workspace/runs/freeze_official_residual_20260718`。真实 API 1 request/3027
+  tokens；先真实复现 co-sim fail，再修复为 public/hidden co-sim pass；synth
+  latency=`68`、用于评分的实测 co-sim latency=`97`；exit 0、
+  status=`completed`、gate=`passed`、V9 score=`75.37`，reference=`66.51`。
+- 三个 report 分别位于上述 output root 的 task 子目录，包含本轮 transcript、
+  Vitis log、工具返回码、输出产物和 execution trace。三个 correctness gate 均
+  通过，但分数客观上不是全部 `>=73`：projection 和 dotProduct 分别为
+  `71.01`、`72.99`；未修改评分公式或以四舍五入把后者写成 73。
+
+### 评分命令与版本
+
+- 上述三条 `agent.main` 命令的 `step_score()` 都在 fresh run 内实际调用
+  `scoring.scoring_v3.grade()`，run_report 的 `schema_version=9`；不是手算分数。
+- 版本确认命令：`docker run --rm -v ...:/workspace -e
+  PYTHONPATH=/workspace/fpt26-agent-v3 -w /workspace/fpt26-agent-v3
+  fpt26-agent-v3:freeze-20260718 python3 -c 'import scoring; from scoring import
+  scoring_v3; print(scoring.__version__); print(scoring_v3.SCHEMA_VERSION)'` →
+  `9.0.0`、`9`。本阶段未修改 `scoring/`、其配置或测试。
+
+### 干净镜像 E2E 与最终回归门禁
+
+- 无缓存镜像命令：`docker build --no-cache -t
+  fpt26-agent-v3:freeze-20260718 -f fpt26-agent-v3/Dockerfile .`；最终 image ID
+  `sha256:03c4cb2277f94b988ae6667ac605b3d8a11f3856cf93ddefd66650bb5c6af642`。
+  首个镜像暴露出未安装 pytest 的可重复验证缺口；唯一 packaging 修复是将
+  `pytest` 加入镜像 pip 安装列表，然后无缓存重建。运行时 agent 依赖未改变。
+- 干净镜像真实 E2E：同一镜像内以真实 API/Vitis 运行 projection repair，
+  输出到 `runs/freeze_clean_e2e_20260718/projection_bugfix/`；API 1 request/2424
+  tokens，public/hidden C-sim 与 synth 全 pass，exit 0、status=`completed`、
+  gate=`passed`，V9 score=`71.00`、reference=`72.62`。
+- 最终全套当前 V3 命令：`docker run --rm -v ...:/workspace -v
+  /tools/Xilinx:/tools/Xilinx:ro --env-file /tmp/fpt26.env -e
+  PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness -e
+  PYTHONDONTWRITEBYTECODE=1 -e FPT26_REAL_VITIS_TESTS=1 -w
+  /workspace/fpt26-agent-v3 fpt26-agent-v3:freeze-20260718 bash -c 'source
+  /tools/Xilinx/2025.2/Vitis/settings64.sh && python3 -m pytest -q tests
+  --ignore=tests/test_scoring_v2.py scoring/test_scoring_v3.py'` →
+  **`136 passed in 78.19s`**，0 skipped、0 failed；真实 Vitis 的正常/错误路径、
+  return code、status、log 和 output artifact 均包含在内。
+- 未把既存 `tests/test_scoring_v2.py` 的 7 个遗留 V2 断言失败伪装成通过；它们
+  不属于当前生效 V3 scoring，并且用户约束禁止本阶段修改评分测试。当前权威
+  V3 测试与四个新增问题回归全部通过。
+
+### 冻结结论与下一步
+
+- 四个确认问题均有单一最小修复、原始失败条件回归、真实 Vitis 证据和固定
+  run_report；三个相关 official correctness gate 无回退，干净镜像 E2E 与
+  当前 V3 全套门禁通过，runner/testbench/harness 及公共执行接口据此冻结。
+- 冻结不表示所有 task 分数达到 73，也不表示本轮重新执行了全部 97 个 task；
+  当前可核验的三个 official 分数为 `71.01/72.99/75.37`。后续保持冻结，只对
+  可稳定复现的执行层缺陷实施带新增回归的最小修复并重新跑完整门禁。
+
+## 2026-07-18 — 冻结后废弃文件清理
+
+- 引用审计确认生产 Python、runner、current V3 scoring 和测试收集入口均不引用
+  `llm4hls/scoring_v2.py`；它唯一的 Python consumer 是同样废弃的
+  `tests/test_scoring_v2.py`。两者已删除，当前评分仍只使用
+  `scoring/scoring_v3.py`，评分公式、配置和 V3 测试未修改。
+- 截图所列 `agent/*.bak` 实际为 9 个：optimize、knowledge、prompts 各三个
+  iteration 备份。它们无代码引用且均已进入 Git 历史，已全部删除。
+- 根目录 `fpt26-agent-v2.tar.gz`（79KB、SHA-256
+  `37d025b0e5c99df6d0a08131f91ff8728ca611646697f6d4d4270029675a4798`）不受
+  Git 跟踪，内容对应 Git 历史中的 V2 目录，已移入系统回收站；需要时可从
+  回收站或 Git 历史恢复。
+- 清理了 `fpt26-agent-v3` 下精确定位的 8 个 `__pycache__`；它们只包含可再生
+  `.pyc`，测试使用 `PYTHONDONTWRITEBYTECODE=1`，未重新生成缓存。
+- 删除未接入的 mirror V2 原型后，冻结清单的 agent harness mirror 从 12 个
+  Python 文件更新为 11 个，tree digest 为
+  `085d56c3dfd7ba2efc6880319c31ff8a9ec2bedd61b1a609bf98da9263370d9d`；
+  official harness、runner/testbench 公共接口和 task assets 均未改变。
+- 验证命令不再排除旧 V2 测试：`docker run --rm -v ...:/workspace -v
+  /tools/Xilinx:/tools/Xilinx:ro --env-file /tmp/fpt26.env -e
+  PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness -e
+  PYTHONDONTWRITEBYTECODE=1 -e FPT26_REAL_VITIS_TESTS=1 -w
+  /workspace/fpt26-agent-v3 fpt26-agent-v3:freeze-20260718 bash -c 'source
+  /tools/Xilinx/2025.2/Vitis/settings64.sh && python3 -m pytest -q tests
+  scoring/test_scoring_v3.py'` → **`136 passed in 77.26s`**，0 skipped、0 failed。
+  本清理未触碰 API/LLM 或执行路径；上一冻结轮的真实 API E2E 证据保持有效，
+  本轮又以真实 Vitis 重新执行全部当前测试。
+
+## 2026-07-18 — 97 task fresh testbench/HLS 通用性审计
+
+### 审计口径与命令
+
+- 本轮回答两个不同问题：testbench/fixture 是否能被 runner 正确编译和执行；
+  以及 starter baseline 是否能产生 current V3 可接受的有限 HLS 证据。前者不
+  以 testbench 正确拒绝一个故障 starter 为失败；后者要求 correctness gate、
+  synthesis、有限 latency/anchor 和容量 gate 均有效。
+- 将 `tasks/generated` 的 94 个 task 和 `tasks/official` 的 3 个 task 按排序序号
+  modulo 3 分到三个隔离 Docker 容器，输出分别写入：
+  `runs/tb_all97_after_freeze_20260718_s0/`、`s1/`、`s2/`。容器均使用
+  `fpt26-agent-v3:freeze-20260718`，挂载只读 `/tools/Xilinx`，执行
+  `source /tools/Xilinx/2025.2/Vitis/settings64.sh && python3 -m agent.main
+  --task <task> --mode baseline --output-root <isolated-root> --quiet`。
+- 三容器峰值单容器内存约 0.75–0.99GB，未出现 license、CPU、内存或磁盘阻塞；
+  总产物约 7.7GB。baseline 不调用 LLM，因此 `llm=null`，没有 mock、scripted
+  backend 或历史回放；此前冻结轮的三个 official 真实 API 修复验证不变。
+- 每条 fresh baseline 都实际调用 `scoring.scoring_v3.grade()`；版本确认命令
+  输出 `scoring.__version__=9.0.0`、`SCHEMA_VERSION=9`。scoring 代码、配置和
+  测试未修改。
+
+### 97 task 动态结果
+
+- 生成 `97` 份 run_report，对应 `97` 个唯一 task。所有 testbench 都成功编译
+  并启动，没有 `compile_error`、timeout、fixture missing 或 license failure。
+- public C-sim：`96 pass + 1 runtime_fail`；hidden C-sim：`96 pass + 1
+  runtime_fail`。唯一 runtime failure 都是 intentionally broken
+  `projection_bugfix` starter，被 public/hidden bench 一致正确拒绝；此前 repair
+  模式的真实 API run 已证明修复 kernel 可使两者通过。
+- 17 个使用外部 fixture 的 MachSuite task（34 个 public、34 个 hidden
+  fixture entry）全部 public/hidden C-sim pass；包括原 CRLF 失败的 AES 和此前
+  待确认的 gemm_ncubed、spmv_ellpack、stencil2d/3d。未再出现数据分段、路径或
+  output mismatch 问题。
+- grading candidate/starter/reference synthesis 均为 `97/97 pass`，都有真实
+  csynth report 和资源数据；但 synthesis rc=0 不等于可评分的有限 latency。
+- current V3 最终 gate：`85 passed`、`10 no_valid_anchor`、`1
+  hidden_csim_fail`、`1 hidden_cosim_fail`。85 个 valid baseline 分数范围
+  `73.90–74.38`，全部 `>=73`；其余 12 个为 0 分。
+- 94 个 generated task 中 `84 passed`；以下 10 个 public/hidden C-sim 和
+  synthesis 都 pass，但 starter 与 reference 的顶层 latency/II 均为 `undef`，
+  所以不是可接受的 V3 HLS anchor：`chstone__dfdiv`、`chstone__dfsin`、
+  `machsuite__bfs_bulk`、`bfs_queue`、`fft_strided`、`kmp_kmp`、`md_grid`、
+  `nw_nw`、`sort_merge`、`spmv_crs`。根因是数据依赖/不定界循环，不是
+  testbench 或 fixture。
+- official baseline：dotProduct=`passed/73.90`；projection 的故障 starter 为
+  `hidden_csim_fail/0`；residual 的死锁 starter 有有限 synth latency 135，但
+  hidden RTL co-sim 正确失败，最终 `hidden_cosim_fail/0`。后两项在对应
+  repair/structural 真实 API 验证中已通过，不能把 baseline 的预期失败归因于
+  testbench。
+
+### 硬编码与新 task 兼容性
+
+- 正面：生产 `agent/testbench.py`/`agent/runner.py` 中没有 task ID、算法名、
+  `input.data` 或 `check.data` 特判；97/97 task 可加载。public fixture 与 hidden
+  overlay 分离，LF 文件 no-op，含 NUL 或显式 binary suffix 的数据保持原字节。
+  对遵循现有扁平 task package 约定的新 task，兼容性良好。
+- 扩展名是硬编码白名单：只发现 `.data/.txt/.hex/.bin/.dat/.in/.out/.golden/
+  .ppm/.bmp/.pgm/.raw/.coe/.mif`；`.csv/.json/.npy` 或无扩展名 fixture 会被
+  静默忽略。
+- discovery 只扫描 task root 和一级 `hidden/`，并只保留 basename；
+  `vectors/input.data` 等嵌套 fixture 不会被发现，runner 的 file writer 也不会
+  为文件 key 的父目录建目录。现有 97 task 全是扁平布局，所以本轮未触发。
+- 名称以 `output` 开头的文件一律忽略，适合当前 testbench 的生成物，但如果新
+  task 把 `output_seed.data` 当输入 fixture，会被误排除。
+- 文本/二进制判定仅依赖 suffix 和“是否含 NUL”。ad-hoc probe 证明一个不含
+  NUL、内容为 bytes `[1,13,2]` 的 `raw.data` 会被改成 `[1,10,2]`；因此以
+  `.data` 承载 packed binary 的新 task 存在静默破坏风险。
+- C++17 compatibility 使用全局正则删除 `register`；当前 corpus 只在 AES
+  starter/reference 的真实关键字位置出现，因而有效。但 probe 证明它也会改写
+  string literal 和 comment 中的 `register `，不是 lexer-safe，对新 task 有
+  低概率语义破坏风险。
+- task schema 当前只支持一个 public TB、一个可选 hidden TB、UTF-8 text source
+  和扁平文件名；多 testbench source、非 UTF-8 source、含空格/TCL 特殊字符的
+  文件名没有覆盖。
+
+### 结论
+
+- 对当前 97 task：runner/testbench 可执行性已 fresh 验证，不存在 fixture
+  回归；但不能说 97 个 starter 都得到可接受的端到端 HLS 结果。严格结果是
+  85 valid、10 个有限 latency 缺失、2 个 official 故障 starter 被正确拒绝。
+- 对未来新 task：兼容性是“现有扁平 package contract 内良好”，不是任意 task
+  通用。扩展名白名单、非递归 staging、NUL heuristic 和正则 source rewrite 是
+  明确的格式硬编码/边界，在支持更开放的新 task 之前不能宣称完全通用。

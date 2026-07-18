@@ -25,9 +25,10 @@ from typing import Any, Callable
 from llm4hls.budget import BudgetExceeded
 from llm4hls.harness import ToolServer
 from llm4hls.task import Task
-from llm4hls.tools import CoSimTool, CSimTool, SynthTool, ToolResult
+from llm4hls.tools import ToolResult
 
 from agent.agents.base import AgentConfig, RunState
+from agent.runner import CoSimTool, CSimTool, SynthTool
 
 # ---------------------------------------------------------------------------
 # Pipeline framework
@@ -194,7 +195,7 @@ def step_score(state: RunState) -> RunState:
 
     # ── 1. Hidden functional test (C-simulation) ──────────────────────────
     hidden_files = task.assemble(kernel, task.hidden_tb_code, task.hidden_tb_name)
-    data_files = getattr(task, "data_files", None) or None
+    data_files = getattr(task, "hidden_data_files", None) or None
     csim = CSimTool().run(
         grade_root / "grade_csim", hidden_files,
         top=task.top, part=task.part, clock_ns=task.clock_ns,
@@ -202,6 +203,7 @@ def step_score(state: RunState) -> RunState:
     )
 
     # ── 2. Hidden cosim (if required) ─────────────────────────────────────
+    cosim = None
     cosim_ok: bool | None = None
     cosim_latency: int | None = None
     if task.requires_cosim:
@@ -267,6 +269,7 @@ def step_score(state: RunState) -> RunState:
     starter_valid = base_synth.ok
 
     # Check if reference solution exists for anchor fallback
+    ref_synth = None
     ref_lat = None; ref_ii = None; ref_clock = None
     ref_resources = {}; ref_available = {}
     if task.reference_code:
@@ -385,17 +388,53 @@ def step_score(state: RunState) -> RunState:
             f"(valid={ref_scorecard.valid}, q_hw={ref_scorecard.q_hw:.4f})"
         )
 
+    grading_results = [
+        ("hidden_csim", csim),
+        ("candidate_synth", cand_synth),
+        ("starter_synth", base_synth),
+    ]
+    if cosim is not None:
+        grading_results.append(("hidden_cosim", cosim))
+    if ref_synth is not None:
+        grading_results.append(("reference_synth", ref_synth))
+    if not isinstance(getattr(state, "metadata", None), dict):
+        state.metadata = {}
+    state.metadata["grading_results"] = grading_results
+
     return state
 
 
 def step_finalize(state: RunState) -> RunState:
-    """Persist the final kernel to the output directory."""
+    """Persist the final kernel and derive the truthful terminal status."""
     out = Path(state.config.output_root) / state.task.id
     out.mkdir(parents=True, exist_ok=True)
     kernel_path = out / f"final_{state.task.kernel_name}"
     kernel_path.write_text(state.kernel, encoding="utf-8")
     state.log(f"final kernel → {kernel_path}")
-    state.status = "completed"
+
+    if state.scorecard is not None:
+        if getattr(state.scorecard, "valid", False):
+            state.status = "completed"
+        else:
+            state.status = "failed"
+            state.stop_reason = (
+                getattr(state.scorecard, "gate_reason", "") or "scoring_invalid"
+            )
+    elif not state.csim_ok:
+        state.status = "failed"
+        state.stop_reason = "csim_failed"
+    elif not state.synth_ok:
+        state.status = "failed"
+        state.stop_reason = "synth_failed"
+    elif (
+        state.task.requires_cosim
+        and state.config.mode in ("structural", "full")
+        and not state.cosim_ok
+    ):
+        state.status = "failed"
+        state.stop_reason = "cosim_failed"
+    else:
+        state.status = "completed"
     return state
 
 

@@ -59,18 +59,6 @@ def _write_files(dest: Path, files: dict[str, str]) -> None:
         (dest / name).write_text(content)
 
 
-# C++17 removed the ``register`` storage-class specifier.  Older HLS benchmark
-# code sometimes uses it, which causes a hard compile error.  Stripping it
-# here keeps the harness compatible without modifying the task sources.
-import re as _re
-_REGISTER_KW_RE = _re.compile(r"\bregister\s+")
-
-
-def _sanitize_cpp17(source: str) -> str:
-    """Remove ``register`` keywords so the code compiles as C++17."""
-    return _REGISTER_KW_RE.sub("", source)
-
-
 class CSimTool:
     """Compile the testbench + kernel and run it; return code 0 == correct."""
 
@@ -86,7 +74,7 @@ class CSimTool:
         work = build_dir
         if work.exists():
             shutil.rmtree(work)
-        _write_files(work, {n: _sanitize_cpp17(c) for n, c in files.items()})
+        _write_files(work, files)
         if data_files:
             for name, blob in data_files.items():
                 (work / name).write_bytes(blob)
@@ -122,14 +110,6 @@ class CSimTool:
         if data_files:
             for name, blob in data_files.items():
                 (exe_dir / name).write_bytes(blob)
-        # Vitis csim_design -setup may pre-create ``output.data`` (and
-        # similar output files the testbench expects to create itself).
-        # On some filesystems the pre-existing file blocks a subsequent
-        # ``open(..., O_WRONLY|O_CREAT)`` with EACCES.  Remove them.
-        for pat in ("output.data", "output.txt", "output.hex", "output.bin"):
-            stale = exe_dir / pat
-            if stale.exists():
-                stale.unlink()
         rr = vitis.run_binary(csim_exe, exe_dir, config.CSIM_TIMEOUT_S)
         run_log = _truncate(rr.stdout + "\n" + rr.stderr)
         if rr.timeout:
@@ -162,7 +142,7 @@ class SynthTool:
         work = build_dir
         if work.exists():
             shutil.rmtree(work)
-        _write_files(work, {n: _sanitize_cpp17(c) for n, c in files.items()})
+        _write_files(work, files)
 
         tcl = "open_project synth_proj\n"
         for f in synth_sources:
@@ -214,7 +194,7 @@ class CoSimTool:
         work = build_dir
         if work.exists():
             shutil.rmtree(work)
-        _write_files(work, {n: _sanitize_cpp17(c) for n, c in files.items()})
+        _write_files(work, files)
 
         tcl = "open_project cosim_proj\n"
         for f in synth_sources:

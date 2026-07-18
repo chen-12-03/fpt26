@@ -264,5 +264,5 @@ docker run ... python3 -m agent.main --task /workspace/tasks/generated/machsuite
 
 ## 9. 已废弃
 
-- `fpt26-agent-v2/` — 已压缩归档为 `fpt26-agent-v2.tar.gz`，不再使用
+- `fpt26-agent-v2/` — 已删除；需要审计时从 Git 历史恢复
 - `llm4hls/scoring.py` — 旧版评分，保留兼容但 V3 优先使用 `scoring/scoring_v3.py`

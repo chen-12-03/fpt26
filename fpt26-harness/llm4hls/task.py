@@ -24,51 +24,6 @@ from pathlib import Path
 from . import config
 
 
-# File extensions recognised as testbench data (not code, not headers).
-# These are passed to C-simulation so that testbenches that read files via
-# relative paths (e.g. fopen("input.data")) work without per-task patches.
-_DATA_SUFFIXES = frozenset({
-    ".data", ".txt", ".hex", ".bin", ".dat", ".in", ".out", ".golden",
-    ".ppm", ".bmp", ".pgm", ".raw", ".coe", ".mif",
-})
-
-
-def _discover_data_files(task_dir: Path) -> dict[str, bytes]:
-    """Collect non-code, non-header data files from the task directory.
-
-    Only regular files whose extension matches the data-suffix set are
-    included.  Hidden testbench data (``hidden/*.data``) is included when
-    present so that the hidden grader can also consume it.
-
-    Files named ``output.*`` are excluded: testbenches create these
-    themselves via ``open(..., O_WRONLY | O_CREAT)``, and staging a
-    pre-existing copy can cause permission or truncation issues.
-    """
-    discovered: dict[str, bytes] = {}
-    for candidate in sorted(task_dir.iterdir()):
-        if not candidate.is_file():
-            continue
-        suffix = candidate.suffix.lower()
-        if suffix not in _DATA_SUFFIXES:
-            continue
-        if candidate.name.lower().startswith("output"):
-            continue
-        discovered[candidate.name] = candidate.read_bytes()
-    # Also collect data files from hidden/ (used by the hidden testbench).
-    hidden_dir = task_dir / "hidden"
-    if hidden_dir.is_dir():
-        for candidate in sorted(hidden_dir.iterdir()):
-            if not candidate.is_file():
-                continue
-            suffix = candidate.suffix.lower()
-            if suffix not in _DATA_SUFFIXES:
-                continue
-            if candidate.name.lower().startswith("output"):
-                continue
-            discovered[candidate.name] = candidate.read_bytes()
-    return discovered
-
-
 @dataclass
 class Task:
     dir: Path
@@ -85,7 +40,6 @@ class Task:
     kernel_name: str
     kernel_code: str  # starting code handed to the agent
     headers: dict = field(default_factory=dict)  # name -> content (fixed)
-    data_files: dict[str, bytes] = field(default_factory=dict)  # testbench data
     public_tb_name: str = ""
     public_tb_code: str = ""
     hidden_tb_name: str = ""
@@ -121,8 +75,6 @@ def load_task(task_dir: str | Path) -> Task:
     ref_path = d / "reference" / kernel_name
     reference_code = ref_path.read_text() if ref_path.exists() else None
 
-    data_files = _discover_data_files(d)
-
     return Task(
         dir=d,
         id=spec.get("task_id", d.name),
@@ -142,7 +94,6 @@ def load_task(task_dir: str | Path) -> Task:
         kernel_name=kernel_name,
         kernel_code=(d / kernel_name).read_text(),
         headers=headers,
-        data_files=data_files,
         public_tb_name=public_tb_name,
         public_tb_code=public_tb_code,
         hidden_tb_name=hidden_tb_name,

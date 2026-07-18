@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-07-18",
+  "policy": "Minimum fixes only for reproducible execution-layer defects, with a new regression test and full revalidation.",
+  "validation": {
+    "clean_image": "fpt26-agent-v3:freeze-20260718",
+    "clean_image_sha256": "03c4cb2277f94b988ae6667ac605b3d8a11f3856cf93ddefd66650bb5c6af642",
+    "scoring_version": "9.0.0",
+    "scoring_schema": 9,
+    "vitis_hls": "2025.2 build 6295257"
+  },
+  "files": {
+    "fpt26-agent-v3/agent/main.py": "748d83d3d159a5a49d48858c80a63f2f80167972f44e7fdf95cd40bb1c6aeb09",
+    "fpt26-agent-v3/agent/runner.py": "32d0c455c4775c6f2f97ec10d333f441e92e4a39dd01a3cb14083f691a0684fa",
+    "fpt26-agent-v3/agent/testbench.py": "40abb8abdcf421c1b36e10a48f1d7cb10dde5e46175ac327c4812b0d2dbd14e6",
+    "fpt26-agent-v3/agent/workflow.py": "3fc8adc998eec8b780293cdb068643781687d868d633c5fcc91a7e04dfdeb816",
+    "fpt26-agent-v3/agent/reporting.py": "20a8854d123ddb797c8939afdb0312853e478ec8f2cd832016adfbdc2a79cc7c",
+    "fpt26-agent-v3/agent/agents/base.py": "4f83f8ef0f1005fd6b1f0af1407a09f5fbd8950bb5608438c2cd8cc7423db678",
+    "fpt26-agent-v3/run-agent.sh": "7c8763600ea6db88660e7c8e13e3289dd7a96ef4f33da3a051e76b9c8531c1c1",
+    "fpt26-agent-v3/Dockerfile": "9e872b4c3f511e227dc36a4bbe5c7f5ab955004f5a27bc99388aa194797b392a",
+    "fpt26-agent-v3/docker-compose.yml": "112315fb56997cac8904f457f73185d95bf48540e1269348f641e9ce27b91d05",
+    "fpt26-harness/run-vitis.sh": "03cd13475ce1bf05f0afa7453893018fb723cca602ed046770d81a80906968fd",
+    "fpt26-harness/run.tcl": "ed5a21cb6f21b2f24ad1188d45da07155602cd787d5cc60f5724b5ae90092dd5",
+    "fpt26-harness/requirements.txt": "6f198a3adb419b386d8c71dda700e5e0754f4ffc7695867234875e56fe3e8db0"
+  },
+  "trees": {
+    "official_harness": {
+      "root": "fpt26-harness/llm4hls",
+      "kind": "python_sources",
+      "count": 11,
+      "sha256": "9a85fe7c3aaea94ddcfec83372442225f17d91d539d03484d7d663d94807ded5"
+    },
+    "agent_harness_mirror": {
+      "root": "fpt26-agent-v3/llm4hls",
+      "kind": "python_sources",
+      "count": 11,
+      "sha256": "085d56c3dfd7ba2efc6880319c31ff8a9ec2bedd61b1a609bf98da9263370d9d"
+    },
+    "task_testbenches": {
+      "root": "tasks",
+      "kind": "testbench_assets",
+      "count": 356,
+      "sha256": "5c0b7f2c4b301c008a02ee9c869ec1f5f841bad542aec062d2f880b856ff6100"
+    }
+  }
+}

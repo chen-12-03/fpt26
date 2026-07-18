@@ -28,16 +28,16 @@ def _tool_breakdown(results: list) -> dict[str, int]:
 
 
 def _attempts_to_pass(results: list, kind: str = "csim") -> int:
-    """Count how many *failed* attempts before the first success."""
-    fails = 0
+    """Count real calls through the first success, or all calls if none pass."""
+    attempts = 0
     for r in results:
         k = getattr(r, "kind", "")
         if k != kind:
             continue
+        attempts += 1
         if getattr(r, "ok", False):
-            return fails
-        fails += 1
-    return fails
+            return attempts
+    return attempts
 
 
 def _wall_time(results: list) -> float:
@@ -72,8 +72,8 @@ def _compute_derived(state: RunState) -> dict[str, Any]:
     metrics: dict[str, Any] = {
         "tool_breakdown": breakdown,
         "wall_time_seconds": round(_wall_time(results), 1),
-        "csim_attempts": _attempts_to_pass(results, "csim") + 1,
-        "cosim_attempts": _attempts_to_pass(results, "cosim") + 1 if breakdown.get("cosim", 0) > 0 else 0,
+        "csim_attempts": _attempts_to_pass(results, "csim"),
+        "cosim_attempts": _attempts_to_pass(results, "cosim"),
         "budget_utilization": round(total_spent / max(total_budget, 1), 3),
         "budget_efficiency": None,
         "resource_growth": None,
@@ -152,6 +152,59 @@ def _reported_cosim_status(state: RunState) -> bool | None:
     return state.cosim_ok
 
 
+def _tool_result_record(result: Any) -> dict[str, Any]:
+    """Serialize one existing tool result without changing its semantics."""
+    brief = getattr(result, "brief", None)
+    return {
+        "kind": getattr(result, "kind", "unknown"),
+        "ok": bool(getattr(result, "ok", False)),
+        "phase": getattr(result, "phase", "unknown"),
+        "return_code": getattr(result, "return_code", None),
+        "elapsed_s": round(float(getattr(result, "elapsed_s", 0.0)), 3),
+        "brief": brief() if callable(brief) else None,
+        "log": getattr(result, "log", "") or "",
+    }
+
+
+def _execution_trace(state: RunState) -> dict[str, Any]:
+    """Return auditable metered and unmetered tool evidence for the report."""
+    server = state.server
+    run_root = Path(getattr(server, "run_root", ""))
+    transcript = []
+    for entry in getattr(server, "transcript", []):
+        transcript.append(
+            {
+                "n": entry.n,
+                "kind": entry.kind,
+                "phase": entry.phase,
+                "spent": entry.spent,
+                "detail": entry.detail,
+                "artifact_dir": str(run_root / f"{entry.kind}_{entry.n}"),
+            }
+        )
+
+    grade_root = Path(state.config.output_root) / state.task.id / "grade"
+    grade_dirs = {
+        "hidden_csim": "grade_csim",
+        "hidden_cosim": "grade_cosim",
+        "candidate_synth": "grade_synth_cand",
+        "starter_synth": "grade_synth_base",
+        "reference_synth": "grade_synth_ref",
+    }
+    grading = []
+    for stage, result in getattr(state, "metadata", {}).get("grading_results", []):
+        record = _tool_result_record(result)
+        record["stage"] = stage
+        record["artifact_dir"] = str(grade_root / grade_dirs.get(stage, stage))
+        grading.append(record)
+
+    return {
+        "transcript": transcript,
+        "metered_results": [_tool_result_record(r) for r in state.results],
+        "grading_results": grading,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Report writer
 # ---------------------------------------------------------------------------
@@ -183,6 +236,7 @@ def write_run_report(state: RunState) -> Path:
         },
         # Derived metrics
         "evaluation": derived,
+        "execution_trace": _execution_trace(state),
         "llm": _llm_summary(state),
     }
 

@@ -673,7 +673,7 @@ task.toml 的显式 `budget` 仍优先于默认表，以支持特殊任务。
 
 ## 6. D-5: 实施路线图
 
-本仓库 `AGENTS.md` 规定 `llm4hls/` 是官方 harness 的只读镜像。因此正式评分变更必须先进入上游 `fpt26-harness`，再整体同步到 agent 仓库；不能只在本 agent 私自替换权威 grader。当前 `llm4hls/scoring_v2.py` 和 `tests/test_scoring_v2.py` 是未接入原型，仍含 acceleration/reference cap、area floor/bonus cap、repair 特殊上限和 difficulty multiplier，不满足本规范，应在上游实现落地时替换，而不是接入生产。
+本仓库 `AGENTS.md` 规定 `llm4hls/` 是官方 harness 的只读镜像。因此正式评分变更必须先进入上游 `fpt26-harness`，再整体同步到 agent 仓库；不能只在本 agent 私自替换权威 grader。未接入的 `llm4hls/scoring_v2.py` 和 `tests/test_scoring_v2.py` 原型因仍含 acceleration/reference cap、area floor/bonus cap、repair 特殊上限和 difficulty multiplier，且不满足本规范，现已删除；生产评分只使用当前 `scoring/scoring_v3.py`。
 
 ### Phase 0: 规范冻结
 
