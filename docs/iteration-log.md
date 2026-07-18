@@ -2363,3 +2363,78 @@ Score 分布（94 tasks）：
   If outer loop dominates, pipeline the outer loop"
 - 目的：给 polybench 类嵌套循环任务更明确的第一步指导（内层 PIPELINE 风险最低）
 - 测试：131 passed；polybench__gemm 实测仍无法改善（数据依赖而非 pragma 问题）
+
+## 2026-07-17 — Iteration 21：Testbench/Harness 兼容性修复
+
+### 审计结果：97 task 全量基线分类
+
+对全部 97 task（94 generated + 3 official）进行基线检查，分类所有失败：
+
+| 类别 | 数量 | 根因 | 症状 |
+|---|---|---|---|
+| **A: latency=undef** | 10 | 数据依赖循环（while-loop 等），Vitis HLS 无法静态分析 | `no_valid_anchor` |
+| **B: C++17 register** | 1 | Starter 代码使用 C++17 移除的 `register` 关键字 | 编译错误 → `no_valid_anchor` |
+| **C: 数据文件缺失** | ~10 | Testbench 用相对路径读 `.data` 文件，harness 未传递 | `hidden_csim_fail` / SIGABRT |
+| **D: Agent 引入 bug** | 1 | Agent 修改导致输出索引偏移 (stencil_stencil2d) | `hidden_csim_fail` |
+| **E: 已修复 task** | 3 official | projection/residual/dotProduct 在不同模式下通过 | — |
+| **通过** | 72 | 无问题 | `passed` |
+
+### 修复 1：数据文件自动发现与传递（Category C）
+
+**修改文件**：
+- `fpt26-harness/llm4hls/task.py`：新增 `_discover_data_files()` — 自动收集 task 目录和 `hidden/` 子目录中的 `.data/.txt/.hex/.bin/.dat/.in/.out/.golden` 文件；`Task` dataclass 新增 `data_files: dict[str, bytes]` 字段；`load_task()` 调用 `_discover_data_files()`
+- `fpt26-harness/llm4hls/harness.py`：`ToolServer.csim()` 传递 `data_files=self.task.data_files` 给 `CSimTool.run()`
+- `fpt26-agent-v3/agent/workflow.py`：`step_score()` 的 hidden csim 调用传递 `data_files`（`getattr(task, "data_files", None)`）
+- `fpt26-agent-v3/llm4hls/task.py`：同步更新（含 `tomli` fallback 导入）
+- `fpt26-agent-v3/llm4hls/harness.py`：同步更新 `data_files` 传递
+
+**新增测试**：`tests/test_task_data_files.py`（6 tests：suffix set、源文件过滤、数据扩展名收集、hidden/ 收集、非数据文件过滤、真实 machsuite task 验证）
+
+**验证结果**（baseline 模式重新测试）：
+
+| Task | 修复前 | 修复后 |
+|---|---|---|
+| machsuite__gemm_blocked | 0.00 (hidden_csim_fail) | **74.29** ✅ |
+| machsuite__sort_radix | 0.00 (hidden_csim_fail) | **74.28** ✅ |
+| machsuite__viterbi_viterbi | 0.00 (hidden_csim_fail) | **74.25** ✅ |
+| machsuite__stencil_stencil2d | 0.00 (hidden_csim_fail) | **74.29** ✅ |
+
+### 修复 2：C++17 `register` 关键字兼容（Category B）
+
+**修改文件**：
+- `fpt26-harness/llm4hls/tools.py`：新增 `_sanitize_cpp17()` — 正则移除 `register` 关键字；`CSimTool.run()`、`SynthTool.run()`、`CoSimTool.run()` 的 `_write_files()` 调用统一应用 `_sanitize_cpp17()`
+- `fpt26-agent-v3/llm4hls/tools.py`：同步更新
+
+**验证**：machsuite__aes_aes 编译通过（不再报 `ISO C++17 does not allow 'register'`），进入 runtime 阶段（rc=255，待进一步排查 testbench 数据格式）
+
+### 修复 3：latency=undef → Reference fallback（Category A）
+
+**修改文件**：
+- `fpt26-agent-v3/agent/workflow.py::step_score()`：anchor 构建逻辑重写。当 starter 合成成功但 `starter_lat is None`（Vitis 报告 `Worst-caseLatency=undef`）时，自动 fallback 到 reference anchor
+
+**验证**：chstone__dfdiv 的 reference 同样有 `latency=undef`（同算法），因此仍为 `no_valid_anchor`。这是 Vitis HLS 对数据依赖循环的固有限制，非 harness 可修复。
+
+### 当前 97 task 状态
+
+| 状态 | 数量 | 说明 |
+|---|---|---|
+| **通过** | 76 | 修复前 72 + 数据文件修复 4 |
+| **A: latency=undef** | 10 | chstone__dfdiv/dfsin、machsuite__bfs_bulk/bfs_queue/fft_strided/kmp_kmp/md_grid/nw_nw/sort_merge/spmv_crs — Vitis HLS 无法静态分析数据依赖循环 |
+| **B: 待排查** | 3 | machsuite__aes_aes（编译通过但 rc=255）、machsuite__gemm_ncubed/md_knn/spmv_ellpack/stencil_stencil3d（待重测）|
+| **D: Agent bug** | 1 | stencil_stencil2d（full 模式下 Agent 引入索引偏移，baseline 模式已通过）|
+| **official** | 3 | 全部通过 |
+
+### 未覆盖的 testbench 场景
+
+| 场景 | 当前覆盖 | 说明 |
+|---|---|---|
+| 数据文件 I/O | ✅ 修复后 17 个 machsuite task | `.data` 文件自动发现和传递 |
+| C++ 版本兼容 | ✅ `register` 关键字 | C++17 sanitization |
+| 浮点比较 | ⚠️ 部分 | chstone 浮点 task 的 hidden testbench 精度断言更严格 |
+| Stream/FIFO | ✅ residual_stream_deadlock | 已有 DATAFLOW + stream depth 验证 |
+| 多次调用/状态 | ❌ 未覆盖 | 无 task 测试跨调用的状态保持 |
+| 超时 | ⚠️ 有限 | `CSIM_TIMEOUT_S` 存在，但无专项超时测试 |
+
+### 数据文件修复的通用性
+
+`_discover_data_files()` 采用后缀名匹配，支持 `.data/.txt/.hex/.bin/.dat/.in/.out/.golden/.ppm/.bmp/.pgm/.raw/.coe/.mif`。任何 task 只需将数据文件放在 task 根目录或 `hidden/` 子目录下即可自动传递到 csim 运行时，无需修改 task.toml 或 harness 代码。

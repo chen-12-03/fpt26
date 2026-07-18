@@ -194,9 +194,11 @@ def step_score(state: RunState) -> RunState:
 
     # ── 1. Hidden functional test (C-simulation) ──────────────────────────
     hidden_files = task.assemble(kernel, task.hidden_tb_code, task.hidden_tb_name)
+    data_files = getattr(task, "data_files", None) or None
     csim = CSimTool().run(
         grade_root / "grade_csim", hidden_files,
         top=task.top, part=task.part, clock_ns=task.clock_ns,
+        data_files=data_files,
     )
 
     # ── 2. Hidden cosim (if required) ─────────────────────────────────────
@@ -284,15 +286,26 @@ def step_score(state: RunState) -> RunState:
                 getattr(ref_synth.report, "available", None)
             )
 
-    anchor = Anchor(
-        source="starter" if starter_valid else ("reference" if ref_lat else "none"),
-        valid=starter_valid or ref_lat is not None,
-        latency=starter_lat if starter_valid else ref_lat,
-        ii=starter_ii if starter_valid else ref_ii,
-        clock_ns=starter_clock if starter_valid else ref_clock,
-        resources=starter_resources if starter_valid else ref_resources,
-        available=starter_available if starter_valid else ref_available,
-    )
+    # If starter synthesis succeeded but latency is undef (data-dependent loops),
+    # fall back to reference anchor when available.  starter_valid is re-evaluated
+    # so that ``no_valid_anchor`` is only returned when both anchors are unusable.
+    starter_has_latency = starter_valid and starter_lat is not None
+    if not starter_has_latency and ref_lat is not None:
+        anchor = Anchor(
+            source="reference", valid=True,
+            latency=ref_lat, ii=ref_ii, clock_ns=ref_clock,
+            resources=ref_resources, available=ref_available,
+        )
+    else:
+        anchor = Anchor(
+            source="starter" if starter_has_latency else ("reference" if ref_lat else "none"),
+            valid=starter_has_latency or ref_lat is not None,
+            latency=starter_lat if starter_has_latency else ref_lat,
+            ii=starter_ii if starter_has_latency else ref_ii,
+            clock_ns=starter_clock if starter_has_latency else ref_clock,
+            resources=starter_resources if starter_has_latency else ref_resources,
+            available=starter_available if starter_has_latency else ref_available,
+        )
 
     # Evidence: candidate synthesis results
     cand_lat = (
