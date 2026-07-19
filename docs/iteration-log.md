@@ -3114,3 +3114,57 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
 - 最终冻结索引为 `fpt26-agent-v3/scoring/scoring-freeze.json`：锁定 version/schema、
   公式、分类、采集/分析器、核心回归与 evidence SHA-256；`execution-freeze.json` 的
   validation metadata 同步为 scoring `10.0.0/schema 10`，其执行文件和 tree hash 未变。
+
+## 2026-07-19 — 97 task 全量真实 API + Vitis 与 10 个典型 PPA 点
+
+### 全量运行
+
+- 新目标要求所有 task 都在同一轮调用真实 API，而不是沿用先前批次。重新发现并固定
+  94 个 generated + 3 个 official，共 97 个唯一 task；按排序 index modulo 3 分到
+  33/32/32 个 task 的三个隔离容器。generated 使用 `optimize`，official
+  dot/projection/residual 分别使用 `optimize/repair/structural`。
+- 三容器均使用 `fpt26-agent-v3:freeze-20260718`、`--env-file /tmp/fpt26.env`、
+  `--backend custom`、Vitis 2025.2 build 6295257、只读 `/tools/Xilinx`；每容器限制
+  6 CPU、4GiB memory/6GiB memory+swap，并写入独立 output/HLS project：
+  `runs/schema10_all_real_api_20260719_s{0,1,2}`。启动命令调用
+  `python3 -m scoring.run_real_api_shard --task-root /workspace/tasks --output-root
+  <shard-root> --shard-index {0,1,2} --shard-count 3`，未降低 task budget 或默认优化轮数。
+- 三 shard 实测 wall 分别为 5005.354s、4874.301s、5081.667s；并行端到端取最长
+  shard 为约 84m42s。产物大小分别为 3.4/4.0/3.5GiB；过程中无 API、license、内存、
+  磁盘、compile、CSim、synth 或外层 timeout 基础设施失败。
+
+### 覆盖、API 和工具证据
+
+- 生成 97/97 run_report、97/97 final artifact，task ID 唯一；所有 final 源码与 grading
+  candidate synth 的实际输入一致。`machsuite__aes_aes` 的 `register` 差异按 frozen
+  runner 的 C++17 source preparation 路径核对，而不是忽略源码差异。
+- 统一模型 `qwen3-coder-plus`、client=`OpenAICompatClient`、temperature=0.7、
+  max_tokens=4096。总 API request/response=`183/183`，prompt/completion/total tokens=
+  `724411/99146/823557`，failed request=0、unreported response=0；cached/reasoning tokens
+  endpoint 未提供，记为 `unavailable`。未记录 endpoint URL、API key 或 license key。
+- agent 总 budget=`1156/5330` credits，agent tool calls=452（CSim 228、synth 222、
+  co-sim 2）；最终 grading 共 389 个真实工具阶段，所有 required stage 均 rc=0。
+- 87 个 finite task 为 `status=completed/rc=0`。其余 10 个为预先识别的顶层
+  latency/II=`undef` task：`dfdiv`、`dfsin`、`bfs_bulk`、`bfs_queue`、`fft_strided`、
+  `kmp_kmp`、`md_grid`、`nw_nw`、`sort_merge`、`spmv_crs`。这 10 项也各自调用了
+  真实 API，hidden CSim 与 final/starter/reference synth 全部 rc=0；仅评分按设计返回
+  `no_valid_anchor`，agent rc=4，未伪造有限 PPA。
+
+### Paired final/reference PPA 与典型点
+
+- 每个 task 的本轮 grading 已在相同容器、相同 task 配置下 fresh 综合 final best 和
+  reference，因此无需用历史 XML 补齐典型点。97/97 paired synth 通过；87 个 finite
+  PPA 的 final-vs-reference 分布为：same/same=71、faster/larger=10、faster/same=2、
+  faster/smaller=3、slower/smaller=1；另 10 个 undef。
+- 权威审计命令：`cd fpt26-agent-v3 && python3 -m scoring.analyze_all_real_api
+  --workspace-root .. --task-root ../tasks --run-root
+  ../runs/schema10_all_real_api_20260719_s0 --run-root
+  ../runs/schema10_all_real_api_20260719_s1 --run-root
+  ../runs/schema10_all_real_api_20260719_s2 --reference-calibration-report
+  ../runs/scoring_calibration_analysis_20260719/reference_calibration_v3.json --output
+  scoring/reports/all_real_api_20260719_v1.json`。
+- 输出报告版本 `scoring=10.0.0/schema 10`，大小 474486 bytes，SHA-256
+  `4e8b74517874926668e8d96627785ee6578f0001b5fb0ea61cac8a4693adcf79`。报告保存
+  97 个 run/final/XML hash、API usage、raw HLS metrics、精确 P/A、0.55/0.60 diagnostic
+  standardized hardware score，以及 10 个覆盖 neutral、边界、moderate、extreme 与所有
+  实际 PPA quadrant 的代表 task。选择仅用于展示本轮分布，不改变 reference 分类或公式。
