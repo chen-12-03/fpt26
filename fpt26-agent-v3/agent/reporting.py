@@ -6,7 +6,9 @@ and prints a console-friendly scorecard.
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -152,6 +154,61 @@ def _reported_cosim_status(state: RunState) -> bool | None:
     return state.cosim_ok
 
 
+def _toolchain_evidence(state: RunState) -> dict[str, Any]:
+    """Extract the actual Vitis banner/target evidence emitted by real tools."""
+
+    logs = [
+        getattr(result, "log", "") or ""
+        for result in state.results
+    ]
+    logs.extend(
+        getattr(result, "log", "") or ""
+        for _, result in state.metadata.get("grading_results", [])
+    )
+    joined = "\n".join(logs)
+    versions = sorted(set(re.findall(r"vitis-run v(\d+\.\d+)", joined)))
+    hls_builds = sorted(
+        set(
+            (version, build)
+            for version, build in re.findall(
+                r"HLS Build v(\d+\.\d+)\s+(\d+)", joined
+            )
+        )
+    )
+    observed_parts = sorted(
+        set(re.findall(r"\bset_part\s+([A-Za-z0-9_.-]+)", joined))
+    )
+    preflight = state.metadata.get("task_preflight", {})
+    configured = preflight.get("configured_vitis_root")
+    probed_version = preflight.get("observed_vitis_version")
+    probed_build = preflight.get("observed_vitis_build")
+    required_version = "2025.2"
+    required_part = getattr(state.task, "part", None)
+    return {
+        "configured_vitis_root": configured,
+        "required_vitis_version": required_version,
+        "preflight_vitis_version": probed_version,
+        "preflight_vitis_build": probed_build,
+        "observed_vitis_versions": versions,
+        "observed_hls_builds": [
+            {"version": version, "build": build}
+            for version, build in hls_builds
+        ],
+        "required_part": required_part,
+        "observed_parts": observed_parts,
+        "real_tool_banner_observed": bool(versions),
+        "version_gate_ok": (
+            probed_version == required_version
+            and (not versions or versions == [required_version])
+        ),
+        "part_gate_ok": (
+            bool(observed_parts)
+            and required_part is not None
+            and set(observed_parts) == {required_part}
+        ),
+    }
+
+
 def _tool_result_record(result: Any) -> dict[str, Any]:
     """Serialize one existing tool result without changing its semantics."""
     brief = getattr(result, "brief", None)
@@ -218,18 +275,63 @@ def write_run_report(state: RunState) -> Path:
     derived = _compute_derived(state)
 
     report: dict[str, Any] = {
+        "schema_version": 1,
         "task_id": state.task.id,
         "task_type": state.task.type,
         "task_difficulty": state.task.difficulty,
+        "run_role": getattr(
+            state.config, "run_role", state.metadata.get("run_role")
+        ),
         "mode": state.config.mode,
         "scoring_profile": getattr(
             state.config, "scoring_profile", "balanced"
         ),
         "competition": state.config.competition,
         "status": state.status,
+        "status_vocabulary": [
+            "running",
+            "completed",
+            "failed",
+            "budget_exceeded",
+            "infrastructure_error",
+        ],
         "csim_ok": state.csim_ok,
         "synth_ok": state.synth_ok,
         "cosim_ok": _reported_cosim_status(state),
+        "gates": {
+            "interface": state.metadata.get("interface_gate"),
+            "frequency_100mhz": state.metadata.get("frequency_gate"),
+            "resource_capacity": state.metadata.get("resource_gate"),
+            "required_cosim": state.metadata.get("cosim_gate"),
+            "public_acceptance": state.metadata.get("public_acceptance"),
+            "evaluator_acceptance": state.metadata.get("evaluator_acceptance"),
+        },
+        "interface_contract": state.metadata.get("interface_contract"),
+        "candidate_validation_history": state.metadata.get(
+            "interface_validations", []
+        ),
+        "synthesis_gate_history": state.metadata.get(
+            "synth_gate_history", []
+        ),
+        "cosim_gate_history": state.metadata.get("cosim_gate_history", []),
+        "final_hardware": {
+            **(state.metadata.get("best_synth_metrics") or {}),
+            "cosim": state.metadata.get("cosim_gate"),
+        },
+        "task_preflight": state.metadata.get("task_preflight"),
+        "target": {
+            "part": getattr(state.task, "part", None),
+            "clock_ns": getattr(state.task, "clock_ns", None),
+            "minimum_frequency_mhz": 100.0,
+        },
+        "toolchain": _toolchain_evidence(state),
+        "grading": {
+            "source": state.metadata.get("grading_source"),
+            "hidden_available": state.metadata.get("hidden_available"),
+            "is_fallback": state.metadata.get("grading_source")
+            in {"public_fallback", "proxy_grading"},
+        },
+        "model_compliance": state.metadata.get("model_compliance"),
         "best_latency": state.best_latency,
         "stop_reason": state.stop_reason,
         "tool_call_count": len(state.results),
@@ -241,6 +343,24 @@ def write_run_report(state: RunState) -> Path:
         "evaluation": derived,
         "execution_trace": _execution_trace(state),
         "llm": _llm_summary(state),
+    }
+    final_path = state.metadata.get("final_kernel_path")
+    final_kernel = getattr(state, "kernel", "")
+    final_bytes = final_kernel.encode("utf-8")
+    if final_path and Path(final_path).is_file():
+        final_bytes = Path(final_path).read_bytes()
+    report["final_artifact"] = {
+        "path": final_path,
+        "sha256": hashlib.sha256(final_bytes).hexdigest(),
+        "fully_verified": bool(
+            getattr(state, "last_verified_kernel", None) is not None
+            and final_kernel == getattr(state, "last_verified_kernel", None)
+        ),
+        "fallback_starter_used": bool(
+            getattr(state, "last_verified_kernel", None) is None
+            and getattr(state, "safe_fallback_kernel", None) is not None
+            and final_kernel == getattr(state, "safe_fallback_kernel", None)
+        ),
     }
     if getattr(state, "metadata", {}).get("optimization_search"):
         report["optimization_search"] = state.metadata["optimization_search"]
@@ -365,6 +485,45 @@ def write_run_report(state: RunState) -> Path:
     return report_path
 
 
+def write_failure_report(
+    *,
+    output_root: str,
+    task_id: str,
+    run_role: str,
+    status: str,
+    stop_reason: str,
+    error_type: str,
+    error_message: str,
+) -> Path:
+    """Persist a truthful bootstrap/infrastructure failure without a RunState."""
+
+    out_dir = Path(output_root) / task_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+    report_path = out_dir / "run_report.json"
+    report = {
+        "schema_version": 1,
+        "task_id": task_id,
+        "run_role": run_role,
+        "status": status,
+        "stop_reason": stop_reason,
+        "error": {
+            "type": error_type,
+            "message": error_message,
+        },
+        "scoring": None,
+        "execution_trace": {
+            "transcript": [],
+            "metered_results": [],
+            "grading_results": [],
+        },
+    }
+    report_path.write_text(
+        json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return report_path
+
+
 # ---------------------------------------------------------------------------
 # Console output
 # ---------------------------------------------------------------------------
@@ -391,6 +550,55 @@ def _loop_str(loop_metrics: list) -> str:
         name = lm.get("name", "?")
         loops.append(f"{name}(trip={trip},lat={lat},II={ii})")
     return ", ".join(loops)
+
+
+def _synth_info(result: Any) -> dict[str, Any] | None:
+    """Normalize one successful synthesis result for console comparison."""
+    report = getattr(result, "report", None)
+    if not getattr(result, "ok", False) or report is None:
+        return None
+    loops = [dict(item) for item in (report.loop_metrics or [])]
+    return {
+        "latency": report.latency_worst or report.latency_avg,
+        "top_interval": report.interval_max,
+        "loop_ii": (
+            loops[0].get("pipeline_ii") if loops else None
+        ),
+        "clock_ns": report.clock_period_ns,
+        "resources": dict(report.resources),
+        "loop_metrics": loops,
+    }
+
+
+def _grading_synth_info(state: RunState, stage: str) -> dict[str, Any] | None:
+    """Find a named evaluator-side synthesis without confusing it with agent tools."""
+    for recorded_stage, result in state.metadata.get("grading_results", []):
+        if recorded_stage == stage:
+            return _synth_info(result)
+    return None
+
+
+def _final_synth_info(state: RunState) -> dict[str, Any] | None:
+    """Return metrics for the kernel that was actually selected and finalized."""
+    metrics = state.metadata.get("best_synth_metrics")
+    if isinstance(metrics, dict) and metrics:
+        loops = [dict(item) for item in (metrics.get("loop_metrics") or [])]
+        return {
+            "latency": (
+                metrics.get("latency_worst")
+                if metrics.get("latency_worst") is not None
+                else metrics.get("latency_avg")
+            ),
+            "top_interval": metrics.get("interval_max"),
+            "loop_ii": (
+                loops[0].get("pipeline_ii") if loops else None
+            ),
+            "clock_ns": metrics.get("clock_period_ns"),
+            "resources": dict(metrics.get("resources") or {}),
+            "loop_metrics": loops,
+        }
+    # Evaluator scoring always synthesizes exactly the submitted kernel.
+    return _grading_synth_info(state, "candidate_synth")
 
 
 def print_evaluation(state: RunState) -> None:
@@ -422,20 +630,24 @@ def print_evaluation(state: RunState) -> None:
         else:
             candidates_info.append(c)
 
-    # Extract baseline from results if no structured data
+    # The evaluator's explicit starter synthesis is the strongest baseline
+    # evidence. Agent-side results are a fallback for submission-only reports.
+    graded_baseline = _grading_synth_info(state, "starter_synth")
+    if graded_baseline is not None:
+        graded_baseline.update(
+            {"round": 0, "is_baseline": True, "decision": "BASELINE"}
+        )
+        baseline_info = graded_baseline
+
+    # Extract baseline from results if no structured/evaluator data
     if baseline_info is None:
         for r in state.results:
-            if r.kind == "synth" and r.report is not None:
-                br = r.report
-                bl_ii = br.loop_metrics[0].get("pipeline_ii") if br.loop_metrics else None
-                baseline_info = {
-                    "round": 0, "is_baseline": True,
-                    "latency": br.latency_worst, "top_interval": br.interval_max,
-                    "loop_ii": bl_ii, "clock_ns": br.clock_period_ns,
-                    "resources": dict(br.resources),
-                    "loop_metrics": [dict(lm) for lm in (br.loop_metrics or [])],
-                    "decision": "BASELINE",
-                }
+            info = _synth_info(r)
+            if getattr(r, "kind", None) == "synth" and info is not None:
+                info.update(
+                    {"round": 0, "is_baseline": True, "decision": "BASELINE"}
+                )
+                baseline_info = info
                 break
 
     # ── Helper: total area ──────────────────────────────────────────────
@@ -457,7 +669,11 @@ def print_evaluation(state: RunState) -> None:
         f"{n}={('N/A' if v is None else ('PASS' if v else 'FAIL'))}"
         for n, v in gates
     )
-    status = "PASS" if (is_v3 and sc.valid) else ("FAIL" if is_v3 else "?")
+    status = (
+        "PASS"
+        if state.status == "completed"
+        else "FAIL"
+    )
     stage = getattr(sc, 'stage', '?') if is_v3 else "?"
     grading_time = sc.wall_time_s if is_v3 else 0
     print(f"  Status: {status} | Stage: {stage} | Gates: {gate_str}")
@@ -474,8 +690,13 @@ def print_evaluation(state: RunState) -> None:
             ref_score_str = f"{rsc.score:.2f}/{rsc.score_max:.0f} ({round(rsc.score / max(rsc.score_max, 1) * 100, 1)}%)"
             print(f"  Reference anchor: {ref_score_str} | Q_HW={rsc.q_hw:.4f} | Valid={rsc.valid}")
         print(f"  Efficiency={sc.efficiency:.4f} | HW ratio={getattr(sc, 'hardware_ratio', 1.0):.4f}x")
-    else:
+    elif sc is not None:
         print(f"  Score: {sc.score:.3f} / {getattr(sc, 'difficulty', '?')}")
+    else:
+        print(
+            "  Evaluator score: N/A (submission role uses public acceptance "
+            "gates only)"
+        )
 
     # ── STARTER / FINAL BEST / REFERENCE table ──────────────────────────
     base_res = baseline_info.get("resources", {}) if baseline_info else {}
@@ -484,30 +705,24 @@ def print_evaluation(state: RunState) -> None:
     base_lii = baseline_info.get("loop_ii") if baseline_info else None
     base_clk = baseline_info.get("clock_ns") if baseline_info else None
 
-    # Best = what was ultimately submitted
-    best_lii = base_lii  # Loop II of final best (same as baseline unless improved)
-    if is_v3 and sc.valid:
-        best_res = sc.candidate_resources
-        best_lat = sc.anchor_latency
-        best_ti = sc.anchor_ii
-        best_clk = base_clk
-        # Check if agent accepted a candidate (scorecard reflects improvement)
-        improved = (sc.latency_ratio is not None and sc.latency_ratio != 1.0) or \
-                   (sc.area_growth is not None and sc.area_growth != 1.0)
-        if improved:
-            for c in reversed(candidates_info):
-                if c.get("decision") in {"ACCEPTED", "SELECTED"}:
-                    best_lat = c.get("latency", best_lat)
-                    best_ti = c.get("top_interval", best_ti)
-                    best_clk = c.get("clock_ns", best_clk)
-                    best_res = c.get("resources", best_res)
-                    best_lii = c.get("loop_ii", best_lii)
-                    break
-    else:
-        best_res = base_res
-        best_lat = base_lat
-        best_ti = base_ti
-        best_clk = base_clk
+    # Best = measured synthesis for the kernel ultimately selected/finalized.
+    # Never substitute the score anchor: it describes the starter/reference.
+    final_info = _final_synth_info(state)
+    best_res = (
+        final_info.get("resources", {}) if final_info is not None else base_res
+    )
+    best_lat = (
+        final_info.get("latency") if final_info is not None else base_lat
+    )
+    best_ti = (
+        final_info.get("top_interval") if final_info is not None else base_ti
+    )
+    best_lii = (
+        final_info.get("loop_ii") if final_info is not None else base_lii
+    )
+    best_clk = (
+        final_info.get("clock_ns") if final_info is not None else base_clk
+    )
 
     ref_lat = rsc.anchor_latency if rsc else None
     ref_ti = rsc.anchor_ii if rsc else None
@@ -523,6 +738,9 @@ def print_evaluation(state: RunState) -> None:
     print(f"  {'Lat / Top Int (cyc)':<22} {str(base_lat)+' / '+str(base_ti):<20} {str(best_lat)+' / '+str(best_ti):<20} {str(ref_lat)+' / '+str(ref_ti):<20}")
     print(f"  {'Loop II':<22} {str(base_lii) if base_lii is not None else 'N/A':<20} {str(best_lii) if best_lii is not None else 'N/A':<20} {'N/A':<20}")
     print(f"  {'Clock':<22} {str(base_clk)+' ns' if base_clk else 'N/A':<20} {str(best_clk)+' ns' if best_clk else 'N/A':<20} {str(ref_clk)+' ns' if ref_clk else 'N/A':<20}")
+    cosim_gate = state.metadata.get("cosim_gate") or {}
+    best_cosim = cosim_gate.get("latency_max")
+    print(f"  {'CoSim max latency':<22} {'N/A':<20} {str(best_cosim)+' cyc' if best_cosim is not None else 'N/A':<20} {'N/A':<20}")
     print(f"  {'Power':<22} {'N/A':<20} {'N/A':<20} {'N/A':<20}")
     print(f"  {'Area':<22} {_res_str(base_res):<20} {_res_str(best_res):<20} {_res_str(ref_res):<20}")
 

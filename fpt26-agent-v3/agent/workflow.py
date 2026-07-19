@@ -15,6 +15,7 @@ Each step below is a pure function ``RunState -> RunState``.  Open
 
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 import time
@@ -29,6 +30,8 @@ from llm4hls.tools import ToolResult
 
 from agent.agents.base import AgentConfig, RunState
 from agent.runner import CoSimTool, CSimTool, SynthTool
+from agent.safety import redact_sensitive_text
+from agent.validation import CandidateValidator, frequency_gate, resource_gate
 
 # ---------------------------------------------------------------------------
 # Pipeline framework
@@ -73,7 +76,24 @@ class Pipeline:
                 state.stop_reason = "budget_exceeded"
                 state.log("  budget exceeded — stopping pipeline")
                 break
-            if state.status in ("budget_exceeded", "stopped", "error"):
+            except Exception as exc:
+                safe_message = redact_sensitive_text(exc)
+                state.status = "infrastructure_error"
+                state.stop_reason = f"{type(exc).__name__}: {safe_message}"
+                state.metadata["infrastructure_error"] = {
+                    "type": type(exc).__name__,
+                    "message": safe_message,
+                    "step": step.name,
+                }
+                state.log(
+                    f"  infrastructure error in '{step.name}': {safe_message}"
+                )
+                break
+            if state.status in (
+                "failed",
+                "budget_exceeded",
+                "infrastructure_error",
+            ):
                 state.log(f"  pipeline stopping: status={state.status}")
                 break
         state.log(f"Pipeline done, status={state.status}")
@@ -107,6 +127,149 @@ def _latency(result: ToolResult) -> int | None:
     )
 
 
+def _candidate_validator(state: RunState) -> CandidateValidator:
+    if not isinstance(getattr(state, "metadata", None), dict):
+        state.metadata = {}
+    validator = state.metadata.get("_candidate_validator")
+    if not isinstance(validator, CandidateValidator):
+        starter_code = getattr(state.task, "kernel_code", None)
+        if not isinstance(starter_code, str) or not starter_code.strip():
+            # Compatibility for focused unit-test states. Real submission
+            # tasks always carry the public starter in ``task.kernel_code``.
+            starter_code = state.kernel
+        validator = CandidateValidator.from_source(state.task.top, starter_code)
+        state.metadata["_candidate_validator"] = validator
+        state.metadata["interface_contract"] = validator.contract.to_dict()
+    return validator
+
+
+def validate_candidate(
+    state: RunState,
+    code: str,
+    *,
+    stage: str,
+    current_best: bool = True,
+) -> bool:
+    """Run and record the deterministic public interface/source gate."""
+
+    result = _candidate_validator(state).validate(code)
+    record = {"stage": stage, **result.to_dict()}
+    state.metadata.setdefault("interface_validations", []).append(record)
+    if current_best:
+        state.interface_ok = result.ok
+        state.metadata["interface_gate"] = record
+    if not result.ok:
+        state.log(f"{stage}: interface gate FAIL ({result.reason})")
+    return result.ok
+
+
+def record_synth_gates(
+    state: RunState,
+    result: ToolResult,
+    *,
+    stage: str,
+    current_best: bool = True,
+) -> bool:
+    """Record mandatory frequency and capacity evidence from one synthesis."""
+
+    if not isinstance(getattr(state, "metadata", None), dict):
+        state.metadata = {}
+    freq = frequency_gate(result.report if result.ok else None, state.task.clock_ns)
+    capacity = resource_gate(result.report if result.ok else None)
+    state.metadata.setdefault("synth_gate_history", []).append(
+        {
+            "stage": stage,
+            "frequency": freq.to_dict(),
+            "resource": capacity.to_dict(),
+        }
+    )
+    if current_best:
+        state.frequency_ok = freq.ok
+        state.resource_ok = capacity.ok
+        state.metadata["frequency_gate"] = freq.to_dict()
+        state.metadata["resource_gate"] = capacity.to_dict()
+        if result.ok and result.report is not None:
+            state.best_synth_result = result
+            state.metadata["best_synth_metrics"] = {
+                "stage": stage,
+                "latency_worst": getattr(
+                    result.report, "latency_worst", None
+                ),
+                "latency_avg": getattr(result.report, "latency_avg", None),
+                "interval_max": getattr(
+                    result.report, "interval_max", None
+                ),
+                "clock_period_ns": getattr(
+                    result.report, "clock_period_ns", None
+                ),
+                "frequency_mhz": freq.frequency_mhz,
+                "resources": dict(
+                    getattr(result.report, "resources", None) or {}
+                ),
+                "available": dict(capacity.available),
+                "pipeline_type": getattr(
+                    result.report, "pipeline_type", None
+                ),
+                "loop_metrics": [
+                    dict(item)
+                    for item in (
+                        getattr(result.report, "loop_metrics", None) or []
+                    )
+                ],
+            }
+    return bool(result.ok and freq.ok and capacity.ok)
+
+
+def record_cosim_gate(
+    state: RunState,
+    result: ToolResult,
+    *,
+    stage: str,
+    current_best: bool = True,
+    source_code: str | None = None,
+) -> bool:
+    if not isinstance(getattr(state, "metadata", None), dict):
+        state.metadata = {}
+    payload = getattr(result, "cosim", None)
+    passed = bool(
+        result.ok
+        and payload is not None
+        and getattr(payload, "passed", False)
+    )
+    record = {
+        "stage": stage,
+        "ok": passed,
+        "phase": getattr(result, "phase", "unknown"),
+        "source_sha256": hashlib.sha256(
+            (state.kernel if source_code is None else source_code).encode(
+                "utf-8"
+            )
+        ).hexdigest(),
+        "latency_min": getattr(payload, "latency_min", None),
+        "latency_avg": getattr(payload, "latency_avg", None),
+        "latency_max": getattr(payload, "latency_max", None),
+    }
+    state.metadata.setdefault("cosim_gate_history", []).append(record)
+    if current_best:
+        state.cosim_ok = passed
+        state.metadata["cosim_gate"] = record
+    return passed
+
+
+def mark_fully_verified(state: RunState) -> None:
+    if (
+        getattr(state, "interface_ok", False)
+        and getattr(state, "csim_ok", False)
+        and getattr(state, "synth_ok", False)
+        and getattr(state, "frequency_ok", False)
+        and getattr(state, "resource_ok", False)
+        and (not state.task.requires_cosim or state.cosim_ok)
+    ):
+        state.last_verified_kernel = state.kernel
+        if isinstance(getattr(state, "metadata", None), dict):
+            state.metadata["last_verified_kernel_stage"] = "public_acceptance"
+
+
 # ---------------------------------------------------------------------------
 # Step functions — tool calls (simple, no LLM)
 # ---------------------------------------------------------------------------
@@ -114,12 +277,12 @@ def _latency(result: ToolResult) -> int | None:
 
 def step_csim(state: RunState) -> RunState:
     """Run C simulation on the current kernel."""
+    if not validate_candidate(state, state.kernel, stage="baseline"):
+        return state
     r = state.server.csim(state.kernel)
     state.results.append(r)
     state.csim_ok = r.ok
     state.log(f"csim: {r.brief()}")
-    if not r.ok:
-        state.status = "csim_failed"
     return state
 
 
@@ -146,10 +309,13 @@ def step_synth(state: RunState) -> RunState:
         r = state.server.synth(state.kernel)
         state.results.append(r)
     state.synth_ok = r.ok
+    record_synth_gates(state, r, stage="pipeline_synth")
     lat = _latency(r)
     if lat is not None:
         state.best_latency = lat
     state.log(f"synth: {r.brief()}  latency={lat}")
+    if not state.task.requires_cosim:
+        mark_fully_verified(state)
     return state
 
 
@@ -167,8 +333,11 @@ def step_cosim(state: RunState) -> RunState:
         lat = _latency(r)
         if lat is not None:
             state.best_latency = lat
-    state.cosim_ok = r.ok
+    record_cosim_gate(
+        state, r, stage="pipeline_cosim", source_code=state.kernel
+    )
     state.log(f"cosim: {r.brief()}")
+    mark_fully_verified(state)
     return state
 
 
@@ -192,10 +361,32 @@ def step_score(state: RunState) -> RunState:
 
     task = state.task
     kernel = state.kernel
+    if not isinstance(getattr(state, "metadata", None), dict):
+        state.metadata = {}
     grade_root = Path(state.config.output_root) / task.id / "grade"
     _start = time.monotonic()
 
-    # ── 1. Hidden functional test (C-simulation) ──────────────────────────
+    grading_results: list[tuple[str, ToolResult]] = []
+
+    def _record(stage: str, result: ToolResult) -> None:
+        grading_results.append((stage, result))
+        state.metadata["grading_results"] = list(grading_results)
+        state.metadata["grading_source"] = getattr(
+            task, "grading_source", "hidden"
+        )
+        state.metadata["hidden_available"] = bool(
+            getattr(task, "hidden_available", True)
+        )
+
+    def _gate_failure(reason: str) -> RunState:
+        state.status = "failed"
+        state.stop_reason = reason
+        state.scorecard = None
+        state.ref_scorecard = None
+        state.log(f"evaluator gate failed before scoring: {reason}")
+        return state
+
+    # ── 1. Evaluator functional test (hidden or labelled fallback) ─────────
     hidden_files = task.assemble(kernel, task.hidden_tb_code, task.hidden_tb_name)
     data_files = getattr(task, "hidden_data_files", None) or None
     csim = CSimTool().run(
@@ -203,8 +394,34 @@ def step_score(state: RunState) -> RunState:
         top=task.top, part=task.part, clock_ns=task.clock_ns,
         data_files=data_files,
     )
+    _record("hidden_csim", csim)
+    state.csim_ok = csim.ok
+    if not csim.ok:
+        return _gate_failure("hidden_csim_failed")
 
-    # ── 2. Hidden cosim (if required) ─────────────────────────────────────
+    # ── 2. Candidate synthesis and mandatory target gates ─────────────────
+    cand_files = dict(task.headers)
+    cand_files[task.kernel_name] = kernel
+    cand_synth = SynthTool().run(
+        grade_root / "grade_synth_cand", cand_files,
+        synth_sources=[task.kernel_name],
+        top=task.top, part=task.part, clock_ns=task.clock_ns,
+    )
+    _record("candidate_synth", cand_synth)
+    state.synth_ok = cand_synth.ok
+    if not cand_synth.ok or cand_synth.report is None:
+        return _gate_failure("candidate_synth_failed")
+    if not record_synth_gates(
+        state, cand_synth, stage="evaluator_candidate_synth"
+    ):
+        reason = (
+            (state.metadata.get("frequency_gate") or {}).get("reason")
+            if not state.frequency_ok
+            else (state.metadata.get("resource_gate") or {}).get("reason")
+        )
+        return _gate_failure(str(reason or "candidate_target_gate_failed"))
+
+    # ── 3. Required evaluator CoSim after synth/frequency/resource gates ───
     cosim = None
     cosim_ok: bool | None = None
     cosim_latency: int | None = None
@@ -215,20 +432,23 @@ def step_score(state: RunState) -> RunState:
             tb_sources=[task.hidden_tb_name],
             top=task.top, part=task.part, clock_ns=task.clock_ns,
         )
-        cosim_ok = cosim.ok
-        if cosim.cosim and cosim.cosim.latency_max is not None:
-            cosim_latency = cosim.cosim.latency_max
+        _record("hidden_cosim", cosim)
+        cosim_ok = record_cosim_gate(
+            state,
+            cosim,
+            stage="evaluator_hidden_cosim",
+            source_code=kernel,
+        )
+        cosim_report = getattr(cosim, "cosim", None)
+        if not cosim_ok:
+            return _gate_failure("required_cosim_failed")
+        cosim_latency = cosim_report.latency_max
+        if cosim_latency is None:
+            return _gate_failure("required_cosim_report_missing")
+    else:
+        state.cosim_ok = True
 
-    # ── 3. Candidate synthesis ────────────────────────────────────────────
-    cand_files = dict(task.headers)
-    cand_files[task.kernel_name] = kernel
-    cand_synth = SynthTool().run(
-        grade_root / "grade_synth_cand", cand_files,
-        synth_sources=[task.kernel_name],
-        top=task.top, part=task.part, clock_ns=task.clock_ns,
-    )
-
-    # ── 4. Baseline (starter) synthesis ────────────────────────────────────
+    # ── 4. Baseline (starter) synthesis for the scoring anchor ─────────────
     base_files = dict(task.headers)
     base_files[task.kernel_name] = task.kernel_code
     base_synth = SynthTool().run(
@@ -236,6 +456,7 @@ def step_score(state: RunState) -> RunState:
         synth_sources=[task.kernel_name],
         top=task.top, part=task.part, clock_ns=task.clock_ns,
     )
+    _record("starter_synth", base_synth)
 
     # ── 5. Build current scoring data structures ──────────────────────────
     cfg = TaskScoringConfig(
@@ -282,6 +503,7 @@ def step_score(state: RunState) -> RunState:
             synth_sources=[task.kernel_name],
             top=task.top, part=task.part, clock_ns=task.clock_ns,
         )
+        _record("reference_synth", ref_synth)
         if ref_synth.ok and ref_synth.report:
             ref_lat = ref_synth.report.latency_worst or ref_synth.report.latency_avg
             ref_ii = ref_synth.report.interval_max
@@ -343,7 +565,7 @@ def step_score(state: RunState) -> RunState:
         hidden_csim_pass=csim.ok,
         hidden_cosim_pass=cosim_ok,
         synth_pass=cand_synth.ok,
-        resource_capacity_pass=True,
+        resource_capacity_pass=state.resource_ok,
     )
 
     # Budget & grading wall time. API tokens are observability-only in V8.
@@ -392,30 +614,78 @@ def step_score(state: RunState) -> RunState:
             f"(valid={ref_scorecard.valid}, q_hw={ref_scorecard.q_hw:.4f})"
         )
 
-    grading_results = [
-        ("hidden_csim", csim),
-        ("candidate_synth", cand_synth),
-        ("starter_synth", base_synth),
-    ]
-    if cosim is not None:
-        grading_results.append(("hidden_cosim", cosim))
-    if ref_synth is not None:
-        grading_results.append(("reference_synth", ref_synth))
-    if not isinstance(getattr(state, "metadata", None), dict):
-        state.metadata = {}
-    state.metadata["grading_results"] = grading_results
+    return state
 
+
+def step_public_acceptance(state: RunState) -> RunState:
+    """Fold public correctness and target gates into one truthful terminal gate."""
+
+    failures: list[str] = []
+    if not state.interface_ok:
+        failures.append("interface_failed")
+    if not state.csim_ok:
+        failures.append("csim_failed")
+    if not state.synth_ok:
+        failures.append("synth_failed")
+    if not state.frequency_ok:
+        failures.append(
+            str(
+                (state.metadata.get("frequency_gate") or {}).get(
+                    "reason", "frequency_failed"
+                )
+            )
+        )
+    if not state.resource_ok:
+        failures.append(
+            str(
+                (state.metadata.get("resource_gate") or {}).get(
+                    "reason", "resource_failed"
+                )
+            )
+        )
+    if state.task.requires_cosim and not state.cosim_ok:
+        failures.append("cosim_failed")
+
+    if failures:
+        state.status = "failed"
+        state.stop_reason = failures[0]
+        state.metadata["public_acceptance"] = {
+            "ok": False,
+            "failures": failures,
+        }
+        return state
+
+    mark_fully_verified(state)
+    state.status = "completed"
+    state.stop_reason = ""
+    state.metadata["public_acceptance"] = {"ok": True, "failures": []}
     return state
 
 
 def step_finalize(state: RunState) -> RunState:
     """Persist the final kernel and derive the truthful terminal status."""
+    if not isinstance(getattr(state, "metadata", None), dict):
+        state.metadata = {}
+    if getattr(state, "last_verified_kernel", None) is not None:
+        state.kernel = state.last_verified_kernel
+    elif (
+        state.status in ("failed", "budget_exceeded", "infrastructure_error")
+        and getattr(state, "safe_fallback_kernel", None) is not None
+    ):
+        # Never publish an unverified LLM proposal. If no fully accepted
+        # candidate exists, preserve the immutable public starter and keep the
+        # truthful failure status.
+        state.kernel = state.safe_fallback_kernel
     out = Path(state.config.output_root) / state.task.id
     out.mkdir(parents=True, exist_ok=True)
     kernel_path = out / f"final_{state.task.kernel_name}"
     kernel_path.write_text(state.kernel, encoding="utf-8")
     state.log(f"final kernel → {kernel_path}")
+    state.metadata["finalized"] = True
+    state.metadata["final_kernel_path"] = str(kernel_path)
 
+    if state.status in ("budget_exceeded", "infrastructure_error", "failed"):
+        return state
     if state.scorecard is not None:
         if getattr(state.scorecard, "valid", False):
             state.status = "completed"
@@ -424,21 +694,19 @@ def step_finalize(state: RunState) -> RunState:
             state.stop_reason = (
                 getattr(state.scorecard, "gate_reason", "") or "scoring_invalid"
             )
-    elif not state.csim_ok:
-        state.status = "failed"
-        state.stop_reason = "csim_failed"
-    elif not state.synth_ok:
-        state.status = "failed"
-        state.stop_reason = "synth_failed"
-    elif (
-        state.task.requires_cosim
-        and state.config.mode in ("structural", "full")
-        and not state.cosim_ok
-    ):
-        state.status = "failed"
-        state.stop_reason = "cosim_failed"
-    else:
-        state.status = "completed"
+    elif not hasattr(state, "interface_ok"):
+        # Compatibility for callers constructing the pre-P0 lightweight state.
+        if not state.csim_ok:
+            state.status = "failed"
+            state.stop_reason = "csim_failed"
+        elif not state.synth_ok:
+            state.status = "failed"
+            state.stop_reason = "synth_failed"
+        elif state.task.requires_cosim and not state.cosim_ok:
+            state.status = "failed"
+            state.stop_reason = "cosim_failed"
+        else:
+            state.status = "completed"
     return state
 
 
@@ -449,12 +717,13 @@ def step_finalize(state: RunState) -> RunState:
 
 def step_repair(state: RunState) -> RunState:
     """Run the repair agent loop if csim failed."""
-    if state.csim_ok:
-        state.log("repair: skipped (csim already ok)")
+    if state.csim_ok and state.synth_ok:
+        state.log("repair: skipped (csim and synth already ok)")
         return state
     if state.llm is None:
         state.log("repair: no LLM client — cannot repair")
-        state.status = "repair_no_llm"
+        state.status = "failed"
+        state.stop_reason = "repair_no_llm"
         return state
 
     try:
@@ -481,7 +750,8 @@ def step_structural_repair(state: RunState) -> RunState:
         return state
     if state.llm is None:
         state.log("structural_repair: no LLM client")
-        state.status = "structural_repair_no_llm"
+        state.status = "failed"
+        state.stop_reason = "structural_repair_no_llm"
         return state
 
     try:
@@ -503,7 +773,8 @@ def step_optimize(state: RunState) -> RunState:
     """Run the optimization agent loop."""
     if state.llm is None:
         state.log("optimize: no LLM client")
-        state.status = "optimize_no_llm"
+        state.status = "failed"
+        state.stop_reason = "optimize_no_llm"
         return state
 
     try:
@@ -559,6 +830,7 @@ def build_pipeline(
     one stage in the run.
 
     Modes:
+    - ``auto``       — tool-result-driven repair → synth repair → cosim repair → optimize
     - ``baseline``   — csim → synth → score (no LLM)
     - ``repair``     — csim → repair → synth → score
     - ``optimize``   — csim → synth → optimize → score
@@ -583,7 +855,7 @@ def build_pipeline(
     pipeline.steps.append(Step("csim", step_csim, desc="C simulation (baseline)"))
 
     # ---- Stage 2: Repair (if enabled and needed) ----
-    if mode in ("repair", "full"):
+    if mode in ("auto", "repair", "full"):
         pipeline.steps.append(
             Step("repair", step_repair,
                  condition=lambda s: not s.csim_ok,
@@ -591,14 +863,21 @@ def build_pipeline(
         )
 
     # ---- Stage 3: Synthesis ----
-    # Structural-only co-simulation already runs csynth_design and now returns
-    # that report.  Other modes keep the standalone synthesis stage because
-    # optimization/full workflows consume it before later stages.
-    if not (mode == "structural" and task.requires_cosim):
-        pipeline.steps.append(Step("synth", step_synth, desc="C synthesis (baseline PPA)"))
+    pipeline.steps.append(Step("synth", step_synth, desc="C synthesis (baseline PPA)"))
+
+    # Auto/repair must also handle designs that pass CSim but fail synthesis.
+    if mode in ("auto", "repair", "full"):
+        pipeline.steps.append(
+            Step(
+                "synth_repair",
+                step_repair,
+                condition=lambda s: s.csim_ok and not s.synth_ok,
+                desc="LLM synthesis-repair loop driven by the failed synth log",
+            )
+        )
 
     # ---- Stage 4: Co-simulation (structural tasks) ----
-    if task.requires_cosim and mode in ("structural", "full"):
+    if task.requires_cosim:
         pipeline.steps.append(
             Step(
                 "cosim",
@@ -608,7 +887,7 @@ def build_pipeline(
         )
 
     # ---- Stage 5: Structural repair ----
-    if task.requires_cosim and mode in ("structural", "full"):
+    if task.requires_cosim and mode in ("auto", "structural", "full"):
         pipeline.steps.append(
             Step("structural_repair", step_structural_repair,
                  condition=lambda s: not s.cosim_ok,
@@ -616,7 +895,7 @@ def build_pipeline(
         )
 
     # ---- Stage 6: Optimization ----
-    if mode in ("optimize", "full"):
+    if mode in ("auto", "optimize", "full"):
         optimize_desc = (
             "Independent strategy competition: measure candidates, pick best Q_HW"
             if config.competition
@@ -624,12 +903,25 @@ def build_pipeline(
         )
         pipeline.steps.append(
             Step("optimize", step_optimize,
-                 condition=lambda s: s.csim_ok and s.synth_ok,
+                 condition=lambda s: (
+                     s.csim_ok
+                     and s.synth_ok
+                     and s.interface_ok
+                     and s.frequency_ok
+                     and s.resource_ok
+                     and (not s.task.requires_cosim or s.cosim_ok)
+                 ),
                  desc=optimize_desc)
         )
 
-    # ---- Stage 7: Scoring ----
-    pipeline.steps.append(Step("score", step_score, desc="Hidden-testbench grading"))
+    # ---- Stage 7: Public submission acceptance ----
+    pipeline.steps.append(
+        Step(
+            "public_acceptance",
+            step_public_acceptance,
+            desc="Interface/correctness/synth/frequency/resource/final-cosim gates",
+        )
+    )
 
     # ---- Stage 8: Finalize ----
     pipeline.steps.append(Step("finalize", step_finalize, desc="Persist final kernel"))

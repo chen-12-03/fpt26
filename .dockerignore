@@ -1,0 +1,10 @@
+.git
+.agents
+.codex
+runs
+tasks
+third_party
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+**/*.pyo

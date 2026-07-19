@@ -19,6 +19,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from llm4hls.tools import ToolResult
+
 from agent.agents.base import RunState
 from agent.analysis.issue_classifier import IssueClassifier
 from agent.analysis.log_normalizer import LogNormalizer
@@ -67,53 +69,40 @@ class RepairAgent:
         """Run the repair loop. Returns updated RunState."""
         task = state.task
         server = state.server
-        code = state.kernel
-
-        # The repair pipeline invokes this agent immediately after baseline
-        # C-sim failed.  Reuse that adjacent result for the first diagnosis;
-        # standalone calls without such an upstream result still run C-sim.
-        initial_csim = state.results[-1] if state.results else None
-        reuse_initial_csim = (
-            getattr(initial_csim, "kind", None) == "csim"
-            and not getattr(initial_csim, "ok", False)
-        )
+        stable_code = state.kernel
+        failure = state.results[-1] if state.results else None
+        if getattr(failure, "ok", True):
+            failure = None
 
         for attempt in range(1, self.max_attempts + 1):
-            # ── 1. C-simulate current code ────────────────────────────────
-            if attempt == 1 and reuse_initial_csim:
-                r = initial_csim
-                state.log("repair: reusing pipeline C-sim failure")
-            else:
-                r = server.csim(code)
-                state.results.append(r)
-            state.log(f"repair attempt {attempt}: {r.brief()}")
-
-            if r.ok:
-                # ── 2. C-sim passed! Verify synth too ─────────────────────
-                sr = server.synth(code)
-                state.results.append(sr)
-                if sr.ok:
-                    state.kernel = code
+            if failure is None:
+                failure = server.csim(stable_code)
+                state.results.append(failure)
+                if failure.ok:
+                    failure = server.synth(stable_code)
+                    state.results.append(failure)
+                if failure.ok:
                     state.csim_ok = True
                     state.synth_ok = True
-                    state.status = "completed"
-                    state.log(f"repair: succeeded on attempt {attempt}")
+                    state.kernel = stable_code
                     return state
-                # Synth failed — continue to LLM repair with synth error
-                r = sr  # use synth failure as the error context
+            elif attempt == 1:
+                state.log(
+                    f"repair: reusing pipeline {getattr(failure, 'kind', 'tool')} failure"
+                )
 
             # ── 3. Read result → normalize log → classify issue ───────────
-            log_text = getattr(r, "log", "") or ""
-            phase = getattr(r, "phase", "unknown") or "unknown"
-            kind = getattr(r, "kind", "csim") or "csim"
+            log_text = getattr(failure, "log", "") or ""
+            phase = getattr(failure, "phase", "unknown") or "unknown"
+            kind = getattr(failure, "kind", "csim") or "csim"
 
             normalized = self.log_normalizer.normalize(kind, phase, log_text)
-            issue = self.issue_classifier.classify(r, normalized)
+            issue = self.issue_classifier.classify(failure, normalized)
 
             # ── 4. Build prompt with error context ────────────────────────
             prompt = build_repair_prompt(
                 task=task,
-                current_kernel=code,
+                current_kernel=stable_code,
                 normalized_log=normalized,
                 issue=issue,
                 attempt_feedback=(
@@ -125,15 +114,102 @@ class RepairAgent:
             # ── 5. LLM modifies code ──────────────────────────────────────
             response = self.llm.complete(REPAIR_SYSTEM, prompt)
             new_code = extract_code(response)
-            if new_code is None or new_code.strip() == code.strip():
+            if new_code is None or new_code.strip() == stable_code.strip():
                 state.log(f"repair attempt {attempt}: LLM returned no change")
                 continue
 
-            # ── 6. Update code and loop back ──────────────────────────────
-            code = new_code
+            # ── 6. Validate the proposal immediately in this attempt ─────
+            from agent.workflow import (
+                mark_fully_verified,
+                record_synth_gates,
+                validate_candidate,
+            )
+
+            if not validate_candidate(
+                state,
+                new_code,
+                stage=f"repair_candidate_{attempt}",
+                current_best=False,
+            ):
+                validation = state.metadata.get("interface_validations", [{}])[-1]
+                failure = ToolResult(
+                    kind="csim",
+                    ok=False,
+                    phase="compile_error",
+                    return_code=-1,
+                    log=(
+                        "Candidate rejected by deterministic interface gate: "
+                        + str(
+                            validation.get(
+                                "reason", "unknown"
+                            )
+                        )
+                    ),
+                    elapsed_s=0.0,
+                )
+                continue
+
+            cr = server.csim(new_code)
+            state.results.append(cr)
+            state.log(f"repair attempt {attempt}: {cr.brief()}")
+            if not cr.ok:
+                failure = cr
+                continue
+
+            sr = server.synth(new_code)
+            state.results.append(sr)
+            state.log(f"repair attempt {attempt}: {sr.brief()}")
+            if not sr.ok:
+                failure = sr
+                continue
+            if not record_synth_gates(
+                state,
+                sr,
+                stage=f"repair_candidate_{attempt}",
+                current_best=False,
+            ):
+                failure = ToolResult(
+                    kind="synth",
+                    ok=False,
+                    phase="target_gate_fail",
+                    return_code=-1,
+                    log=(
+                        "Candidate synthesis completed but failed the mandatory "
+                        "100 MHz and/or device-capacity gate."
+                    ),
+                    elapsed_s=0.0,
+                    report=sr.report,
+                )
+                state.log(
+                    f"repair attempt {attempt}: target gate failed — discard"
+                )
+                continue
+
+            state.kernel = new_code
+            state.csim_ok = True
+            state.synth_ok = True
+            state.status = "running"
+            state.stop_reason = ""
+            record_synth_gates(
+                state,
+                sr,
+                stage=f"repair_candidate_{attempt}_accepted",
+            )
+            latency = (
+                sr.report.latency_worst
+                if sr.report and sr.report.latency_worst is not None
+                else (sr.report.latency_avg if sr.report else None)
+            )
+            if latency is not None:
+                state.best_latency = latency
+            if not task.requires_cosim:
+                mark_fully_verified(state)
+            state.log(f"repair: succeeded on attempt {attempt}")
+            return state
 
         # Max attempts exhausted
-        state.kernel = code
-        state.status = "repair_failed"
+        state.kernel = stable_code
+        state.status = "failed"
+        state.stop_reason = "repair_failed"
         state.log(f"repair: failed after {self.max_attempts} attempts")
         return state

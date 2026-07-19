@@ -1,29 +1,43 @@
 {
   "schema_version": 1,
-  "frozen_at": "2026-07-18",
-  "policy": "Minimum fixes only for reproducible execution-layer defects, with a new regression test and full revalidation.",
+  "frozen_at": "2026-07-20",
+  "policy": "Post-P0 execution freeze after fresh split-role real-API and Vitis 2025.2 acceptance. Any execution, scoring, launcher, Docker, harness, or task-corpus change requires a new regression and full revalidation.",
   "validation": {
-    "clean_image": "fpt26-agent-v3:freeze-20260718",
-    "clean_image_sha256": "03c4cb2277f94b988ae6667ac605b3d8a11f3856cf93ddefd66650bb5c6af642",
+    "clean_image": "fpt26-agent-v3:p0-clean-20260719",
+    "clean_image_sha256": "2450e1d03d85f7141164e7b6c420eeb37c9d1eaa78626e863d86f900e59efa89",
     "scoring_version": "10.0.0",
     "scoring_schema": 10,
-    "vitis_hls": "2025.2 build 6295257"
+    "profile_schema": 11,
+    "vitis_hls": "2025.2 build 6295257",
+    "execution_source_tree_sha256": "b06672fbcae284a4f562f2f214a3e486e202c898ee7975f4af890e4670d8538e",
+    "official_acceptance_sha256": "b16127cbee402988430f7ffaf9d91362efe7b7d56c064ed798e90bb5ff004b51",
+    "task97_acceptance_sha256": "43687ddf01fcd9b7b4c668d525732bad5a4395c27705588914f13dc2627f5b1d"
   },
   "files": {
-    "fpt26-agent-v3/agent/main.py": "748d83d3d159a5a49d48858c80a63f2f80167972f44e7fdf95cd40bb1c6aeb09",
-    "fpt26-agent-v3/agent/runner.py": "32d0c455c4775c6f2f97ec10d333f441e92e4a39dd01a3cb14083f691a0684fa",
-    "fpt26-agent-v3/agent/testbench.py": "40abb8abdcf421c1b36e10a48f1d7cb10dde5e46175ac327c4812b0d2dbd14e6",
-    "fpt26-agent-v3/agent/workflow.py": "3fc8adc998eec8b780293cdb068643781687d868d633c5fcc91a7e04dfdeb816",
-    "fpt26-agent-v3/agent/reporting.py": "20a8854d123ddb797c8939afdb0312853e478ec8f2cd832016adfbdc2a79cc7c",
-    "fpt26-agent-v3/agent/agents/base.py": "4f83f8ef0f1005fd6b1f0af1407a09f5fbd8950bb5608438c2cd8cc7423db678",
+    ".dockerignore": "9dc0d65911c9d4cbe048cad7a460ad5f08a89773c75279adb15d49b46bf70f5b",
     "fpt26-agent-v3/run-agent.sh": "7c8763600ea6db88660e7c8e13e3289dd7a96ef4f33da3a051e76b9c8531c1c1",
+    "fpt26-agent-v3/run-p0-official-fresh.sh": "564a6e6bb989fc3275e7ea80237a048aa3ebf900b5d7f032201d40e33bf7e321",
+    "fpt26-agent-v3/test_all.sh": "f6d6481f7c6b8584896ae257023d24670dabb15a1144f12c75c2817d0bf6dd26",
     "fpt26-agent-v3/Dockerfile": "9e872b4c3f511e227dc36a4bbe5c7f5ab955004f5a27bc99388aa194797b392a",
     "fpt26-agent-v3/docker-compose.yml": "112315fb56997cac8904f457f73185d95bf48540e1269348f641e9ce27b91d05",
+    "fpt26-agent-v3/scoring/scoring_v3.py": "c2c9b99cfd66d19cd2268f679d9d5ed071db1cf7589cfa910f15219d36c2c93c",
+    "fpt26-agent-v3/scoring/profiles.py": "e808c1b5756b2202d68d93aa07651eaa3f00fd637450b058ff55377ce91a7caa",
+    "fpt26-agent-v3/scoring/run_p0_real_api_shard.py": "1cc2b9df9b375189bb93e7b5b9a0e8942200d614e8f9449cef0eae6bdf71bec9",
+    "fpt26-agent-v3/scoring/reconcile_p0_evaluators.py": "f6076d2eb0bc7c388ac265ba48f6cef895040c75232f0642a7684ec6ea3d3579",
+    "fpt26-agent-v3/scoring/snapshot_execution_source.py": "568c466250f93841f58741708c85981feb2cf8bdcc740ec5756c91ffee26d5cd",
+    "fpt26-agent-v3/scoring/audit_p0_acceptance.py": "e73ee512a849bbbc2630a5b6dc20b044262f997d4e49c5e79bbd89b3bf785308",
+    "fpt26-agent-v3/scoring/audit_p0_official.py": "98ea58ab36eb1983c5208639923e0fd77920e1e77e0bc852cc6c2c3506e6ad15",
     "fpt26-harness/run-vitis.sh": "03cd13475ce1bf05f0afa7453893018fb723cca602ed046770d81a80906968fd",
     "fpt26-harness/run.tcl": "ed5a21cb6f21b2f24ad1188d45da07155602cd787d5cc60f5724b5ae90092dd5",
     "fpt26-harness/requirements.txt": "6f198a3adb419b386d8c71dda700e5e0754f4ffc7695867234875e56fe3e8db0"
   },
   "trees": {
+    "agent_sources": {
+      "root": "fpt26-agent-v3/agent",
+      "kind": "python_sources",
+      "count": 29,
+      "sha256": "3ea4bf7a9b5a4920daa0e1670ed84e4a0504864cd895d84c410ef4ee13d7e732"
+    },
     "official_harness": {
       "root": "fpt26-harness/llm4hls",
       "kind": "python_sources",
@@ -36,11 +50,11 @@
       "count": 11,
       "sha256": "085d56c3dfd7ba2efc6880319c31ff8a9ec2bedd61b1a609bf98da9263370d9d"
     },
-    "task_testbenches": {
+    "task_corpus": {
       "root": "tasks",
-      "kind": "testbench_assets",
-      "count": 356,
-      "sha256": "5c0b7f2c4b301c008a02ee9c869ec1f5f841bad542aec062d2f880b856ff6100"
+      "kind": "all_files",
+      "count": 745,
+      "sha256": "2137351928e74cff1c790b585b7e977aef8f37f371fd38f20381ea320fdfcb93"
     }
   }
 }

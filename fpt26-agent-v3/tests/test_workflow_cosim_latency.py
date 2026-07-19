@@ -95,9 +95,9 @@ def _run_score(monkeypatch, tmp_path, measured_latency):
     class FakeCoSimTool:
         def run(self, *args, **kwargs):
             cosim = (
-                SimpleNamespace(latency_max=measured_latency)
+                SimpleNamespace(passed=True, latency_max=measured_latency)
                 if measured_latency is not None
-                else None
+                else SimpleNamespace(passed=True, latency_max=None)
             )
             return SimpleNamespace(ok=True, report=candidate, cosim=cosim)
 
@@ -129,8 +129,9 @@ def test_step_score_fails_closed_when_passed_cosim_has_no_measured_latency(
 ) -> None:
     state = _run_score(monkeypatch, tmp_path, measured_latency=None)
 
-    assert not state.scorecard.valid
-    assert state.scorecard.gate_reason == "required_metric_missing"
+    assert state.scorecard is None
+    assert state.status == "failed"
+    assert state.stop_reason == "required_cosim_report_missing"
 
 
 def test_run_report_audits_measured_cosim_source(monkeypatch, tmp_path) -> None:

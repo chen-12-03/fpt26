@@ -1,40 +1,24 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
-export VITIS=/tools/Xilinx/Vitis/2025.2
-export VITIS_MOUNT_ROOT=/tools/Xilinx
-export FPT26_REPO_ROOT=/home/chen1/projects/fpt26_new
-export XILINX_XRT=/opt/xilinx/xrt
-export HLS_PART=xcu55c-fsvh2892-2L-e
-export LLM4HLS_VITIS_HLS_ROOT=/tools/Xilinx/Vitis/2025.2
-export LLM4HLS_PART=xcu55c-fsvh2892-2L-e
-export FPT26_LLM_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
-export FPT26_LLM_MODEL="qwen3-coder-plus"
-export FPT26_LLM_API_KEY="${FPT26_LLM_API_KEY:-sk-your-api-key-here}"
-export FPT26_LLM_TIMEOUT_SECONDS=120
-export FPT26_LLM_MAX_OUTPUT_TOKENS=8192
-export FPT26_LLM_TEMPERATURE=0
-export HOST_UID=$(id -u)
-export HOST_GID=$(id -g)
-export HOME=$HOME
-COMPOSE_FILE=/home/chen1/projects/fpt26_new/fpt26-agent-v3/docker-compose.yml
 
-run_test() {
-    local name="$1"
-    local task="$2"
-    local mode="$3"
-    local extra="${4:-}"
-    echo "===== $name ====="
-    docker compose -f "$COMPOSE_FILE" run --rm --entrypoint "" agent bash -c "
-pip3 install -q tomli 2>/dev/null
-source /tools/Xilinx/Vitis/2025.2/settings64.sh
-source /opt/xilinx/xrt/setup.sh
-cd /workspace/fpt26-agent-v3
-python3 -m agent.main --task $task --mode $mode $extra
-" || echo "[$name] exit code: $?"
-    echo ""
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+IMAGE=${FPT26_AGENT_IMAGE:-fpt26-agent-v3:latest}
+VITIS_MOUNT_ROOT=${VITIS_MOUNT_ROOT:-/tools/Xilinx}
+VITIS_ROOT=${VITIS:-/tools/Xilinx/2025.2/Vitis}
+
+test -f "$VITIS_ROOT/settings64.sh" || {
+  echo "test_all: Vitis settings64.sh not found under $VITIS_ROOT" >&2
+  exit 2
 }
 
-run_test "TASK 1: projection_bugfix (repair)" "tasks/projection_bugfix" "repair" "--max-repair-attempts 2"
-run_test "TASK 2: dotProduct_optimize (optimize)" "tasks/dotProduct_optimize" "optimize" "--max-optimization-rounds 2"
-run_test "TASK 3: residual_stream_deadlock (structural)" "tasks/residual_stream_deadlock" "structural" "--max-structural-attempts 2"
-echo "===== ALL DONE ====="
+docker run --rm \
+  -e FPT26_REAL_VITIS_TESTS=1 \
+  -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
+  -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$REPO_ROOT:/workspace" \
+  -v "$VITIS_MOUNT_ROOT:$VITIS_MOUNT_ROOT:ro" \
+  -w /workspace/fpt26-agent-v3 \
+  "$IMAGE" \
+  bash -lc \
+  "source '$VITIS_ROOT/settings64.sh' && python3 -m pytest -q tests scoring -rs"

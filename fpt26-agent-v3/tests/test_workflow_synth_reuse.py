@@ -4,7 +4,19 @@ from agent.workflow import step_synth
 
 
 def _successful_synth():
-    report = SimpleNamespace(latency_worst=42, latency_avg=42)
+    report = SimpleNamespace(
+        latency_worst=42,
+        latency_avg=42,
+        clock_period_ns=5.0,
+        resources={"LUT": 1, "FF": 1, "DSP": 0, "BRAM_18K": 0, "URAM": 0},
+        available={
+            "LUT": 100,
+            "FF": 100,
+            "DSP": 100,
+            "BRAM_18K": 100,
+            "URAM": 100,
+        },
+    )
     return SimpleNamespace(
         kind="synth",
         ok=True,
@@ -28,6 +40,12 @@ def test_step_synth_reuses_adjacent_upstream_success() -> None:
         server=Server(),
         results=[previous],
         best_latency=None,
+        task=SimpleNamespace(clock_ns=5.0, requires_cosim=False),
+        metadata={},
+        interface_ok=True,
+        frequency_ok=False,
+        resource_ok=False,
+        last_verified_kernel=None,
         log=logs.append,
     )
 
@@ -58,6 +76,12 @@ def test_step_synth_runs_when_success_is_not_immediately_upstream() -> None:
         server=server,
         results=[previous, SimpleNamespace(kind="csim", ok=True)],
         best_latency=None,
+        task=SimpleNamespace(clock_ns=5.0, requires_cosim=False),
+        metadata={},
+        interface_ok=True,
+        frequency_ok=False,
+        resource_ok=False,
+        last_verified_kernel=None,
         log=lambda message: None,
     )
 

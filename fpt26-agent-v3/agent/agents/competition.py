@@ -192,7 +192,13 @@ class DiverseOptimizationStage:
                 csim_ok=state.csim_ok,
                 synth_ok=state.synth_ok,
                 cosim_ok=state.cosim_ok,
+                interface_ok=state.interface_ok,
+                frequency_ok=state.frequency_ok,
+                resource_ok=state.resource_ok,
                 best_latency=state.best_latency,
+                best_synth_result=state.best_synth_result,
+                last_verified_kernel=state.last_verified_kernel,
+                safe_fallback_kernel=state.safe_fallback_kernel,
                 metadata={},
             )
             agent = OptimizeAgent(
@@ -275,6 +281,28 @@ class DiverseOptimizationStage:
 
         state.kernel = winner.kernel
         state.best_latency = winner.best_latency
+        state.csim_ok = winner.csim_ok
+        state.synth_ok = winner.synth_ok
+        state.cosim_ok = winner.cosim_ok
+        state.interface_ok = winner.interface_ok
+        state.frequency_ok = winner.frequency_ok
+        state.resource_ok = winner.resource_ok
+        state.best_synth_result = winner.best_synth_result
+        state.last_verified_kernel = winner.last_verified_kernel
+        for key in (
+            "interface_contract",
+            "interface_gate",
+            "interface_validations",
+            "frequency_gate",
+            "resource_gate",
+            "synth_gate_history",
+            "best_synth_metrics",
+            "cosim_gate",
+            "cosim_gate_history",
+            "last_verified_kernel_stage",
+        ):
+            if key in winner.metadata:
+                state.metadata[key] = winner.metadata[key]
         state.metadata["best_q_hw"] = winner.metadata.get("best_q_hw")
         state.metadata["synth_candidates"] = combined_candidates
         state.metadata["optimization_search"] = {

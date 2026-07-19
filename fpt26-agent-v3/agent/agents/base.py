@@ -30,7 +30,7 @@ class AgentResult:
     """Return value from a standalone Agent run (not the pipeline itself)."""
 
     kernel: str
-    status: str = "ok"
+    status: str = "running"
     results: list[ToolResult] = field(default_factory=list)
     best_latency: int | None = None
 
@@ -39,7 +39,8 @@ class AgentResult:
 class AgentConfig:
     """Configuration knobs for a pipeline run."""
 
-    mode: str = "baseline"            # baseline | repair | optimize | structural | full
+    mode: str = "auto"                # auto | baseline | repair | optimize | structural | full
+    run_role: str = "submission"      # submission | evaluator
     competition: bool = False         # independent strategy lanes, measured sequentially
     max_repair_attempts: int = 3
     max_optimization_rounds: int = 5
@@ -51,7 +52,7 @@ class AgentConfig:
 
     @property
     def needs_llm(self) -> bool:
-        return self.mode in {"repair", "optimize", "structural", "full"}
+        return self.mode in {"auto", "repair", "optimize", "structural", "full"}
 
 
 @dataclass
@@ -77,9 +78,15 @@ class RunState:
     csim_ok: bool = False
     synth_ok: bool = False
     cosim_ok: bool = False
+    interface_ok: bool = False
+    frequency_ok: bool = False
+    resource_ok: bool = False
 
     # -- PPA tracking ----------------------------------------------------
     best_latency: int | None = None
+    best_synth_result: Any = None
+    last_verified_kernel: str | None = None
+    safe_fallback_kernel: str | None = None
 
     # -- scoring ---------------------------------------------------------
     scorecard: Any = None

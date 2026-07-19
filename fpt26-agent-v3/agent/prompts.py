@@ -54,29 +54,12 @@ Do NOT modify the top function signature, headers, or testbenches.
 - Reject a candidate when reduced cycles are outweighed by clock-period or worst-resource growth.
 - If Q_HW cannot be improved without breaking csim/cosim → stop and submit current best."""
 
-REPAIR_SYSTEM = """You are an expert AMD-Xilinx Vitis HLS C/C++ repair engineer.
-
-Output ONLY the full kernel source inside a ```cpp fenced block.
-Do NOT modify the top function signature, headers, or testbenches.
-
-The public C-simulation failed. Read the provided failure log and make the smallest functional correction supported by that evidence. Preserve every unrelated branch, expression, type, interface, and comment when practical. Common defects are a missing arithmetic term, wrong variable, wrong branch formula, or off-by-one bound.
-
-Do NOT add, remove, or tune HLS pragmas while repairing functional correctness. Do not optimize latency, resources, or style. If a prior attempt failed, change the bug hypothesis rather than accumulating edits. Return the complete corrected kernel source."""
-
-STRUCTURAL_REPAIR_SYSTEM = """You are an expert AMD-Xilinx Vitis HLS streaming and DATAFLOW repair engineer.
-
-Output ONLY the full kernel source inside a ```cpp fenced block.
-Do NOT modify the top function signature, headers, or testbenches.
-
-C-simulation passed but real RTL co-simulation deadlocked or timed out. C-sim hls::stream FIFOs are unbounded and can hide this bug; RTL FIFOs are bounded. Diagnose producer/consumer ordering and rate balance from the kernel and cosim log. The primary fix for sibling-stream bursts is to interleave writes to all sibling streams in one producer loop. Never produce an entire sibling stream before touching the others in the same DATAFLOW path.
-
-If streams already have explicit positive depths, preserve those depth pragmas exactly. Do NOT increase FIFO depth to mask sequential producer ordering: it adds FF/LUT and leaves the structural cause in place. Consider a depth change only when ordering and rates are already balanced and the log/kernel proves an unavoidable bounded burst.
-
-Make only the minimal structural fix. Preserve arithmetic, interfaces, and unrelated pragmas; do not perform QoR optimization. Return the complete corrected kernel source."""
-
-# OptimizeAgent retains the full scorer-aware HLS discipline.
-OPTIMIZE_SYSTEM = _SYS
-SYSTEM = OPTIMIZE_SYSTEM
+# All modes share one system policy. Stage-specific behavior is selected only
+# by the real tool evidence serialized in the user payload.
+SYSTEM = _SYS
+REPAIR_SYSTEM = SYSTEM
+STRUCTURAL_REPAIR_SYSTEM = SYSTEM
+OPTIMIZE_SYSTEM = SYSTEM
 
 _PROMPT_CODE_SUFFIXES = {
     ".c",
@@ -206,12 +189,18 @@ def build_repair_prompt(
             "\n[Previous attempt did not fix the issue. "
             "Try a DIFFERENT hypothesis. Re-read the error log carefully.]"
         )
-    return build_prompt(
-        task=task,
-        current_kernel=current_kernel,
-        csim_result=f"FAIL: {normalized_log.error_summary}{extra}",
-        attempt=attempt_feedback.get("attempt", 1) if attempt_feedback else 1,
-    )
+    failure = f"FAIL: {normalized_log.error_summary}{extra}"
+    kwargs: dict[str, Any] = {
+        "task": task,
+        "current_kernel": current_kernel,
+        "attempt": attempt_feedback.get("attempt", 1) if attempt_feedback else 1,
+    }
+    if normalized_log.stage == "synth":
+        kwargs["csim_result"] = "PASS"
+        kwargs["synth_result"] = failure
+    else:
+        kwargs["csim_result"] = failure
+    return build_prompt(**kwargs)
 
 
 def build_optimize_prompt(

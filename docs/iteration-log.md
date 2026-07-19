@@ -3283,3 +3283,209 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
   execution freeze。
 - 下一阶段优先进行“自然语言到 testbench”的需求分析与方案构思；本条仅记录方向
   切换，不代表已经确定实现架构、修改 testbench/harness，或扩大现有冻结范围。
+
+## 2026-07-19 — P0 执行工作流修复与外部 API 阻塞审计
+
+### 修复范围
+
+- 按 Track-A 完整工作流重新划分 `submission` 与 `evaluator`：submission 使用
+  public-only task loader，禁止读取或命名 `hidden/`、`reference/`；evaluator 在独立
+  output root 中接收 frozen final kernel 并拥有 hidden grading。官方三个 task 包本身
+  不含 hidden testbench，因此 evaluator 明确报告 `public_fallback`，不声明 hidden pass。
+- 新增统一 CandidateValidator，冻结 top、返回类型、参数顺序/类型/维度、指针引用属性和
+  必需 include，并生成 interface fingerprint。候选统一按 `Interface → CSim → Synth →
+  100 MHz → resource capacity → required CoSim → Q_HW` 验收；任一 gate 失败即拒绝，
+  未完全验证的 LLM 代码不得覆盖 final。
+- `requires_cosim` 的每个候选均重新 CoSim，失败、timeout 或缺报告 fail-closed；
+  100 MHz gate 只读取真实 synthesis clock，`<=10.0 ns` 通过，缺失、NaN、0 或
+  `>10.0 ns` 失败。默认 CLI 改为 `--mode auto`，旧 mode 保持兼容，路由只依赖真实
+  CSim/Synth/CoSim 反馈。
+- 状态统一为 `running/completed/failed/budget_exceeded/infrastructure_error`，并使
+  report、stop reason 和 exit code 一致；工具或 gate 失败后不再继续评分。preflight
+  验证 task 文件、预算、U55C、Vitis 2025.2 和真实环境，预算不可上调。报告新增模型
+  合规证据、API/token、credits、工具次数、wall time、part/clock/toolchain 和脱敏。
+- 保持 `scoring_v3` 统一公式、correctness hard gates 和
+  `scoring/scoring-freeze.json` 不变；没有 task-specific prompt、评分分支或 hidden
+  数据注入。
+
+### Clean Docker 测试
+
+- clean image 为 `fpt26-agent-v3:p0-clean-20260719`，本地不可变 image ID
+  `sha256:2450e1d03d85f7141164e7b6c420eeb37c9d1eaa78626e863d86f900e59efa89`，
+  创建时间 `2026-07-19T11:21:39.813413395Z`，无 registry RepoDigest。
+- P0 定向集合在只读挂载 `/tools/Xilinx`、source Vitis 2025.2 且
+  `FPT26_REAL_VITIS_TESTS=1` 的 clean container 中最终为
+  **75 passed in 9.42s**。
+- scoring 与 scoring-freeze 定向集合为 **84 passed in 0.20s**。
+- 完整功能集合排除按约束故意保持旧状态的 execution-freeze 断言后为
+  **235 passed in 17.41s**；包含所有 freeze 测试时为
+  **236 passed, 1 failed, 0 skipped in 18.66s**。
+  唯一失败是旧 `execution-freeze.json` 对 P0 前 `agent/main.py` hash 的断言；其余功能、
+  real-Vitis、P0 与 scoring freeze 测试全部通过。按照“真实验收全部通过后最后更新
+  execution freeze”的约束，本轮不以改 hash 的方式伪造全绿。
+
+### 第二轮完成性审计补强
+
+- official machine auditor 不再只信任 report 中的 `frequency gate ok`：它要求
+  candidate clock 和 MHz 都为有限正数，clock `<=10.0ns`、MHz `>=100`，并独立验证
+  `MHz == 1000 / clock_ns`。
+- 每次 required CoSim gate 新增实际 candidate source SHA-256。official auditor 强制
+  submission final、submission final-CoSim source、evaluator input final、evaluator
+  hidden-CoSim source 四者哈希一致；由此证明 CoSim PASS 对应最终提交源码，而不是仅凭
+  stage 名称推断。
+- 新增 official auditor 正向、伪造 `gate.ok` 但 10.01ns、evaluator kernel 漂移、
+  CoSim source hash 漂移回归。相关 workflow/reporting 定向集合为
+  **26 passed in 1.47s**。
+- CLI completion audit 补上默认 `--mode auto`、五个旧 mode 兼容测试。预算 override
+  为 0 或大于 official budget 时现在不仅 exit 4，还写出
+  `failed/budget_override_invalid` 报告；相关定向集合为 **26 passed in 9.48s**。
+- fresh shard runner 现对 39 个 Agent/execution/scoring 文件生成 start/current
+  SHA-256 manifest，在每个任务前后检查 tree hash。运行中源码漂移或不同源码 resume
+  会 fail-closed；aggregate audit 要求三 shard 的 stable tree SHA-256 完全一致。
+  official fresh 脚本也在三个任务前后各写一次 snapshot，official auditor 要求
+  start=end=当前审计源码。单元回归及 auditors 为 **12 passed in 0.08s**。
+- 使用当前源码、clean runtime image、只读 Vitis 2025.2 对
+  `chstone__df_extractFloat64Sign` 做零 API 端到端 probe：真实 submission synth 和
+  hidden evaluator 均因不可用 candidate clock 正确 exit 4，outcome=failed，
+  audit_errors=[]，API request/response=0/0；没有进入 LLM。source snapshot
+  最终 v2 probe 的 start/current 均为
+  `2e978c51564a5c2f1dc9e4b3eddf85ca590e3e72beacf32eedecf8f4e77722a1`，
+  stable=true。summary SHA-256 为
+  `ae52d04f75cf26e89b285e541b55ae71a293dd8a84de681165fb7b1c75979300`。
+- 因 required-CoSim source hash、预算失败报告和 source snapshot 都是 97-task
+  首轮之后的执行层改动，最终 freeze 不能只补 53 个 API infrastructure_error。账户
+  恢复后须用最终源码和三个全新 root 重跑完整 97 tasks，再单独 aggregate；旧 97
+  audit 保留为诊断证据，不与新 revision 混合冒充 final acceptance。
+
+### 三个 official 的 interim 分离运行
+
+- 在最终 clean image 构建前完成一轮真实 custom API + Vitis 2025.2、U55C、
+  `--mode auto` 的 submission/evaluator 分离运行，产物位于
+  `runs/p0_official_fresh_20260719_v1`。该轮不作为最终 clean-image acceptance。
+- projection：submission/evaluator completed，394.011 MHz，API 4/4、16,004 tokens，
+  budget 8/20，evaluator `public_fallback` score 73.37。
+- dotProduct：completed，315.457 MHz，API 2/2、6,417 tokens，budget 15/40，
+  `public_fallback` score 76.51。
+- residual：completed，357.654 MHz，API 3/3、11,992 tokens，budget 75/80；最终候选
+  重新 CoSim PASS，measured max latency=97；`public_fallback` score 79.81。
+
+### 97-task fresh split-role 回归
+
+- 三个 fresh shard 为 `runs/p0_97_fresh_20260719_s{0,1,2}`，覆盖 33/32/32 个任务。
+  submission 和 evaluator 分离，最终已收齐 **97/97 submission records 和 97/97
+  evaluator reports**。审计 JSON 为
+  `runs/p0_97_fresh_20260719_acceptance.json`，SHA-256
+  `070efcf57227fb93fa591d33ce75db13d9aaa7741a486f1b76f30a28b1eb7110`。
+- 当前 outcome 为 completed=29、no_valid_anchor=7、failed=8、
+  infrastructure_error=53、budget_exceeded=0。submission public-only=97/97，
+  hidden/reference access=0；evaluator source 为 hidden=94、public_fallback=3。
+- 总 API requests/responses/failed=`119/66/53`，prompt/completion/total tokens=
+  `283585/48166/331751`；credits=711/5330，agent tool calls=278。模型合规证据
+  97/97；完整 real-API usage 44/97。
+- interface gate 97/97，100 MHz gate 88/97，resource gate 96/97，fully verified
+  final=87。8 个 deterministic failure 均在候选 clock/frequency gate fail-closed，
+  不继续评分；7 个 no_valid_anchor 已完成真实 API、正确性和 synth，但 starter/reference
+  没有 finite anchor。该轮 residual 的新候选 required CoSim 未通过，被正确拒绝，
+  因此当前 required CoSim acceptance 为 0/1，不把失败写成通过。
+- machine audit exit 4、`workflow_integrity_ok=false` 是真实结果：53 个 task 的 custom
+  API 请求被 provider 返回 HTTP 400 `account is not in good standing`，不是 task、
+  Docker、Vitis 或 evaluator 故障。审计保存了精确 53-task retry list，只允许新鲜结果
+  替换旧 `infrastructure_error`。
+
+### 最小真实探针与未完成项
+
+- 使用 clean image、只读 `/tools/Xilinx`、source Vitis 2025.2、真实
+  `/tmp/fpt26.env` custom client 和全新 output root 执行
+  `chstone__df_packFloat64` 探针。submission 发出 1 次真实请求后以
+  `infrastructure_error`/exit 6 安全终止；独立 hidden evaluator completed/exit 0，
+  证明 Vitis 与 evaluator 可运行。provider 仍返回 HTTP 400 account 状态错误，endpoint
+  在报告中已脱敏。probe summary 为
+  `runs/p0_api_probe_20260719_r2/shard_summary.json`，SHA-256
+  `fac3199e2892c39b5f425a56801caf562f6cd7bf51207e589c22265dfa9be92e`。
+- 外部账户恢复前无法诚实完成：53-task fresh retry、clean-image 三 official 最终重跑、
+  official machine audit、最终 acceptance JSON 全绿、execution freeze 更新及最后
+  freeze test。因此 P0 目标保持 active，不标记 complete；不使用 mock/replay/旧 kernel
+  或历史 XML 补齐。
+- 恢复后必须按顺序：三 shard 用最终源码和新 output root 重跑完整 97-task corpus；
+  只聚合这三个同 source tree roots 并要求 `workflow_integrity_ok=true`；用 clean image
+  重跑三个 official 并审计；最后更新 execution freeze，重新执行完整 clean-image
+  测试且要求 0 failed/0 skipped，再补齐最终报告和关键 hash。
+
+### 第三次连续外部阻塞审计
+
+- `/tmp/fpt26.env` 的修改时间仍为 `2026-07-15 21:25:39 +0800`。为排除 provider
+  服务端状态可能已经恢复但本地配置未变化，仍使用当前 39-file source tree、clean
+  runtime image、只读 Vitis 2025.2、真实 custom backend 和全新 output root
+  `runs/p0_api_blocker_probe_20260719_r3` 执行 `chstone__df_packFloat64`。
+- source snapshot start/current 均为
+  `2e978c51564a5c2f1dc9e4b3eddf85ca590e3e72beacf32eedecf8f4e77722a1`，
+  stable=true。submission 完成真实 Vitis preflight 后发送 1 次 API 请求，provider
+  再次返回 HTTP 400 `account is not in good standing`；状态为
+  `infrastructure_error`、exit 6、request/response/failed=`1/0/1`。endpoint 已脱敏。
+- 独立 evaluator 不依赖 LLM，hidden CSim/synthesis 正常完成，状态 completed/exit 0，
+  grading source=hidden。这再次证明阻塞边界是 API 账户而非 Docker、Vitis、U55C、
+  evaluator 或 task package。
+- r3 shard summary SHA-256 为
+  `86b90ebcc1f96758341d5715bca725c9ad6b6a002747398e64267e55d2e78804`；
+  submission/evaluator report SHA-256 分别为
+  `8a3501af3b7c2d6ccfc324ab41f4cfb1cd84cb20231eaac596a6e026d42b7118` 和
+  `f5817b7ce6c8fd3adb10bed70ac0c1d06bf43f13863108bc483632053577f5c3`。
+- 同一阻塞已在原始 Goal turn 和两次自动 continuation 中连续复现三次，且全部不依赖
+  API 的实现、定向测试、完整功能回归、真实 Vitis probe、审计器、provenance、报告与
+  复现脚本均已完成。依照 Goal blocked-audit 规则，本目标正式标记 blocked；不会更新
+  execution freeze 或虚报 complete。账户恢复后应恢复 Goal，并从完整 97-task final
+  source rerun 开始。
+
+## 2026-07-19 — API 恢复后的 P0 最终源码验收
+
+- API 恢复探针真实调用成功后，先以 clean runtime image、只读 Vitis 2025.2 和
+  `--mode auto` 完成三个 official 的 submission/evaluator 分离运行。首次正式脚本暴露
+  task root 仍指向不存在的 `/workspace/fpt26-harness/tasks`；修正为只读公开任务目录
+  `/workspace/tasks/official` 后，使用全新目录
+  `runs/p0_official_final_20260719_v3` 重跑，未复用失败目录。
+- official 运行开始/结束的 39-file execution source tree 均为
+  `b06672fbcae284a4f562f2f214a3e486e202c898ee7975f4af890e4670d8538e`。
+  独立审计为 3/3、errors=0、request/response/failed=`7/7/0`、tokens=26,441，
+  最低频率 315.457 MHz。projection、dotProduct、residual 分别为
+  394.011/315.457/354.862 MHz；residual 最终源码重新 CoSim PASS，测得 latency
+  66 cycles，submission final、CoSim source 和 evaluator kernel SHA-256 一致。
+  official audit 为 `runs/p0_official_final_20260719_v3_acceptance.json`，SHA-256
+  `b16127cbee402988430f7ffaf9d91362efe7b7d56c064ed798e90bb5ff004b51`。
+- 因 official 启动器路径修复属于冻结执行源，未沿用修复前的 97-task 证据；三个全新
+  final-source shard `runs/p0_97_finalsrc_20260719_s{0,1,2}` 从头覆盖 33/32/32
+  个任务。三个 shard 均退出 0、源码树稳定且完全一致。aggregate audit 记录 97/97、
+  audit errors=0、retry IDs=[]、workflow integrity=true；outcome 为 completed=79、
+  failed=8、no_valid_anchor=10，infrastructure_error=0。
+- 97-task submission public-only=97/97、forbidden access=0；模型合规证据 97/97；
+  API request/response/failed/unreported=`169/169/0/0`，prompt/completion/total
+  tokens=`695562/97705/793267`。8 个 API 前终止任务分别为 6 个无有效 candidate
+  clock、2 个低于 100 MHz；其余 89 个任务均有真实 API 证据。interface=97/97、
+  resource=97/97、frequency/fully-verified=89/97；required CoSim=1/1。
+  evaluator source 为 hidden=94、truthful public_fallback=3。
+- 最终 97-task audit 为 `runs/p0_97_finalsrc_20260719_acceptance.json`，SHA-256
+  `43687ddf01fcd9b7b4c668d525732bad5a4395c27705588914f13dc2627f5b1d`；
+  shard summaries SHA-256 依次为
+  `589985e13a75effcc1a3b518f7bfc364122bd01b49cb6f65e4f51b0f1df35d82`、
+  `be06e3c1281736ad01f2a88b1444a6a319f068f64581b3a8d634f30baf9466f9`、
+  `b363f2bb100940aa365f5ce359e2a58bf9cc2a7be9421ba49bc8c68712a5b963`。
+- 最终源码上的完整 Docker 回归为 **236 passed, 1 failed, 0 skipped in 20.27s**；
+  唯一失败仍是按约束保留到最后的旧 execution freeze hash，所有功能、评分与真实
+  Vitis gate 均通过。随后申请构建无缓存最终 clean image 时，审批服务连接中断并拒绝
+  Docker build；未绕过审批。三个 official 已在 clean runtime、最终源码和稳定
+  execution-source hash 下完成，不因同一 Dockerfile 重新打 tag 而重复调用 API。
+
+## 2026-07-20 — P0 execution freeze 封板
+
+- 在 official 3/3 和 final-source 97/97 的真实 API + Vitis 验收完成后，最后更新
+  `execution-freeze.json`。新清单冻结 29 个 Agent Python 源文件、关键评分/审计入口、
+  Docker 与启动脚本、official harness、agent harness mirror，以及 task corpus 的
+  745 个文件；验证元数据绑定 execution source tree、official audit 和 97-task audit
+  SHA-256。
+- execution/scoring freeze 定向测试为 **5 passed in 0.24s**。随后在
+  `fpt26-agent-v3:p0-clean-20260719`、只读 Vitis 2025.2 环境中运行完整
+  `test_all.sh`，最终结果为 **237 passed in 21.18s**，退出码 0、0 failed、0 skipped。
+- execution freeze SHA-256 为
+  `372bd5c98840268ce38c3099e01a4951c614b5f1f7d3bdce07b4d7d2b3aacb38`；
+  scoring freeze 保持
+  `b067d4bf2fa02937412f5e367f40ca8f11b128e048bb9b7ff5007d157f200cf6`
+  不变。

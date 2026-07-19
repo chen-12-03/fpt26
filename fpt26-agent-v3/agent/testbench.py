@@ -61,7 +61,9 @@ def _normalize_text_fixtures(data_files: dict[str, bytes]) -> tuple[dict[str, by
     return prepared, changed
 
 
-def normalize_task_testbench_data(task: Any) -> tuple[str, ...]:
+def normalize_task_testbench_data(
+    task: Any, *, include_hidden: bool = False
+) -> tuple[str, ...]:
     """Normalize CRLF/CR newlines in text fixtures attached to ``task``.
 
     Returns the sorted fixture names whose staged bytes changed.  Binary data
@@ -70,7 +72,11 @@ def normalize_task_testbench_data(task: Any) -> tuple[str, ...]:
     task_dir = getattr(task, "dir", None)
     if task_dir is not None:
         public_data = discover_task_data_files(Path(task_dir))
-        hidden_data = discover_task_data_files(Path(task_dir), include_hidden=True)
+        hidden_data = (
+            discover_task_data_files(Path(task_dir), include_hidden=True)
+            if include_hidden
+            else dict(public_data)
+        )
         public_prepared, public_changed = _normalize_text_fixtures(public_data)
         hidden_prepared, hidden_changed = _normalize_text_fixtures(hidden_data)
         task.public_data_files = public_prepared

@@ -111,17 +111,12 @@ def test_real_vitis_invalid_official_task_returns_nonzero_and_reports_failure(
 
     assert rc == 4
     assert report["status"] == "failed"
-    assert report["stop_reason"] == "hidden_csim_fail"
-    assert report["scoring"]["valid"] is False
-    assert report["scoring"]["gate_reason"] == "hidden_csim_fail"
+    assert report["run_role"] == "submission"
+    assert report["stop_reason"] == "csim_failed"
+    assert "scoring" not in report
     trace = report["execution_trace"]
     assert trace["transcript"][0]["phase"] == "runtime_fail"
     assert trace["metered_results"][0]["return_code"] == 1
     assert "Test Case 1 Failed!" in trace["metered_results"][0]["log"]
-    hidden_csim = next(
-        item for item in trace["grading_results"] if item["stage"] == "hidden_csim"
-    )
-    assert hidden_csim["ok"] is False
-    assert hidden_csim["phase"] == "runtime_fail"
-    assert "Test Case 1 Failed!" in hidden_csim["log"]
+    assert trace["grading_results"] == []
     assert (tmp_path / "projection_bugfix/final_projection.cpp").is_file()

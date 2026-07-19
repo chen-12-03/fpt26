@@ -33,6 +33,12 @@ def _selected_files(root: Path, kind: str) -> list[Path]:
             or path.name.endswith("_tb.cpp")
             or path.suffix.lower() in _DATA_SUFFIXES
         )
+    if kind == "all_files":
+        return sorted(
+            path for path in files
+            if "__pycache__" not in path.parts
+            and path.suffix != ".pyc"
+        )
     raise AssertionError(f"unknown freeze tree kind: {kind}")
 
 

@@ -23,6 +23,19 @@ def test_repair_reuses_adjacent_pipeline_csim_failure() -> None:
     )
     passed = _result("csim", True, "[csim] pass")
     synthesized = _result("synth", True, "[synth] pass")
+    synthesized.report = SimpleNamespace(
+        latency_worst=10,
+        latency_avg=10,
+        clock_period_ns=5.0,
+        resources={"LUT": 1, "FF": 1, "DSP": 0, "BRAM_18K": 0, "URAM": 0},
+        available={
+            "LUT": 100,
+            "FF": 100,
+            "DSP": 100,
+            "BRAM_18K": 100,
+            "URAM": 100,
+        },
+    )
 
     class Llm:
         def complete(self, system, prompt):
@@ -48,6 +61,7 @@ def test_repair_reuses_adjacent_pipeline_csim_failure() -> None:
         headers={},
         kernel_name="projection.cpp",
         requires_cosim=False,
+        clock_ns=5.0,
     )
     server = Server()
     logs = []
@@ -59,7 +73,15 @@ def test_repair_reuses_adjacent_pipeline_csim_failure() -> None:
         results=[failed],
         csim_ok=False,
         synth_ok=False,
-        status="csim_failed",
+        status="running",
+        stop_reason="",
+        metadata={},
+        interface_ok=False,
+        frequency_ok=False,
+        resource_ok=False,
+        cosim_ok=False,
+        best_latency=None,
+        last_verified_kernel=None,
         log=logs.append,
     )
 
@@ -70,4 +92,4 @@ def test_repair_reuses_adjacent_pipeline_csim_failure() -> None:
     assert server.csim_kernels == ["int projection() { return 1; }\n"]
     assert server.synth_kernels == ["int projection() { return 1; }\n"]
     assert len(result.results) == 3
-    assert "repair: reusing pipeline C-sim failure" in logs
+    assert "repair: reusing pipeline csim failure" in logs

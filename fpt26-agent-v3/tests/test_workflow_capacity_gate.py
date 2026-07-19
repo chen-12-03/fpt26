@@ -78,35 +78,36 @@ def _run_score(monkeypatch, tmp_path, candidate, baseline):
 
     monkeypatch.setattr(workflow, "CSimTool", FakeCSimTool)
     monkeypatch.setattr(workflow, "SynthTool", FakeSynthTool)
-    return workflow.step_score(_state(tmp_path)).scorecard
+    return workflow.step_score(_state(tmp_path))
 
 
 def test_step_score_propagates_capacity_and_rejects_overflow(
     monkeypatch, tmp_path
 ) -> None:
-    card = _run_score(
+    state = _run_score(
         monkeypatch,
         tmp_path,
         _report(lut=201, available=dict(_CAPACITY)),
         _report(lut=100, available=dict(_CAPACITY)),
     )
 
-    assert not card.valid
-    assert card.gate_reason == "resource_capacity_exceeded"
-    assert card.available_resources == _CAPACITY
-    assert card.resource_capacity_pass is False
+    assert state.scorecard is None
+    assert state.status == "failed"
+    assert state.stop_reason == "resource_capacity_exceeded"
+    assert state.metadata["resource_gate"]["available"] == _CAPACITY
 
 
 def test_step_score_fails_closed_when_anchor_capacity_is_missing(
     monkeypatch, tmp_path
 ) -> None:
-    card = _run_score(
+    state = _run_score(
         monkeypatch,
         tmp_path,
         _report(lut=100, available=dict(_CAPACITY)),
         _report(lut=100, available=None),
     )
 
-    assert not card.valid
-    assert card.gate_reason == "required_metric_missing"
-    assert card.available_resources == {}
+    assert state.scorecard is not None
+    assert not state.scorecard.valid
+    assert state.scorecard.gate_reason == "required_metric_missing"
+    assert state.scorecard.available_resources == {}

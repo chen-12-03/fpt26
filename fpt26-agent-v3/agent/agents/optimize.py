@@ -7,6 +7,7 @@ from agent.agents.base import RunState
 from agent.analysis.action_contract import build_ii_resource_action_contract
 from agent.analysis.log_normalizer import LogNormalizer
 from agent.analysis.synth_diagnostics import extract_ii_resource_limits
+from agent.validation import can_afford_validation
 from agent.prompts import SYSTEM, build_prompt
 from scoring.scoring_v3 import (
     Anchor,
@@ -353,6 +354,8 @@ def _score_candidate(
     anchor_report: Any,
     candidate_report: Any,
     scoring_profile: str = DEFAULT_SCORING_PROFILE,
+    *,
+    cosim_latency: int | None = None,
 ) -> Any:
     """Evaluate visible synth QoR through the current authoritative scorer.
 
@@ -384,6 +387,7 @@ def _score_candidate(
         candidate_latency=_report_latency(candidate_report),
         candidate_ii=candidate_report.interval_max,
         candidate_clock_ns=candidate_report.clock_period_ns or task.clock_ns,
+        cosim_latency=cosim_latency,
         candidate_resources=dict(candidate_report.resources),
     )
     gates = ValidityGates(
@@ -401,6 +405,20 @@ def _score_candidate(
         wall_time_s=0.0,
         gates=gates,
     )
+
+
+def _latest_successful_cosim_latency(results: list[Any]) -> int | None:
+    for result in reversed(results):
+        payload = getattr(result, "cosim", None)
+        if (
+            getattr(result, "kind", None) == "cosim"
+            and getattr(result, "ok", False)
+            and payload is not None
+            and getattr(payload, "passed", False)
+            and getattr(payload, "latency_max", None) is not None
+        ):
+            return int(payload.latency_max)
+    return None
 
 
 def _rejection_feedback(
@@ -791,6 +809,7 @@ class OptimizeAgent:
         best_q_hw: float | None = None
         rejection_feedback: dict[str, Any] | None = None
         best_synth_result = _latest_successful_synth(state.results)
+        best_cosim_latency = _latest_successful_cosim_latency(state.results)
         rejected_fingerprints: set[str] = set()
         semantic_duplicate_skips = 0
         synth_candidates: list[dict] = []  # structured candidate records for reporting
@@ -835,7 +854,11 @@ class OptimizeAgent:
                 if anchor_report is None:
                     anchor_report = cr.report
                 current_card = _score_candidate(
-                    task, anchor_report, cr.report, self.scoring_profile
+                    task,
+                    anchor_report,
+                    cr.report,
+                    self.scoring_profile,
+                    cosim_latency=best_cosim_latency,
                 )
                 if best_q_hw is None:
                     best_q_hw = current_card.q_hw
@@ -845,7 +868,11 @@ class OptimizeAgent:
             report_str = _report(cr) if cr.ok else f"SYNTH FAIL: {getattr(cr, 'log', '')[-500:]}"
             if cr.ok and cr.report and anchor_report is not None:
                 current_card = _score_candidate(
-                    task, anchor_report, cr.report, self.scoring_profile
+                    task,
+                    anchor_report,
+                    cr.report,
+                    self.scoring_profile,
+                    cosim_latency=best_cosim_latency,
                 )
                 report_str += (
                     f" ScoreAligned(Q_HW={current_card.q_hw:.4f}, "
@@ -973,6 +1000,49 @@ class OptimizeAgent:
                 )
                 break
 
+            from agent.workflow import (
+                mark_fully_verified,
+                record_cosim_gate,
+                record_synth_gates,
+                validate_candidate,
+            )
+
+            if not validate_candidate(
+                state,
+                cand,
+                stage=f"optimize_candidate_{rnd}",
+                current_best=False,
+            ):
+                validation = state.metadata.get("interface_validations", [{}])[-1]
+                rejection_feedback = {
+                    "status": "REJECTED_BY_INTERFACE_GATE",
+                    "reason": validation.get(
+                        "reason", "interface validation failed"
+                    ),
+                    "required_next_action": (
+                        "Preserve the exact starter top function signature and "
+                        "required includes; change only the function body."
+                    ),
+                }
+                rejected_fingerprints.add(candidate_fingerprint)
+                stag += 1
+                continue
+            if not can_afford_validation(
+                getattr(server, "budget", None),
+                requires_cosim=task.requires_cosim,
+            ):
+                state.stop_reason = "insufficient_budget_for_candidate_validation"
+                state.metadata["budget_safe_stop"] = {
+                    "round": rnd,
+                    "remaining": server.budget.remaining(),
+                    "requires_cosim": task.requires_cosim,
+                }
+                state.log(
+                    f"opt r{rnd}: preserve current best; remaining budget cannot "
+                    "fund the complete candidate validation sequence"
+                )
+                break
+
             intent_feedback = _ii_resource_intent_feedback(
                 cr, best, cand, action_contract
             )
@@ -1004,13 +1074,81 @@ class OptimizeAgent:
                 stag += 1
                 continue
 
+            if not record_synth_gates(
+                state,
+                sr,
+                stage=f"optimize_candidate_{rnd}",
+                current_best=False,
+            ):
+                state.log(
+                    f"opt r{rnd}: frequency/resource gate FAIL — discard"
+                )
+                rejected_fingerprints.add(candidate_fingerprint)
+                rejection_feedback = {
+                    "status": "REJECTED_BY_TARGET_GATE",
+                    "frequency": (
+                        state.metadata.get("synth_gate_history", [{}])[-1].get(
+                            "frequency"
+                        )
+                    ),
+                    "resource": (
+                        state.metadata.get("synth_gate_history", [{}])[-1].get(
+                            "resource"
+                        )
+                    ),
+                    "required_next_action": (
+                        "Produce a candidate meeting at least 100 MHz and device "
+                        "capacity before pursuing further Q_HW improvement."
+                    ),
+                }
+                stag += 1
+                continue
+
+            cosim_result = None
+            if task.requires_cosim:
+                cosim_result = server.cosim(cand)
+                state.results.append(cosim_result)
+                if not record_cosim_gate(
+                    state,
+                    cosim_result,
+                    stage=f"optimize_candidate_{rnd}",
+                    current_best=False,
+                    source_code=cand,
+                ):
+                    state.log(
+                        f"opt r{rnd}: required cosim FAIL — discard candidate"
+                    )
+                    rejected_fingerprints.add(candidate_fingerprint)
+                    rejection_feedback = {
+                        "status": "REJECTED_BY_REQUIRED_COSIM",
+                        "phase": getattr(cosim_result, "phase", "unknown"),
+                        "required_next_action": (
+                            "Preserve bounded stream/dataflow behavior; the next "
+                            "candidate must pass RTL co-simulation."
+                        ),
+                    }
+                    stag += 1
+                    continue
+
             # ── 6. Compare current scoring_v3 hardware quality ──────────
             lat = _latency(sr)
             cand_lut = (sr.report.resources.get('LUT', 0) or 0) if sr.report else 0
             best_lut = best_resources.get('LUT', 0) if best_resources else 0
             cand_card = (
                 _score_candidate(
-                    task, anchor_report, sr.report, self.scoring_profile
+                    task,
+                    anchor_report,
+                    sr.report,
+                    self.scoring_profile,
+                    cosim_latency=(
+                        getattr(
+                            getattr(cosim_result, "cosim", None),
+                            "latency_max",
+                            None,
+                        )
+                        if task.requires_cosim
+                        else None
+                    ),
                 )
                 if anchor_report is not None and sr.report is not None
                 else None
@@ -1043,8 +1181,36 @@ class OptimizeAgent:
                 best_q_hw = cand_card.q_hw
                 rejection_feedback = None
                 best_synth_result = sr
+                if task.requires_cosim:
+                    best_cosim_latency = getattr(
+                        getattr(cosim_result, "cosim", None),
+                        "latency_max",
+                        None,
+                    )
                 if sr.report:
                     best_resources = sr.report.resources
+                state.kernel = best
+                state.csim_ok = True
+                state.synth_ok = True
+                state.cosim_ok = (
+                    True
+                    if task.requires_cosim
+                    else getattr(state, "cosim_ok", False)
+                )
+                state.interface_ok = True
+                record_synth_gates(
+                    state,
+                    sr,
+                    stage=f"optimize_candidate_{rnd}_accepted",
+                )
+                if task.requires_cosim and cosim_result is not None:
+                    record_cosim_gate(
+                        state,
+                        cosim_result,
+                        stage=f"optimize_candidate_{rnd}_accepted",
+                        source_code=cand,
+                    )
+                mark_fully_verified(state)
             else:
                 accepted = False
                 stag += 1
