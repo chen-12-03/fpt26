@@ -1,6 +1,6 @@
-# V8 统一评分 — measured-cosim, capacity-integrated hardware ratio
+# V10 统一评分 — calibrated weighted hardware ratio
 
-**版本：8.0 | 日期：2026-07-16 | 当前权威 schema：8**
+**版本：10.0 | 日期：2026-07-19 | 当前权威 schema：10**
 
 ## 核心公式
 
@@ -15,7 +15,7 @@ performance_ratio = latency_ratio
 
 area_growth = max(growth_by_resource)
 area_ratio = 1 / area_growth
-hardware_ratio = sqrt(performance_ratio * area_ratio)
+hardware_ratio = performance_ratio**0.55 * area_ratio**0.45
 
 q_perf = ratio_quality(performance_ratio)  # 诊断字段
 q_area = ratio_quality(area_ratio)         # 诊断字段
@@ -25,16 +25,40 @@ efficiency = max(0.80, 1 - 0.10*cost_ratio - 0.10*time_ratio)
 score = 100 * validity * q_hw * efficiency
 ```
 
+`W_PERFORMANCE=0.55`、`W_AREA=0.45` 且指数和严格为 1。reference 标准化
+分数通过 `grade_standardized_qor()` 显式固定 `efficiency=1`；该入口不接受 cost/time
+参数，并在 scorecard 标记 `score_mode=standardized_qor` 与
+`efficiency_source=explicit_standardized_override`。production `grade()` 继续使用真实
+cost/time，两类分数不得混用。
+
 `validity` 还要求来自冻结 anchor synth report 的完整 device capacity：LUT、FF、DSP、
 BRAM_18K、URAM 五项必须都是正整数。缺失/partial capacity 以
 `required_metric_missing` fail closed；candidate 任一资源超过 total 时以
-`resource_capacity_exceeded` 得 0。相同 capacity 同时用于显著资源 floor，避免把器件
-规模信息丢失后用无设备默认值评价 area growth。
+`resource_capacity_exceeded` 得 0。Area growth 使用 schema 9 起冻结的统一 1.0 count
+floor；device capacity 只用于完整性与超容量 hard gate，不再改变各资源增长比的尺度。
 
 对 `requires_cosim=True` 的 task，`candidate_effective_time` 中的 cycles 必须来自通过的
 RTL co-simulation `latency_max`；synth report 只继续提供 clock、II、resources 与 synth
 gate。Cosim gate 未明确 PASS 时以 `hidden_cosim_fail` 失败；PASS 但缺少 measured latency
 时以 `required_metric_missing` fail closed。非 cosim task 仍使用 synthesis latency。
+
+## V9 → V10 权重校准
+
+- reference 语义在搜索权重前冻结：95 个 PPA reference（其中 94 个 generated
+  starter/reference 源码相同）与 2 个 correctness-only reference；unknown 为 0。
+- 99 份 fresh evidence 来自真实 Vitis 2025.2：97 个 task 全量一次，加上
+  dotProduct 两次隔离 repeat。三次 dotProduct 的原始指标与 XML hash 完全一致，保守
+  `P=1027/36`、`A=1/32`，约束下界为 `w>=0.5084248300102405`。
+- 0.55 位于可行区间内部，距下界约 `0.04157517`；dotProduct standardized score
+  为 `81.5426694494`，相对 75 有 `6.5426694494` 分余量。0.50/0.52/0.55/0.60
+  对应分数为 73.5441/76.9327/81.5427/87.8325。
+- 84 个可评分 identity reference 在所有权重下严格为 75；另 10 个 identity task 的
+  Vitis 顶层 latency 不定，明确标记不可评分，不伪造 latency。PPA reference 中没有
+  Pareto-dominated 项；correctness-only projection 的 reference 面积诊断被 starter
+  支配，但不进入权重约束。
+
+完整机器可读证据由 `scoring/analyze_reference_calibration.py` 生成；公式、边界和分数
+均调用本 scoring 模块，未用外部手算代替。
 
 ## V7 → V8 变更理由
 
@@ -97,11 +121,15 @@ V5 → V6 是公式一致性修复；其同产物双评分和 V6 基线记录在
 
 ## 版本边界
 
-- `scoring/__init__.py`: `__version__ = "8.0.0"`
+- `scoring/__init__.py`: `__version__ = "10.0.0"`
 - `scoring/scoring_v3.py`: 当前实现文件（文件名为兼容 harness 保持不变）
-- `Scorecard.schema_version = 8`
+- `Scorecard.schema_version = 10`
+- Schema 10 是 0.55/0.45 raw-ratio 加权几何聚合，并增加显式 standardized QoR
+  score mode 与未舍入 QoR 组件入口；schema 9 是相同 validity/resource 语义但 0.5/0.5
+  权重的旧基线。
 - Schema 7 是相同公式/capacity 但 required-cosim 仍路由 synth estimate 的旧基线；
   schema 6 是未集成 capacity 的旧基线；schema 5 是更早的 pre-composition 公式。此前
-  实验性 token V6/V7 run 与这些权威 schema 无关，不得混用。当前 V8 的识别特征是
+  实验性 token V6/V7 run 与这些权威 schema 无关，不得混用。当前 schema 的识别特征是
   `hardware_ratio`、`available_resources`、`resource_capacity_pass`、
-  `acceleration_source` 和 `cosim_latency_used` 字段。
+  `acceleration_source`、`cosim_latency_used`、`score_mode`、
+  `efficiency_source`、`performance_weight` 和 `area_weight` 字段。

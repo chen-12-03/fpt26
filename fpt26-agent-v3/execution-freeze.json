@@ -5,8 +5,8 @@
   "validation": {
     "clean_image": "fpt26-agent-v3:freeze-20260718",
     "clean_image_sha256": "03c4cb2277f94b988ae6667ac605b3d8a11f3856cf93ddefd66650bb5c6af642",
-    "scoring_version": "9.0.0",
-    "scoring_schema": 9,
+    "scoring_version": "10.0.0",
+    "scoring_schema": 10,
     "vitis_hls": "2025.2 build 6295257"
   },
   "files": {

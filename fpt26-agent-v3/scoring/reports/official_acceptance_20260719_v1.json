@@ -1,0 +1,1162 @@
+{
+  "acceptance": {
+    "all_authoritative_validity_gates_passed": true,
+    "all_real_api_usage_complete": true,
+    "all_required_real_vitis_stages_passed": true,
+    "all_run_report_scores_reproduced": true,
+    "all_three_completed": true
+  },
+  "evaluated_performance_weights": [
+    0.5,
+    0.52,
+    0.54,
+    0.55,
+    0.56,
+    0.6
+  ],
+  "production_weights": {
+    "area": 0.44999999999999996,
+    "performance": 0.55
+  },
+  "real_api_summary": {
+    "model": "qwen3-coder-plus",
+    "secrets_recorded": false,
+    "token_totals": {
+      "completion_tokens": 1086,
+      "prompt_tokens": 10571,
+      "request_count": 4,
+      "response_count": 4,
+      "total_tokens": 11657
+    }
+  },
+  "report_schema": 1,
+  "scoring_schema": 10,
+  "scoring_version": "10.0.0",
+  "tasks": {
+    "dotProduct_optimize": {
+      "budget": {
+        "spent": 15,
+        "total": 40
+      },
+      "evaluation": {
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 2,
+          "FF": 93,
+          "LUT": 156,
+          "URAM": 0
+        },
+        "budget_efficiency": 196.267,
+        "budget_utilization": 0.375,
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 4,
+          "FF": 138,
+          "LUT": 211,
+          "URAM": 0
+        },
+        "cosim_attempts": 0,
+        "csim_attempts": 1,
+        "resource_efficiency": 0.995,
+        "resource_growth": {
+          "BRAM_18K": 1.0,
+          "DSP": 2.0,
+          "FF": 1.48,
+          "LUT": 1.35,
+          "URAM": 1.0
+        },
+        "tool_breakdown": {
+          "csim": 3,
+          "synth": 3
+        },
+        "wall_time_seconds": 105.1
+      },
+      "fresh_evidence": {
+        "candidate_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/grade/grade_synth_cand/synth_proj/sol/syn/report/csynth.xml",
+        "candidate_csynth_xml_sha256": "895ffe735b8f034e91c5a4c871f433304defcc69541f18b3f06316751082952a",
+        "cosim": null,
+        "final_kernel": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/final_dotProduct.cpp",
+        "final_kernel_sha256": "e82403d6b06dbf9b9bc6911cd816b4e831bc8ac78ff2a7373b014618bc908f75",
+        "reference_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/grade/grade_synth_ref/synth_proj/sol/syn/report/csynth.xml",
+        "reference_csynth_xml_sha256": "028f2b92a2ad4fcbcadd69a7ec1e3c61d08d5b24eef15097244c9df30e15426b",
+        "starter_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/grade/grade_synth_base/synth_proj/sol/syn/report/csynth.xml",
+        "starter_csynth_xml_sha256": "88889deb5b223e7e9cdbeb540e44a8f45d46bf58ef1cc521b4edf628203ae762"
+      },
+      "mode": "optimize",
+      "production_scorecard_authoritative": {
+        "acceleration_source": "synth",
+        "anchor_clock_ns": 3.17,
+        "anchor_hash": "fresh_official_starter_csynth",
+        "anchor_ii": 1025,
+        "anchor_latency": 1027,
+        "anchor_source": "starter",
+        "anchor_valid": true,
+        "area_growth": 2.0,
+        "area_ratio": 0.5,
+        "area_weight": 0.45,
+        "available_resources": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 2,
+          "FF": 93,
+          "LUT": 156,
+          "URAM": 0
+        },
+        "bottleneck_resource": "DSP",
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 4,
+          "FF": 138,
+          "LUT": 211,
+          "URAM": 0
+        },
+        "cosim_latency_used": null,
+        "cosim_pass": null,
+        "cost_limit": 40,
+        "cost_spent": 15,
+        "csim_pass": true,
+        "difficulty": 3,
+        "efficiency": 0.96,
+        "efficiency_source": "measured_cost_time",
+        "gate_reason": "passed",
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 2.0,
+          "FF": 1.48,
+          "LUT": 1.35,
+          "URAM": 1.0
+        },
+        "hardware_ratio": 1.0701,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.99,
+        "performance_ratio": 1.9942,
+        "performance_weight": 0.55,
+        "q_area": 0.5556,
+        "q_hw": 0.7666,
+        "q_perf": 0.8885,
+        "resource_capacity_pass": true,
+        "schema_version": 10,
+        "score": 73.6,
+        "score_max": 100.0,
+        "score_mode": "production",
+        "stage": "synthesized",
+        "synth_pass": true,
+        "task_id": "dotProduct_optimize",
+        "task_type": "optimize",
+        "time_limit_s": 3600.0,
+        "utility_name": "1-1/(1+r)\u00b2",
+        "valid": true,
+        "wall_time_s": 88.42672515600134
+      },
+      "qor_components_exact": {
+        "acceleration_source": "synth",
+        "area_growth": 2.0,
+        "area_ratio": 0.5,
+        "bottleneck_resource": "DSP",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 2.0,
+          "FF": 1.4838709677419355,
+          "LUT": 1.3525641025641026,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.9941747572815534,
+        "performance_ratio": 1.9941747572815534,
+        "q_area": 0.5555555555555556,
+        "q_perf": 0.8884561293719646
+      },
+      "real_candidate_frontier": {
+        "points": [
+          {
+            "artifact_dir": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/agent/synth_2",
+            "csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/agent/synth_2/synth_proj/sol/syn/report/csynth.xml",
+            "csynth_xml_sha256": "88889deb5b223e7e9cdbeb540e44a8f45d46bf58ef1cc521b4edf628203ae762",
+            "is_final_accepted_candidate": false,
+            "qor_components_exact": {
+              "acceleration_source": "synth",
+              "area_growth": 1.0,
+              "area_ratio": 1.0,
+              "bottleneck_resource": "LUT",
+              "cosim_latency_used": null,
+              "growth_by_resource": {
+                "BRAM_18K": 1.0,
+                "DSP": 1.0,
+                "FF": 1.0,
+                "LUT": 1.0,
+                "URAM": 1.0
+              },
+              "ii_applied": false,
+              "ii_ratio": 1.0,
+              "latency_ratio": 1.0,
+              "performance_ratio": 1.0,
+              "q_area": 0.75,
+              "q_perf": 0.75
+            },
+            "report": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "clock_period_ns": 3.17,
+              "interval_max": 1025,
+              "interval_min": 1025,
+              "latency_avg": 1027,
+              "latency_best": 1027,
+              "latency_worst": 1027,
+              "loop_metrics": [
+                {
+                  "latency": 1025,
+                  "name": "VITIS_LOOP_7_1",
+                  "pipeline_depth": 3,
+                  "pipeline_ii": 1,
+                  "trip_count": 1024
+                }
+              ],
+              "pipeline_type": "loop auto-rewind stp (delay=1 cycles)",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 2,
+                "FF": 93,
+                "LUT": 156,
+                "URAM": 0
+              },
+              "utilization": {
+                "BRAM_18K": 0.0,
+                "DSP": 0.022,
+                "FF": 0.004,
+                "LUT": 0.012,
+                "URAM": 0.0
+              }
+            },
+            "standardized_hardware_score_by_weight": {
+              "0.50": 75.0,
+              "0.52": 75.0,
+              "0.54": 75.0,
+              "0.55": 75.0,
+              "0.56": 75.0,
+              "0.60": 75.0
+            },
+            "tool_call_n": 2
+          },
+          {
+            "artifact_dir": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/agent/synth_4",
+            "csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/agent/synth_4/synth_proj/sol/syn/report/csynth.xml",
+            "csynth_xml_sha256": "895ffe735b8f034e91c5a4c871f433304defcc69541f18b3f06316751082952a",
+            "is_final_accepted_candidate": true,
+            "qor_components_exact": {
+              "acceleration_source": "synth",
+              "area_growth": 2.0,
+              "area_ratio": 0.5,
+              "bottleneck_resource": "DSP",
+              "cosim_latency_used": null,
+              "growth_by_resource": {
+                "BRAM_18K": 1.0,
+                "DSP": 2.0,
+                "FF": 1.4838709677419355,
+                "LUT": 1.3525641025641026,
+                "URAM": 1.0
+              },
+              "ii_applied": false,
+              "ii_ratio": 1.0,
+              "latency_ratio": 1.9941747572815534,
+              "performance_ratio": 1.9941747572815534,
+              "q_area": 0.5555555555555556,
+              "q_perf": 0.8884561293719646
+            },
+            "report": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "clock_period_ns": 3.17,
+              "interval_max": 513,
+              "interval_min": 513,
+              "latency_avg": 515,
+              "latency_best": 515,
+              "latency_worst": 515,
+              "loop_metrics": [
+                {
+                  "latency": 513,
+                  "name": "VITIS_LOOP_8_1",
+                  "pipeline_depth": 3,
+                  "pipeline_ii": 1,
+                  "trip_count": 512
+                }
+              ],
+              "pipeline_type": "loop auto-rewind stp (delay=1 cycles)",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 4,
+                "FF": 138,
+                "LUT": 211,
+                "URAM": 0
+              },
+              "utilization": {
+                "BRAM_18K": 0.0,
+                "DSP": 0.044,
+                "FF": 0.005,
+                "LUT": 0.016,
+                "URAM": 0.0
+              }
+            },
+            "standardized_hardware_score_by_weight": {
+              "0.50": 74.9635258213126,
+              "0.52": 75.65089760506645,
+              "0.54": 76.32845781571089,
+              "0.55": 76.66348201758386,
+              "0.56": 76.99596335579348,
+              "0.60": 78.29991501302051
+            },
+            "tool_call_n": 4
+          },
+          {
+            "artifact_dir": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/agent/synth_6",
+            "csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/agent/synth_6/synth_proj/sol/syn/report/csynth.xml",
+            "csynth_xml_sha256": "f4a71afa00fd663b7b9372bb56e097cd74b0d638585109f3f1d72b093bcad637",
+            "is_final_accepted_candidate": false,
+            "qor_components_exact": {
+              "acceleration_source": "synth",
+              "area_growth": 2.858974358974359,
+              "area_ratio": 0.34977578475336324,
+              "bottleneck_resource": "LUT",
+              "cosim_latency_used": null,
+              "growth_by_resource": {
+                "BRAM_18K": 1.0,
+                "DSP": 2.0,
+                "FF": 1.924731182795699,
+                "LUT": 2.858974358974359,
+                "URAM": 1.0
+              },
+              "ii_applied": false,
+              "ii_ratio": 1.0,
+              "latency_ratio": 1.9941747572815534,
+              "performance_ratio": 1.9941747572815534,
+              "q_area": 0.4511208485557555,
+              "q_perf": 0.8884561293719646
+            },
+            "report": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "clock_period_ns": 3.17,
+              "interval_max": 515,
+              "interval_min": 515,
+              "latency_avg": 515,
+              "latency_best": 515,
+              "latency_worst": 515,
+              "loop_metrics": [
+                {
+                  "latency": 513,
+                  "name": "VITIS_LOOP_9_1",
+                  "pipeline_depth": 4,
+                  "pipeline_ii": 2,
+                  "trip_count": 256
+                }
+              ],
+              "pipeline_type": "loop auto-rewind stp (delay=3 cycles)",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 4,
+                "FF": 179,
+                "LUT": 446,
+                "URAM": 0
+              },
+              "utilization": {
+                "BRAM_18K": 0.0,
+                "DSP": 0.044,
+                "FF": 0.007,
+                "LUT": 0.034,
+                "URAM": 0.0
+              }
+            },
+            "standardized_hardware_score_by_weight": {
+              "0.50": 70.30755577392077,
+              "0.52": 71.2423242689102,
+              "0.54": 72.16444858467933,
+              "0.55": 72.62056421543583,
+              "0.56": 73.07327674726476,
+              "0.60": 74.8485971150865
+            },
+            "tool_call_n": 6
+          }
+        ],
+        "ranking_tool_call_n_by_weight": {
+          "0.50": [
+            2,
+            4,
+            6
+          ],
+          "0.52": [
+            4,
+            2,
+            6
+          ],
+          "0.54": [
+            4,
+            2,
+            6
+          ],
+          "0.55": [
+            4,
+            2,
+            6
+          ],
+          "0.56": [
+            4,
+            2,
+            6
+          ],
+          "0.60": [
+            4,
+            2,
+            6
+          ]
+        }
+      },
+      "real_llm": {
+        "client": "OpenAICompatClient",
+        "max_tokens": 4096,
+        "model": "qwen3-coder-plus",
+        "temperature": 0.7,
+        "usage": {
+          "complete": true,
+          "completion_tokens": 207,
+          "failed_request_count": 0,
+          "observed_completion_tokens": 207,
+          "observed_prompt_tokens": 5990,
+          "observed_total_tokens": 6197,
+          "prompt_tokens": 5990,
+          "reported_usage_count": 2,
+          "request_count": 2,
+          "response_count": 2,
+          "total_tokens": 6197,
+          "unreported_response_count": 0
+        }
+      },
+      "real_vitis": {
+        "build": "6295257",
+        "stages": [
+          {
+            "brief": "[csim] pass (rc=0, 12.7s)",
+            "elapsed_s": 12.743,
+            "kind": "csim",
+            "ok": true,
+            "return_code": 0,
+            "stage": "hidden_csim"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 23.2s) | latency(worst)=515 cyc  top_interval=513  clk~3.17ns  pipeline=loop auto-rewind stp (delay=1 cycles)  loops=VITIS_LOOP_8_1(trip=512,lat=513,II=1)  LUT=211 FF=138 DSP=4 BRAM=0 URAM=0",
+            "elapsed_s": 23.157,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "candidate_synth"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 22.1s) | latency(worst)=1027 cyc  top_interval=1025  clk~3.17ns  pipeline=loop auto-rewind stp (delay=1 cycles)  loops=VITIS_LOOP_7_1(trip=1024,lat=1025,II=1)  LUT=156 FF=93 DSP=2 BRAM=0 URAM=0",
+            "elapsed_s": 22.093,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "starter_synth"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 30.4s) | latency(worst)=36 cyc  top_interval=34  clk~3.17ns  pipeline=loop auto-rewind stp (delay=2 cycles)  loops=DOT(trip=32,lat=34,II=1)  LUT=1809 FF=1135 DSP=64 BRAM=0 URAM=0",
+            "elapsed_s": 30.398,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "reference_synth"
+          }
+        ],
+        "tool": "vitis-run v2025.2"
+      },
+      "run_report": "/home/chen1/projects/fpt26_new/runs/schema10_official_dot_20260719/dotProduct_optimize/run_report.json",
+      "run_report_sha256": "a732b72ec1efb0d5ac8bdcd08c670137da6180c80cb7d3e5ea837e090a6e3acf",
+      "standardized_hardware_score_by_weight": {
+        "0.50": 74.9635258213126,
+        "0.52": 75.65089760506645,
+        "0.54": 76.32845781571089,
+        "0.55": 76.66348201758386,
+        "0.56": 76.99596335579348,
+        "0.60": 78.29991501302051
+      },
+      "standardized_scorecard_authoritative": {
+        "acceleration_source": "synth",
+        "anchor_clock_ns": 3.17,
+        "anchor_hash": "fresh_official_starter_csynth",
+        "anchor_ii": 1025,
+        "anchor_latency": 1027,
+        "anchor_source": "starter",
+        "anchor_valid": true,
+        "area_growth": 2.0,
+        "area_ratio": 0.5,
+        "area_weight": 0.45,
+        "available_resources": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 2,
+          "FF": 93,
+          "LUT": 156,
+          "URAM": 0
+        },
+        "bottleneck_resource": "DSP",
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 4,
+          "FF": 138,
+          "LUT": 211,
+          "URAM": 0
+        },
+        "cosim_latency_used": null,
+        "cosim_pass": null,
+        "cost_limit": 40,
+        "cost_spent": null,
+        "csim_pass": true,
+        "difficulty": 3,
+        "efficiency": 1.0,
+        "efficiency_source": "explicit_standardized_override",
+        "gate_reason": "passed",
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 2.0,
+          "FF": 1.48,
+          "LUT": 1.35,
+          "URAM": 1.0
+        },
+        "hardware_ratio": 1.0701,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.99,
+        "performance_ratio": 1.9942,
+        "performance_weight": 0.55,
+        "q_area": 0.5556,
+        "q_hw": 0.7666,
+        "q_perf": 0.8885,
+        "resource_capacity_pass": true,
+        "schema_version": 10,
+        "score": 76.66,
+        "score_max": 100.0,
+        "score_mode": "standardized_qor",
+        "stage": "synthesized",
+        "synth_pass": true,
+        "task_id": "dotProduct_optimize",
+        "task_type": "optimize",
+        "time_limit_s": 3600.0,
+        "utility_name": "1-1/(1+r)\u00b2",
+        "valid": true,
+        "wall_time_s": null
+      },
+      "status": "completed",
+      "stop_reason": "",
+      "tool_call_count": 6
+    },
+    "projection_bugfix": {
+      "budget": {
+        "spent": 6,
+        "total": 20
+      },
+      "evaluation": {
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 607,
+          "URAM": 0
+        },
+        "budget_efficiency": 237.133,
+        "budget_utilization": 0.3,
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 692,
+          "URAM": 0
+        },
+        "cosim_attempts": 0,
+        "csim_attempts": 2,
+        "resource_efficiency": 0.877,
+        "resource_growth": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.14,
+          "URAM": 1.0
+        },
+        "tool_breakdown": {
+          "csim": 2,
+          "synth": 1
+        },
+        "wall_time_seconds": 52.5
+      },
+      "fresh_evidence": {
+        "candidate_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_projection_20260719/projection_bugfix/grade/grade_synth_cand/synth_proj/sol/syn/report/csynth.xml",
+        "candidate_csynth_xml_sha256": "968d9a43721f4d745075c8b1ca241c25ce093643576713031c4f588160bfa61d",
+        "cosim": null,
+        "final_kernel": "/home/chen1/projects/fpt26_new/runs/schema10_official_projection_20260719/projection_bugfix/final_projection.cpp",
+        "final_kernel_sha256": "572c3cdc2fbb447d8ef29fa30a89ab3ba8371f7a389caffaff122152b8d01d2b",
+        "reference_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_projection_20260719/projection_bugfix/grade/grade_synth_ref/synth_proj/sol/syn/report/csynth.xml",
+        "reference_csynth_xml_sha256": "c1e60570144e8afe5180a9c397b58056bbcbe5baea9771f0bc99f15d242d0efc",
+        "starter_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_projection_20260719/projection_bugfix/grade/grade_synth_base/synth_proj/sol/syn/report/csynth.xml",
+        "starter_csynth_xml_sha256": "9c6a56fb524c2a62d98618cd3b1ab75865d564c6ac06f4877f579c59bd535ea0"
+      },
+      "mode": "repair",
+      "production_scorecard_authoritative": {
+        "acceleration_source": "synth",
+        "anchor_clock_ns": 2.538,
+        "anchor_hash": "fresh_official_starter_csynth",
+        "anchor_ii": 1,
+        "anchor_latency": 0,
+        "anchor_source": "starter",
+        "anchor_valid": true,
+        "area_growth": 1.14,
+        "area_ratio": 0.8772,
+        "area_weight": 0.45,
+        "available_resources": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 607,
+          "URAM": 0
+        },
+        "bottleneck_resource": "LUT",
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 692,
+          "URAM": 0
+        },
+        "cosim_latency_used": null,
+        "cosim_pass": null,
+        "cost_limit": 20,
+        "cost_spent": 6,
+        "csim_pass": true,
+        "difficulty": 2,
+        "efficiency": 0.9678,
+        "efficiency_source": "measured_cost_time",
+        "gate_reason": "passed",
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.14,
+          "URAM": 1.0
+        },
+        "hardware_ratio": 0.9427,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "performance_weight": 0.55,
+        "q_area": 0.7162,
+        "q_hw": 0.735,
+        "q_perf": 0.75,
+        "resource_capacity_pass": true,
+        "schema_version": 10,
+        "score": 71.14,
+        "score_max": 100.0,
+        "score_mode": "production",
+        "stage": "synthesized",
+        "synth_pass": true,
+        "task_id": "projection_bugfix",
+        "task_type": "repair",
+        "time_limit_s": 3600.0,
+        "utility_name": "1-1/(1+r)\u00b2",
+        "valid": true,
+        "wall_time_s": 79.31479825499991
+      },
+      "qor_components_exact": {
+        "acceleration_source": "synth",
+        "area_growth": 1.1400329489291599,
+        "area_ratio": 0.8771676300578034,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.1400329489291599,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.7162120918501292,
+        "q_perf": 0.75
+      },
+      "real_llm": {
+        "client": "OpenAICompatClient",
+        "max_tokens": 4096,
+        "model": "qwen3-coder-plus",
+        "temperature": 0.7,
+        "usage": {
+          "complete": true,
+          "completion_tokens": 558,
+          "failed_request_count": 0,
+          "observed_completion_tokens": 558,
+          "observed_prompt_tokens": 1866,
+          "observed_total_tokens": 2424,
+          "prompt_tokens": 1866,
+          "reported_usage_count": 1,
+          "request_count": 1,
+          "response_count": 1,
+          "total_tokens": 2424,
+          "unreported_response_count": 0
+        }
+      },
+      "real_vitis": {
+        "build": "6295257",
+        "stages": [
+          {
+            "brief": "[csim] pass (rc=0, 8.2s)",
+            "elapsed_s": 8.218,
+            "kind": "csim",
+            "ok": true,
+            "return_code": 0,
+            "stage": "hidden_csim"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 23.3s) | latency(worst)=0 cyc  top_interval=1  clk~2.538ns  pipeline=no  loops=none  LUT=692 FF=0 DSP=0 BRAM=0 URAM=0",
+            "elapsed_s": 23.303,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "candidate_synth"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 24.2s) | latency(worst)=0 cyc  top_interval=1  clk~2.538ns  pipeline=no  loops=none  LUT=607 FF=0 DSP=0 BRAM=0 URAM=0",
+            "elapsed_s": 24.208,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "starter_synth"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 23.6s) | latency(worst)=0 cyc  top_interval=1  clk~2.538ns  pipeline=no  loops=none  LUT=692 FF=0 DSP=0 BRAM=0 URAM=0",
+            "elapsed_s": 23.557,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "reference_synth"
+          }
+        ],
+        "tool": "vitis-run v2025.2"
+      },
+      "run_report": "/home/chen1/projects/fpt26_new/runs/schema10_official_projection_20260719/projection_bugfix/run_report.json",
+      "run_report_sha256": "717c558d7f92a595b18f978de4eac3f52b9f2858cdc99839866fe412bbeed7e6",
+      "standardized_hardware_score_by_weight": {
+        "0.50": 73.33555312415741,
+        "0.52": 73.40311535089103,
+        "0.54": 73.47059743255886,
+        "0.55": 73.50430834022923,
+        "0.56": 73.53799911725386,
+        "0.60": 73.67256029360121
+      },
+      "standardized_scorecard_authoritative": {
+        "acceleration_source": "synth",
+        "anchor_clock_ns": 2.538,
+        "anchor_hash": "fresh_official_starter_csynth",
+        "anchor_ii": 1,
+        "anchor_latency": 0,
+        "anchor_source": "starter",
+        "anchor_valid": true,
+        "area_growth": 1.14,
+        "area_ratio": 0.8772,
+        "area_weight": 0.45,
+        "available_resources": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 607,
+          "URAM": 0
+        },
+        "bottleneck_resource": "LUT",
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 692,
+          "URAM": 0
+        },
+        "cosim_latency_used": null,
+        "cosim_pass": null,
+        "cost_limit": 20,
+        "cost_spent": null,
+        "csim_pass": true,
+        "difficulty": 2,
+        "efficiency": 1.0,
+        "efficiency_source": "explicit_standardized_override",
+        "gate_reason": "passed",
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.14,
+          "URAM": 1.0
+        },
+        "hardware_ratio": 0.9427,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "performance_weight": 0.55,
+        "q_area": 0.7162,
+        "q_hw": 0.735,
+        "q_perf": 0.75,
+        "resource_capacity_pass": true,
+        "schema_version": 10,
+        "score": 73.5,
+        "score_max": 100.0,
+        "score_mode": "standardized_qor",
+        "stage": "synthesized",
+        "synth_pass": true,
+        "task_id": "projection_bugfix",
+        "task_type": "repair",
+        "time_limit_s": 3600.0,
+        "utility_name": "1-1/(1+r)\u00b2",
+        "valid": true,
+        "wall_time_s": null
+      },
+      "status": "completed",
+      "stop_reason": "",
+      "tool_call_count": 3
+    },
+    "residual_stream_deadlock": {
+      "budget": {
+        "spent": 42,
+        "total": 80
+      },
+      "evaluation": {
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 248,
+          "LUT": 539,
+          "URAM": 0
+        },
+        "budget_efficiency": 144.019,
+        "budget_utilization": 0.525,
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 231,
+          "LUT": 406,
+          "URAM": 0
+        },
+        "cosim_attempts": 2,
+        "csim_attempts": 1,
+        "resource_efficiency": 1.39,
+        "resource_growth": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.93,
+          "LUT": 0.75,
+          "URAM": 1.0
+        },
+        "tool_breakdown": {
+          "cosim": 2,
+          "csim": 2
+        },
+        "wall_time_seconds": 125.4
+      },
+      "fresh_evidence": {
+        "candidate_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_residual_20260719/residual_stream_deadlock/grade/grade_synth_cand/synth_proj/sol/syn/report/csynth.xml",
+        "candidate_csynth_xml_sha256": "af578fa137c9c352418cdedebb2dbac6f348340920526118ed9dc58c21159748",
+        "cosim": {
+          "latency_avg": 97,
+          "latency_max": 97,
+          "latency_min": 97,
+          "path": "/home/chen1/projects/fpt26_new/runs/schema10_official_residual_20260719/residual_stream_deadlock/grade/grade_cosim/cosim_proj/sol/sim/report/residual_cosim.rpt",
+          "sha256": "2ea79609cd5a3c63309dae06a42f2fa6abe5872566b463ee22e7edd58accfb96",
+          "status": "Pass"
+        },
+        "final_kernel": "/home/chen1/projects/fpt26_new/runs/schema10_official_residual_20260719/residual_stream_deadlock/final_residual.cpp",
+        "final_kernel_sha256": "6f4cb06c60c4b4ad28b1e40cca3aba706021aba48bf9936b58deb8f459e5fe44",
+        "reference_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_residual_20260719/residual_stream_deadlock/grade/grade_synth_ref/synth_proj/sol/syn/report/csynth.xml",
+        "reference_csynth_xml_sha256": "859285ed02facda160eceeaede780a6e98ca610ada664c203cf9336b5c0e4528",
+        "starter_csynth_xml": "/home/chen1/projects/fpt26_new/runs/schema10_official_residual_20260719/residual_stream_deadlock/grade/grade_synth_base/synth_proj/sol/syn/report/csynth.xml",
+        "starter_csynth_xml_sha256": "b012e00ebd32f1aaef32cdcc19cd29a9b2ee5bfffe4057b27614ba4c193aa12d"
+      },
+      "mode": "structural",
+      "production_scorecard_authoritative": {
+        "acceleration_source": "cosim",
+        "anchor_clock_ns": 2.796,
+        "anchor_hash": "fresh_official_starter_csynth",
+        "anchor_ii": 136,
+        "anchor_latency": 135,
+        "anchor_source": "starter",
+        "anchor_valid": true,
+        "area_growth": 0.93,
+        "area_ratio": 1.0736,
+        "area_weight": 0.45,
+        "available_resources": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 248,
+          "LUT": 539,
+          "URAM": 0
+        },
+        "bottleneck_resource": "FF",
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 231,
+          "LUT": 406,
+          "URAM": 0
+        },
+        "cosim_latency_used": 97,
+        "cosim_pass": true,
+        "cost_limit": 80,
+        "cost_spent": 42,
+        "csim_pass": true,
+        "difficulty": 4,
+        "efficiency": 0.9447,
+        "efficiency_source": "measured_cost_time",
+        "gate_reason": "passed",
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.93,
+          "LUT": 0.75,
+          "URAM": 1.0
+        },
+        "hardware_ratio": 1.2383,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.39,
+        "performance_ratio": 1.3918,
+        "performance_weight": 0.55,
+        "q_area": 0.7674,
+        "q_hw": 0.8004,
+        "q_perf": 0.8252,
+        "resource_capacity_pass": true,
+        "schema_version": 10,
+        "score": 75.61,
+        "score_max": 100.0,
+        "score_mode": "production",
+        "stage": "cosim_passed",
+        "synth_pass": true,
+        "task_id": "residual_stream_deadlock",
+        "task_type": "structural",
+        "time_limit_s": 3600.0,
+        "utility_name": "1-1/(1+r)\u00b2",
+        "valid": true,
+        "wall_time_s": 102.32305681100115
+      },
+      "qor_components_exact": {
+        "acceleration_source": "cosim",
+        "area_growth": 0.9314516129032258,
+        "area_ratio": 1.0735930735930737,
+        "bottleneck_resource": "FF",
+        "cosim_latency_used": 97,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.9314516129032258,
+          "LUT": 0.7532467532467533,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.3917525773195876,
+        "performance_ratio": 1.3917525773195876,
+        "q_area": 0.7674304069455764,
+        "q_perf": 0.8251895065398336
+      },
+      "real_llm": {
+        "client": "OpenAICompatClient",
+        "max_tokens": 4096,
+        "model": "qwen3-coder-plus",
+        "temperature": 0.7,
+        "usage": {
+          "complete": true,
+          "completion_tokens": 321,
+          "failed_request_count": 0,
+          "observed_completion_tokens": 321,
+          "observed_prompt_tokens": 2715,
+          "observed_total_tokens": 3036,
+          "prompt_tokens": 2715,
+          "reported_usage_count": 1,
+          "request_count": 1,
+          "response_count": 1,
+          "total_tokens": 3036,
+          "unreported_response_count": 0
+        }
+      },
+      "real_vitis": {
+        "build": "6295257",
+        "stages": [
+          {
+            "brief": "[csim] pass (rc=0, 6.7s)",
+            "elapsed_s": 6.72,
+            "kind": "csim",
+            "ok": true,
+            "return_code": 0,
+            "stage": "hidden_csim"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 14.9s) | latency(worst)=68 cyc  top_interval=64  clk~2.796ns  pipeline=dataflow  loops=VITIS_LOOP_10_1(trip=64,lat=64,II=1), VITIS_LOOP_17_1(trip=64,lat=63,II=1), VITIS_LOOP_22_1(trip=64,lat=63,II=1)  LUT=406 FF=231 DSP=0 BRAM=0 URAM=0",
+            "elapsed_s": 14.905,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "candidate_synth"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 14.5s) | latency(worst)=135 cyc  top_interval=136  clk~2.796ns  pipeline=dataflow  loops=VITIS_LOOP_11_1(trip=64,lat=64,II=1), VITIS_LOOP_12_2(trip=64,lat=64,II=1), VITIS_LOOP_16_1(trip=64,lat=63,II=1), VITIS_LOOP_21_1(trip=64,lat=63,II=1)  LUT=539 FF=248 DSP=0 BRAM=0 URAM=0",
+            "elapsed_s": 14.513,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "starter_synth"
+          },
+          {
+            "brief": "[synth] pass (rc=0, 13.5s) | latency(worst)=68 cyc  top_interval=64  clk~2.796ns  pipeline=dataflow  loops=VITIS_LOOP_9_1(trip=64,lat=64,II=1), VITIS_LOOP_16_1(trip=64,lat=63,II=1), VITIS_LOOP_21_1(trip=64,lat=63,II=1)  LUT=406 FF=231 DSP=0 BRAM=0 URAM=0",
+            "elapsed_s": 13.5,
+            "kind": "synth",
+            "ok": true,
+            "return_code": 0,
+            "stage": "reference_synth"
+          },
+          {
+            "brief": "[cosim] pass (rc=0, 52.7s) | latency(worst)=68 cyc  top_interval=64  clk~2.796ns  pipeline=dataflow  loops=VITIS_LOOP_10_1(trip=64,lat=64,II=1), VITIS_LOOP_17_1(trip=64,lat=63,II=1), VITIS_LOOP_22_1(trip=64,lat=63,II=1)  LUT=406 FF=231 DSP=0 BRAM=0 URAM=0 | cosim=Pass measured_latency(max)=97",
+            "elapsed_s": 52.666,
+            "kind": "cosim",
+            "ok": true,
+            "return_code": 0,
+            "stage": "hidden_cosim"
+          }
+        ],
+        "tool": "vitis-run v2025.2"
+      },
+      "run_report": "/home/chen1/projects/fpt26_new/runs/schema10_official_residual_20260719/residual_stream_deadlock/run_report.json",
+      "run_report_sha256": "e594a9b2c3390b7a47ece83f4a4367651b6e1c1a45a1d59fbdb7125f1f711797",
+      "standardized_hardware_score_by_weight": {
+        "0.50": 79.75259989120131,
+        "0.52": 79.86802661828334,
+        "0.54": 79.98306217841431,
+        "0.55": 80.04043296809728,
+        "0.56": 80.09770560523539,
+        "0.60": 80.3258122944831
+      },
+      "standardized_scorecard_authoritative": {
+        "acceleration_source": "cosim",
+        "anchor_clock_ns": 2.796,
+        "anchor_hash": "fresh_official_starter_csynth",
+        "anchor_ii": 136,
+        "anchor_latency": 135,
+        "anchor_source": "starter",
+        "anchor_valid": true,
+        "area_growth": 0.93,
+        "area_ratio": 1.0736,
+        "area_weight": 0.45,
+        "available_resources": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "baseline_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 248,
+          "LUT": 539,
+          "URAM": 0
+        },
+        "bottleneck_resource": "FF",
+        "candidate_resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 231,
+          "LUT": 406,
+          "URAM": 0
+        },
+        "cosim_latency_used": 97,
+        "cosim_pass": true,
+        "cost_limit": 80,
+        "cost_spent": null,
+        "csim_pass": true,
+        "difficulty": 4,
+        "efficiency": 1.0,
+        "efficiency_source": "explicit_standardized_override",
+        "gate_reason": "passed",
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.93,
+          "LUT": 0.75,
+          "URAM": 1.0
+        },
+        "hardware_ratio": 1.2383,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.39,
+        "performance_ratio": 1.3918,
+        "performance_weight": 0.55,
+        "q_area": 0.7674,
+        "q_hw": 0.8004,
+        "q_perf": 0.8252,
+        "resource_capacity_pass": true,
+        "schema_version": 10,
+        "score": 80.04,
+        "score_max": 100.0,
+        "score_mode": "standardized_qor",
+        "stage": "cosim_passed",
+        "synth_pass": true,
+        "task_id": "residual_stream_deadlock",
+        "task_type": "structural",
+        "time_limit_s": 3600.0,
+        "utility_name": "1-1/(1+r)\u00b2",
+        "valid": true,
+        "wall_time_s": null
+      },
+      "status": "completed",
+      "stop_reason": "",
+      "tool_call_count": 4
+    }
+  }
+}

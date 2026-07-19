@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "status": "frozen_before_weight_search",
+  "frozen_at": "2026-07-19",
+  "source_commit": "b2250114cec19984280d147141b1683a219c7491",
+  "policy": {
+    "classes": [
+      "ppa_reference",
+      "correctness_only",
+      "unknown"
+    ],
+    "classification_basis": [
+      "task documentation",
+      "task_type and initial_condition",
+      "reference provenance",
+      "starter/reference source identity"
+    ],
+    "immutability": "Do not revise a classification in response to weight-search or score results.",
+    "ppa_constraint": "Only ppa_reference entries are subject to reference-vs-starter standardized_score >= 75.",
+    "unknown_policy": "An unknown entry that affects feasibility is a blocker."
+  },
+  "source_digest": {
+    "algorithm": "find <tree> -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum",
+    "generated_tree": {
+      "root": "tasks/generated",
+      "file_count": 727,
+      "sha256": "486f510002d57f90dc36aea1c9cf2b1a0a38370559c2b7bf5b84064afb549df4"
+    },
+    "official_dotproduct": {
+      "root": "tasks/official/dotProduct_optimize",
+      "file_count": 6,
+      "sha256": "abb8033dfbddf3d8763265d512680bba3b7f7e02a6a38afb27309a7f104c31a6"
+    },
+    "official_projection": {
+      "root": "tasks/official/projection_bugfix",
+      "file_count": 6,
+      "sha256": "7868630d44a10d6e47121780790550c7667874894c0df71a83d7259246f058f1"
+    },
+    "official_residual": {
+      "root": "tasks/official/residual_stream_deadlock",
+      "file_count": 6,
+      "sha256": "708a3e296fc78733037760984f4f26baac1b90b5b491c666818529c95f8de71b"
+    }
+  },
+  "calibration_classes": {
+    "ppa_reference": [
+      {
+        "selector": "tasks/generated/*",
+        "task_count": 94,
+        "subtype": "baseline_identity",
+        "starter_reference_identical_count": 94,
+        "task_type_counts": {
+          "optimize": 88,
+          "generate": 6
+        },
+        "family_counts": {
+          "c2hlsc": 12,
+          "chstone": 20,
+          "flowgnn": 3,
+          "gnnbuilder": 3,
+          "machsuite": 17,
+          "polybench": 28,
+          "pp4fpga": 3,
+          "rosetta": 8
+        },
+        "evidence": [
+          "Every generated initial_condition explicitly requests FPGA/HLS optimization.",
+          "The harness README defines reference kernels as golden solutions and baseline PPA evidence.",
+          "All 94 generated reference kernels are byte-identical to their starters, so they are neutral baseline PPA references rather than independent optimized targets."
+        ],
+        "constraint_role": "Neutral P=1/A=1 identity checks; these entries do not create a non-trivial weight boundary."
+      },
+      {
+        "task_id": "dotProduct_optimize",
+        "subtype": "optimized_target",
+        "task_type": "optimize",
+        "starter_sha256": "1bca40f5d5cffe6db31aac1e84ed18ee756059ce67de8ef6d33dec578e1ca05c",
+        "reference_sha256": "edde9bb6697d1455a18336894d1e414047688eb263a7dd5f3798866d3322b40b",
+        "evidence": [
+          "The task description says the starter is functionally correct but unoptimized.",
+          "The stated task goal is to reduce latency on the target U55C.",
+          "The reference differs from the starter and represents the task's intended optimized solution."
+        ],
+        "constraint_role": "Non-trivial reference-vs-starter PPA constraint."
+      }
+    ],
+    "correctness_only": [
+      {
+        "task_id": "projection_bugfix",
+        "subtype": "functional_repair",
+        "task_type": "repair",
+        "starter_sha256": "eed237714637529c534e6e0ed2a2086611ce73999bcb64b20a949f9bb5e88eaf",
+        "reference_sha256": "b695ac74d397921a60153dd6939369d7e698f2b9e51bfcff72a2fcca1128bfea",
+        "evidence": [
+          "The starter intentionally fails C simulation in the angle==0 branch.",
+          "The task objective is functional diagnosis and correction, not PPA optimization."
+        ],
+        "constraint_role": "Report PPA diagnostically; do not constrain the global weight."
+      },
+      {
+        "task_id": "residual_stream_deadlock",
+        "subtype": "structural_correctness_repair",
+        "task_type": "structural",
+        "starter_sha256": "9fd5afc39e19ae1ae2865b352e4ce290e950a065c269e3ad23ad7771cf967e6c",
+        "reference_sha256": "889ff12da87724f1d74adbd41f1bb594f2e54ea0dfc2eb45e1b87184f6b1ee77",
+        "evidence": [
+          "The starter intentionally deadlocks in RTL co-simulation.",
+          "The task objective is deadlock-free structural correctness while preserving numerical behavior, not PPA optimization."
+        ],
+        "constraint_role": "Report PPA diagnostically; do not constrain the global weight."
+      }
+    ],
+    "unknown": []
+  },
+  "summary": {
+    "total_tasks": 97,
+    "ppa_reference_tasks": 95,
+    "correctness_only_tasks": 2,
+    "unknown_tasks": 0,
+    "non_trivial_ppa_constraints_before_vitis": 1
+  }
+}

@@ -2878,3 +2878,239 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
 - 对未来新 task：兼容性是“现有扁平 package contract 内良好”，不是任意 task
   通用。扩展名白名单、非递归 staging、NUL heuristic 和正则 source rewrite 是
   明确的格式硬编码/边界，在支持更开放的新 task 之前不能宣称完全通用。
+
+## 2026-07-19 — Scoring 权重校准第 1 轮：reference 语义分类冻结
+
+### 顺序保证
+
+- 本轮只审计 task 文档、`task_type`、`initial_condition`、harness reference
+  定义、starter/reference 源码同一性和来源结构；尚未运行 0.52/0.55/0.60
+  权重搜索，也未根据新权重观察任何 reference 分数。
+- 冻结结果写入 `fpt26-agent-v3/scoring/reference_classification.json`，状态为
+  `frozen_before_weight_search`，源提交
+  `b2250114cec19984280d147141b1683a219c7491`。后续不得因某项低于 75 修改
+  分类；只有新的设计语义证据和显式重新审计才能开启新版本分类。
+
+### 分类依据与结果
+
+- Harness README 将 `reference/<kernel>.cpp` 定义为 golden solution、baseline
+  PPA 与 offline scripted agent 输入；所有 94 个 generated task 的
+  `initial_condition` 都明确要求 HLS/FPGA 优化。
+- 字节级源码审计发现 94/94 generated reference 与 starter 完全相同，其中
+  88 个 `task_type=optimize`、6 个 `task_type=generate`。因此全部冻结为
+  `ppa_reference/baseline_identity`：它们是合法的 neutral baseline PPA 证据，
+  但不是独立优化标答，只产生 P=1、A=1 的恒等约束，不能支配权重选择。
+- `dotProduct_optimize` 冻结为 `ppa_reference/optimized_target`：starter 明确为
+  functionally correct but unoptimized，目标明确要求在 U55C 降低 latency，且
+  reference 与 starter 不同。这是当前唯一非平凡 PPA reference 约束。
+- `projection_bugfix` 冻结为 `correctness_only/functional_repair`：starter
+  故意存在功能错误，任务目标只要求诊断并修正 angle==0 分支。
+- `residual_stream_deadlock` 冻结为
+  `correctness_only/structural_correctness_repair`：starter 故意在 RTL co-sim
+  死锁，目标是消除结构死锁并保持数值行为，不宣称 PPA 优化。
+- 汇总：PPA reference 95（94 neutral identity + 1 optimized target）、
+  correctness-only 2、unknown 0。correctness-only 的 PPA 仍完整报告，但不用于
+  `standardized score >=75` 权重硬约束。
+
+### 完整性哈希
+
+- generated task tree：727 files，SHA-256
+  `486f510002d57f90dc36aea1c9cf2b1a0a38370559c2b7bf5b84064afb549df4`。
+- official dot/projection/residual tree SHA-256 分别为
+  `abb8033dfbddf3d8763265d512680bba3b7f7e02a6a38afb27309a7f104c31a6`、
+  `7868630d44a10d6e47121780790550c7667874894c0df71a83d7259246f058f1`、
+  `708a3e296fc78733037760984f4f26baac1b90b5b491c666818529c95f8de71b`。
+  算法和每个 official starter/reference 源码 hash 均记录在冻结 JSON 中。
+
+### 工具、用量与下一步
+
+- 本轮未调用 LLM API、未运行 Vitis、未计算新权重分数；因此 model、input
+  tokens、output tokens、total tokens、cached tokens、reasoning tokens 均为
+  `unavailable`，API request count=0，agent budget spent=0。端到端 wall time
+  未单独仪表化，记为 `unavailable`，不估算。
+- 下一步先为冻结 manifest 增加完整性测试，并定义 Pareto 审计与显式绕过
+  efficiency 的 standardized QoR 入口；随后才 fresh 运行真实 Vitis 采集全部
+  starter/reference 原始证据和安全边界。
+
+## 2026-07-19 — Scoring 权重校准第 2 轮：fresh Vitis 全量证据与 schema 10
+
+### 真实证据采集
+
+- 在 `fpt26-agent-v3:freeze-20260718` 中最多并行 3 个隔离容器，加载
+  `/tools/Xilinx/2025.2/Vitis/settings64.sh`，Vitis HLS 版本为 2025.2 build
+  6295257。排序后的 97 个 task 按 index modulo 3 写入独立目录
+  `runs/reference_calibration_fresh_20260719_s{0,1,2}`；每个 task 又使用独立
+  `repeat_00/reference_hidden_csim`、`starter_synth`、`reference_synth` 工程。
+- 每项命令均为 `python3 -m scoring.collect_reference_evidence --task <task>
+  --output-root <shard-root> --repeat-index 0`。结果为 97/97 evidence、291/291
+  工具阶段 `ok=true`、return code 0，194 份 starter/reference csynth XML 均记录
+  SHA-256；未出现 license、timeout、compile、CSim 或 synth 失败。
+- 对唯一非平凡 PPA reference `dotProduct_optimize` 另启两个隔离容器，输出到
+  `runs/reference_calibration_dot_repeat{1,2}_20260719`。三次 clean run 的 starter
+  与 reference XML hash 各自完全相同；原始结果稳定为 starter
+  latency/II=`1027/1025`、LUT/FF/DSP=`156/93/2`，reference
+  latency/II=`36/34`、LUT/FF/DSP=`1809/1135/64`，task effective clock 均为 5ns。
+  因此实际波动为 0，保守 `P=1027/36=28.527777...`、瓶颈 DSP growth=32、
+  `A=1/32`。
+- 本阶段只验证冻结 reference，不生成 agent candidate，所以 LLM API request=0、
+  model=`not_applicable`；input/output/total/cached/reasoning tokens 均为
+  `unavailable`，agent budget spent=0。每份 evidence 记录准确 task wall time；
+  dot 三次分别为 54.975758398s、57.478861397s、56.077361891s。分片级并行端到端
+  wall time 未独立仪表化，记为 `unavailable`，不估算。
+
+### Pareto、可行区间与权重选择
+
+- 权威命令：`python3 -m scoring.analyze_reference_calibration`，输入上述 5 个 fresh
+  evidence roots，输出
+  `runs/scoring_calibration_analysis_20260719/reference_calibration_v3.json`（SHA-256
+  `c679fe6251e2c22168be15892546ce3cae7337d8e62d460553a3f943fb14b0fe`）。报告版本
+  `scoring.__version__=10.0.0`、`SCHEMA_VERSION=10`；99 份 evidence、97 个唯一
+  task、297 个真实工具阶段均通过完整性门，94/94 个源码 identity record 的
+  starter/reference XML hash 也一致。
+- 95 个 PPA reference 中有 85 个可评分：84 个 generated identity reference 在所有
+  权重下严格为 75，dotProduct 是唯一非平凡约束。另 10 个 identity task 的 Vitis
+  顶层 latency/II 为 undef，明确列为 unscorable，不伪造有限指标；它们源码与 XML
+  identity 仍证明不产生非平凡权重方向。
+- Pareto 审计要求 performance、II 与所有有效资源维度均不优且至少一项更差才判定
+  dominated。PPA reference dominated=0；dotProduct 是性能/面积 trade-off。两个
+  correctness-only reference 不进入约束：residual 全面改善；projection latency/II
+  相同但 LUT 607→692，诊断上被 starter 支配，这进一步验证不能用其扭曲全局权重。
+- 保守全局区间为 `w_performance > 0.5084248300102405`（同时要求
+  `w_performance>0.5`）。指定网格中 dotProduct standardized score：0.50→73.5441、
+  0.52→76.9327、0.54→80.0729、0.55→81.5427、0.56→82.9429、0.60→87.8325。
+  0.55 距实际下界 0.04157517，非平凡 reference 相对 75 有 6.54266945 分余量，
+  因而采用默认领域先验 `W_PERFORMANCE=0.55`、`W_AREA=0.45`，不是贴边值。
+
+### 一组最小实现修改与回归
+
+- `hardware_ratio` 改为 `P**0.55 * A**0.45`，指数和严格为 1；所有 task 继续共用
+  同一公式、validity gate、area bottleneck、capacity 和 efficiency 策略。
+- 新增未舍入 `calculate_qor_components()`，production 和校准共用 effective clock、
+  可选 II、cosim 与资源逻辑；新增 `grade_standardized_qor()`，其 API 不接受 cost/time，
+  显式 `efficiency=1` 并记录 `score_mode=standardized_qor`、
+  `efficiency_source=explicit_standardized_override`、cost/time=`null`。production
+  `grade()` 仍按真实 cost/time 计算 efficiency。
+- 首次分析命令因新增共用组件未保留既有 `latency=0 → 1 cycle` 归一化而 exit 1，且
+  未生成输出；恢复原 production 语义并补零 latency identity 回归后重新运行 exit 0。
+  这是本组改动内可归因、可重复的修正，没有跳过 task 或修改 evidence。
+- 测试命令：`docker run ... python3 -m pytest -q scoring` → **88 passed in
+  0.43s**。覆盖权重和为 1、边界、0.50/0.52/0.55/0.60、dot 最小 UNROLL、性能
+  退化、面积膨胀、极端比率、Pareto trade-off/dominated、零 latency、standardized
+  正常/错误 gate、score mode、efficiency 来源与 production 分离。
+- runner、testbench、workflow、optimizer、prompt、只读 harness、task/reference source
+  和公共执行接口均未修改。下一步以真实 LLM API 和真实 Vitis fresh 运行 3 个
+  official task，收集 candidate frontier 后在同一证据上复评邻域权重排序，再执行完整
+  测试和干净环境 E2E；本轮尚不冻结 schema 10。
+- 全集成首次命令 `python3 -m pytest -q tests scoring` 实际运行 Vitis 后为
+  `147 passed, 4 failed`；4 项均是 schema 9 旧预期：两项 q_hw 数值，以及两项把
+  `1027→515 cycles / 2→4 DSP` 最小 UNROLL 当作拒绝。更新为 schema 10 数值、保留
+  真正面积爆炸的 duplicate-rejection 回归，并验证最小 UNROLL 被接受后 no-change
+  收敛。最终同一命令（`FPT26_REAL_VITIS_TESTS=1`）为 **151 passed in 83.59s**。
+- 随后尝试启动 3 个 official 真实 API/Vitis 容器，但安全审查在进程创建前拒绝：
+  `/tmp/fpt26.env` 指向 custom external model endpoint，命令会发送 private workspace
+  中的 official task code/prompt，必须由用户知情后显式批准。只读检查确认三个目标
+  output root 均未创建，因此本次尝试 API request=0、tokens=`unavailable`、budget=0，
+  没有自动降级、绕过或历史回放。等待明确授权后继续，不把 schema 10 标记冻结。
+- 后续元数据审计发现先前 `reference_calibration_v2.json` 在 Python package version
+  升级前生成，内部 schema/公式为 10 但 `scoring_version` 仍为 9.0.0，不能作为最终
+  权威报告。保留 v2 作为演进记录，增加 repeat 分类/source 一致性与 identity XML
+  fail-closed 门后，以 10.0.0 重新生成上述 v3；最终验收只引用 v3。
+- 当前状态再次执行 `python3 -m pytest -q scoring` → **88 passed in 0.24s**。
+  `execution-freeze.json` 中 12 个逐文件 SHA-256（runner、testbench、workflow、reporting、
+  harness scripts 等）与当前工作树逐项一致；完整测试中的 freeze tree 测试也已通过，
+  因而本轮没有越界修改执行层。
+
+## 2026-07-19 — Scoring 权重校准第 3 轮：真实 API official 验收与冻结
+
+### 授权、环境与运行命令
+
+- 用户明确批准将三个 official task 的代码和提示词发送至 `/tmp/fpt26.env` 配置的
+  custom external LLM endpoint，并进一步授权本目标内后续真实 API + Vitis 操作无需
+  重复申请。运行和报告未读取或记录 endpoint URL、API key、access token 或 license
+  密钥。
+- 三个相互隔离的 Docker 容器并行使用镜像
+  `fpt26-agent-v3:freeze-20260718`、只读 `/tools/Xilinx`、Vitis 2025.2 build 6295257、
+  `--env-file /tmp/fpt26.env`、`--backend custom`。容器内命令分别为：
+  `python3 -m agent.main --task /workspace/tasks/official/dotProduct_optimize
+  --mode optimize --backend custom --output-root
+  /workspace/runs/schema10_official_dot_20260719 --quiet`；projection 将 task/mode/output
+  替换为 `projection_bugfix/repair/schema10_official_projection_20260719`；residual 替换
+  为 `residual_stream_deadlock/structural/schema10_official_residual_20260719`。
+- 三个进程均 exit 0、`status=completed`，没有 scripted backend、mock、伪造结果或
+  历史回放。模型统一为 `qwen3-coder-plus`，temperature=0.7，max_tokens=4096，client
+  为 `OpenAICompatClient`。
+
+### 真实 candidate 与 correctness 结果
+
+- `dotProduct_optimize`：LLM 第一个 proposal 是最小 `UNROLL factor=2`。fresh Vitis
+  从 latency/II `1027/1025`、LUT/FF/DSP `156/93/2` 改善到 `515/513`、
+  `211/138/4`；schema 10 接受。第二个 proposal latency 仍为 515，但 LUT/FF 增至
+  `446/179`，被拒绝，最终产物保持第一个 proposal。hidden CSim 与三份 grading
+  synthesis 全部 rc=0。生产 score=`73.60`、Q_HW=`0.7666`、efficiency=`0.9600`；
+  standardized QoR=`76.6635`。budget=`15/40`，E2E wall=`105.1s`，grading wall=
+  `88.426725156s`。
+- `projection_bugfix`：故障 starter 的 public CSim rc=1，真实 LLM 修复后 public/hidden
+  CSim 通过；fresh candidate synth latency/II=`0/1`、LUT=`692`，三份 grading synth
+  均 rc=0。生产 score=`71.14`、Q_HW=`0.7350`、efficiency=`0.9678`；standardized
+  QoR=`73.5043`。这是预先冻结的 correctness-only reference：相对可综合但功能错误的
+  starter，修复实现 LUT `607→692`，因此不能用它的 `<75` 反向扭曲 PPA 权重。
+  budget=`6/20`，E2E wall=`52.5s`，grading wall=`79.314798255s`。
+- `residual_stream_deadlock`：starter CSim 通过但真实 RTL co-sim deadlock/rc=1；LLM
+  修复后 hidden CSim、synth 和 RTL co-sim 均 rc=0。fresh synth latency/II
+  `135/136→68/64`、LUT/FF `539/248→406/231`，实际 `residual_cosim.rpt` 为 Pass、
+  measured max latency=97；评分明确使用 cosim latency 97。生产 score=`75.61`、
+  Q_HW=`0.8004`、efficiency=`0.9447`；standardized QoR=`80.0404`。budget=`42/80`，
+  E2E wall=`125.4s`，grading wall=`102.323056811s`。
+
+### API 用量、权威复算与候选排序
+
+- dot API 2 request/2 response，prompt/completion/total tokens=`5990/207/6197`；
+  projection=`1/1, 1866/558/2424`；residual=`1/1, 2715/321/3036`。总计 4/4，
+  prompt=`10571`、completion=`1086`、total=`11657`；所有 usage complete，failed=0、
+  unreported=0。cached tokens 与 reasoning tokens 未由 endpoint 返回，记为
+  `unavailable`，不估算。budget 消耗如上，三项总 credits=63。
+- 权威评分命令：`cd fpt26-agent-v3 && python3 -m
+  scoring.analyze_official_acceptance --workspace-root .. --task-root
+  ../tasks/official`，并以三个 `--run-report ../runs/schema10_official_.../run_report.json`
+  输入上述 fresh runs，输出
+  `scoring/reports/official_acceptance_20260719_v1.json`。版本
+  `scoring.__version__=10.0.0`、`SCHEMA_VERSION=10`，报告 SHA-256
+  `59372024f74abb9e8699318d8de0ffcdfca257a1ed27abdddf43f3b80bd21b70`。
+- 分析器重新解析每份 `csynth.xml` 与 residual 的 `*_cosim.rpt`，再调用
+  `grade()`/`grade_standardized_qor()`；三项 production score/Q_HW 均与 run_report
+  显示精度一致。它还拒绝非 `OpenAICompatClient`、不完整 token usage、失败/重复工具
+  阶段、缺失 Vitis banner、XML/score 漂移与覆盖已有报告。
+- dot 真实 frontier 的 standardized 分数：baseline 在全部权重严格为 75；已接受
+  proposal 在 0.50/0.52/0.54/0.55/0.56/0.60 下为
+  `74.9635/75.6509/76.3285/76.6635/76.9960/78.2999`；面积更差 proposal 为
+  `70.3076/71.2423/72.1644/72.6206/73.0733/74.8486`。因此 0.50 会把真实有效的
+  2x-speed/2x-DSP proposal 错排在 baseline 后；0.52 以上恢复正确排序，0.55 又对
+  面积投机保持稳定惩罚。这是 candidate 证据，不是用 dot 的 reference 75 边界选权重。
+
+### 最终回归与冻结结论
+
+- 新增 acceptance analyzer 的 fail-closed 回归，包括 mock/scripted/replay client、API
+  request/response/token 不一致、失败/重复 stage、workspace path escape、显示分漂移，
+  以及上述真实 dot frontier 排序。host 定向测试：`python3 -m pytest -q
+  scoring/test_official_acceptance.py scoring/test_reference_calibration.py
+  scoring/test_reference_classification.py scoring/test_scoring_v3.py` → **100 passed**；加入
+  frontier 回归后单文件为 **13 passed**。
+- 最终干净容器命令：`docker run --rm -v /home/chen1/projects/fpt26_new:/workspace
+  -v /tools/Xilinx:/tools/Xilinx:ro --env-file /tmp/fpt26.env -e
+  PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness -e
+  PYTHONDONTWRITEBYTECODE=1 -e FPT26_REAL_VITIS_TESTS=1 -w
+  /workspace/fpt26-agent-v3 fpt26-agent-v3:freeze-20260718 bash -c 'source
+  /tools/Xilinx/2025.2/Vitis/settings64.sh && python3 -m pytest -p
+  no:cacheprovider -q tests scoring'`。加入 freeze manifest 前的完整结果为
+  **164 passed in 83.96s**；随后新增 `scoring-freeze.json` 与三个锁定测试，并用完全
+  相同的干净容器命令最终复跑为 **167 passed in 82.94s**，0 failed、0 skipped。
+- 三个 official correctness gate 无回退，PPA reference 安全区间与真实候选排序均支持
+  0.55/0.45；但“所有 official production score >=73”并不成立：correctness-only 的
+  projection 在真实 cost/time 下为 71.14。冻结目标是统一 PPA 公式、正确 gate 与稳定
+  排序，不通过 task-specific 补分把该值伪装为 >=73。
+- runner、testbench、workflow、reporting、optimizer/prompt、只读 harness、task/source/
+  reference 和公共执行接口仍与 execution freeze hash 一致。schema 10 满足冻结条件；
+  后续只允许针对可稳定复现的评分/执行缺陷做最小修复，补回归后重新执行真实验收。
+- 最终冻结索引为 `fpt26-agent-v3/scoring/scoring-freeze.json`：锁定 version/schema、
+  公式、分类、采集/分析器、核心回归与 evidence SHA-256；`execution-freeze.json` 的
+  validation metadata 同步为 scoring `10.0.0/schema 10`，其执行文件和 tree hash 未变。

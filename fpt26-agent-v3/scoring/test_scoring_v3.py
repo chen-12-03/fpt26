@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V8 measured-cosim, capacity-integrated scoring engine — test suite.
+"""V10 calibrated-weight, measured-cosim scoring engine — test suite.
 
 All tasks use the single ``valid_then_optimize`` objective.
 Task type labels do not affect scoring.
@@ -23,6 +23,8 @@ if _V3_DIR not in sys.path:
 import pytest
 from scoring_v3 import (
     RESOURCES,
+    W_AREA,
+    W_PERFORMANCE,
     Anchor,
     QoREvidence,
     Scorecard,
@@ -30,10 +32,12 @@ from scoring_v3 import (
     ValidityGates,
     aggregate_performance_ratio,
     area_quality,
+    calculate_qor_components,
     check_capacity,
     combine_score,
     efficiency_factor,
     grade,
+    grade_standardized_qor,
     hardware_ratio,
     hardware_qor,
     performance_quality,
@@ -103,18 +107,35 @@ class TestRatioQuality:
         assert ratio_quality(1.0) < 0.80
 
 
-class TestLogSymmetricHardwareRatio:
-    """Schema 8 retains V6 raw-ratio composition before bounded utility."""
+class TestWeightedHardwareRatio:
+    """Schema 10 gives performance a frozen, modest log-domain priority."""
+
+    def test_weights_sum_to_one_and_performance_has_stable_priority(self):
+        assert W_PERFORMANCE + W_AREA == pytest.approx(1.0)
+        assert W_PERFORMANCE == pytest.approx(0.55)
+        assert W_AREA == pytest.approx(0.45)
+        assert W_PERFORMANCE > W_AREA
 
     @pytest.mark.parametrize("growth", [1.0, 1.25, 1.5, 2.0, 4.0, 10.0])
-    def test_equal_speedup_and_growth_are_baseline_neutral(self, growth):
-        assert hardware_ratio(growth, 1.0 / growth) == pytest.approx(1.0)
-        assert hardware_qor(growth, 1.0 / growth) == pytest.approx(0.75)
+    def test_equal_speedup_and_growth_reflect_performance_priority(self, growth):
+        expected = growth ** (W_PERFORMANCE - W_AREA)
+        assert hardware_ratio(growth, 1.0 / growth) == pytest.approx(expected)
+        if growth == 1.0:
+            assert hardware_qor(growth, 1.0 / growth) == pytest.approx(0.75)
+        else:
+            assert hardware_qor(growth, 1.0 / growth) > 0.75
 
-    def test_speed_per_growth_controls_baseline_order(self):
-        assert hardware_qor(1.6, 1.0 / 1.5) > 0.75
-        assert hardware_qor(1.5, 1.0 / 1.5) == pytest.approx(0.75)
-        assert hardware_qor(1.4, 1.0 / 1.5) < 0.75
+    def test_weighted_boundary_controls_baseline_order(self):
+        growth = 1.5
+        neutral_speed = growth ** (W_AREA / W_PERFORMANCE)
+        assert hardware_qor(neutral_speed * 1.01, 1.0 / growth) > 0.75
+        assert hardware_qor(neutral_speed, 1.0 / growth) == pytest.approx(0.75)
+        assert hardware_qor(neutral_speed * 0.99, 1.0 / growth) < 0.75
+
+    @pytest.mark.parametrize("weight", [-0.01, 1.01])
+    def test_calibration_weight_must_be_bounded(self, weight):
+        with pytest.raises(ValueError, match="performance_weight"):
+            hardware_ratio(1.0, 1.0, performance_weight=weight)
 
     def test_no_finite_resource_growth_creates_performance_ceiling(self):
         for growth in (2.0, 4.0, 10.0, 1000.0):
@@ -174,7 +195,7 @@ class TestCapacityEvidence:
         assert gates.first_failure == "resource_capacity_exceeded"
 
 
-class TestLogSymmetricHardwareRatioExamples:
+class TestWeightedHardwareRatioExamples:
     def test_optional_ii_uses_weighted_geometric_ratio(self):
         combined = aggregate_performance_ratio(
             latency_ratio=4.0, ii_ratio=1.0, ii_applicable=True
@@ -187,13 +208,14 @@ class TestLogSymmetricHardwareRatioExamples:
             ratio_quality(1.666837) * ratio_quality(1.0 / 1.5)
         )
         assert old_v5_q_hw < 0.75
-        assert q_hw == pytest.approx(0.763006, abs=1e-6)
+        assert q_hw == pytest.approx(0.774012, abs=1e-6)
         assert q_hw > 0.75
 
-    def test_real_dot_minimum_unroll_stays_below_baseline(self):
+    def test_real_dot_minimum_unroll_is_rewarded_by_domain_priority(self):
         assert hardware_qor(1.994175, 1.0 / 2.0) == pytest.approx(
-            0.749635, abs=1e-6
+            0.766635, abs=1e-6
         )
+        assert hardware_qor(1.994175, 1.0 / 2.0) > 0.75
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -459,7 +481,10 @@ class TestScoreRange:
 
     def test_scorecard_audit_fields(self):
         card = grade(TaskScoringConfig(task_id="audit"), _anchor(), _ev(), gates=_gates())
-        assert card.schema_version == 9
+        assert card.schema_version == 10
+        assert card.score_mode == "production"
+        assert card.performance_weight == pytest.approx(0.55)
+        assert card.area_weight == pytest.approx(0.45)
         assert card.latency_ratio > 0
         assert card.performance_ratio > 0
         assert card.q_perf > 0
@@ -490,6 +515,105 @@ class TestEfficiency:
         assert efficiency_factor(99999, 100, 99999, 3600) == 0.8
 
 
+class TestStandardizedQoR:
+    def test_identity_is_exactly_75_without_zero_cost_time_encoding(self):
+        cfg = TaskScoringConfig(
+            task_id="identity",
+            budget_limit=10,
+            time_limit_s=10.0,
+        )
+        production = grade(
+            cfg,
+            _anchor(lat=100),
+            _ev(lat=100),
+            cost_spent=10,
+            wall_time_s=10.0,
+            gates=_gates(),
+        )
+        standardized = grade_standardized_qor(
+            cfg,
+            _anchor(lat=100),
+            _ev(lat=100),
+            gates=_gates(),
+        )
+
+        assert production.score_mode == "production"
+        assert production.efficiency_source == "measured_cost_time"
+        assert production.efficiency == pytest.approx(0.8)
+        assert production.score == pytest.approx(60.0)
+        assert standardized.score_mode == "standardized_qor"
+        assert standardized.efficiency_source == "explicit_standardized_override"
+        assert standardized.cost_spent is None
+        assert standardized.wall_time_s is None
+        assert standardized.efficiency == pytest.approx(1.0)
+        assert standardized.score == pytest.approx(75.0)
+        assert "explicit standardized QoR override" in standardized.render()
+
+    def test_standardized_entry_keeps_validity_gates(self):
+        card = grade_standardized_qor(
+            TaskScoringConfig(task_id="invalid"),
+            _anchor(),
+            _ev(),
+            gates=_gates(pass_all=False),
+        )
+        assert not card.valid
+        assert card.gate_reason == "hidden_csim_fail"
+        assert card.score == 0.0
+        assert card.score_mode == "standardized_qor"
+
+    def test_unrounded_components_match_clean_dotproduct_evidence(self):
+        anchor = _anchor(
+            lat=1027,
+            ii=1025,
+            res={"LUT": 156, "FF": 93, "DSP": 2, "BRAM_18K": 0, "URAM": 0},
+        )
+        evidence = _ev(
+            lat=36,
+            ii=34,
+            res={"LUT": 1809, "FF": 1135, "DSP": 64, "BRAM_18K": 0, "URAM": 0},
+        )
+        components = calculate_qor_components(
+            TaskScoringConfig(task_id="dotProduct_optimize"),
+            anchor,
+            evidence,
+        )
+        assert components.performance_ratio == pytest.approx(1027 / 36)
+        assert components.bottleneck_resource == "DSP"
+        assert components.area_growth == pytest.approx(32.0)
+        assert components.area_ratio == pytest.approx(1 / 32)
+        assert components.ii_applied is False
+
+    def test_zero_latency_identity_preserves_one_cycle_normalization(self):
+        components = calculate_qor_components(
+            TaskScoringConfig(task_id="zero_latency"),
+            _anchor(lat=0),
+            _ev(lat=0),
+        )
+        assert components.latency_ratio == pytest.approx(1.0)
+        card = grade_standardized_qor(
+            TaskScoringConfig(task_id="zero_latency"),
+            _anchor(lat=0),
+            _ev(lat=0),
+            gates=_gates(),
+        )
+        assert card.score == pytest.approx(75.0)
+
+    def test_required_calibration_weight_grid_has_stable_direction(self):
+        performance_ratio = 1027 / 36
+        area_ratio = 1 / 32
+        scores = {
+            weight: 100 * hardware_qor(
+                performance_ratio,
+                area_ratio,
+                performance_weight=weight,
+            )
+            for weight in (0.50, 0.52, 0.55, 0.60)
+        }
+        assert scores[0.50] < 75.0
+        assert scores[0.52] > 75.0
+        assert scores[0.50] < scores[0.52] < scores[0.55] < scores[0.60]
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 3 real FPT26 tasks
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -507,7 +631,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 406, "FF": 231, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
 
-        print(f"\nprojection_bugfix V8:")
+        print(f"\nprojection_bugfix V10:")
         print(card.render())
 
         assert card.valid
@@ -528,7 +652,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 13189, "FF": 54194, "DSP": 64, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=15, gates=_gates())
 
-        print(f"\ndotProduct_optimize V8:")
+        print(f"\ndotProduct_optimize V10:")
         print(card.render())
 
         assert card.valid
@@ -538,7 +662,7 @@ class TestRealTasks:
         assert card.bottleneck_resource == "FF"
         assert card.area_growth > 500
         assert card.q_area < 0.01
-        assert 25 < card.score < 40
+        assert 40 < card.score < 50
 
     def test_dotProduct_four_candidates(self):
         """Ranking follows measured speedup/worst-growth, not labels."""
@@ -557,14 +681,14 @@ class TestRealTasks:
         cc = c(68, 68, 2000, 800, 8)            # C: balanced
         cd = c(10, 10, 50000, 200000, 200)      # D: extreme
 
-        print(f"\ndotProduct V8 — 4 candidates:")
+        print(f"\ndotProduct V10 — 4 candidates:")
         for name, card in [("A", ca), ("B", cb), ("C", cc), ("D", cd)]:
             print(f"  {name}: score={card.score:.2f}  q_perf={card.q_perf:.4f}  "
                   f"q_area={card.q_area:.4f}  bottleneck={card.bottleneck_resource}")
 
         # D is far larger than A, but its 102.7x speedup / 2150x worst growth
         # is slightly better than A's 27x / 583x. Both remain far below the
-        # 1x baseline; the log-symmetric formula preserves that ratio order.
+        # 1x baseline; the weighted raw-ratio formula preserves this order.
         assert cb.score > cc.score > cd.score > ca.score, (
             f"B={cb.score:.2f} C={cc.score:.2f} A={ca.score:.2f} D={cd.score:.2f}"
         )
@@ -584,7 +708,7 @@ class TestRealTasks:
         gates = ValidityGates(hidden_csim_pass=True, synth_pass=True, hidden_cosim_pass=True)
         card = grade(cfg, a, ev, cost_spent=66, gates=gates)
 
-        print(f"\nresidual_stream_deadlock V8:")
+        print(f"\nresidual_stream_deadlock V10:")
         print(card.render())
 
         assert card.valid
@@ -688,7 +812,7 @@ class TestExtremeRatios:
         ev = QoREvidence(candidate_latency=100, candidate_ii=1,
                          candidate_resources={"LUT": 200, "FF": 200, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
-        # perf_ratio ≈ 100, area_ratio ≈ 0.5, hw_ratio ≈ sqrt(50) ≈ 7.07
+        # perf_ratio ≈ 100, area_ratio ≈ 0.5, weighted hw_ratio remains large.
         # q_hw = ratio_quality(7.07) > 0.98
         assert card.q_hw > 0.95
         assert card.score > 90
@@ -700,21 +824,21 @@ class TestExtremeRatios:
         ev = QoREvidence(candidate_latency=50, candidate_ii=1,
                          candidate_resources={"LUT": 500, "FF": 500, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
-        # perf_ratio = 2.0, area_ratio = 1/50 = 0.02, hw_ratio = sqrt(0.04) = 0.2
+        # perf_ratio = 2.0, area_ratio = 1/50; area explosion remains strongly penalized.
         # q_hw = ratio_quality(0.2) = 1 - 1/1.44 = 0.3056
         assert card.q_hw < 0.4
         assert card.score < 40
 
-    def test_both_extreme_cancels(self):
-        """100x speedup, 100x area → approximately neutral."""
+    def test_both_extreme_reflects_performance_priority(self):
+        """100x speedup and growth reflects the frozen performance priority."""
         cfg = TaskScoringConfig(task_id="extreme3")
         a = _anchor(lat=10000, res={"LUT": 1, "FF": 1, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         ev = QoREvidence(candidate_latency=100, candidate_ii=1,
                          candidate_resources={"LUT": 100, "FF": 100, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
-        # perf_ratio ≈ 100, area_ratio ≈ 0.01, hw_ratio ≈ sqrt(1.0) = 1.0
-        assert card.hardware_ratio == pytest.approx(1.0, abs=0.01)
-        assert card.q_hw == pytest.approx(0.75, abs=0.01)
+        # P^0.55 * A^0.45 = 100^0.10.
+        assert card.hardware_ratio == pytest.approx(100 ** 0.10, abs=0.01)
+        assert card.q_hw > 0.75
 
     def test_regression_with_very_small_latency_ratio(self):
         """Very small latency_ratio → q_hw near zero (continuous, not zero)."""
@@ -723,7 +847,7 @@ class TestExtremeRatios:
         ev = QoREvidence(candidate_latency=100000, candidate_ii=1,
                          candidate_resources={"LUT": 100, "FF": 100, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
-        # latency_ratio ≈ 0.001, hw_ratio ≈ sqrt(0.001) ≈ 0.0316
+        # latency_ratio ≈ 0.001, hw_ratio = 0.001^0.55.
         # ratio_quality is asymptotic → q_hw ≈ 0.06, not exactly 0
         assert card.q_hw < 0.1
         assert card.score < 10
@@ -786,7 +910,7 @@ class TestMultiResourceGrowth:
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("  FPT26 V8 Measured-CoSim Scoring Engine — Test Suite")
+    print("  FPT26 V10 Calibrated-Weight Scoring Engine — Test Suite")
     print("=" * 70)
 
     trt = TestRealTasks()

@@ -14,18 +14,17 @@ Core formula (fits on one screen)::
     def ratio_quality(r):   return 1 - 1/(1+r)**2
     performance_ratio       = anchor_time / candidate_time
     area_ratio              = 1 / max(growth_by_resource)
-    hardware_ratio          = sqrt(performance_ratio * area_ratio)
+    hardware_ratio          = performance_ratio**0.55 * area_ratio**0.45
     q_hw                    = ratio_quality(hardware_ratio)
     def efficiency():       return max(0.80, 1 - 0.10*ucost - 0.10*utime)
     def score():            return 100 * validity * q_hw * efficiency
 
-Schema 9 retains the schema-8 log-symmetric hardware-ratio formula, schema-7
-capacity gate, and schema-8 measured-cosim requirement, while replacing the
-device-capacity-proportional resource floor with a uniform floor of 1.0 for
-all resource types.  This eliminates the hidden 5–10× penalty on BRAM/URAM
-zero→nonzero transitions relative to LUT/FF, so that per-resource growth
-ratios reflect actual count changes rather than device-capacity scaling.
-Device capacity is still enforced by the hard check_capacity gate.
+Schema 10 gives performance a stable, modest domain priority over area using
+weights calibrated from frozen PPA references and clean Vitis evidence.  It
+retains the schema-9 uniform resource floor, schema-7 capacity gate, and
+schema-8 measured-cosim requirement.  Standardized reference calibration has
+its own entry point with an explicit efficiency override; production grading
+continues to use measured cost and wall time.
 """
 
 from __future__ import annotations
@@ -38,9 +37,11 @@ from dataclasses import dataclass, field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 RESOURCES = ("LUT", "FF", "DSP", "BRAM_18K", "URAM")
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 W_LATENCY = 0.85
 W_II = 0.15
+W_PERFORMANCE = 0.55
+W_AREA = 0.45
 LAMBDA_COST = 0.10
 LAMBDA_TIME = 0.10
 E_MIN = 0.80
@@ -267,16 +268,39 @@ def check_capacity(
 # QoR & Efficiency
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def hardware_ratio(performance_ratio: float, area_ratio: float) -> float:
-    """Equal-log-weight performance/resource trade-off ratio."""
-    return math.sqrt(
-        max(performance_ratio, 0.0) * max(area_ratio, 0.0)
+def hardware_ratio(
+    performance_ratio: float,
+    area_ratio: float,
+    *,
+    performance_weight: float = W_PERFORMANCE,
+) -> float:
+    """Weighted geometric performance/resource trade-off ratio.
+
+    ``performance_weight`` is exposed for the scoring-owned calibration
+    command.  Production ``grade()`` always uses the frozen module constant.
+    The area exponent is its exact complement, so the exponents sum to one.
+    """
+    if not 0.0 <= performance_weight <= 1.0:
+        raise ValueError("performance_weight must be within [0, 1]")
+    area_weight = 1.0 - performance_weight
+    return (
+        max(performance_ratio, 0.0) ** performance_weight
+        * max(area_ratio, 0.0) ** area_weight
     )
 
 
-def hardware_qor(performance_ratio: float, area_ratio: float) -> float:
+def hardware_qor(
+    performance_ratio: float,
+    area_ratio: float,
+    *,
+    performance_weight: float = W_PERFORMANCE,
+) -> float:
     """Map the composite hardware ratio once through the unified utility."""
-    return ratio_quality(hardware_ratio(performance_ratio, area_ratio))
+    return ratio_quality(hardware_ratio(
+        performance_ratio,
+        area_ratio,
+        performance_weight=performance_weight,
+    ))
 
 
 def efficiency_factor(
@@ -397,6 +421,97 @@ class TaskScoringConfig:
     task_clock_ns: float = 5.0
 
 
+@dataclass(frozen=True)
+class QoRComponents:
+    """Unrounded QoR components shared by production and calibration."""
+
+    latency_ratio: float
+    ii_ratio: float
+    ii_applied: bool
+    performance_ratio: float
+    q_perf: float
+    growth_by_resource: dict[str, float]
+    bottleneck_resource: str
+    area_growth: float
+    area_ratio: float
+    q_area: float
+    acceleration_source: str
+    cosim_latency_used: int | None
+
+
+def calculate_qor_components(
+    task_cfg: TaskScoringConfig,
+    anchor: Anchor,
+    evidence: QoREvidence,
+    *,
+    ii_applicable: bool = False,
+) -> QoRComponents:
+    """Calculate exact production QoR ratios without display rounding."""
+    available = verified_available_resources(anchor.available)
+    if not available:
+        raise ValueError("complete available resources are required")
+    if anchor.latency is None or evidence.candidate_latency is None:
+        raise ValueError("anchor and candidate latency are required")
+
+    acceleration_source = "synth"
+    candidate_latency = evidence.candidate_latency
+    cosim_latency_used = None
+    if task_cfg.requires_cosim:
+        if evidence.cosim_latency is None:
+            raise ValueError("required cosim latency is missing")
+        candidate_latency = evidence.cosim_latency
+        acceleration_source = "cosim"
+        cosim_latency_used = evidence.cosim_latency
+
+    anchor_period = max(
+        task_cfg.task_clock_ns,
+        anchor.clock_ns or task_cfg.task_clock_ns,
+    )
+    candidate_period = max(
+        task_cfg.task_clock_ns,
+        evidence.candidate_clock_ns or task_cfg.task_clock_ns,
+    )
+    latency_ratio = (
+        anchor_period * (anchor.latency or 1)
+        / max(candidate_period * (candidate_latency or 1), 1e-9)
+    )
+    ii_applied = (
+        ii_applicable
+        and (anchor.ii or 0) > 0
+        and (evidence.candidate_ii or 0) > 0
+    )
+    ii_ratio = 1.0
+    if ii_applied:
+        ii_ratio = (anchor.ii or 1) / max(evidence.candidate_ii or 1, 1)
+    performance_ratio = aggregate_performance_ratio(
+        latency_ratio,
+        ii_ratio,
+        ii_applied,
+    )
+
+    q_area, growth, bottleneck = area_quality(
+        evidence.candidate_resources,
+        anchor.resources,
+        available,
+    )
+    area_growth = growth.get(bottleneck, 1.0)
+    area_ratio = 1.0 / max(area_growth, 1e-9)
+    return QoRComponents(
+        latency_ratio=latency_ratio,
+        ii_ratio=ii_ratio,
+        ii_applied=ii_applied,
+        performance_ratio=performance_ratio,
+        q_perf=ratio_quality(performance_ratio),
+        growth_by_resource=growth,
+        bottleneck_resource=bottleneck,
+        area_growth=area_growth,
+        area_ratio=area_ratio,
+        q_area=q_area,
+        acceleration_source=acceleration_source,
+        cosim_latency_used=cosim_latency_used,
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Scorecard
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -409,6 +524,7 @@ class Scorecard:
     task_id: str = ""
     task_type: str = ""             # label only
     difficulty: int = 1
+    score_mode: str = "production"
 
     # Anchor
     anchor_source: str = "none"
@@ -445,14 +561,17 @@ class Scorecard:
     q_area: float = 0.0
 
     # Efficiency
-    cost_spent: float = 0
+    cost_spent: float | None = 0
     cost_limit: float = 0
-    wall_time_s: float = 0.0
+    wall_time_s: float | None = 0.0
     time_limit_s: float = 0.0
     efficiency: float = 1.0
+    efficiency_source: str = "measured_cost_time"
 
     # Final
     hardware_ratio: float = 1.0
+    performance_weight: float = W_PERFORMANCE
+    area_weight: float = W_AREA
     q_hw: float = 0.0
     score: float = 0.0
     score_max: float = 100.0
@@ -477,8 +596,17 @@ class Scorecard:
                 f"║  latency_ratio: {self.latency_ratio:>8.2f}x   ii_ratio: {self.ii_ratio:>8.2f}x                    ║",
                 f"║  q_perf:        {self.q_perf:>8.4f}   ({self.utility_name})                         ║",
                 f"║  area_growth:   {self.area_growth:>8.2f}x   bottleneck: {self.bottleneck_resource:<10}  q_area: {self.q_area:.4f}   ║",
-                f"║  hardware_ratio:{self.hardware_ratio:>8.4f}x   (sqrt(performance_ratio × area_ratio))      ║",
-                f"║  efficiency:    {self.efficiency:>8.4f}   (cost {self.cost_spent}/{self.cost_limit}, time {self.wall_time_s:.0f}s/{self.time_limit_s:.0f}s)   ║",
+                f"║  hardware_ratio:{self.hardware_ratio:>8.4f}x   (P^{self.performance_weight:.2f} × A^{self.area_weight:.2f})                  ║",
+            ]
+            if self.efficiency_source == "explicit_standardized_override":
+                lines.append(
+                    f"║  efficiency:    {self.efficiency:>8.4f}   (explicit standardized QoR override)              ║"
+                )
+            else:
+                lines.append(
+                    f"║  efficiency:    {self.efficiency:>8.4f}   (cost {self.cost_spent}/{self.cost_limit}, time {self.wall_time_s:.0f}s/{self.time_limit_s:.0f}s)   ║"
+                )
+            lines += [
                 f"╠{'─'*75}╣",
                 f"║  Q_HW:          {self.q_hw:>8.4f}                                                  ║",
                 f"║  SCORE:         {self.score:>8.2f} / {self.score_max:.0f}  ({self.score/self.score_max*100:.1f}%)                               ║",
@@ -499,29 +627,38 @@ class Scorecard:
 # Main grading function
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def grade(
+def _grade(
     task_cfg: TaskScoringConfig,
     anchor: Anchor,
     evidence: QoREvidence,
     *,
-    cost_spent: int = 0,
-    wall_time_s: float = 0.0,
+    cost_spent: int | None,
+    wall_time_s: float | None,
     gates: ValidityGates | None = None,
     ii_applicable: bool = False,
+    efficiency_override: float | None = None,
+    score_mode: str = "production",
 ) -> Scorecard:
-    """Grade a candidate submission — single unified code path for all tasks.
+    """Internal unified grading path for production and standardized QoR.
 
     All task types share the same formula.  task_type is recorded as a
     label only and does not change any weight, policy, or formula path.
     """
     if gates is None:
         gates = ValidityGates()
+    efficiency_source = (
+        "explicit_standardized_override"
+        if efficiency_override is not None
+        else "measured_cost_time"
+    )
 
     # Infrastructure error → evaluation invalid
     if evidence.infrastructure_error or gates.infrastructure_error:
         return Scorecard(
             schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
+            score_mode=score_mode, efficiency_source=efficiency_source,
+            cost_spent=cost_spent, wall_time_s=wall_time_s,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=anchor.valid,
             valid=False,
@@ -535,6 +672,8 @@ def grade(
         return Scorecard(
             schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
+            score_mode=score_mode, efficiency_source=efficiency_source,
+            cost_spent=cost_spent, wall_time_s=wall_time_s,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=False,
             valid=False, gate_reason="no_valid_anchor",
@@ -571,6 +710,8 @@ def grade(
         return Scorecard(
             schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
+            score_mode=score_mode, efficiency_source=efficiency_source,
+            cost_spent=cost_spent, wall_time_s=wall_time_s,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=anchor.valid,
             valid=False, gate_reason=gates.first_failure,
@@ -588,6 +729,8 @@ def grade(
         return Scorecard(
             schema_version=SCHEMA_VERSION, task_id=task_cfg.task_id,
             task_type=task_cfg.task_type, difficulty=task_cfg.difficulty,
+            score_mode=score_mode, efficiency_source=efficiency_source,
+            cost_spent=cost_spent, wall_time_s=wall_time_s,
             anchor_source=anchor.source, anchor_hash=anchor.hash,
             anchor_valid=anchor.valid,
             valid=False, gate_reason="required_metric_missing",
@@ -601,44 +744,35 @@ def grade(
             available_resources=dict(available),
         )
 
-    # ── Effective latency (cosim overrides synth for requires_cosim) ─────
-    accel_source = "synth"
-    cand_lat = evidence.candidate_latency
-    cosim_used = None
-    if task_cfg.requires_cosim and evidence.cosim_latency is not None:
-        cand_lat = evidence.cosim_latency
-        accel_source = "cosim"
-        cosim_used = evidence.cosim_latency
-
-    # ── Performance ──────────────────────────────────────────────────────
-    anchor_period = max(task_cfg.task_clock_ns, anchor.clock_ns or task_cfg.task_clock_ns)
-    cand_period = max(task_cfg.task_clock_ns, evidence.candidate_clock_ns or task_cfg.task_clock_ns)
-
-    anchor_time = anchor_period * (anchor.latency or 1)
-    cand_time = cand_period * (cand_lat or 1)
-
-    latency_ratio = anchor_time / max(cand_time, 1e-9)
-    ii_ratio = 1.0
-    has_ii = ii_applicable and (anchor.ii or 0) > 0 and (evidence.candidate_ii or 0) > 0
-    if has_ii:
-        ii_ratio = (anchor.ii or 1) / max(evidence.candidate_ii or 1, 1)
-
-    performance_ratio = aggregate_performance_ratio(
-        latency_ratio, ii_ratio, has_ii
+    components = calculate_qor_components(
+        task_cfg,
+        anchor,
+        evidence,
+        ii_applicable=ii_applicable,
     )
-    q_perf = performance_quality(latency_ratio, ii_ratio, has_ii)
-
-    # ── Resources ────────────────────────────────────────────────────────
-    q_area, growth, bottleneck = area_quality(
-        evidence.candidate_resources, anchor.resources, available)
-    area_growth = growth.get(bottleneck, 1.0)
-    area_ratio = 1.0 / max(area_growth, 1e-9)
 
     # ── QoR, efficiency, score ───────────────────────────────────────────
-    composite_hardware_ratio = hardware_ratio(performance_ratio, area_ratio)
-    q_hw = hardware_qor(performance_ratio, area_ratio)
-    eff = efficiency_factor(cost_spent, task_cfg.budget_limit,
-                            wall_time_s, task_cfg.time_limit_s)
+    composite_hardware_ratio = hardware_ratio(
+        components.performance_ratio,
+        components.area_ratio,
+    )
+    q_hw = hardware_qor(
+        components.performance_ratio,
+        components.area_ratio,
+    )
+    if efficiency_override is None:
+        if cost_spent is None or wall_time_s is None:
+            raise ValueError("production grading requires cost and wall time")
+        eff = efficiency_factor(
+            cost_spent,
+            task_cfg.budget_limit,
+            wall_time_s,
+            task_cfg.time_limit_s,
+        )
+    else:
+        if not 0.0 <= efficiency_override <= 1.0:
+            raise ValueError("efficiency_override must be within [0, 1]")
+        eff = efficiency_override
     score = combine_score(valid=True, q_hw=q_hw, efficiency=eff)
 
     return Scorecard(
@@ -646,6 +780,7 @@ def grade(
         task_id=task_cfg.task_id,
         task_type=task_cfg.task_type,
         difficulty=task_cfg.difficulty,
+        score_mode=score_mode,
         anchor_source=anchor.source,
         anchor_hash=anchor.hash,
         anchor_valid=anchor.valid,
@@ -659,26 +794,81 @@ def grade(
         cosim_pass=gates.hidden_cosim_pass,
         resource_capacity_pass=gates.resource_capacity_pass,
         stage=stage,
-        latency_ratio=round(latency_ratio, 2),
-        ii_ratio=round(ii_ratio, 2),
-        performance_ratio=round(performance_ratio, 4),
-        q_perf=round(q_perf, 4),
+        latency_ratio=round(components.latency_ratio, 2),
+        ii_ratio=round(components.ii_ratio, 2),
+        performance_ratio=round(components.performance_ratio, 4),
+        q_perf=round(components.q_perf, 4),
         baseline_resources=dict(anchor.resources),
         candidate_resources=dict(evidence.candidate_resources),
         available_resources=dict(available),
-        growth_by_resource={r: round(v, 2) for r, v in growth.items()},
-        bottleneck_resource=bottleneck,
-        area_growth=round(area_growth, 2),
-        area_ratio=round(area_ratio, 4),
-        q_area=round(q_area, 4),
+        growth_by_resource={
+            r: round(v, 2) for r, v in components.growth_by_resource.items()
+        },
+        bottleneck_resource=components.bottleneck_resource,
+        area_growth=round(components.area_growth, 2),
+        area_ratio=round(components.area_ratio, 4),
+        q_area=round(components.q_area, 4),
         cost_spent=cost_spent,
         cost_limit=task_cfg.budget_limit,
         wall_time_s=wall_time_s,
         time_limit_s=task_cfg.time_limit_s,
         efficiency=round(eff, 4),
+        efficiency_source=efficiency_source,
         hardware_ratio=round(composite_hardware_ratio, 4),
         q_hw=round(q_hw, 4),
         score=round(score, 2),
-        acceleration_source=accel_source,
-        cosim_latency_used=cosim_used,
+        acceleration_source=components.acceleration_source,
+        cosim_latency_used=components.cosim_latency_used,
+    )
+
+
+def grade(
+    task_cfg: TaskScoringConfig,
+    anchor: Anchor,
+    evidence: QoREvidence,
+    *,
+    cost_spent: int = 0,
+    wall_time_s: float = 0.0,
+    gates: ValidityGates | None = None,
+    ii_applicable: bool = False,
+) -> Scorecard:
+    """Grade a production candidate using measured cost/time efficiency."""
+    return _grade(
+        task_cfg,
+        anchor,
+        evidence,
+        cost_spent=cost_spent,
+        wall_time_s=wall_time_s,
+        gates=gates,
+        ii_applicable=ii_applicable,
+        efficiency_override=None,
+        score_mode="production",
+    )
+
+
+def grade_standardized_qor(
+    task_cfg: TaskScoringConfig,
+    anchor: Anchor,
+    evidence: QoREvidence,
+    *,
+    gates: ValidityGates | None = None,
+    ii_applicable: bool = False,
+) -> Scorecard:
+    """Grade hardware QoR with an explicit efficiency factor of one.
+
+    The API intentionally accepts no cost or wall-time arguments.  The
+    resulting scorecard records ``None`` for those fields and names the
+    explicit override source, so a standardized anchor score cannot be
+    confused with a zero-cost production run.
+    """
+    return _grade(
+        task_cfg,
+        anchor,
+        evidence,
+        cost_spent=None,
+        wall_time_s=None,
+        gates=gates,
+        ii_applicable=ii_applicable,
+        efficiency_override=1.0,
+        score_mode="standardized_qor",
     )

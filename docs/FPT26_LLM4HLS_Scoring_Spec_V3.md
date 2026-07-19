@@ -5,6 +5,16 @@
 **适用对象：FPT26/LLM4HLS 类 agent 竞赛中，由 agent 生成、修复或优化的 HLS/RTL 产出物**  
 **前序版本：`scoring-redesign-proposal.md`（V2）**
 
+> **当前可执行 profile（schema 10，2026-07-19）：** 本文的研究设计背景继续保留；
+> 与实现不一致时，以 `fpt26-agent-v3/scoring/scoring_v3.py` 和
+> `fpt26-agent-v3/scoring/SCORING_CONSISTENCY.md` 为准。当前 profile 先聚合 raw
+> performance/area ratios，再计算
+> `hardware_ratio=P^0.55*A^0.45`，最后只映射一次 `ratio_quality`；不采用下文早期
+> 草案的 `q_perf^0.60*q_area^0.40`。
+> 该 executable profile 已在 2026-07-19 通过 97-task fresh reference calibration、
+> 三个 official task 的真实 LLM API + Vitis 验收及干净容器全套回归后冻结；权威证据
+> 索引见 `fpt26-agent-v3/scoring/scoring-freeze.json`。
+
 ---
 
 ## 0. 结论摘要
@@ -27,7 +37,7 @@ $$
 其中：
 
 $$
-Q_{HW}=q_{perf}^{w_{perf}}q_{area}^{w_{area}},\qquad
+Q_{HW}=1-\frac{1}{(1+R_{perf}^{w_{perf}}R_{area}^{w_{area}})^2},\qquad
 E=\max(E_{min},1-\lambda_c u_c-\lambda_t u_t)
 $$
 
@@ -35,8 +45,8 @@ $$
 
 | 参数 | 默认值 | 含义 |
 |---|---:|---|
-| $w_{perf}$ | 0.60 | workload 级性能质量权重 |
-| $w_{area}$ | 0.40 | 多资源与器件余量质量权重 |
+| $w_{perf}$ | 0.55 | workload 级性能 raw ratio 权重 |
+| $w_{area}$ | 0.45 | 最坏资源增长 raw ratio 权重 |
 | $\lambda_c$ | 0.10 | 满成本预算最多扣 10% |
 | $\lambda_t$ | 0.10 | 满时间预算最多扣 10% |
 | $E_{min}$ | 0.80 | agent 效率因子下限 |

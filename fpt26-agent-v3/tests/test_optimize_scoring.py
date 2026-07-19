@@ -65,7 +65,7 @@ def test_scorer_aligned_quality_rejects_cycle_only_area_explosion() -> None:
     extreme_card = _score_candidate(task, starter, extreme)
 
     assert starter_card.q_hw == 0.75
-    assert extreme_card.q_hw == 0.3631
+    assert extreme_card.q_hw == 0.4431
     assert extreme_card.q_hw < starter_card.q_hw
 
 
@@ -152,7 +152,7 @@ def test_rejection_feedback_contains_metrics_and_pragma_evidence() -> None:
     feedback = _rejection_feedback(card, rejected, code, best_q_hw=0.75)
 
     assert feedback["status"] == "REJECTED_BY_SCORING_V3_Q_HW"
-    assert feedback["candidate_q_hw"] == 0.0909
+    assert feedback["candidate_q_hw"] == 0.1325
     assert feedback["current_best_q_hw"] == 0.75
     assert feedback["bottleneck_resource"] in {"LUT", "FF"}
     assert feedback["candidate_pragmas"] == [
@@ -537,9 +537,9 @@ def test_optimize_skips_tools_for_semantically_repeated_rejection() -> None:
         latency=515,
         ii=513,
         clock=3.17,
-        lut=211,
-        ff=138,
-        dsp=4,
+        lut=2110,
+        ff=1380,
+        dsp=20,
         pipeline_type="loop auto-rewind stp",
         loop_metrics=[
             {
@@ -651,7 +651,7 @@ def test_minimum_unroll_frontier_requires_only_factor_two_and_loop_ii_one() -> N
     )
 
 
-def test_optimize_stops_api_after_rejected_minimum_unroll() -> None:
+def test_optimize_accepts_minimum_unroll_then_converges_on_no_change() -> None:
     task = SimpleNamespace(
         id="dotProduct_optimize",
         type="optimize",
@@ -681,7 +681,7 @@ def test_optimize_stops_api_after_rejected_minimum_unroll() -> None:
             }
         ],
     )
-    rejected_report = _report(
+    improved_report = _report(
         latency=515,
         ii=513,
         clock=3.17,
@@ -710,8 +710,8 @@ def test_optimize_stops_api_after_rejected_minimum_unroll() -> None:
 
         def complete(self, system, prompt):
             self.calls += 1
-            if self.calls > 1:
-                raise AssertionError("minimum frontier should stop reflection API")
+            if self.calls > 2:
+                raise AssertionError("accepted candidate should converge on semantic no-op")
             return candidate
 
     class Server:
@@ -726,7 +726,7 @@ def test_optimize_stops_api_after_rejected_minimum_unroll() -> None:
         def synth(self, kernel):
             self.synth_calls += 1
             return SimpleNamespace(
-                kind="synth", ok=True, report=rejected_report, log=""
+                kind="synth", ok=True, report=improved_report, log=""
             )
 
     llm = Llm()
@@ -747,11 +747,12 @@ def test_optimize_stops_api_after_rejected_minimum_unroll() -> None:
 
     result = OptimizeAgent(llm, max_rounds=5).run(state)
 
-    assert result.kernel == starter
-    assert llm.calls == 1
+    assert result.kernel == candidate
+    assert llm.calls == 2
     assert server.csim_calls == 1
     assert server.synth_calls == 1
-    assert result.metadata["minimum_factor_convergence"] is True
+    assert result.metadata["minimum_factor_convergence"] is False
+    assert result.metadata["semantic_current_best_skips"] == 0
 
 
 def test_optimize_reflects_csim_compile_error_into_next_round() -> None:

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-07-19",
+  "scoring_version": "10.0.0",
+  "scoring_schema": 10,
+  "formula": {
+    "hardware_ratio": "performance_ratio**0.55 * area_ratio**0.45",
+    "performance_weight": 0.55,
+    "area_weight": 0.45,
+    "weight_sum": 1.0,
+    "standardized_efficiency": "explicit_override_1",
+    "production_efficiency": "measured_cost_time"
+  },
+  "policy": "Only minimum fixes for reproducible scoring or execution defects, with a new regression test and fresh real-API/Vitis revalidation.",
+  "validation": {
+    "clean_image": "fpt26-agent-v3:freeze-20260718",
+    "vitis_hls": "2025.2 build 6295257",
+    "reference_task_count": 97,
+    "fresh_reference_tool_stages": 297,
+    "official_task_count": 3,
+    "official_real_api_requests": 4,
+    "official_real_api_responses": 4,
+    "official_total_tokens": 11657,
+    "final_test_result": "167 passed in 82.94s; 0 failed; 0 skipped"
+  },
+  "files": {
+    "fpt26-agent-v3/scoring/__init__.py": "3498e5fc39bd3fbbdc55b995826b6f8bf49b8fb631f733e775634d09e1914d9c",
+    "fpt26-agent-v3/scoring/scoring_v3.py": "c2c9b99cfd66d19cd2268f679d9d5ed071db1cf7589cfa910f15219d36c2c93c",
+    "fpt26-agent-v3/scoring/reference_classification.json": "cf94dca5d1b50592710e7aeca54c4470522b0e646bb82868e62902b0bf8e36c7",
+    "fpt26-agent-v3/scoring/collect_reference_evidence.py": "128e6aac09ccfe8af8f3f2d5a68bdf646878ac590a2855aae708ec7308615a68",
+    "fpt26-agent-v3/scoring/analyze_reference_calibration.py": "11194e7af89d0635bdfb960c57456522801413c3aebcc15e2c55504d61875bb9",
+    "fpt26-agent-v3/scoring/analyze_official_acceptance.py": "b8956f184b2624abca241bc4ff450c3e3da06665bf8ce92826ba37b1eb9aa05d",
+    "fpt26-agent-v3/scoring/SCORING_CONSISTENCY.md": "3fc16b5dd1e3aeb3165c05af4f31bff3bd173ce5effec6620e5adc5024583581",
+    "fpt26-agent-v3/scoring/test_scoring_v3.py": "abbe72dae5f47236b264b0d8c81af9f6df6149b13446368f339a34b9295a3a21",
+    "fpt26-agent-v3/scoring/test_reference_classification.py": "b74454b51d47ab851fc89b6b5ad7d08e3ae0003fc36bd612277a2200dd9063fb",
+    "fpt26-agent-v3/scoring/test_reference_calibration.py": "29f29682c0f53c8b968de50b5d8bba9343723e5701894e685f8c26449db9d5e2",
+    "fpt26-agent-v3/scoring/test_official_acceptance.py": "888179310fbe5ac4173ba57b0a6cdcf4aec099955554b0f4bd36fd34536aff2d",
+    "fpt26-agent-v3/tests/test_optimize_scoring.py": "1e0312895c9e9a5f2954b9fa02f690b5fb91a97bd4ea04c244aa8e2a1cfa5c00"
+  },
+  "evidence": {
+    "reference_calibration_report": {
+      "path": "runs/scoring_calibration_analysis_20260719/reference_calibration_v3.json",
+      "sha256": "c679fe6251e2c22168be15892546ce3cae7337d8e62d460553a3f943fb14b0fe"
+    },
+    "official_acceptance_report": {
+      "path": "fpt26-agent-v3/scoring/reports/official_acceptance_20260719_v1.json",
+      "sha256": "59372024f74abb9e8699318d8de0ffcdfca257a1ed27abdddf43f3b80bd21b70"
+    },
+    "official_run_reports": {
+      "dotProduct_optimize": {
+        "path": "runs/schema10_official_dot_20260719/dotProduct_optimize/run_report.json",
+        "sha256": "a732b72ec1efb0d5ac8bdcd08c670137da6180c80cb7d3e5ea837e090a6e3acf"
+      },
+      "projection_bugfix": {
+        "path": "runs/schema10_official_projection_20260719/projection_bugfix/run_report.json",
+        "sha256": "717c558d7f92a595b18f978de4eac3f52b9f2858cdc99839866fe412bbeed7e6"
+      },
+      "residual_stream_deadlock": {
+        "path": "runs/schema10_official_residual_20260719/residual_stream_deadlock/run_report.json",
+        "sha256": "e594a9b2c3390b7a47ece83f4a4367651b6e1c1a45a1d59fbdb7125f1f711797"
+      }
+    }
+  }
+}

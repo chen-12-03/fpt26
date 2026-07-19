@@ -33,9 +33,10 @@ docker run --rm \
 
 ```
 ratio_quality(r) = 1 - 1/(1+r)²
-q_perf   = 0.85 × ratio_quality(latency_ratio) + 0.15 × ratio_quality(ii_ratio)
-q_area   = ratio_quality(1 / max(growth_by_resource))
-q_hw     = √(q_perf × q_area)
+performance_ratio = latency_ratio  # 可靠 II 明确适用时才聚合 II
+area_ratio = 1 / max(growth_by_resource)
+hardware_ratio = performance_ratio^0.55 × area_ratio^0.45
+q_hw     = ratio_quality(hardware_ratio)
 efficiency = max(0.80, 1 - 0.10×cost_ratio - 0.10×time_ratio)
 score    = 100 × validity × q_hw × efficiency
 ```
@@ -153,7 +154,7 @@ class RunState:
     cosim_ok: bool
     best_latency: int | None
     results: list[ToolResult]
-    scorecard: Scorecard | None  # V3 Scorecard（schema_version=5）
+    scorecard: Scorecard | None  # V3 Scorecard（schema_version=10）
     status: str           # running | completed | budget_exceeded | error
 ```
 
