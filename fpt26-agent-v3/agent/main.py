@@ -23,6 +23,7 @@ from agent.backends import create_llm
 from agent.runner import ToolServer
 from agent.testbench import normalize_task_testbench_data
 from agent.workflow import build_pipeline
+from scoring.profiles import DEFAULT_SCORING_PROFILE, SCORING_PROFILE_CHOICES
 
 
 def _env_int(name: str, default: int) -> int:
@@ -51,11 +52,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--backend", choices=["auto", "openrouter", "custom", "scripted"],
         default="auto", help="LLM backend selection (default: auto-detect)",
     )
-    p.add_argument("--competition", action="store_true", help="Use parallel agent competition within stages")
+    p.add_argument(
+        "--competition",
+        action="store_true",
+        help=(
+            "Evaluate independent optimization strategy lanes sequentially "
+            "and select the highest measured Q_HW"
+        ),
+    )
     p.add_argument("--max-repair-attempts", type=int, default=None)
     p.add_argument("--max-optimization-rounds", type=int, default=None)
     p.add_argument("--max-structural-attempts", type=int, default=None)
     p.add_argument("--no-score", action="store_true", help="Skip hidden-testbench scoring")
+    p.add_argument(
+        "--scoring-profile",
+        choices=SCORING_PROFILE_CHOICES,
+        default=DEFAULT_SCORING_PROFILE,
+        help=(
+            "Hardware trade-off profile: balanced (0.55/0.45), "
+            "extreme_speed (0.70/0.30), or extreme_speed_capped "
+            "(0.70/0.30 without area-saving rewards)"
+        ),
+    )
     p.add_argument("--quiet", action="store_true", help="Suppress step-by-step log output")
     return p.parse_args(argv)
 
@@ -102,6 +120,7 @@ def main(argv: list[str] | None = None) -> int:
         competition=args.competition,
         output_root=output_root,
         score=not args.no_score,
+        scoring_profile=args.scoring_profile,
         verbose=not args.quiet,
         max_repair_attempts=args.max_repair_attempts or _env_int("FPT26_MAX_REPAIR_ATTEMPTS", 3),
         max_optimization_rounds=args.max_optimization_rounds or _env_int("FPT26_MAX_OPTIMIZATION_CANDIDATES", 5),

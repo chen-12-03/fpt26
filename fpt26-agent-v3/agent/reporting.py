@@ -222,6 +222,9 @@ def write_run_report(state: RunState) -> Path:
         "task_type": state.task.type,
         "task_difficulty": state.task.difficulty,
         "mode": state.config.mode,
+        "scoring_profile": getattr(
+            state.config, "scoring_profile", "balanced"
+        ),
         "competition": state.config.competition,
         "status": state.status,
         "csim_ok": state.csim_ok,
@@ -239,6 +242,8 @@ def write_run_report(state: RunState) -> Path:
         "execution_trace": _execution_trace(state),
         "llm": _llm_summary(state),
     }
+    if getattr(state, "metadata", {}).get("optimization_search"):
+        report["optimization_search"] = state.metadata["optimization_search"]
 
     if state.scorecard is not None:
         sc = state.scorecard
@@ -247,6 +252,10 @@ def write_run_report(state: RunState) -> Path:
         if is_v3:
             report["scoring"] = {
                 "schema_version": sc.schema_version,
+                "scoring_profile": getattr(sc, "scoring_profile", "balanced"),
+                "performance_weight": getattr(sc, "performance_weight", 0.55),
+                "area_weight": getattr(sc, "area_weight", 0.45),
+                "area_reward_capped": getattr(sc, "area_reward_capped", False),
                 "score": sc.score,
                 "score_max": sc.score_max,
                 "score_pct": round(sc.score / max(sc.score_max, 1) * 100, 1),
@@ -269,6 +278,11 @@ def write_run_report(state: RunState) -> Path:
                 "area_ratio": getattr(
                     sc, "area_ratio", 1.0 / max(sc.area_growth, 1e-9)
                 ),
+                "effective_area_ratio": getattr(
+                    sc,
+                    "effective_area_ratio",
+                    getattr(sc, "area_ratio", 1.0 / max(sc.area_growth, 1e-9)),
+                ),
                 "bottleneck_resource": sc.bottleneck_resource,
                 "q_perf": sc.q_perf,
                 "q_area": sc.q_area,
@@ -289,6 +303,16 @@ def write_run_report(state: RunState) -> Path:
                 rsc = state.ref_scorecard
                 report["scoring_vs_reference"] = {
                     "anchor": "reference",
+                    "scoring_profile": getattr(
+                        rsc, "scoring_profile", "balanced"
+                    ),
+                    "performance_weight": getattr(
+                        rsc, "performance_weight", 0.55
+                    ),
+                    "area_weight": getattr(rsc, "area_weight", 0.45),
+                    "area_reward_capped": getattr(
+                        rsc, "area_reward_capped", False
+                    ),
                     "score": rsc.score,
                     "score_pct": round(rsc.score / max(rsc.score_max, 1) * 100, 1),
                     "valid": rsc.valid,
@@ -297,6 +321,20 @@ def write_run_report(state: RunState) -> Path:
                     "q_area": rsc.q_area,
                     "latency_ratio": rsc.latency_ratio,
                     "area_growth": rsc.area_growth,
+                    "area_ratio": getattr(
+                        rsc, "area_ratio", 1.0 / max(rsc.area_growth, 1e-9)
+                    ),
+                    "effective_area_ratio": getattr(
+                        rsc,
+                        "effective_area_ratio",
+                        getattr(
+                            rsc,
+                            "area_ratio",
+                            1.0 / max(rsc.area_growth, 1e-9),
+                        ),
+                    ),
+                    "hardware_ratio": getattr(rsc, "hardware_ratio", None),
+                    "efficiency": rsc.efficiency,
                     "bottleneck_resource": rsc.bottleneck_resource,
                     "reference_latency": rsc.anchor_latency,
                     "reference_ii": rsc.anchor_ii,
@@ -458,7 +496,7 @@ def print_evaluation(state: RunState) -> None:
                    (sc.area_growth is not None and sc.area_growth != 1.0)
         if improved:
             for c in reversed(candidates_info):
-                if c.get("decision") == "ACCEPTED":
+                if c.get("decision") in {"ACCEPTED", "SELECTED"}:
                     best_lat = c.get("latency", best_lat)
                     best_ti = c.get("top_interval", best_ti)
                     best_clk = c.get("clock_ns", best_clk)
@@ -530,7 +568,15 @@ def print_evaluation(state: RunState) -> None:
         qhwa = c.get("q_hw_after")
         decision = c.get("decision", "REJECTED")
         delta_str = f"Q_HW {qhwb:.4f}→{qhwa:.4f}" if (qhwb is not None and qhwa is not None) else ""
-        label = f"{'Accepted' if decision == 'ACCEPTED' else 'Rejected'} (#{idx})"
+        label_prefix = {
+            "ACCEPTED": "Accepted",
+            "SELECTED": "Selected",
+            "VALID_NOT_SELECTED": "Valid",
+        }.get(decision, "Rejected")
+        strategy = c.get("strategy")
+        label = f"{label_prefix} (#{idx})"
+        if strategy:
+            label = f"{label_prefix}:{strategy[:10]} (#{idx})"
         all_entries.append((label, c, decision))
 
     if all_entries:
@@ -545,7 +591,12 @@ def print_evaluation(state: RunState) -> None:
             res = _res_str(c.get("resources", {}))
             lat_ti = f"{lat} / {ti} cyc"
             lii_str = str(lii) if lii is not None else "?"
-            dec_str = "SELECTED" if decision == "BASELINE" else ("ACCEPTED" if decision == "ACCEPTED" else "REJECTED")
+            dec_str = {
+                "BASELINE": "SELECTED" if final_is_baseline else "BASELINE",
+                "ACCEPTED": "ACCEPTED",
+                "SELECTED": "SELECTED",
+                "VALID_NOT_SELECTED": "VALID",
+            }.get(decision, "REJECTED")
             print(f"  {label:<22} {lat_ti:<17} {lii_str:<10} {clk:<10} {res:<40} {dec_str:<12}")
 
     # ── Loop details ────────────────────────────────────────────────────

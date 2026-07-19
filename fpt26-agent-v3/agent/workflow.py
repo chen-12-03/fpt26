@@ -173,10 +173,11 @@ def step_cosim(state: RunState) -> RunState:
 
 
 def step_score(state: RunState) -> RunState:
-    """Run current scoring: hidden-csim → synth(cand) → synth(base) → optional cosim.
+    """Run profiled scoring: hidden-csim → synth(cand) → synth(base) → optional cosim.
 
-    Uses the current scoring_v3.grade() formula and verified device capacity:
-        hardware_ratio = sqrt(performance_ratio * area_ratio)
+    Uses the selected profile and verified device capacity:
+        balanced: hardware_ratio = performance_ratio^0.55 * area_ratio^0.45
+        extreme:  hardware_ratio = performance_ratio^0.70 * area_ratio^0.30
         score = 100 * validity * ratio_quality(hardware_ratio) * efficiency
         missing/over-capacity evidence = invalid
     """
@@ -185,8 +186,9 @@ def step_score(state: RunState) -> RunState:
 
     from scoring.scoring_v3 import (
         Anchor, QoREvidence, TaskScoringConfig, ValidityGates,
-        grade as v3_grade, verified_available_resources,
+        verified_available_resources,
     )
+    from scoring.profiles import grade_with_profile
 
     task = state.task
     kernel = state.kernel
@@ -350,10 +352,11 @@ def step_score(state: RunState) -> RunState:
     wall_time_s = time.monotonic() - _start
 
     # ── 6. Call the authoritative grade function ──────────────────────────
-    scorecard = v3_grade(
+    scorecard = grade_with_profile(
         task_cfg=cfg,
         anchor=anchor,
         evidence=evidence,
+        scoring_profile=getattr(state.config, "scoring_profile", "balanced"),
         cost_spent=cost_spent,
         wall_time_s=wall_time_s,
         gates=gates,
@@ -373,10 +376,11 @@ def step_score(state: RunState) -> RunState:
             resources=ref_resources,
             available=ref_available,
         )
-        ref_scorecard = v3_grade(
+        ref_scorecard = grade_with_profile(
             task_cfg=cfg,
             anchor=ref_anchor,
             evidence=evidence,
+            scoring_profile=getattr(state.config, "scoring_profile", "balanced"),
             cost_spent=cost_spent,
             wall_time_s=wall_time_s,
             gates=gates,
@@ -508,8 +512,26 @@ def step_optimize(state: RunState) -> RunState:
         state.log("optimize: OptimizeAgent not implemented yet")
         return state
 
-    agent = OptimizeAgent(llm=state.llm, max_rounds=state.config.max_optimization_rounds)
-    result = agent.run(state)
+    if state.config.competition:
+        from agent.agents.competition import DiverseOptimizationStage
+
+        agent = DiverseOptimizationStage(
+            state.llm,
+            max_candidates=state.config.max_optimization_rounds,
+            scoring_profile=getattr(
+                state.config, "scoring_profile", "balanced"
+            ),
+        )
+        result = agent.run(state)
+    else:
+        agent = OptimizeAgent(
+            llm=state.llm,
+            max_rounds=state.config.max_optimization_rounds,
+            scoring_profile=getattr(
+                state.config, "scoring_profile", "balanced"
+            ),
+        )
+        result = agent.run(state)
     state.kernel = result.kernel
     # result is the same RunState object; results already appended in-place
     if result.best_latency is not None:
@@ -547,7 +569,11 @@ def build_pipeline(
 
     # Every pipeline starts with an init step
     def _init(state: RunState) -> RunState:
-        state.log(f"task={task.id}  type={task.type}  mode={mode}  budget={server.budget.total}")
+        state.log(
+            f"task={task.id}  type={task.type}  mode={mode}  "
+            f"scoring_profile={getattr(config, 'scoring_profile', 'balanced')}  "
+            f"budget={server.budget.total}"
+        )
         return state
 
     pipeline = Pipeline(name=f"fpt26-v3/{mode}")
@@ -592,7 +618,7 @@ def build_pipeline(
     # ---- Stage 6: Optimization ----
     if mode in ("optimize", "full"):
         optimize_desc = (
-            "Parallel competition: N agents generate candidates, pick best latency"
+            "Independent strategy competition: measure candidates, pick best Q_HW"
             if config.competition
             else "LLM optimization loop: propose → csim → synth → compare latency"
         )

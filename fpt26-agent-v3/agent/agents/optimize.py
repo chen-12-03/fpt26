@@ -13,9 +13,9 @@ from scoring.scoring_v3 import (
     QoREvidence,
     TaskScoringConfig,
     ValidityGates,
-    grade as v3_grade,
     verified_available_resources,
 )
+from scoring.profiles import DEFAULT_SCORING_PROFILE, grade_with_profile
 
 _CODE_RE = re.compile(r"```(?:cpp|c\+\+|c)?\s*\n(.*?)```", re.DOTALL)
 _BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
@@ -63,6 +63,68 @@ def _hls_pragmas(code: str) -> list[str]:
         for line in code.splitlines()
         if re.match(r"^\s*#\s*pragma\s+HLS\b", line, re.IGNORECASE)
     ]
+
+
+def _strategy_contract_violation(
+    best: str,
+    candidate: str,
+    strategy: dict[str, Any] | None,
+) -> str | None:
+    """Enforce mutually distinct candidate families before tool spending."""
+    if not strategy:
+        return None
+    name = strategy.get("name")
+    best_pragmas = {pragma.lower() for pragma in _hls_pragmas(best)}
+    candidate_pragmas = _hls_pragmas(candidate)
+    added_pragmas = [
+        pragma for pragma in candidate_pragmas
+        if pragma.lower() not in best_pragmas
+    ]
+    source_changed = (
+        _without_hls_pragmas_fingerprint(best)
+        != _without_hls_pragmas_fingerprint(candidate)
+    )
+
+    if name == "conservative_loop_parallelism":
+        if source_changed:
+            return "conservative lane must preserve non-pragma source"
+        if len(added_pragmas) != 1 or not re.search(
+            r"\bUNROLL\b", added_pragmas[0], re.IGNORECASE
+        ):
+            return "conservative lane requires exactly one added UNROLL pragma"
+        if re.search(
+            r"\b(ARRAY_PARTITION|ARRAY_RESHAPE|PIPELINE)\b",
+            added_pragmas[0],
+            re.IGNORECASE,
+        ):
+            return "conservative lane cannot mix banking or pipeline directives"
+        return None
+
+    if name == "source_reduction_restructure":
+        if added_pragmas:
+            return "source-restructure lane cannot add HLS pragmas"
+        if not source_changed:
+            return "source-restructure lane must change the non-pragma architecture"
+        return None
+
+    if name == "speed_first_parallel_architecture":
+        if source_changed:
+            return None
+        unrolls = [
+            pragma for pragma in added_pragmas
+            if re.search(r"\bUNROLL\b", pragma, re.IGNORECASE)
+        ]
+        if not unrolls:
+            return "speed-first lane requires a distinct parallel architecture"
+        for pragma in unrolls:
+            factor = re.search(
+                r"\bfactor\s*=\s*(\d+)", pragma, re.IGNORECASE
+            )
+            if factor and int(factor.group(1)) <= 2:
+                return "speed-first lane cannot reuse conservative factor<=2"
+        return None
+
+    return f"unknown strategy contract: {name}"
 
 
 def _source_array_rank(code: str, variable: str) -> int | None:
@@ -286,7 +348,12 @@ def _report_latency(report: Any) -> int | None:
     return report.latency_avg
 
 
-def _score_candidate(task: Any, anchor_report: Any, candidate_report: Any) -> Any:
+def _score_candidate(
+    task: Any,
+    anchor_report: Any,
+    candidate_report: Any,
+    scoring_profile: str = DEFAULT_SCORING_PROFILE,
+) -> Any:
     """Evaluate visible synth QoR through the current authoritative scorer.
 
     This is an optimization-time proxy only: C-sim and synthesis have already
@@ -325,10 +392,11 @@ def _score_candidate(task: Any, anchor_report: Any, candidate_report: Any) -> An
         synth_pass=True,
         resource_capacity_pass=True,
     )
-    return v3_grade(
+    return grade_with_profile(
         task_cfg=cfg,
         anchor=anchor,
         evidence=evidence,
+        scoring_profile=scoring_profile,
         cost_spent=0,
         wall_time_s=0.0,
         gates=gates,
@@ -694,9 +762,21 @@ def _resource_delta(history: list[dict]) -> str:
 class OptimizeAgent:
     """Resource-aware optimization using current scoring_v3 QoR selection."""
 
-    def __init__(self, llm: Any, max_rounds: int = 5) -> None:
+    def __init__(
+        self,
+        llm: Any,
+        max_rounds: int = 5,
+        scoring_profile: str = DEFAULT_SCORING_PROFILE,
+        search_strategy: dict[str, Any] | None = None,
+        shared_candidate_fingerprints: set[str] | None = None,
+        stop_after_first_measured: bool = False,
+    ) -> None:
         self.llm = llm
         self.max_rounds = max_rounds
+        self.scoring_profile = scoring_profile
+        self.search_strategy = search_strategy
+        self.shared_candidate_fingerprints = shared_candidate_fingerprints
+        self.stop_after_first_measured = stop_after_first_measured
         self.max_stag = 3  # rounds without Q_HW improvement before converging
 
     def run(self, state: RunState) -> RunState:
@@ -717,6 +797,9 @@ class OptimizeAgent:
         semantic_current_best_skips = 0
         ii_resource_intent_rejections = 0
         minimum_factor_convergence = False
+        cross_strategy_duplicate_skips = 0
+        strategy_contract_rejections = 0
+        strategy_contract_rejection_reasons: list[str] = []
 
         # Record baseline synth for reporting
         if best_synth_result is not None and best_synth_result.report is not None:
@@ -751,7 +834,9 @@ class OptimizeAgent:
                 resource_history.append(cr.report.resources)
                 if anchor_report is None:
                     anchor_report = cr.report
-                current_card = _score_candidate(task, anchor_report, cr.report)
+                current_card = _score_candidate(
+                    task, anchor_report, cr.report, self.scoring_profile
+                )
                 if best_q_hw is None:
                     best_q_hw = current_card.q_hw
                 if not best_resources:
@@ -759,7 +844,9 @@ class OptimizeAgent:
 
             report_str = _report(cr) if cr.ok else f"SYNTH FAIL: {getattr(cr, 'log', '')[-500:]}"
             if cr.ok and cr.report and anchor_report is not None:
-                current_card = _score_candidate(task, anchor_report, cr.report)
+                current_card = _score_candidate(
+                    task, anchor_report, cr.report, self.scoring_profile
+                )
                 report_str += (
                     f" ScoreAligned(Q_HW={current_card.q_hw:.4f}, "
                     f"latency_ratio={current_card.latency_ratio:.2f}x, "
@@ -807,6 +894,7 @@ class OptimizeAgent:
                 resource_delta=rsrc_trend,
                 rejection_feedback=rejection_feedback,
                 action_contract=action_contract,
+                search_strategy=self.search_strategy,
             )
 
             # ── 4. LLM proposes optimization ────────────────────────────
@@ -820,9 +908,63 @@ class OptimizeAgent:
                 semantic_current_best_skips += 1
                 state.log(
                     f"opt r{rnd}: semantic no-op versus current best — "
-                    "skip csim/synth and converge"
+                    "skip csim/synth"
                 )
+                if self.search_strategy and rnd < self.max_rounds:
+                    rejection_feedback = {
+                        "status": "REJECTED_BY_STRATEGY_CONTRACT",
+                        "reason": "candidate was a semantic no-op versus the baseline",
+                        "required_next_action": (
+                            "Stay in the assigned strategy and produce one material, "
+                            "contract-compliant candidate."
+                        ),
+                    }
+                    continue
                 break
+            strategy_violation = _strategy_contract_violation(
+                best, cand, self.search_strategy
+            )
+            if strategy_violation is not None:
+                strategy_contract_rejections += 1
+                strategy_contract_rejection_reasons.append(strategy_violation)
+                state.log(
+                    f"opt r{rnd}: strategy contract rejected candidate before tools: "
+                    f"{strategy_violation}"
+                )
+                rejection_feedback = {
+                    "status": "REJECTED_BY_STRATEGY_CONTRACT",
+                    "reason": strategy_violation,
+                    "required_next_action": (
+                        "Stay in the assigned search_strategy and correct only this "
+                        "contract violation. Do not switch optimization families."
+                    ),
+                }
+                if rnd < self.max_rounds:
+                    continue
+                break
+            if (
+                self.shared_candidate_fingerprints is not None
+                and candidate_fingerprint in self.shared_candidate_fingerprints
+            ):
+                semantic_duplicate_skips += 1
+                cross_strategy_duplicate_skips += 1
+                state.log(
+                    f"opt r{rnd}: strategy={self.search_strategy.get('name') if self.search_strategy else 'default'} "
+                    "duplicated another strategy candidate — skip tools"
+                )
+                rejection_feedback = {
+                    "status": "REJECTED_BY_STRATEGY_CONTRACT",
+                    "reason": "semantic duplicate of another strategy candidate",
+                    "required_next_action": (
+                        "Produce a materially different candidate within the assigned "
+                        "strategy family."
+                    ),
+                }
+                if rnd < self.max_rounds:
+                    continue
+                break
+            if self.shared_candidate_fingerprints is not None:
+                self.shared_candidate_fingerprints.add(candidate_fingerprint)
             if candidate_fingerprint in rejected_fingerprints:
                 semantic_duplicate_skips += 1
                 state.log(
@@ -867,7 +1009,9 @@ class OptimizeAgent:
             cand_lut = (sr.report.resources.get('LUT', 0) or 0) if sr.report else 0
             best_lut = best_resources.get('LUT', 0) if best_resources else 0
             cand_card = (
-                _score_candidate(task, anchor_report, sr.report)
+                _score_candidate(
+                    task, anchor_report, sr.report, self.scoring_profile
+                )
                 if anchor_report is not None and sr.report is not None
                 else None
             )
@@ -934,6 +1078,10 @@ class OptimizeAgent:
                     loop_ii = report.loop_metrics[0].get("pipeline_ii")
                 entry = {
                     "round": rnd,
+                    "strategy": (
+                        self.search_strategy.get("name")
+                        if self.search_strategy else "sequential_default"
+                    ),
                     "latency": report.latency_worst,
                     "top_interval": report.interval_max,
                     "loop_ii": loop_ii,
@@ -947,6 +1095,10 @@ class OptimizeAgent:
                     "decision": "ACCEPTED" if accepted else "REJECTED",
                 }
                 synth_candidates.append(entry)
+
+            if self.stop_after_first_measured:
+                state.log("opt: strategy lane measured one candidate — stop lane")
+                break
 
             if stag >= self.max_stag:
                 state.log(f"opt: converged ({self.max_stag} stagnant rounds)")
@@ -963,4 +1115,17 @@ class OptimizeAgent:
             ii_resource_intent_rejections
         )
         state.metadata["minimum_factor_convergence"] = minimum_factor_convergence
+        state.metadata["cross_strategy_duplicate_skips"] = (
+            cross_strategy_duplicate_skips
+        )
+        state.metadata["search_strategy"] = (
+            self.search_strategy.get("name")
+            if self.search_strategy else "sequential_default"
+        )
+        state.metadata["strategy_contract_rejections"] = (
+            strategy_contract_rejections
+        )
+        state.metadata["strategy_contract_rejection_reasons"] = (
+            strategy_contract_rejection_reasons
+        )
         return state

@@ -18,6 +18,56 @@ from typing import Any, Callable
 from agent.agents.base import RunState
 
 
+DIVERSE_OPTIMIZATION_STRATEGIES: tuple[dict[str, Any], ...] = (
+    {
+        "name": "conservative_loop_parallelism",
+        "objective": "Test the lowest-risk loop-local parallelism supported by the dominant-loop report.",
+        "required_family": (
+            "Preserve source arithmetic and apply at most one bounded loop-local "
+            "UNROLL directive to the measured dominant loop."
+        ),
+        "forbidden_changes": [
+            "source-level reduction rewrite",
+            "ARRAY_PARTITION or ARRAY_RESHAPE without a measured port limit",
+            "function-scope PIPELINE",
+        ],
+    },
+    {
+        "name": "source_reduction_restructure",
+        "objective": (
+            "Explore a source-level reduction architecture such as independent "
+            "partial accumulators or a balanced combine step."
+        ),
+        "required_family": (
+            "Change the reduction data-dependency structure in C/C++ while "
+            "preserving exact functional behavior and the top interface."
+        ),
+        "forbidden_changes": [
+            "adding UNROLL, PIPELINE, ARRAY_PARTITION, or ARRAY_RESHAPE pragmas",
+            "copying the conservative pragma-only candidate",
+            "changing numeric types or observable arithmetic semantics",
+        ],
+    },
+    {
+        "name": "speed_first_parallel_architecture",
+        "objective": (
+            "Test a materially more parallel speed-first architecture than the "
+            "conservative lane, while remaining within device capacity."
+        ),
+        "required_family": (
+            "Use either a bounded parallel factor materially above the conservative "
+            "trial or an explicit multi-lane/chunked compute architecture. Matching "
+            "banking may be used in this speed-first lane and must be judged by "
+            "measured capacity and Q_HW."
+        ),
+        "forbidden_changes": [
+            "reusing the conservative factor unchanged",
+            "full unroll of an unbounded or very long loop",
+        ],
+    },
+)
+
+
 AgentFactory = Callable[[int, Any], Any]  # (index, llm) -> Agent instance
 Selector = Callable[[list[RunState]], RunState]  # pick best from candidates
 
@@ -96,4 +146,167 @@ class CompetitionStage:
         state.synth_ok = winner.synth_ok
         state.cosim_ok = winner.cosim_ok
         state.log(f"competition: selected agent with latency={winner.best_latency}")
+        return state
+
+
+class DiverseOptimizationStage:
+    """Measure independent strategy lanes and select the highest-Q_HW result.
+
+    Lanes share only the immutable baseline and a semantic candidate fingerprint
+    set.  They run sequentially to avoid Vitis license contention.  No lane can
+    become another lane's starting point, so an early local improvement cannot
+    collapse the remaining search onto the same architecture.
+    """
+
+    def __init__(
+        self,
+        llm: Any,
+        *,
+        max_candidates: int,
+        scoring_profile: str,
+    ) -> None:
+        self.llm = llm
+        self.max_candidates = max(1, max_candidates)
+        self.scoring_profile = scoring_profile
+
+    def run(self, state: RunState) -> RunState:
+        from agent.agents.optimize import OptimizeAgent, _candidate_fingerprint
+
+        strategies = DIVERSE_OPTIMIZATION_STRATEGIES[: self.max_candidates]
+        baseline_kernel = state.kernel
+        baseline_fingerprint = _candidate_fingerprint(baseline_kernel)
+        baseline_results = list(state.results)
+        baseline_result_count = len(baseline_results)
+        shared_fingerprints: set[str] = set()
+        children: list[RunState] = []
+        strategy_results: list[dict[str, Any]] = []
+
+        for index, strategy in enumerate(strategies):
+            child = RunState(
+                task=state.task,
+                server=state.server,
+                llm=state.llm,
+                config=state.config,
+                kernel=baseline_kernel,
+                results=list(baseline_results),
+                csim_ok=state.csim_ok,
+                synth_ok=state.synth_ok,
+                cosim_ok=state.cosim_ok,
+                best_latency=state.best_latency,
+                metadata={},
+            )
+            agent = OptimizeAgent(
+                self.llm,
+                max_rounds=2,
+                scoring_profile=self.scoring_profile,
+                search_strategy=strategy,
+                shared_candidate_fingerprints=shared_fingerprints,
+                stop_after_first_measured=True,
+            )
+            child = agent.run(child)
+            new_results = child.results[baseline_result_count:]
+            state.results.extend(new_results)
+            children.append(child)
+
+            changed = (
+                _candidate_fingerprint(child.kernel) != baseline_fingerprint
+            )
+            measured_entries = [
+                entry
+                for entry in child.metadata.get("synth_candidates", [])
+                if not entry.get("is_baseline") and entry.get("round") != 0
+            ]
+            proposal = measured_entries[-1] if measured_entries else {}
+            result = {
+                "index": index,
+                "strategy": strategy["name"],
+                "changed": changed,
+                "improved_baseline": changed,
+                "measured_candidate": bool(measured_entries),
+                "proposal_q_hw": proposal.get("q_hw_after"),
+                "proposal_latency": proposal.get("latency"),
+                "proposal_decision": proposal.get("decision"),
+                "best_q_hw": child.metadata.get("best_q_hw"),
+                "best_latency": child.best_latency,
+                "candidate_tool_calls": len(new_results),
+                "semantic_duplicate_skips": child.metadata.get(
+                    "cross_strategy_duplicate_skips", 0
+                ),
+                "strategy_contract_rejections": child.metadata.get(
+                    "strategy_contract_rejections", 0
+                ),
+                "strategy_contract_rejection_reasons": child.metadata.get(
+                    "strategy_contract_rejection_reasons", []
+                ),
+                "selected": False,
+            }
+            strategy_results.append(result)
+            state.log(
+                f"strategy {index + 1}/{len(strategies)} "
+                f"{strategy['name']}: changed={changed} "
+                f"Q_HW={result['best_q_hw']} tools={len(new_results)}"
+            )
+
+        def _quality(index: int) -> float:
+            value = children[index].metadata.get("best_q_hw")
+            return float(value) if value is not None else -1.0
+
+        winner_index = max(range(len(children)), key=_quality)
+        winner = children[winner_index]
+        strategy_results[winner_index]["selected"] = True
+
+        combined_candidates: list[dict[str, Any]] = []
+        for index, child in enumerate(children):
+            entries = child.metadata.get("synth_candidates", [])
+            for entry in entries:
+                if entry.get("is_baseline") or entry.get("round") == 0:
+                    if not combined_candidates:
+                        combined_candidates.append(dict(entry))
+                    continue
+                combined = dict(entry)
+                combined["strategy"] = strategies[index]["name"]
+                if combined.get("decision") == "ACCEPTED":
+                    combined["decision"] = (
+                        "SELECTED"
+                        if index == winner_index
+                        else "VALID_NOT_SELECTED"
+                    )
+                combined_candidates.append(combined)
+
+        state.kernel = winner.kernel
+        state.best_latency = winner.best_latency
+        state.metadata["best_q_hw"] = winner.metadata.get("best_q_hw")
+        state.metadata["synth_candidates"] = combined_candidates
+        state.metadata["optimization_search"] = {
+            "kind": "independent_strategy_competition",
+            "selector": "highest_measured_q_hw",
+            "scoring_profile": self.scoring_profile,
+            "sequential_vitis": True,
+            "strategies": strategy_results,
+            "winner": strategies[winner_index]["name"],
+        }
+        state.metadata["semantic_duplicate_skips"] = sum(
+            child.metadata.get("semantic_duplicate_skips", 0)
+            for child in children
+        )
+        state.metadata["cross_strategy_duplicate_skips"] = sum(
+            child.metadata.get("cross_strategy_duplicate_skips", 0)
+            for child in children
+        )
+        state.metadata["ii_resource_intent_rejections"] = sum(
+            child.metadata.get("ii_resource_intent_rejections", 0)
+            for child in children
+        )
+        state.metadata["minimum_factor_convergence"] = any(
+            child.metadata.get("minimum_factor_convergence", False)
+            for child in children
+        )
+        state.metadata["strategy_contract_rejections"] = sum(
+            child.metadata.get("strategy_contract_rejections", 0)
+            for child in children
+        )
+        state.log(
+            f"strategy competition selected {strategies[winner_index]['name']} "
+            f"with Q_HW={state.metadata['best_q_hw']}"
+        )
         return state

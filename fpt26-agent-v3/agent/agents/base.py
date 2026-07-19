@@ -40,12 +40,13 @@ class AgentConfig:
     """Configuration knobs for a pipeline run."""
 
     mode: str = "baseline"            # baseline | repair | optimize | structural | full
-    competition: bool = False         # use parallel competition within stages
+    competition: bool = False         # independent strategy lanes, measured sequentially
     max_repair_attempts: int = 3
     max_optimization_rounds: int = 5
     max_structural_attempts: int = 3
     output_root: str = "runs"
     score: bool = False
+    scoring_profile: str = "balanced"
     verbose: bool = True
 
     @property

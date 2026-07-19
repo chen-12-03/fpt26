@@ -3168,3 +3168,118 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
   97 个 run/final/XML hash、API usage、raw HLS metrics、精确 P/A、0.55/0.60 diagnostic
   standardized hardware score，以及 10 个覆盖 neutral、边界、moderate、extreme 与所有
   实际 PPA quadrant 的代表 task。选择仅用于展示本轮分布，不改变 reference 分类或公式。
+
+## 2026-07-19 — 极限速度评分候选：dotProduct 真实 API + Vitis 对照
+
+### 构建与回归
+
+- 保持冻结的 `scoring_v3.py`、version `10.0.0` 和 schema 10 balanced 核心不变，新增
+  `scoring/profiles.py` profile 层，profile report schema 为 11。公开选项为：
+  `balanced=P^0.55*A^0.45`、`extreme_speed=P^0.70*A^0.30`、
+  `extreme_speed_capped=P^0.70*min(A,1)^0.30`；默认仍为 balanced。
+- `--scoring-profile` 在运行开始前固定，并沿 `AgentConfig → OptimizeAgent candidate
+  selection → hidden grade → run_report` 传递。三个 profile 共用 correctness、synth、
+  required co-sim、capacity、metric completeness、cost/time efficiency 和 utility gate；没有
+  task type 分支、profile-specific prompt、mock 或 scripted backend。
+- 新增 8 个回归，覆盖权重/名称、balanced 与 schema10 数值 identity、2x speed/4x growth
+  的排序变化、面积奖励截断、容量错误路径、optimizer proxy、CLI 和报告字段。最终 Docker
+  功能测试命令 `python3 -m pytest -q --ignore=tests/test_execution_layer_freeze.py` 为
+  **170 passed, 3 skipped in 0.87s**；`tests/test_scoring_freeze.py` 为 **3 passed**，证明
+  schema10 核心和历史 evidence 未漂移。
+- 旧 `execution-freeze.json` 未更新：其审计为 **1 failed, 1 passed**，失败明确指向新增
+  CLI/profile routing 对 `agent/main.py` 等执行接口的授权实验改动。该候选仅完成 dotProduct
+  验收，尚未满足三 official + 97 tasks + clean-image 的重新冻结条件；不得把旧 freeze
+  hash 改写成已完成的新冻结。
+
+### 真实运行与评分命令
+
+- 三轮主对照分别调用 `python3 -m agent.main --task
+  /workspace/tasks/official/dotProduct_optimize --mode optimize --backend custom
+  --max-optimization-rounds 3 --scoring-profile <profile> --output-root <isolated-root>`；最终代码
+  再用完全相同入口和 `--max-optimization-rounds 1 --quiet` 顺序 smoke 三个 profile。所有
+  命令均在 `fpt26-agent-v3:latest` Docker 内 source Vitis 2025.2，并通过
+  `/tmp/fpt26.env` 调用真实 custom endpoint。评分由 `scoring.profiles.grade_with_profile()`
+  实际计算，不是外部重算或历史回放。
+- 模型为 `qwen3-coder-plus`、client=`OpenAICompatClient`、temperature=0.7、
+  max_tokens=4096。最终 smoke 每个 profile 都是 API request/response=`1/1`、tokens=
+  `2941/101/3042`，usage complete，failed/unreported=0；未记录 endpoint、API key 或
+  license secret。
+- Vitis 日志 banner 为 `Vitis HLS v2025.2`、build `6295257`。三个最终 smoke 均 exit 0、
+  status completed；各自 public CSim 2 次、agent synth 2 次，hidden CSim、candidate synth、
+  starter synth、reference synth 全部 rc=0。final source SHA-256 均为
+  `e82403d6b06dbf9b9bc6911cd816b4e831bc8ac78ff2a7373b014618bc908f75`。
+
+### dotProduct 对照结论
+
+- 三个 profile 都选择真实 LLM 提议的 `UNROLL factor=2`：starter latency/top interval
+  `1027/1025`、LUT/FF/DSP=`156/93/2`；final 为 `515/513`、`211/138/4`，clock 均
+  `3.17ns`。相对 starter，`P=1.9942`、worst growth=`2.0`（DSP）、raw `A=0.5`。
+- balanced 的 standardized `Q_HW=0.7666`，最终 smoke production score=`74.60`
+  (`efficiency=0.9731`)；两种 0.70/0.30 profile 的 `Q_HW=0.8137`，production score 均
+  `79.17` (`efficiency=0.9730`)。在相同 final PPA 上，极限速度权重提高 standardized
+  hardware score 4.71 分，但本 task 没有改变最终候选选择。
+- 面积截断对 starter anchor 不生效，因为 final 使用更多资源、`A=0.5<1`。相对高速但
+  大面积 reference，final 的 raw `A=8.2246`、latency ratio 显示为 `0.07`：uncapped
+  extreme `Q_HW=0.4011`，capped 把 effective A 限为 1 后 `Q_HW=0.2508`。因此 dotProduct
+  证明截断实现生效，却不能决定截断是否适合作为 production policy；下一步若获批准，
+  应优先在相对 starter `A>1` 的真实 task 上比较排序，再运行三个 official 与全量回归。
+- 最终 smoke run_report SHA-256：balanced
+  `68a96ec5817629094ae4d3d85b997bf18c2f4735c574257e1c2d5ca5a22c241d`；extreme
+  `8bc6b40f5ec7ef3750ca236908f58b5f824b9c2d9d122785c281df268a84f189`；capped
+  `316ca28c90fad3169b14fe78626eda08544795b2d778f7cd231ea36125b5a682`。
+
+## 2026-07-19 — dotProduct 独立多策略搜索与实测择优
+
+- 根因 trace 确认原 `--competition` 仅改变 pipeline 描述，并未执行 competition；同时
+  SYSTEM、diagnosis 和 user prompt 都把长 reduction 导向最小 `UNROLL factor=2`，串行
+  optimizer 又以首个改善作为后续起点，造成搜索路径坍缩。
+- 将 `--competition` 接为三个从同一 starter 独立出发的策略 lane：
+  `conservative_loop_parallelism`、`source_reduction_restructure`、
+  `speed_first_parallel_architecture`。所有 lane 顺序调用 LLM；候选语义跨 lane 去重，
+  CSim/Vitis 独立验证，最后按所选 scoring profile 的最高 measured Q_HW 统一择优，禁止
+  用最低 cycle 或先到顺序替代评分。
+- runner 对 lane 家族实施可执行契约，而非只靠提示词：保守 lane 只能保留源码并新增一个
+  loop-local UNROLL；restructure lane 必须改变非 pragma 架构且不得新增 HLS pragma；speed
+  lane 必须是更高并行或显式多 lane 架构，并允许 matching banking 进入真实 capacity/Q_HW
+  裁决。每个 lane 最多一次契约/no-op/duplicate/CSim/synth 纠正重试，但最多成功综合一个
+  候选，避免重新退化成串行爬山。
+- 回归覆盖三个 lane 全执行、最高 Q_HW 而非最低 latency 择优、跨 lane duplicate 跳过
+  工具、一个 lane CSim fail 后其他 lane 继续、契约互斥、契约拒绝反馈后纠正、speed
+  banking 许可。最终相关 Docker 命令
+  `python3 -m pytest -q tests/test_diverse_optimization.py
+  tests/test_role_system_prompts.py tests/test_optimize_scoring.py
+  tests/test_scoring_profiles.py` 为 **35 passed in 0.23s**。较早的完整功能回归（契约重试
+  前）为 **174 passed, 3 skipped**；最终补丁后的完整套件尚未重跑，见下述阻塞。
+- 最终真实命令：`python3 -m agent.main --task
+  /workspace/tasks/official/dotProduct_optimize --mode optimize --competition
+  --backend custom --max-optimization-rounds 3 --scoring-profile extreme_speed
+  --output-root /workspace/runs/profile_dot_diverse_extreme_20260719_v4 --quiet`。
+  Docker 使用 `/tmp/fpt26.env` 的真实 custom endpoint、`qwen3-coder-plus`、Vitis HLS
+  2025.2；未使用 mock、scripted backend 或历史回放。
+- 真实 frontier：starter `1027 cycles, LUT/FF/DSP=156/93/2`；保守 candidate
+  `515, 211/138/4, Q_HW=0.8137`；源码 reduction candidate
+  `1101, 466/161/2, Q_HW=0.6482`；speed candidate 首次 synth 在 600.1s timeout/rc=-1，
+  纠正后为 `515 cycles, top interval=529, loop II=16, clock=3.311ns,
+  LUT/FF/DSP=1363/417/4, Q_HW=0.7066`。三条路径均不是同一源码，最终按 Q_HW 选择保守
+  candidate；factor=2 胜出是实测结果，不是唯一被搜索的策略。
+- run exit 0/status completed，budget `25/40`，public tool calls为 CSim×5、synth×5；hidden
+  CSim、candidate/starter/reference synthesis 全部通过。真实 API request/response=`4/4`，
+  prompt/completion/total tokens=`12783/889/13672`。production score=`76.13`、
+  Q_HW=`0.8137`、efficiency=`0.9356`；评分由 profile schema11 的
+  `scoring.profiles.grade_with_profile()` 实际计算。
+- v4 完成后尝试只读 report hash 审计与最终完整 pytest 时，Docker escalation 被产品侧
+  usage limit 拒绝，不能继续访问 Docker daemon；未改用 host Python、mock 或历史结果
+  降级。v4 的真实运行与 run_report 已落盘，但最终完整回归和 hash 审计仍是采用前待完成
+  gate，旧 execution freeze 保持不变。
+
+## 2026-07-19 — 阶段结论：速度极限模式暂不进入冻结范围
+
+- 当前速度极限模式仍不够理想：虽然提高性能权重能够改变评分激励，但在已完成的
+  dotProduct 多策略实测中，激进速度候选出现综合超时、资源显著膨胀和 efficiency
+  损失，最终仍由保守的 `UNROLL factor=2` 候选胜出，尚未证明该模式能够稳定地产生
+  更广且更优的优化策略。
+- 在完成更多 task 的真实 API + Vitis 重复验证、搜索多样性验证、面积奖励截断策略
+  验证和完整回归前，速度极限模式保持实验状态，不作为默认评分模式，也不纳入当前
+  execution freeze。
+- 下一阶段优先进行“自然语言到 testbench”的需求分析与方案构思；本条仅记录方向
+  切换，不代表已经确定实现架构、修改 testbench/harness，或扩大现有冻结范围。

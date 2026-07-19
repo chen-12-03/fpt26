@@ -24,11 +24,11 @@ Do NOT modify the top function signature, headers, or testbenches.
    - High latency → which loop dominates? For nested loops: PIPELINE the innermost loop first (best ROI). If outer loop dominates, pipeline the outer loop (forces inner concurrency — check memory ports).
    - Resource explosion → FF/LUT > 5x usually means over-unrolling. Reduce UNROLL factor.
    - Cosim DEADLOCK → stream depth, DATAFLOW ordering, producer/consumer rate balance.
-3. **Apply ONE pragma class per iteration.** Re-synthesize and compare reports against previous run.
+3. **Apply ONE optimization family per candidate.** A family may be one pragma class or one source-level architectural rewrite. Re-synthesize every candidate and compare reports against the same baseline.
 4. **If a directive does NOT improve the limiting metric, REMOVE or revise it.** Do not accumulate ineffective directives.
 5. **Never apply both ARRAY_PARTITION and ARRAY_RESHAPE to the same variable.**
 6. **DATAFLOW regions need explicit stream depths** for cosim safety.
-7. Prefer a conservative partial UNROLL first for long loops. Add matching partial ARRAY_PARTITION only after Vitis reports memory-port pressure; never speculatively partition large top-level arrays. Never fully unroll a long reduction just to minimize cycle count; keep the worst resource growth controlled and check estimated clock after synthesis.
+7. In a conservative loop-parallelism lane, prefer a bounded partial UNROLL. In other declared search lanes, do not fall back to that same edit: explore the assigned source-level reduction, throughput, or resource strategy. Add ARRAY_PARTITION only after Vitis reports memory-port pressure; never speculatively partition large top-level arrays. Never fully unroll a long reduction just to minimize cycle count; keep the worst resource growth controlled and check estimated clock after synthesis.
 
 ## Pipeline & II Rules
 - PIPELINE II=<n> on the loop/function that directly controls throughput.
@@ -41,7 +41,7 @@ Do NOT modify the top function signature, headers, or testbenches.
 - ARRAY_PARTITION: creates parallel banks/elements for concurrent access. Grows LUT/FF/BRAM.
 - ARRAY_RESHAPE: widens storage word while preserving packed view. Use when adjacent elements move together.
 - Match dim, type, factor to the access pattern in the bottleneck.
-- For a long vector reduction already at PipelineII=1: first test a small loop-local partial UNROLL factor such as 2 while leaving top-level arrays unchanged. Add banking only if the next Vitis report proves port pressure.
+- For a long vector reduction already at PipelineII=1: follow the declared independent search lane. A conservative lane may test a small loop-local partial UNROLL; a source-restructure lane must instead change the reduction architecture without adding parallelism pragmas. Add banking only if a Vitis report proves port pressure.
 
 ## Dataflow & Streaming
 - DATAFLOW: use after design has clear producer/compute/consumer stages.
@@ -50,7 +50,7 @@ Do NOT modify the top function signature, headers, or testbenches.
 - C-simulation CANNOT detect streaming deadlocks — only cosim reveals them.
 
 ## Stopping Criteria
-- Three consecutive rounds with no scoring_v3 Q_HW improvement → stop and submit best candidate. You have up to 3 attempts to find one improvement; use each round to try a different pragma class or factor.
+- Evaluate every declared independent strategy lane before selecting the highest measured scoring_v3 Q_HW. A no-op, duplicate, C-sim failure, or synthesis failure in one lane must not stop the other lanes.
 - Reject a candidate when reduced cycles are outweighed by clock-period or worst-resource growth.
 - If Q_HW cannot be improved without breaking csim/cosim → stop and submit current best."""
 
@@ -120,6 +120,7 @@ def build_prompt(
     resource_delta: str = "",
     rejection_feedback: dict[str, Any] | None = None,
     action_contract: dict[str, Any] | None = None,
+    search_strategy: dict[str, Any] | None = None,
 ) -> str:
     header_text, omitted_attachments = _prompt_header_context(task.headers)
 
@@ -150,6 +151,8 @@ def build_prompt(
         payload["previous_candidate_feedback"] = rejection_feedback
     if action_contract:
         payload["measured_action_contract"] = action_contract
+    if search_strategy:
+        payload["search_strategy"] = search_strategy
 
     # Streaming context — derived from task properties, not task type label
     if task.requires_cosim:
@@ -161,17 +164,23 @@ def build_prompt(
             "or add explicit .depth(N) on every hls::stream declaration."
         )
 
+    optimization_instruction = (
+        "Follow search_strategy as a hard independent-lane contract. The candidate must use its required_family and obey forbidden_changes. "
+        "Do not copy the conservative UNROLL approach when assigned a different lane. If the assigned family is unsupported by the source and measured report, return editable_kernel unchanged; do not switch families."
+        if search_strategy
+        else
+        "Apply ONE pragma class to improve scoring_v3 Q_HW, guided by bottleneck diagnosis. Balance effective latency (clock period × cycles) against the worst resource growth; do not optimize cycle count alone. Prefer a small loop-local partial unroll first; add array partition only for measured port pressure."
+    )
     payload["instruction"] = (
         "Read tool_results carefully. Determine the situation from results alone:\n"
         "- If csim FAILED: fix the functional bug. Do NOT add pragmas.\n"
         "- If cosim DEADLOCKS/TIMEOUT: fix streaming imbalance (interleave writes, add stream depths).\n"
-        "- If all PASSED: apply ONE pragma class to improve scoring_v3 Q_HW, guided by bottleneck diagnosis. "
-        "Balance effective latency (clock period × cycles) against the worst resource growth; "
-        "do not optimize cycle count alone. Prefer a small loop-local partial unroll first; add array partition only for measured port pressure.\n"
+        f"- If all PASSED: {optimization_instruction}\n"
         "- If previous_candidate_feedback.status starts with REJECTED_BY_CSIM: use its exact compiler/runtime evidence "
         "and failed_candidate_diff. Apply required_next_action before considering any new architecture; never blindly "
         "repeat the failed source.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
+        "- If previous_candidate_feedback.status is REJECTED_BY_STRATEGY_CONTRACT: no candidate tool was run. Stay in the same search_strategy and correct the exact contract violation; do not switch to another lane or repeat the rejected architecture.\n"
         "- If measured_action_contract is present: treat its target, required_candidate_delta, forbidden_as_non_responsive, dimension policy, and verification as hard planning constraints. Implement one recommended minimal trial only when the editable source proves the required dimension; otherwise use its locality alternative or return editable_kernel unchanged.\n"
         "- For other previous_candidate_feedback: the prior candidate was measured and rejected by scoring. "
         "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; never "
