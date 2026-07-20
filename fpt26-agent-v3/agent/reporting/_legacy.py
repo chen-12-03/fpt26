@@ -495,33 +495,21 @@ def write_failure_report(
     error_type: str,
     error_message: str,
 ) -> Path:
-    """Persist a truthful bootstrap/infrastructure failure without a RunState."""
+    """Persist a truthful bootstrap/infrastructure failure without a RunState.
 
-    out_dir = Path(output_root) / task_id
-    out_dir.mkdir(parents=True, exist_ok=True)
-    report_path = out_dir / "run_report.json"
-    report = {
-        "schema_version": 1,
-        "task_id": task_id,
-        "run_role": run_role,
-        "status": status,
-        "stop_reason": stop_reason,
-        "error": {
-            "type": error_type,
-            "message": error_message,
-        },
-        "scoring": None,
-        "execution_trace": {
-            "transcript": [],
-            "metered_results": [],
-            "grading_results": [],
-        },
-    }
-    report_path.write_text(
-        json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-        encoding="utf-8",
+    Delegates to ``agent.reporting.writer.write_failure_report`` for atomic I/O.
+    """
+    from agent.reporting.writer import write_failure_report as _wfr
+
+    return _wfr(
+        output_dir=Path(output_root) / task_id,
+        task_id=task_id,
+        run_role=run_role,
+        status=status,
+        stop_reason=stop_reason,
+        error_type=error_type,
+        error_message=error_message,
     )
-    return report_path
 
 
 # ---------------------------------------------------------------------------

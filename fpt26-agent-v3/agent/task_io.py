@@ -24,6 +24,12 @@ except ModuleNotFoundError:  # Python 3.10 in the frozen competition image.
 from llm4hls import config
 from llm4hls.task import Task
 
+from agent.security.paths import (
+    resolve_safe_path,
+    validate_hls_identifier,
+    validate_task_id,
+)
+
 
 U55C_PART = "xcu55c-fsvh2892-2L-e"
 REQUIRED_VITIS_VERSION = "2025.2"
@@ -221,6 +227,8 @@ def load_public_task(task_dir: str | Path) -> tuple[Task, TaskPreflight]:
     task_id = spec.get("task_id", root.name)
     if not isinstance(task_id, str) or not task_id.strip():
         raise TaskPreflightError("task_id must be a non-empty string")
+    # Security: validate against the canonical task_id pattern
+    validate_task_id(task_id)
 
     task = Task(
         dir=root,

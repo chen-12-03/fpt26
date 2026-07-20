@@ -107,6 +107,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--max-structural-attempts", type=int, default=None)
     p.add_argument("--no-score", action="store_true", help="Skip hidden-testbench scoring")
     p.add_argument(
+        "--submission-evidence",
+        type=Path,
+        default=None,
+        help="Path to submission_evidence.json for evaluator cross-process verification",
+    )
+    p.add_argument(
         "--scoring-profile",
         choices=SCORING_PROFILE_CHOICES,
         default=DEFAULT_SCORING_PROFILE,
@@ -140,6 +146,34 @@ def main(argv: list[str] | None = None) -> int:
         try:
             from agent.evaluator import evaluate_final_kernel
             from agent.reporting import print_evaluation, write_run_report
+            from agent.models import SubmissionEvidence
+
+            # Load submission evidence if provided (fail-closed)
+            submission_evidence = None
+            if args.submission_evidence is not None:
+                evidence_path = args.submission_evidence.resolve()
+                if not evidence_path.is_file():
+                    print(
+                        f"error: submission evidence not found: {evidence_path}",
+                        file=sys.stderr,
+                    )
+                    return 2
+                try:
+                    import json as _json
+                    raw = _json.loads(evidence_path.read_text(encoding="utf-8"))
+                    submission_evidence = SubmissionEvidence.from_dict(raw)
+                    print(
+                        f"Submission evidence loaded: "
+                        f"task={submission_evidence.task_id} "
+                        f"status={submission_evidence.status} "
+                        f"kernel_sha256={submission_evidence.kernel_sha256[:16]}…"
+                    )
+                except Exception as exc:
+                    print(
+                        f"error: failed to parse submission evidence: {exc}",
+                        file=sys.stderr,
+                    )
+                    return 2
 
             final_state = evaluate_final_kernel(
                 task_dir=task_dir,
@@ -147,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
                 output_root=output_root,
                 scoring_profile=args.scoring_profile,
                 verbose=not args.quiet,
+                submission_evidence=submission_evidence,
             )
             report_path = write_run_report(final_state)
             print(f"Evaluator report written to {report_path}")
@@ -293,12 +328,29 @@ def main(argv: list[str] | None = None) -> int:
     if not final_state.metadata.get("finalized"):
         final_state = step_finalize(final_state)
 
-    # 5. Persist run report --------------------------------------------------
+    # 5. Persist run report + submission evidence --------------------------
     from agent.reporting import print_evaluation, write_run_report
 
     report_path = write_run_report(final_state)
     print(f"Run report written to {report_path}")
     print_evaluation(final_state)
+
+    # 5b. Export submission evidence for cross-process evaluator verification
+    from agent.models import SubmissionEvidence
+
+    evidence = SubmissionEvidence.from_run_state(
+        final_state, run_id=f"{task.id}_{final_state.status}"
+    )
+    evidence_path = Path(output_root) / task.id / "submission_evidence.json"
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    import json as _json
+
+    evidence_path.write_text(
+        _json.dumps(evidence.to_dict(), indent=2, sort_keys=True, ensure_ascii=False)
+        + "\n",
+        encoding="utf-8",
+    )
+    print(f"Submission evidence written to {evidence_path}")
 
     # 6. Print results -------------------------------------------------------
     print(f"\n=== Agent run complete: {final_state.status} ===")

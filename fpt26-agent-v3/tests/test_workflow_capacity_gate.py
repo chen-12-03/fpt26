@@ -57,6 +57,15 @@ def _state(tmp_path) -> SimpleNamespace:
         server=SimpleNamespace(budget=SimpleNamespace(spent=0)),
         scorecard=None,
         log=lambda message: None,
+        csim_ok=True,
+        synth_ok=True,
+        interface_ok=True,
+        frequency_ok=True,
+        resource_ok=True,
+        results=[],
+        metadata={},
+        stop_reason="",
+        status="running",
     )
 
 

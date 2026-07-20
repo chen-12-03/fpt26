@@ -590,6 +590,77 @@ def step_score(state: RunState) -> RunState:
         f"eff={scorecard.efficiency:.4f})"
     )
 
+    # ── 6a. Record anchor evidence for auditability ──────────────────────
+    try:
+        from agent.models import (
+            AnchorEvidence, FrequencyGateEvidence, ResourceGateEvidence,
+            CoSimGateEvidence,
+        )
+
+        _freq = state.metadata.get("frequency_gate") or {}
+        _res = state.metadata.get("resource_gate") or {}
+        _cosim = state.metadata.get("cosim_gate") or {}
+
+        anchor_ev = AnchorEvidence(
+            source=anchor.source,
+            valid=anchor.valid,
+            source_sha256=hashlib.sha256(
+                (task.kernel_code or "").encode("utf-8")
+            ).hexdigest(),
+            csim_ok=csim.ok,
+            synth_ok=cand_synth.ok,
+            interface_ok=getattr(state, "interface_ok", None),
+            frequency=FrequencyGateEvidence(
+                ok=bool(_freq.get("ok", False)),
+                reason=_freq.get("reason"),
+                target_clock_ns=_freq.get("target_clock_ns"),
+                candidate_clock_ns=_freq.get("candidate_clock_ns"),
+                frequency_mhz=_freq.get("frequency_mhz"),
+            ) if _freq else None,
+            resource=ResourceGateEvidence(
+                ok=bool(_res.get("ok", False)),
+                reason=_res.get("reason"),
+                resources=dict(_res.get("resources", {})),
+                available=dict(_res.get("available", {})),
+            ) if _res else None,
+            cosim=CoSimGateEvidence(
+                ok=bool(_cosim.get("ok", False)),
+                phase=_cosim.get("phase"),
+                source_sha256=_cosim.get("source_sha256"),
+                latency_min=_cosim.get("latency_min"),
+                latency_avg=_cosim.get("latency_avg"),
+                latency_max=_cosim.get("latency_max"),
+            ) if _cosim else None,
+            latency=anchor.latency,
+            ii=anchor.ii,
+            clock_ns=anchor.clock_ns,
+            resources=dict(anchor.resources),
+            available=dict(anchor.available),
+            failure_reason=(
+                getattr(state, "stop_reason", "")
+                if getattr(state, "status", "") == "failed"
+                else ""
+            ),
+        )
+        state.metadata["anchor_evidence"] = anchor_ev.to_dict()
+
+        # Fail-closed: no valid anchor → invalidate score
+        if not anchor_ev.passes_all_required_gates:
+            scorecard.valid = False
+            scorecard.gate_reason = (
+                f"anchor_invalid: {anchor_ev.source} "
+                f"(c={anchor_ev.csim_ok} s={anchor_ev.synth_ok} "
+                f"i={anchor_ev.interface_ok} f={anchor_ev.frequency.ok if anchor_ev.frequency else '?'} "
+                f"r={anchor_ev.resource.ok if anchor_ev.resource else '?'} "
+                f"lat={anchor_ev.latency})"
+            )
+            scorecard.score = 0.0
+            state.log(
+                f"anchor evidence invalid ({anchor_ev.source}): scoring invalidated"
+            )
+    except ImportError:
+        pass
+
     # ── 7. Reference-anchored scorecard (vs golden answer) ─────────────────
     if ref_lat is not None:
         ref_anchor = Anchor(

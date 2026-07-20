@@ -48,44 +48,76 @@ def load_reports(paths: list[Path]) -> list[dict[str, Any]]:
 
 
 def aggregate(reports: list[dict[str, Any]]) -> dict[str, Any]:
-    """Compute aggregate metrics across all tasks."""
-    total_score = 0.0
-    total_max = 0
-    total_spent = 0
-    total_budget = 0
-    total_wall = 0.0
-    pass_count = 0
-    opt_count = 0
-    task_count = len(reports)
+    """Compute aggregate metrics across all tasks (legacy compat wrapper).
 
-    for r in reports:
-        sc = r.get("scoring", {})
-        ev = r.get("evaluation", {})
-        b = r.get("budget", {})
+    Delegates to ``agent.reporting.aggregate.collect_reports`` via in-memory
+    reports.  For direct root-disk scanning use the V3 aggregator directly.
+    """
+    from agent.reporting.aggregate import RunSummary, _is_v3_report, _extract_v3_task
 
-        total_score += sc.get("score", 0)
-        total_max += r.get("task_difficulty", 0)
-        total_spent += b.get("spent", 0)
-        total_budget += b.get("total", 0)
-        total_wall += ev.get("wall_time_seconds", 0)
+    summary = RunSummary()
+    seen: set[str] = set()
 
-        if sc.get("functional_pass"):
-            pass_count += 1
-        if sc.get("is_opt"):
-            opt_count += 1
+    for idx, r in enumerate(reports):
+        path = f"<memory-{idx}>"
+        sc = r.get("scoring") or {}
+        if _is_v3_report(sc):
+            try:
+                task = _extract_v3_task(r, path)
+            except ValueError:
+                continue
+        else:
+            # Legacy report: extract basic fields
+            from agent.reporting.aggregate import TaskAggregate
+            task = TaskAggregate(
+                task_id=str(r.get("task_id", "")),
+                task_type=str(r.get("task_type", "")),
+                status=str(r.get("status", "")),
+                score=float(sc.get("score", 0)),
+                score_max=100.0,
+                score_pct=round(float(sc.get("score", 0)) / 100.0 * 100.0, 1),
+                report_path=path,
+            )
+
+        if task.task_id and task.task_id in seen:
+            continue
+        if task.task_id:
+            seen.add(task.task_id)
+
+        summary.tasks.append(task)
+        summary.task_count += 1
+        status = task.status
+        if status == "completed":
+            summary.completed += 1
+        elif status == "budget_exceeded":
+            summary.budget_exceeded += 1
+        elif status == "infrastructure_error":
+            summary.infra_error += 1
+        else:
+            summary.failed += 1
+
+        summary.total_score += task.score
+        summary.total_score_max += task.score_max
+        summary.total_spent += task.credits_spent
+        summary.total_budget += task.credits_total
+        summary.total_wall_s += task.wall_time_s
+        summary.total_grading_s += task.grading_time_s
 
     return {
-        "task_count": task_count,
-        "total_score": round(total_score, 3),
-        "total_max": total_max,
-        "score_pct": round(total_score / max(total_max, 1) * 100, 1),
-        "total_spent": total_spent,
-        "total_budget": total_budget,
-        "budget_utilization": round(total_spent / max(total_budget, 1) * 100, 1),
-        "total_wall_seconds": round(total_wall, 0),
-        "functional_pass_rate": f"{pass_count}/{task_count}",
-        "optimization_rate": f"{opt_count}/{task_count}",
-        "budget_efficiency": round(total_score / max(total_spent, 1), 4),
+        "task_count": summary.task_count,
+        "total_score": round(summary.total_score, 3),
+        "total_max": summary.total_score_max,
+        "score_pct": round(summary.score_pct, 1),
+        "total_spent": summary.total_spent,
+        "total_budget": summary.total_budget,
+        "budget_utilization": round(summary.budget_utilization_pct, 1),
+        "total_wall_seconds": round(summary.total_wall_s, 0),
+        "functional_pass_rate": summary.functional_pass_rate,
+        "optimization_rate": f"{summary.completed}/{summary.task_count}",
+        "budget_efficiency": (
+            round(summary.total_score / max(summary.total_spent, 1), 4)
+        ),
+        "errors": summary.errors,
     }
 
 
@@ -184,7 +216,7 @@ def print_json(reports: list[dict[str, Any]], agg: dict[str, Any]) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="FPT26 Agent v2 — cross-run evaluation tool"
+        description="FPT26 Agent V3 — cross-run evaluation tool"
     )
     p.add_argument(
         "--output-root", type=Path, default=Path("runs"),
@@ -198,12 +230,59 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--detail", action="store_true",
         help="Show per-metric breakdown for each task",
     )
+    p.add_argument(
+        "--compat", action="store_true",
+        help="Include legacy (pre-V3) run_report.json files in aggregation",
+    )
+    p.add_argument(
+        "--aggregate-v3", action="store_true",
+        help="Use V3 aggregator (collect_reports) directly from disk",
+    )
     return p.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
+    # ── V3 direct-disk aggregation ───────────────────────────────────────
+    if args.aggregate_v3:
+        from agent.reporting.aggregate import collect_reports
+
+        try:
+            summary = collect_reports(
+                args.output_root, compat_legacy=args.compat
+            )
+        except FileNotFoundError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        if args.json:
+            output = {
+                "aggregate": {
+                    "task_count": summary.task_count,
+                    "completed": summary.completed,
+                    "failed": summary.failed,
+                    "budget_exceeded": summary.budget_exceeded,
+                    "infra_error": summary.infra_error,
+                    "total_score": round(summary.total_score, 3),
+                    "score_pct": round(summary.score_pct, 1),
+                    "total_spent": summary.total_spent,
+                    "total_budget": summary.total_budget,
+                    "budget_utilization_pct": round(summary.budget_utilization_pct, 1),
+                    "budget_efficiency": (
+                        round(summary.total_score / max(summary.total_spent, 1), 4)
+                    ),
+                    "total_wall_s": round(summary.total_wall_s, 0),
+                    "errors": summary.errors,
+                },
+                "tasks": [t.__dict__ for t in summary.tasks],
+            }
+            print(json.dumps(output, indent=2, sort_keys=True, ensure_ascii=False))
+        else:
+            _print_v3_summary(summary)
+        return 0
+
+    # ── Legacy in-memory aggregation ─────────────────────────────────────
     report_paths = find_reports(args.output_root)
     reports = load_reports(report_paths)
 
@@ -221,6 +300,28 @@ def main(argv: list[str] | None = None) -> int:
             print_detail(reports)
 
     return 0
+
+
+def _print_v3_summary(summary: Any) -> None:
+    """Print a V3-aware summary to stdout."""
+    print(f"\n{'='*80}")
+    print(f"  FPT26 Agent V3 — Evaluation Summary ({summary.task_count} tasks)")
+    print(f"{'='*80}")
+    print(f"  Completed:     {summary.completed}")
+    print(f"  Failed:        {summary.failed}")
+    print(f"  Budget Exceed: {summary.budget_exceeded}")
+    print(f"  Infra Error:   {summary.infra_error}")
+    print(f"  Total Score:   {summary.total_score:.2f} / {summary.total_score_max:.0f} "
+          f"({summary.score_pct:.1f}%)")
+    print(f"  Credits:       {summary.total_spent} / {summary.total_budget} "
+          f"({summary.budget_utilization_pct:.0f}%)")
+    print(f"  Wall Time:     {summary.total_wall_s:.0f}s")
+    print(f"  Grading Time:  {summary.total_grading_s:.0f}s")
+    if summary.errors:
+        print(f"\n  Warnings ({len(summary.errors)}):")
+        for e in summary.errors[:10]:
+            print(f"    - {e}")
+    print(f"{'='*80}\n")
 
 
 if __name__ == "__main__":
