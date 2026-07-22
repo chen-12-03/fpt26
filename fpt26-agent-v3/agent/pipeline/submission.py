@@ -1,7 +1,7 @@
-"""Submission pipeline orchestration.
+"""Submission pipeline orchestration — real implementation.
 
-Delegates to the existing ``agent.workflow`` steps for now; this module
-provides the typed entry point and dependency assembly that ``main.py`` uses.
+Does NOT import from ``agent.workflow``.  Uses ``CandidateValidator``,
+``ToolServer`` / ``SecureToolExecutor``, and the agent classes directly.
 """
 
 from __future__ import annotations
@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from agent.agents.base import AgentConfig, RunState
+from agent.models import SubmissionEvidence
+from agent.candidate.validator import CandidateValidator, ValidationPlan
 
 
 def run_submission(
@@ -23,10 +25,10 @@ def run_submission(
 ) -> RunState:
     """Run the full submission pipeline and return the terminal RunState.
 
-    This is a thin typed wrapper around ``workflow.build_pipeline().run()``.
+    Constructs state, injects a ``CandidateValidator``, runs the Pipeline
+    (delegated to ``workflow.build_pipeline()`` via the RunState-based
+    compatibility path for now), exports SubmissionEvidence, and finalises.
     """
-    from agent.workflow import build_pipeline, step_finalize
-
     state = RunState(
         task=task,
         server=server,
@@ -39,10 +41,244 @@ def run_submission(
     state.metadata["effective_budget"] = total_budget
     state.metadata["official_budget"] = task.budget
 
-    pipeline = build_pipeline(config=config, task=task, server=server, llm=llm)
-    state = pipeline.run(state)
+    # Inject CandidateValidator for use by pipeline steps
+    state.metadata["_candidate_validator"] = CandidateValidator(
+        task, task.kernel_code,
+    )
 
+    # ── Run the compatibility pipeline (delegates to workflow internals) ─
+    _run_pipeline(state, config, task, server, llm)
+
+    # ── Finalize ───────────────────────────────────────────────────────
     if not state.metadata.get("finalized"):
-        state = step_finalize(state)
+        _finalize(state)
 
     return state
+
+
+def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any) -> None:
+    """Run pipeline steps directly, without importing from workflow.
+
+    Each step mutates *state* in-place.  The step functions are the
+    compatibility gate functions now exported from candidate/validator.py.
+    """
+    from agent.candidate.validator import (
+        validate_candidate,
+        record_synth_gates,
+        record_cosim_gate,
+        mark_fully_verified,
+    )
+    from agent.runner import CSimTool, SynthTool, CoSimTool
+
+    mode = config.mode
+    state.log(f"task={task.id} type={task.type} mode={mode} "
+              f"budget={getattr(getattr(server, 'budget', None), 'total', '?')}")
+
+    # Stage 1: Baseline CSim
+    if not validate_candidate(state, state.kernel, stage="baseline"):
+        return
+    r = server.csim(state.kernel)
+    state.results.append(r)
+    state.csim_ok = r.ok
+    state.log(f"csim: {r.brief()}")
+
+    # Stage 2: Repair (if needed)
+    if mode in ("auto", "repair", "full") and not state.csim_ok:
+        try:
+            from agent.agents.repair import RepairAgent
+            agent = RepairAgent(llm=llm, max_attempts=config.max_repair_attempts)
+            agent.run(state)
+        except ImportError as exc:
+            state.log(f"repair: RepairAgent import failed: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "repair", "error": f"ImportError: {exc}",
+            })
+
+    # Stage 3: Synthesis
+    if state.csim_ok:
+        r = server.synth(state.kernel)
+        state.results.append(r)
+        state.synth_ok = r.ok
+        record_synth_gates(state, r, stage="pipeline_synth")
+        state.log(f"synth: {r.brief()}")
+
+    # Synth repair
+    if mode in ("auto", "repair", "full") and state.csim_ok and not state.synth_ok:
+        try:
+            from agent.agents.repair import RepairAgent
+            agent = RepairAgent(llm=llm, max_attempts=config.max_repair_attempts)
+            agent.run(state)
+        except ImportError as exc:
+            state.log(f"synth_repair: RepairAgent import failed: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "synth_repair", "error": f"ImportError: {exc}",
+            })
+
+    # Stage 4: CoSim (structural only)
+    if task.requires_cosim and state.synth_ok:
+        r = server.cosim(state.kernel)
+        state.results.append(r)
+        record_cosim_gate(state, r, stage="pipeline_cosim", source_code=state.kernel)
+        state.log(f"cosim: {r.brief()}")
+
+    # Structural repair
+    if task.requires_cosim and mode in ("auto", "structural", "full") and not state.cosim_ok:
+        try:
+            from agent.agents.structural import StructuralRepairAgent
+            agent = StructuralRepairAgent(llm=llm, max_attempts=config.max_structural_attempts)
+            agent.run(state)
+        except ImportError as exc:
+            state.log(f"structural_repair: StructuralRepairAgent import failed: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "structural_repair", "error": f"ImportError: {exc}",
+            })
+
+    # Stage 5: Optimization
+    gates_ok = (state.csim_ok and state.synth_ok and state.interface_ok
+                and state.frequency_ok and state.resource_ok
+                and (not task.requires_cosim or state.cosim_ok))
+    if mode in ("auto", "optimize", "full") and gates_ok:
+        try:
+            from agent.agents.optimize import OptimizeAgent
+            agent = OptimizeAgent(
+                llm=llm, max_rounds=config.max_optimization_rounds,
+                scoring_profile=getattr(config, "scoring_profile", "balanced"),
+            )
+            agent.run(state)
+        except ImportError as exc:
+            state.log(f"optimize: OptimizeAgent import failed: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "optimize", "error": f"ImportError: {exc}",
+            })
+
+    # Stage 6: Public acceptance
+    failures = []
+    if not state.interface_ok:
+        failures.append("interface_failed")
+    if not state.csim_ok:
+        failures.append("csim_failed")
+    if not state.synth_ok:
+        failures.append("synth_failed")
+    if not state.frequency_ok:
+        failures.append("frequency_failed")
+    if not state.resource_ok:
+        failures.append("resource_failed")
+    if task.requires_cosim and not state.cosim_ok:
+        failures.append("cosim_failed")
+
+    if failures:
+        state.status = "failed"
+        state.stop_reason = failures[0]
+        state.metadata["public_acceptance"] = {"ok": False, "failures": failures}
+    else:
+        mark_fully_verified(state)
+        state.status = "completed"
+        state.stop_reason = ""
+        state.metadata["public_acceptance"] = {"ok": True, "failures": []}
+
+
+def _finalize(state: RunState) -> None:
+    """Persist final kernel and mark as finalized."""
+    if getattr(state, "last_verified_kernel", None) is not None:
+        state.kernel = state.last_verified_kernel
+    elif state.status in ("failed", "budget_exceeded", "infrastructure_error"):
+        if getattr(state, "safe_fallback_kernel", None) is not None:
+            state.kernel = state.safe_fallback_kernel
+    out = Path(state.config.output_root) / state.task.id
+    out.mkdir(parents=True, exist_ok=True)
+    kernel_path = out / f"final_{state.task.kernel_name}"
+    kernel_path.write_text(state.kernel, encoding="utf-8")
+    state.log(f"final kernel → {kernel_path}")
+    state.metadata["finalized"] = True
+    state.metadata["final_kernel_path"] = str(kernel_path)
+
+
+# ── Backward-compat step functions for workflow.py re-exports ───────────
+
+def _run_pipeline_step_csim(state):
+    if not _validate_candidate(state, code=state.kernel, stage="baseline"):
+        return state
+    r = state.server.csim(state.kernel)
+    state.results.append(r)
+    state.csim_ok = r.ok
+    state.log(f"csim: {r.brief()}")
+    return state
+
+def _run_pipeline_step_synth(state):
+    if not state.csim_ok:
+        state.log("synth: skipped (csim not ok)")
+        return state
+    # Reuse adjacent upstream successful synth result
+    previous = state.results[-1] if state.results else None
+    if (state.synth_ok and getattr(previous, "kind", None) == "synth"
+            and getattr(previous, "ok", False) and getattr(previous, "report", None) is not None):
+        r = previous
+        state.log("synth: reusing upstream successful synth report")
+    else:
+        r = state.server.synth(state.kernel)
+        state.results.append(r)
+    state.synth_ok = r.ok
+    from agent.candidate.validator import record_synth_gates, _latency_from_report
+    record_synth_gates(state, r, stage="pipeline_synth")
+    lat = _latency_from_report(r.report if r.ok else None)
+    if lat is not None: state.best_latency = lat
+    state.log(f"synth: {r.brief()}  latency={lat}")
+    if not state.task.requires_cosim:
+        from agent.candidate.validator import _mark_fully_verified
+        _mark_fully_verified(state)
+    return state
+
+def _run_pipeline_step_cosim(state):
+    if not state.task.requires_cosim:
+        state.cosim_ok = True
+        return state
+    r = state.server.cosim(state.kernel)
+    state.results.append(r)
+    if r.report is not None:
+        state.synth_ok = True
+        from agent.candidate.validator import _latency_from_report
+        lat = _latency_from_report(r.report)
+        if lat is not None: state.best_latency = lat
+    from agent.candidate.validator import record_cosim_gate
+    record_cosim_gate(state, r, stage="pipeline_cosim", source_code=state.kernel)
+    state.log(f"cosim: {r.brief()}")
+    from agent.candidate.validator import _mark_fully_verified
+    _mark_fully_verified(state)
+    return state
+
+def _validate_candidate(state, code, stage):
+    from agent.candidate.validator import validate_candidate as _vc
+    return _vc(state, code, stage=stage)
+
+
+def _build_compat_pipeline(*, config, task, server, llm, Step, Pipeline, **steps):
+    """Build a backward-compat Pipeline for old callers."""
+    mode = config.mode
+    pipeline = Pipeline(name=f"fpt26-v3/{mode}")
+    pipeline.steps.append(Step("init", lambda s: s, desc="initialise run state"))
+    pipeline.steps.append(Step("csim", steps["step_csim"], desc="C simulation"))
+    if mode in ("auto", "repair", "full"):
+        pipeline.steps.append(Step("repair", steps["step_repair"],
+                                   condition=lambda s: not s.csim_ok,
+                                   desc="LLM repair loop"))
+    pipeline.steps.append(Step("synth", steps["step_synth"], desc="C synthesis"))
+    if mode in ("auto", "repair", "full"):
+        pipeline.steps.append(Step("synth_repair", steps["step_repair"],
+                                   condition=lambda s: s.csim_ok and not s.synth_ok,
+                                   desc="LLM synthesis-repair"))
+    if task.requires_cosim:
+        pipeline.steps.append(Step("cosim", steps["step_cosim"], desc="C/RTL co-simulation"))
+    if task.requires_cosim and mode in ("auto", "structural", "full"):
+        pipeline.steps.append(Step("structural_repair", steps["step_structural_repair"],
+                                   condition=lambda s: not s.cosim_ok,
+                                   desc="Structural repair"))
+    if mode in ("auto", "optimize", "full"):
+        pipeline.steps.append(Step("optimize", steps["step_optimize"],
+                                   condition=lambda s: (s.csim_ok and s.synth_ok and s.interface_ok
+                                                        and s.frequency_ok and s.resource_ok
+                                                        and (not s.task.requires_cosim or s.cosim_ok)),
+                                   desc="LLM optimization"))
+    pipeline.steps.append(Step("public_acceptance", steps["step_public_acceptance"],
+                               desc="Acceptance gates"))
+    pipeline.steps.append(Step("finalize", steps["step_finalize"], desc="Persist final kernel"))
+    return pipeline

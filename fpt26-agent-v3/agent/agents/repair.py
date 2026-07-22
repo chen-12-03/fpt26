@@ -16,27 +16,15 @@ Open this file to understand the core repair logic::
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
-from llm4hls.tools import ToolResult
+from agent.integrations.harness import ToolResult
 
 from agent.agents.base import RunState
 from agent.analysis.issue_classifier import IssueClassifier
 from agent.analysis.log_normalizer import LogNormalizer
 from agent.prompts import REPAIR_SYSTEM, build_repair_prompt
-
-# Regex to extract ```cpp fenced code blocks from LLM output
-_CODE_RE = re.compile(r"```(?:cpp|c\+\+|c)?\s*\n(.*?)```", re.DOTALL)
-
-
-def extract_code(text: str) -> str | None:
-    """Extract kernel source from an LLM response."""
-    blocks = _CODE_RE.findall(text)
-    if blocks:
-        return blocks[0].strip() + "\n"
-    stripped = text.strip()
-    return stripped + "\n" if stripped else None
+from agent.candidate.validator import extract_code  # single authority
 
 
 class RepairAgent:
@@ -119,7 +107,7 @@ class RepairAgent:
                 continue
 
             # ── 6. Validate the proposal immediately in this attempt ─────
-            from agent.workflow import (
+            from agent.candidate.validator import (
                 mark_fully_verified,
                 record_synth_gates,
                 validate_candidate,

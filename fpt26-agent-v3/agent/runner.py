@@ -10,8 +10,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from llm4hls import config
-from llm4hls.harness import ToolServer as HarnessToolServer
+from llm4hls import config  # tool adapter — needs harness constants
+from agent.integrations.harness import HarnessToolServer
 
 from agent.integrations.vitis import SecureToolExecutor, SourceTransformer
 

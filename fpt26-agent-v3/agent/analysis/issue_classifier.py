@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from agent.analysis.log_normalizer import NormalizedLog
-from llm4hls.tools import ToolResult
+from agent.integrations.harness import ToolResult
 
 
 ISSUE_CATEGORIES = (

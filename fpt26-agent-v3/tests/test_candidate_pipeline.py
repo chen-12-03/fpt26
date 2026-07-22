@@ -152,20 +152,20 @@ class TestCandidateValidator:
         ex = _fake_executor()
         v = CandidateValidator(task, _STARTER, tool_executor=ex)
 
-        # Override frequency gate by patching agent.validation
-        import agent.validation as _av
-        orig = _av.frequency_gate
+        # Override frequency gate by patching the canonical module
+        import agent.candidate.validator as _acv
+        orig = _acv.frequency_gate
 
         def _freq_fail(report, target):
             return SimpleNamespace(ok=False, reason="too_slow", target_clock_ns=5.0,
                                    candidate_clock_ns=None, frequency_mhz=None)
-        _av.frequency_gate = _freq_fail
+        _acv.frequency_gate = _freq_fail
         try:
             ev = v.validate(_FIXED, plan=ValidationPlan.CSIM_SYNTH)
             assert not ev.accepted
             assert ev.frequency is not None and not ev.frequency.ok
         finally:
-            _av.frequency_gate = orig
+            _acv.frequency_gate = orig
 
 
 # ── Selector tests ───────────────────────────────────────────────────────────

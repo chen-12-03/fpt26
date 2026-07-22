@@ -172,13 +172,16 @@ def main(argv: list[str] | None = None) -> int:
         try:
             from agent.evaluator import evaluate_final_kernel
             from agent.reporting import write_run_report
+            from agent.models import SubmissionEvidence
 
+            sub_ev = SubmissionEvidence.from_dict(evidence)
             score_state = evaluate_final_kernel(
                 task_dir=task_dir,
                 kernel_path=kernel_path,
                 output_root=str(runs_root),
                 scoring_profile=args.scoring_profile,
                 verbose=not args.quiet,
+                submission_evidence=sub_ev,
             )
             write_run_report(score_state)
 

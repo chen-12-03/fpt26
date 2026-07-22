@@ -85,8 +85,9 @@ def _run_score(monkeypatch, tmp_path, candidate, baseline):
         def run(self, *args, **kwargs):
             return next(synth_results)
 
-    monkeypatch.setattr(workflow, "CSimTool", FakeCSimTool)
-    monkeypatch.setattr(workflow, "SynthTool", FakeSynthTool)
+    from scoring import evaluator as scoring_eval
+    monkeypatch.setattr(scoring_eval, "CSimTool", FakeCSimTool)
+    monkeypatch.setattr(scoring_eval, "SynthTool", FakeSynthTool)
     return workflow.step_score(_state(tmp_path))
 
 

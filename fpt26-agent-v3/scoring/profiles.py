@@ -92,13 +92,29 @@ def grade_with_profile(
     wall_time_s: float = 0.0,
     gates: ValidityGates | None = None,
     ii_applicable: bool = False,
+    accounting: Any = None,  # EvaluationAccounting | None
 ) -> Any:
     """Grade through schema 10, then apply the declared profile aggregation.
 
     The authoritative schema-10 grader owns all gates and efficiency.  Only a
     valid card reaches the profile calculation, preventing a profile from
     bypassing correctness, synthesis, cosim, metric, or capacity failures.
+
+    When *accounting* (an :class:`EvaluationAccounting`) is provided, its
+    ``total_credits`` and ``total_wall_seconds`` are used for efficiency.
+    This is the required path for formal evaluation — the raw *cost_spent*
+    and *wall_time_s* parameters are only for backward compatibility.
     """
+    from agent.models import EvaluationAccounting
+
+    if accounting is not None:
+        if not isinstance(accounting, EvaluationAccounting):
+            raise TypeError(
+                f"accounting must be EvaluationAccounting, got {type(accounting).__name__}"
+            )
+        cost_spent = accounting.total_credits
+        wall_time_s = accounting.total_wall_seconds
+
     profile = resolve_scoring_profile(scoring_profile)
     card = grade_balanced(
         task_cfg=task_cfg,

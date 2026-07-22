@@ -237,6 +237,55 @@ class ArtifactManifest:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Evaluation accounting — the single source of truth for cost and time
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True)
+class EvaluationAccounting:
+    """Complete cost/time accounting for a graded evaluation.
+
+    This is the **business source of truth** for scoring.  ``metadata`` may
+    hold a serialised mirror, but scoring functions MUST receive this object
+    directly — never read cost/time from metadata dicts.
+
+    All fields are required; missing accounting must raise, not default to 0.
+    """
+
+    submission_credits: int
+    evaluator_credits: int
+    submission_wall_seconds: float
+    evaluator_wall_seconds: float
+
+    @property
+    def total_credits(self) -> int:
+        return self.submission_credits + self.evaluator_credits
+
+    @property
+    def total_wall_seconds(self) -> float:
+        return self.submission_wall_seconds + self.evaluator_wall_seconds
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "submission_credits": self.submission_credits,
+            "evaluator_credits": self.evaluator_credits,
+            "total_credits": self.total_credits,
+            "submission_wall_seconds": self.submission_wall_seconds,
+            "evaluator_wall_seconds": self.evaluator_wall_seconds,
+            "total_wall_seconds": self.total_wall_seconds,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "EvaluationAccounting":
+        return cls(
+            submission_credits=int(data.get("submission_credits", 0)),
+            evaluator_credits=int(data.get("evaluator_credits", 0)),
+            submission_wall_seconds=float(data.get("submission_wall_seconds", 0.0)),
+            evaluator_wall_seconds=float(data.get("evaluator_wall_seconds", 0.0)),
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Submission evidence (crosses submission → evaluator boundary)
 # ═══════════════════════════════════════════════════════════════════════════════
 

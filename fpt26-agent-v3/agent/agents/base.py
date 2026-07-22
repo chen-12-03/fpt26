@@ -2,6 +2,9 @@
 
 RunState is the shared context that flows through every pipeline step.
 AgentResult is the return value from each Agent.run() call.
+
+RunState is the **only** production context.  ``PipelineContext``
+(``agent.pipeline.core``) is deprecated and unused.
 """
 
 from __future__ import annotations
@@ -9,9 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
-from llm4hls.harness import ToolServer
-from llm4hls.task import Task
-from llm4hls.tools import ToolResult
+from agent.integrations.harness import Task, ToolResult, ToolServer
 
 
 class Agent(Protocol):
@@ -61,6 +62,11 @@ class RunState:
 
     Each step function receives a RunState, modifies what it needs,
     and returns it (or a copy).  The pipeline walks the step list in order.
+
+    Explicit fields below replace the ad-hoc ``metadata`` dict for
+    accounting, anchor evidence, gate history, preflight, errors, and
+    artifacts.  ``metadata`` remains as a serialisation mirror only —
+    business logic MUST read from the explicit fields.
     """
 
     task: Task
@@ -96,7 +102,32 @@ class RunState:
     status: str = "running"
     stop_reason: str = ""
 
-    # -- free-form metadata for agent-to-agent communication -------------
+    # -- explicit structured fields (migrated from metadata dict) --------
+
+    # Accounting: the single source of truth for cost/time.  May be None
+    # during submission; required for formal evaluation.
+    evaluation_accounting: Any = None  # EvaluationAccounting | None
+
+    # Anchor evidence: recorded once by the scoring step.
+    anchor_evidence: Any = None  # AnchorEvidence | dict | None
+
+    # Gate history: structured records instead of ad-hoc metadata lists.
+    interface_validations: list[dict[str, Any]] = field(default_factory=list)
+    synth_gate_history: list[dict[str, Any]] = field(default_factory=list)
+    cosim_gate_history: list[dict[str, Any]] = field(default_factory=list)
+
+    # Preflight: task-level preflight data (Vitis version, part, etc.)
+    task_preflight: dict[str, Any] = field(default_factory=dict)
+
+    # Errors: infrastructure errors encountered during the run.
+    infrastructure_errors: list[dict[str, Any]] = field(default_factory=list)
+
+    # Artifacts: manifests of persisted artifacts.
+    artifact_manifests: list[Any] = field(default_factory=list)
+
+    # -- free-form metadata for serialisation / agent-to-agent -----------
+    # Business logic MUST prefer the explicit fields above.  This dict is
+    # a serialisation mirror only.
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def log(self, msg: str) -> None:

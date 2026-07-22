@@ -1,4 +1,9 @@
-"""Pipeline context, status, and unified termination rules."""
+"""Pipeline context, status, and unified termination rules.
+
+**DEPRECATED**: ``PipelineContext`` is not used in production.  The single
+production context is ``agent.agents.base.RunState``.  ``PipelinePhase`` and
+``StopReason`` remain available as enumerations for future use.
+"""
 
 from __future__ import annotations
 

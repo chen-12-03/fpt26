@@ -7,24 +7,14 @@ fails on a structural task.
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
-from llm4hls.task import Task
+from agent.integrations.harness import Task
 
 from agent.agents.base import RunState
+from agent.candidate.validator import extract_code  # single authority
 from agent.prompts import STRUCTURAL_REPAIR_SYSTEM, build_structural_repair_prompt
 from agent.validation import can_afford_validation
-
-_CODE_RE = re.compile(r"```(?:cpp|c\+\+|c)?\s*\n(.*?)```", re.DOTALL)
-
-
-def extract_code(text: str) -> str | None:
-    blocks = _CODE_RE.findall(text)
-    if blocks:
-        return blocks[0].strip() + "\n"
-    stripped = text.strip()
-    return stripped + "\n" if stripped else None
 
 
 class StructuralRepairAgent:
@@ -110,7 +100,7 @@ class StructuralRepairAgent:
                 state.log(f"structural repair attempt {attempt}: no change proposed")
                 continue
 
-            from agent.workflow import (
+            from agent.candidate.validator import (
                 mark_fully_verified,
                 record_cosim_gate,
                 record_synth_gates,

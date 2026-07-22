@@ -72,7 +72,8 @@ def write_json_report(
 
 def write_failure_report(
     *,
-    output_dir: str | Path,
+    output_dir: str | Path | None = None,
+    output_root: str | Path | None = None,  # backward compat alias
     task_id: str,
     run_role: str,
     status: str,
@@ -86,6 +87,12 @@ def write_failure_report(
     This can be called **without** a :class:`RunState`, e.g. when the pipeline
     never started.
     """
+    # Resolve backward-compat alias
+    if output_dir is None and output_root is not None:
+        output_dir = output_root
+    if output_dir is None:
+        raise ValueError("output_dir or output_root is required")
+
     if redact:
         error_message = redact_sensitive_text(error_message)
 

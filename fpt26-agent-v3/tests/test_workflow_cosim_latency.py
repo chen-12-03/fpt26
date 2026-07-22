@@ -2,6 +2,7 @@ import json
 from types import SimpleNamespace
 
 import agent.workflow as workflow
+from scoring import evaluator as scoring_eval
 from agent.reporting import write_run_report
 
 
@@ -108,9 +109,9 @@ def _run_score(monkeypatch, tmp_path, measured_latency):
         def run(self, *args, **kwargs):
             return next(synth_results)
 
-    monkeypatch.setattr(workflow, "CSimTool", FakeCSimTool)
-    monkeypatch.setattr(workflow, "CoSimTool", FakeCoSimTool)
-    monkeypatch.setattr(workflow, "SynthTool", FakeSynthTool)
+    monkeypatch.setattr(scoring_eval, "CSimTool", FakeCSimTool)
+    monkeypatch.setattr(scoring_eval, "CoSimTool", FakeCoSimTool)
+    monkeypatch.setattr(scoring_eval, "SynthTool", FakeSynthTool)
     return workflow.step_score(_state(tmp_path))
 
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 import json
 from typing import Any
-from llm4hls.task import Task
+from agent.integrations.harness import Task
 from agent.analysis.issue_classifier import IssueClassification
 from agent.analysis.log_normalizer import NormalizedLog
 
