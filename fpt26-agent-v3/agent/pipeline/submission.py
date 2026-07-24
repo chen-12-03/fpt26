@@ -22,6 +22,7 @@ def run_submission(
     llm: Any,
     run_root: Path,
     total_budget: int,
+    preflight_metadata: dict[str, Any] | None = None,
 ) -> RunState:
     """Run the full submission pipeline and return the terminal RunState.
 
@@ -40,6 +41,8 @@ def run_submission(
     state.metadata["run_role"] = "submission"
     state.metadata["effective_budget"] = total_budget
     state.metadata["official_budget"] = task.budget
+    if preflight_metadata is not None:
+        state.metadata["task_preflight"] = dict(preflight_metadata)
 
     # Inject CandidateValidator for use by pipeline steps
     state.metadata["_candidate_validator"] = CandidateValidator(

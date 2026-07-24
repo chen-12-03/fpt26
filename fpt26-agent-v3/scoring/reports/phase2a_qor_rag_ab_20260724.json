@@ -1,0 +1,260 @@
+{
+  "baseline": {
+    "acceleration_geomean": 1.061632467,
+    "mean_credits_per_task": 16.333333,
+    "mean_tokens_per_task": 8932.166667,
+    "median_tokens_per_task": 8023.5,
+    "missing": [],
+    "optimization_metrics_complete": true,
+    "q_hw_geomean": 0.751043123,
+    "scorable_count": 12,
+    "task_count": 12,
+    "tasks": {
+      "c2hlsc__overlapping": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 8034.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "chstone__df_mul64To128": {
+        "acceleration": 1.0,
+        "credits": 6.0,
+        "q_hw": 0.75,
+        "tokens": 8440.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "dotProduct_optimize": {
+        "acceleration": 1.99,
+        "credits": 15.0,
+        "q_hw": 0.7666,
+        "tokens": 6927.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "gnnbuilder__global_add_pool": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 7759.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__gemm_ncubed": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 8530.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__sort_radix": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 14926.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__viterbi_viterbi": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 11652.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "polybench__jacobi_2d": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 7989.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "projection_bugfix": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 8013.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "residual_stream_deadlock": {
+        "acceleration": 1.03,
+        "credits": 75.0,
+        "q_hw": 0.7461,
+        "tokens": 12635.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__rendering_3d__projection": {
+        "acceleration": 1.0,
+        "credits": 5.0,
+        "q_hw": 0.75,
+        "tokens": 4498.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "rosetta__spam_filter__dotProduct": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 7783.0,
+        "valid": true,
+        "wasted_attempts": 0
+      }
+    },
+    "wasted_attempts": 8
+  },
+  "candidate": {
+    "acceleration_geomean": 1.028006655,
+    "mean_credits_per_task": 16.75,
+    "mean_tokens_per_task": 8473.166667,
+    "median_tokens_per_task": 7957.0,
+    "missing": [],
+    "optimization_metrics_complete": true,
+    "q_hw_geomean": 0.746964062,
+    "scorable_count": 12,
+    "task_count": 12,
+    "tasks": {
+      "c2hlsc__overlapping": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 8156.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "chstone__df_mul64To128": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 7832.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "dotProduct_optimize": {
+        "acceleration": 1.99,
+        "credits": 15.0,
+        "q_hw": 0.7666,
+        "tokens": 6439.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "gnnbuilder__global_add_pool": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 7257.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__gemm_ncubed": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 8082.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__sort_radix": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 13932.0,
+        "valid": true,
+        "wasted_attempts": 2
+      },
+      "machsuite__viterbi_viterbi": {
+        "acceleration": 1.0,
+        "credits": 5.0,
+        "q_hw": 0.75,
+        "tokens": 5240.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "polybench__jacobi_2d": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 8206.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "projection_bugfix": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 7761.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "residual_stream_deadlock": {
+        "acceleration": 0.7,
+        "credits": 75.0,
+        "q_hw": 0.6989,
+        "tokens": 11976.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__rendering_3d__projection": {
+        "acceleration": 1.0,
+        "credits": 6.0,
+        "q_hw": 0.75,
+        "tokens": 9409.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "rosetta__spam_filter__dotProduct": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 7388.0,
+        "valid": true,
+        "wasted_attempts": 0
+      }
+    },
+    "wasted_attempts": 8
+  },
+  "comparison": {
+    "acceleration_geomean_relative_change": -0.031673685,
+    "baseline_correct_count": 12,
+    "correctness_preservation_rate": 1.0,
+    "correctness_preserved_count": 12,
+    "mean_credits_relative_change_monitor_only": 0.025510225,
+    "mean_tokens_relative_change": -0.051387308,
+    "q_hw_geomean_relative_change": -0.005431194,
+    "wasted_attempts_relative_change": 0.0
+  },
+  "gates": {
+    "acceleration_geomean_improves_5pct": false,
+    "all_reports_present": true,
+    "correctness_preserved_100pct": true,
+    "fixed_task_count_12_to_20": true,
+    "mean_tokens_increase_at_most_10pct": true,
+    "q_hw_geomean_improves_1pct": false,
+    "scorable_count_not_lower": true,
+    "wasted_attempts_reduce_20pct": false
+  },
+  "passed": false,
+  "schema_version": 1,
+  "task_count": 12,
+  "task_list": "fpt26-agent-v3/evals/qor_rag_fixed_correct_tasks.txt",
+  "tasks": [
+    "projection_bugfix",
+    "residual_stream_deadlock",
+    "dotProduct_optimize",
+    "polybench__jacobi_2d",
+    "chstone__df_mul64To128",
+    "c2hlsc__overlapping",
+    "machsuite__gemm_ncubed",
+    "machsuite__sort_radix",
+    "rosetta__spam_filter__dotProduct",
+    "gnnbuilder__global_add_pool",
+    "machsuite__viterbi_viterbi",
+    "rosetta__rendering_3d__projection"
+  ]
+}

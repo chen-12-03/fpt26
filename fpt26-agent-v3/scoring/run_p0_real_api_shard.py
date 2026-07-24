@@ -49,6 +49,9 @@ def execution_source_snapshot(root: Path | None = None) -> dict[str, Any]:
     )
     paths = sorted((project_root / "agent").rglob("*.py"))
     paths.extend(
+        sorted((project_root / "agent" / "knowledge_assets").rglob("*.json"))
+    )
+    paths.extend(
         project_root / relative
         for relative in (
             "Dockerfile",

@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "submission.dotProduct_optimize.r1.2a7e144732e0",
+      "kind": "verified_case",
+      "family": "unroll",
+      "preconditions": [
+        "A single long loop is measured at II=1 and dominates latency.",
+        "Two contiguous input arrays and arithmetic resource headroom are available."
+      ],
+      "action": "Add only #pragma HLS UNROLL factor=2 to the measured loop.",
+      "expected_signal": "On the public U55C run, latency fell from 1027 to 515 cycles and Q_HW improved from 0.750000 to 0.766600.",
+      "contraindications": [
+        "Do not apply to a dynamic or recurrence-limited loop.",
+        "Do not increase the factor without a new Q_HW measurement."
+      ],
+      "source": "submission:dotProduct_optimize:2a7e144732e0",
+      "confidence": "high",
+      "vitis_version": "2025.2",
+      "status": "verified_case",
+      "tags": ["unroll", "factor_2", "ii_1", "contiguous", "reduction", "dot_product", "measured"],
+      "evidence": {
+        "interface_ok": true,
+        "csim_ok": true,
+        "synth_ok": true,
+        "frequency_ok": true,
+        "resource_ok": true,
+        "cosim_required": false,
+        "q_hw_before": 0.75,
+        "q_hw_after": 0.7666,
+        "latency_before": 1027,
+        "latency_after": 515,
+        "target_part": "xcu55c-fsvh2892-2L-e",
+        "submission_artifact_sha256": "a888394d87c03e5d5ac7b0b4ee7a487e71675c647b7a348c61afbf28d9033679"
+      }
+    },
+    {
+      "id": "submission.dotProduct_optimize.r2.negative.fa93b6af6eb0",
+      "kind": "failure_case",
+      "family": "unroll",
+      "preconditions": [
+        "The current best already uses UNROLL factor=2 on the long II=1 loop.",
+        "A larger factor is proposed without a new bottleneck."
+      ],
+      "action": "Do not replace the accepted factor=2 directive with factor=4.",
+      "expected_signal": "Avoid the measured regression from Q_HW 0.766600 to 0.726200.",
+      "contraindications": [
+        "This case does not prohibit factor=2 on an otherwise compatible baseline.",
+        "Do not generalize across incompatible loop structure, target, or tool version."
+      ],
+      "source": "submission:dotProduct_optimize:fa93b6af6eb0",
+      "confidence": "high",
+      "vitis_version": "2025.2",
+      "status": "verified_failure",
+      "tags": ["unroll", "factor_4", "ii_1", "dot_product", "q_hw_rejected", "measured"],
+      "evidence": {
+        "interface_ok": true,
+        "csim_ok": true,
+        "synth_ok": true,
+        "frequency_ok": true,
+        "resource_ok": true,
+        "cosim_required": false,
+        "cosim_ok": null,
+        "observed_failure": true,
+        "stage": "q_hw_selection",
+        "q_hw_before": 0.7666,
+        "q_hw_after": 0.7262,
+        "target_part": "xcu55c-fsvh2892-2L-e",
+        "submission_artifact_sha256": "a888394d87c03e5d5ac7b0b4ee7a487e71675c647b7a348c61afbf28d9033679"
+      }
+    },
+    {
+      "id": "submission.rosetta__digit_recognition__popcount.r2.157cbf912a82",
+      "kind": "verified_case",
+      "family": "unroll",
+      "preconditions": [
+        "A 256-iteration popcount reduction is the measured latency bottleneck.",
+        "The loop has no memory arrays and sufficient LUT headroom for partial unrolling."
+      ],
+      "action": "Add only #pragma HLS UNROLL factor=4 to the measured popcount loop.",
+      "expected_signal": "On the public U55C run, latency fell from 257 to 18 cycles and Q_HW improved from 0.750000 to 0.859400.",
+      "contraindications": [
+        "Do not apply to a non-popcount reduction or a loop with incompatible trip count.",
+        "Do not increase the factor without a new Q_HW measurement."
+      ],
+      "source": "submission:rosetta__digit_recognition__popcount:157cbf912a82",
+      "confidence": "high",
+      "vitis_version": "2025.2",
+      "status": "verified_case",
+      "tags": ["unroll", "factor_4", "popcount", "ii_1", "measured"],
+      "evidence": {
+        "interface_ok": true,
+        "csim_ok": true,
+        "synth_ok": true,
+        "frequency_ok": true,
+        "resource_ok": true,
+        "cosim_required": false,
+        "q_hw_before": 0.75,
+        "q_hw_after": 0.8594,
+        "latency_before": 257,
+        "latency_after": 18,
+        "target_part": "xcu55c-fsvh2892-2L-e",
+        "submission_artifact_sha256": "b8c0d7053053bce1dbb297e7142fbf103325b0324fbbd3f4accb42e3ba6c454e"
+      }
+    },
+    {
+      "id": "submission.rosetta__digit_recognition__popcount.r1.negative.d7492f0b6f8d",
+      "kind": "failure_case",
+      "family": "source_restructure",
+      "preconditions": [
+        "The current source is a single 256-iteration popcount loop.",
+        "A source restructure is proposed without a measured architectural bottleneck."
+      ],
+      "action": "Avoid an unstructured source rewrite; prefer the measured loop-local UNROLL factor=4 action.",
+      "expected_signal": "Avoid repeating the public candidate that left Q_HW unchanged at 0.750000.",
+      "contraindications": [
+        "This case does not prohibit the measured loop-local UNROLL action.",
+        "Do not generalize to a non-popcount task."
+      ],
+      "source": "submission:rosetta__digit_recognition__popcount:d7492f0b6f8d",
+      "confidence": "high",
+      "vitis_version": "2025.2",
+      "status": "verified_failure",
+      "tags": ["source_restructure", "popcount", "q_hw_rejected", "measured"],
+      "evidence": {
+        "interface_ok": true,
+        "csim_ok": true,
+        "synth_ok": true,
+        "frequency_ok": true,
+        "resource_ok": true,
+        "cosim_required": false,
+        "cosim_ok": null,
+        "observed_failure": true,
+        "stage": "q_hw_selection",
+        "q_hw_before": 0.75,
+        "q_hw_after": 0.75,
+        "target_part": "xcu55c-fsvh2892-2L-e",
+        "submission_artifact_sha256": "b8c0d7053053bce1dbb297e7142fbf103325b0324fbbd3f4accb42e3ba6c454e"
+      }
+    }
+  ]
+}

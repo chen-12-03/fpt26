@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "hlsgen.report_driven.baseline_first",
+      "kind": "rule",
+      "family": "report_driven",
+      "preconditions": [
+        "A functionally correct C-simulation baseline exists.",
+        "A real synthesis report provides latency, clock, loop, and resource evidence."
+      ],
+      "action": "Choose one measurable bottleneck and change only one optimization class before re-synthesizing.",
+      "expected_signal": "The limiting report metric improves and the effect is attributable to the selected action.",
+      "contraindications": [
+        "Do not stack directives on an unverified baseline.",
+        "Remove or revise a directive that does not improve the limiting metric."
+      ],
+      "source": "third_party/hls-generator/references/hls-report-driven-optimization.md#baseline-first",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["baseline", "report", "qor", "latency", "clock", "resource", "single_action"]
+    },
+    {
+      "id": "hlsgen.report_driven.ii_triage",
+      "kind": "rule",
+      "family": "report_driven",
+      "preconditions": [
+        "The synthesis report shows achieved II above the target.",
+        "The blocker can be classified from timing, recurrence, memory-port, or interface evidence."
+      ],
+      "action": "Classify the II blocker first. If the exact array/recurrence/timing cause is absent, return the kernel unchanged; never add a standalone PIPELINE directive as an II fix.",
+      "expected_signal": "Achieved II moves toward target II without disproportionate worst-resource growth.",
+      "contraindications": [
+        "Do not infer memory pressure from top interval alone.",
+        "Do not add another PIPELINE directive without matching the measured blocker."
+      ],
+      "source": "third_party/hls-generator/references/hls-report-driven-optimization.md#ii-violation-triage",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["ii", "pipeline_ii", "recurrence", "memory_port", "timing", "hls_200_448"]
+    },
+    {
+      "id": "hlsgen.pipeline.measured_scope",
+      "kind": "rule",
+      "family": "pipeline",
+      "preconditions": [
+        "A specific loop or function scope controls throughput.",
+        "Loop structure and current achieved II are known."
+      ],
+      "action": "Apply PIPELINE to the throughput-controlling scope with a report-supported II target.",
+      "expected_signal": "Loop interval or function throughput improves while timing and resource capacity remain valid.",
+      "contraindications": [
+        "Outer-loop pipelining may force inner-loop concurrency and expose memory-port pressure.",
+        "Do not add PIPELINE when the measured loop is already II=1 and latency is trip-count dominated."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#pipeline-and-ii",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["pipeline", "throughput", "loop", "target_ii", "achieved_ii", "interval"]
+    },
+    {
+      "id": "hlsgen.unroll.conservative_partial",
+      "kind": "rule",
+      "family": "unroll",
+      "preconditions": [
+        "A statically bounded loop dominates latency.",
+        "The loop is already pipelined effectively or exposes independent iterations.",
+        "Resource headroom is available."
+      ],
+      "action": "Try one loop-local partial UNROLL with the smallest useful factor, then measure latency, clock, and worst-resource growth.",
+      "expected_signal": "Effective latency improves more than the worst proportional resource growth.",
+      "contraindications": [
+        "Do not fully unroll a long or dynamically bounded loop.",
+        "Do not increase a factor after measured resource growth outweighed speedup."
+      ],
+      "source": "third_party/hls-generator/references/hls-modeling-strategy.md#loop-bounds-and-trip-counts",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["unroll", "partial", "trip_count", "ii_1", "latency", "resource_headroom"]
+    },
+    {
+      "id": "hlsgen.array_partition.measured_ports",
+      "kind": "rule",
+      "family": "array_partition",
+      "preconditions": [
+        "Synthesis identifies parallel accesses or a memory-port II lower bound on a named array.",
+        "The contended array dimension and required access factor are known."
+      ],
+      "action": "Apply ARRAY_PARTITION to the measured array and access dimension, using the minimum factor that can satisfy the required ports.",
+      "expected_signal": "The memory-port II lower bound falls and achieved II improves.",
+      "contraindications": [
+        "Do not partition unrelated top-level arrays speculatively.",
+        "Do not combine ARRAY_PARTITION and ARRAY_RESHAPE on the same variable.",
+        "Over-partitioning can increase LUT, FF, and BRAM disproportionately."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#array-partition-and-reshape",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["array_partition", "memory_port", "bank", "hls_200_448", "ii_lower_bound", "cyclic", "block"]
+    },
+    {
+      "id": "hlsgen.array_reshape.adjacent_width",
+      "kind": "rule",
+      "family": "array_reshape",
+      "preconditions": [
+        "Adjacent elements are consumed together.",
+        "The limiting evidence is storage or interface word width rather than independent-bank access."
+      ],
+      "action": "Apply ARRAY_RESHAPE to the adjacent access dimension with a width/factor justified by the consumer lanes.",
+      "expected_signal": "Useful bandwidth per access increases without unnecessary bank replication.",
+      "contraindications": [
+        "Do not use reshape for irregular or independent-bank access.",
+        "Do not combine ARRAY_RESHAPE and ARRAY_PARTITION on the same variable."
+      ],
+      "source": "third_party/hls-generator/references/hls-memory-burst-and-layout.md#lane-packing",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["array_reshape", "adjacent", "contiguous", "packed", "lane", "bandwidth", "wide_word"]
+    },
+    {
+      "id": "hlsgen.reduction.explicit_tree",
+      "kind": "rule",
+      "family": "reduction",
+      "preconditions": [
+        "The dominant computation is an associative reduction.",
+        "The operator, accumulator type, numerical behavior, and desired tree shape are explicit."
+      ],
+      "action": "For a statically bounded associative integer reduction, first try only a loop-local partial UNROLL factor=2; preserve the accumulator and numeric contract. Do not introduce a new tree architecture in this phase.",
+      "expected_signal": "The loop-carried accumulation path shortens and effective latency improves at acceptable area cost.",
+      "contraindications": [
+        "Do not restructure non-associative floating-point operations without permission.",
+        "Unrolling without an accumulator policy can hide overflow and timing risk."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#reduction-trees",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["reduction", "sum", "accumulate", "dot_product", "tree", "recurrence", "associative"]
+    },
+    {
+      "id": "hlsgen.gemm.tiled_reuse",
+      "kind": "rule",
+      "family": "gemm",
+      "preconditions": [
+        "The source has matrix-multiply-style nested loops.",
+        "Tile shape, layout, accumulator type, and local reuse are explicit."
+      ],
+      "action": "Preserve the existing GEMM architecture. If the source already has tiled/local reuse, try only one small loop-local UNROLL factor=2; add banking only for an exact measured port bottleneck. Do not introduce new tiles or buffers in this phase.",
+      "expected_signal": "External accesses per MAC fall and compute parallelism improves effective latency within resource limits.",
+      "contraindications": [
+        "Do not copy template interfaces or fixed tile sizes into an existing kernel.",
+        "Do not partition tiles without a visible reuse and access-dimension argument."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["gemm", "matmul", "matrix", "triple_loop", "tile", "reuse", "local_buffer"]
+    },
+    {
+      "id": "hlsgen.stencil.line_buffer",
+      "kind": "rule",
+      "family": "stencil",
+      "preconditions": [
+        "The source performs repeated neighborhood access over a 2D or 3D grid.",
+        "Window shape, boundary policy, and reuse distance are known."
+      ],
+      "action": "Preserve the existing stencil architecture and boundary behavior. First try only a small UNROLL factor=2 on a statically bounded filter loop; do not introduce a new line buffer in this phase.",
+      "expected_signal": "Memory traffic falls and the stencil loop sustains a lower interval.",
+      "contraindications": [
+        "Do not change the boundary policy.",
+        "Do not apply both partition and reshape to the same line buffer."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#stencil-and-window-patterns",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["stencil", "grid", "neighbor", "window", "line_buffer", "2d", "3d", "reuse"]
+    },
+    {
+      "id": "hlsgen.dataflow.stage_boundaries",
+      "kind": "rule",
+      "family": "dataflow",
+      "preconditions": [
+        "The kernel has clear producer, compute, and consumer stages.",
+        "Channel ownership and bounded producer/consumer behavior are explicit."
+      ],
+      "action": "Tune DATAFLOW only when a DATAFLOW region and explicit stage boundaries already exist. Do not introduce a new task graph in this phase; every change requires real CoSim.",
+      "expected_signal": "Stage execution overlaps and throughput approaches the slowest stage interval.",
+      "contraindications": [
+        "Do not introduce DATAFLOW into shared mutable state or ambiguous stage ownership.",
+        "C simulation alone cannot prove bounded FIFO behavior or absence of RTL deadlock."
+      ],
+      "source": "third_party/hls-generator/references/hls-task-parallel-strategy.md#task-regions-and-dataflow-boundaries",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["dataflow", "producer", "consumer", "stage", "stream", "fifo", "cosim"]
+    },
+    {
+      "id": "hlsgen.dataflow.explicit_depth",
+      "kind": "rule",
+      "family": "dataflow",
+      "preconditions": [
+        "Producer and consumer rates or burst sizes can differ.",
+        "The channel is an hls::stream or equivalent bounded FIFO."
+      ],
+      "action": "Set an evidence-based explicit channel depth and verify backpressure, stall behavior, and required CoSim.",
+      "expected_signal": "Required CoSim completes without deadlock while FIFO resources remain bounded.",
+      "contraindications": [
+        "Do not use a very large depth to hide an architectural ordering bug.",
+        "Do not claim deadlock safety from C simulation."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#dataflow",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["dataflow", "stream", "fifo", "depth", "deadlock", "cosim", "backpressure", "burst"]
+    },
+    {
+      "id": "hlsgen.pipeline.outer_concurrency",
+      "kind": "rule",
+      "family": "pipeline",
+      "preconditions": [
+        "An outer loop is considered for pipelining.",
+        "Inner-loop access concurrency and memory ports can be inspected."
+      ],
+      "action": "Model the implied inner-loop concurrency before outer-loop PIPELINE; add banking only when the accessed dimension proves it.",
+      "expected_signal": "Outer-loop throughput improves without unresolved port conflicts or uncontrolled resource replication.",
+      "contraindications": [
+        "Do not treat outer PIPELINE as a syntax-only change.",
+        "Do not guess partition dimension or factor."
+      ],
+      "source": "third_party/hls-generator/references/hls-tutorial-derived-templates.md#outer-pipeline-and-inner-concurrency",
+      "confidence": "medium",
+      "vitis_version": "2022.2+",
+      "status": "unverified_seed",
+      "tags": ["pipeline", "outer_loop", "nested_loop", "inner_concurrency", "memory_port", "partition"]
+    }
+  ]
+}

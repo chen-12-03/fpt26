@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "baseline-01",
+      "expected_id": "hlsgen.report_driven.baseline_first",
+      "query": {
+        "source_metadata": {"loops": [], "arrays": []},
+        "baseline_qor": {"latency_worst": 900, "clock_period_ns": 5.0, "resources": {"LUT": 100}},
+        "synth_diagnostics": {"summary": "No obvious bottleneck; compare one optimization class against the baseline report."},
+        "resource_headroom": {"LUT": 0.9},
+        "history": [],
+        "description": "Optimize a correct sequential baseline using measured QoR."
+      }
+    },
+    {
+      "id": "baseline-02",
+      "expected_id": "hlsgen.report_driven.baseline_first",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": "unknown", "pipeline_ii": null}], "arrays": []},
+        "baseline_qor": {"latency_worst": 300, "q_hw": 0.75},
+        "synth_diagnostics": {"summary": "Select a measurable target and avoid stacking speculative directives."},
+        "resource_headroom": {"LUT": 0.8, "FF": 0.8},
+        "history": [{"status": "REJECTED_BY_SCORING_V3_Q_HW"}],
+        "description": "Report-driven optimization of an already correct kernel."
+      }
+    },
+    {
+      "id": "ii-01",
+      "expected_id": "hlsgen.report_driven.ii_triage",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 64, "pipeline_ii": 4}], "arrays": []},
+        "baseline_qor": {"latency_worst": 270, "loop_metrics": [{"pipeline_ii": 4}]},
+        "synth_diagnostics": {"summary": "Achieved II is above target; classify recurrence or timing before adding directives."},
+        "resource_headroom": {"LUT": 0.7},
+        "history": [],
+        "description": "Resolve an II violation from synthesis evidence."
+      }
+    },
+    {
+      "id": "ii-02",
+      "expected_id": "hlsgen.report_driven.ii_triage",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 128, "pipeline_ii": 3}], "arrays": []},
+        "baseline_qor": {"interval_max": 384, "loop_metrics": [{"pipeline_ii": 3}]},
+        "synth_diagnostics": {"summary": "Pipeline II=3 due to a loop-carried recurrence, not memory ports."},
+        "resource_headroom": {"DSP": 0.6},
+        "history": [{"status": "REJECTED", "reason": "standalone pipeline had no effect"}],
+        "description": "Triage recurrence and timing."
+      }
+    },
+    {
+      "id": "ii-03",
+      "expected_id": "hlsgen.report_driven.ii_triage",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 32, "pipeline_ii": 2}], "arrays": []},
+        "baseline_qor": {"clock_period_ns": 9.8, "loop_metrics": [{"pipeline_ii": 2}]},
+        "synth_diagnostics": {"summary": "Tight timing causes achieved II above target."},
+        "resource_headroom": {"LUT": 0.5},
+        "history": [],
+        "description": "Classify a timing-limited pipeline."
+      }
+    },
+    {
+      "id": "pipeline-01",
+      "expected_id": "hlsgen.pipeline.measured_scope",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 32, "pipeline_ii": null, "nesting_depth": 0}], "arrays": []},
+        "baseline_qor": {"latency_worst": 320},
+        "synth_diagnostics": {"summary": "A single unpipelined loop controls throughput."},
+        "resource_headroom": {"LUT": 0.9},
+        "history": [],
+        "description": "Pipeline the throughput-controlling loop."
+      }
+    },
+    {
+      "id": "pipeline-02",
+      "expected_id": "hlsgen.pipeline.measured_scope",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 16, "pipeline_ii": null, "nesting_depth": 0}], "arrays": []},
+        "baseline_qor": {"interval_max": 160, "clock_period_ns": 5.0},
+        "synth_diagnostics": {"summary": "Function throughput is controlled by this loop scope."},
+        "resource_headroom": {"LUT": 0.75, "FF": 0.75},
+        "history": [],
+        "description": "Use a report-supported target II."
+      }
+    },
+    {
+      "id": "unroll-01",
+      "expected_id": "hlsgen.unroll.conservative_partial",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 256, "pipeline_ii": 1, "nesting_depth": 0}], "arrays": []},
+        "baseline_qor": {"latency_worst": 260, "loop_metrics": [{"trip_count": 256, "pipeline_ii": 1}]},
+        "synth_diagnostics": {"summary": "Long loop is already II=1 and trip-count dominated."},
+        "resource_headroom": {"LUT": 0.95, "DSP": 0.9},
+        "history": [],
+        "description": "Try conservative partial loop unroll."
+      }
+    },
+    {
+      "id": "unroll-02",
+      "expected_id": "hlsgen.unroll.conservative_partial",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 64, "pipeline_ii": 1}], "arrays": []},
+        "baseline_qor": {"latency_worst": 70, "q_hw": 0.75},
+        "synth_diagnostics": {"summary": "Independent iterations remain after an effective pipeline."},
+        "resource_headroom": {"LUT": 0.8, "DSP": 0.8},
+        "history": [],
+        "description": "Small partial UNROLL factor with measurement."
+      }
+    },
+    {
+      "id": "unroll-03",
+      "expected_id": "hlsgen.unroll.conservative_partial",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 1024, "pipeline_ii": 1}], "arrays": []},
+        "baseline_qor": {"latency_worst": 1030, "area_growth": 1.0},
+        "synth_diagnostics": {"summary": "Latency is dominated by a long II=1 loop."},
+        "resource_headroom": {"LUT": 0.7, "FF": 0.7},
+        "history": [{"status": "BASELINE"}],
+        "description": "Measure a minimum partial factor, never full unroll."
+      }
+    },
+    {
+      "id": "partition-01",
+      "expected_id": "hlsgen.array_partition.measured_ports",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 64, "pipeline_ii": 4}], "arrays": [{"name": "a", "rank": 1, "partition": "none"}]},
+        "baseline_qor": {"loop_metrics": [{"pipeline_ii": 4}]},
+        "synth_diagnostics": {"summary": "HLS 200-448 memory port limit on array a imposes II lower bound 4."},
+        "resource_headroom": {"BRAM_18K": 0.9, "LUT": 0.9},
+        "history": [],
+        "description": "Bank the measured contended array."
+      }
+    },
+    {
+      "id": "partition-02",
+      "expected_id": "hlsgen.array_partition.measured_ports",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 32, "pipeline_ii": 2}], "arrays": [{"name": "tile", "rank": 2, "partition": "none"}]},
+        "baseline_qor": {"latency_worst": 80},
+        "synth_diagnostics": {"summary": "Two parallel reads exceed available memory ports on tile dimension 2."},
+        "resource_headroom": {"BRAM_18K": 0.8},
+        "history": [],
+        "description": "ARRAY_PARTITION with the minimum measured factor."
+      }
+    },
+    {
+      "id": "partition-03",
+      "expected_id": "hlsgen.array_partition.measured_ports",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 128, "pipeline_ii": 8}], "arrays": [{"name": "coeff", "rank": 1}]},
+        "baseline_qor": {"loop_metrics": [{"pipeline_ii": 8}]},
+        "synth_diagnostics": {"summary": "Memory-port pressure and bank contention on coeff."},
+        "resource_headroom": {"LUT": 0.6, "BRAM_18K": 0.7},
+        "history": [{"status": "REJECTED", "reason": "PIPELINE alone did not lower II"}],
+        "description": "Match partition factor to II lower bound."
+      }
+    },
+    {
+      "id": "reshape-01",
+      "expected_id": "hlsgen.array_reshape.adjacent_width",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 64}], "arrays": [{"name": "a", "access_pattern": {"kind": "contiguous", "stride": 1}}]},
+        "baseline_qor": {"latency_worst": 128},
+        "synth_diagnostics": {"summary": "Adjacent elements are consumed by packed lanes; interface bandwidth is limiting."},
+        "resource_headroom": {"BRAM_18K": 0.9},
+        "history": [],
+        "description": "Widen the local storage word for adjacent accesses."
+      }
+    },
+    {
+      "id": "reshape-02",
+      "expected_id": "hlsgen.array_reshape.adjacent_width",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 256}], "arrays": [{"name": "samples", "access_pattern": {"kind": "contiguous", "stride": 1}, "reshape": "none"}]},
+        "baseline_qor": {"interval_max": 256},
+        "synth_diagnostics": {"summary": "A four-lane consumer reads adjacent samples together."},
+        "resource_headroom": {"LUT": 0.8},
+        "history": [],
+        "description": "ARRAY_RESHAPE for packed lane bandwidth."
+      }
+    },
+    {
+      "id": "reduction-01",
+      "expected_id": "hlsgen.reduction.explicit_tree",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 256, "pipeline_ii": 2}], "arrays": [{"name": "input", "rank": 1}]},
+        "baseline_qor": {"latency_worst": 520},
+        "synth_diagnostics": {"summary": "Loop-carried sum recurrence controls latency."},
+        "resource_headroom": {"DSP": 0.85, "LUT": 0.9},
+        "history": [],
+        "description": "Associative integer reduction sum with explicit accumulator."
+      }
+    },
+    {
+      "id": "reduction-02",
+      "expected_id": "hlsgen.reduction.explicit_tree",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 128, "pipeline_ii": 1}], "arrays": [{"name": "a"}, {"name": "b"}]},
+        "baseline_qor": {"latency_worst": 135},
+        "synth_diagnostics": {"summary": "Dot-product accumulation path remains the latency bottleneck."},
+        "resource_headroom": {"DSP": 0.75},
+        "history": [],
+        "description": "Dot product reduction using multiple independent accumulators."
+      }
+    },
+    {
+      "id": "reduction-03",
+      "expected_id": "hlsgen.reduction.explicit_tree",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 64, "pipeline_ii": 3}], "arrays": []},
+        "baseline_qor": {"loop_metrics": [{"pipeline_ii": 3}]},
+        "synth_diagnostics": {"summary": "Associative accumulation recurrence needs a bounded reduction tree."},
+        "resource_headroom": {"LUT": 0.8},
+        "history": [],
+        "description": "Preserve integer overflow semantics while reducing."
+      }
+    },
+    {
+      "id": "gemm-01",
+      "expected_id": "hlsgen.gemm.tiled_reuse",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0}, {"nesting_depth": 1}, {"nesting_depth": 2}], "arrays": [{"rank": 2}, {"rank": 2}]},
+        "baseline_qor": {"latency_worst": 20000},
+        "synth_diagnostics": {"summary": "Triple-loop matrix multiply is dominated by repeated tile loads."},
+        "resource_headroom": {"BRAM_18K": 0.8, "DSP": 0.8},
+        "history": [],
+        "description": "GEMM matmul with local tile reuse."
+      }
+    },
+    {
+      "id": "gemm-02",
+      "expected_id": "hlsgen.gemm.tiled_reuse",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0}, {"nesting_depth": 1}], "arrays": [{"name": "A", "rank": 2}, {"name": "B", "rank": 2}]},
+        "baseline_qor": {"latency_worst": 4096},
+        "synth_diagnostics": {"summary": "Matrix multiplication needs a visible reuse schedule."},
+        "resource_headroom": {"BRAM_18K": 0.7},
+        "history": [],
+        "description": "Blocked matmul; choose a small measured tile."
+      }
+    },
+    {
+      "id": "gemm-03",
+      "expected_id": "hlsgen.gemm.tiled_reuse",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0}, {"nesting_depth": 1}, {"nesting_depth": 2}], "arrays": []},
+        "baseline_qor": {"latency_worst": 8192, "q_hw": 0.75},
+        "synth_diagnostics": {"summary": "GEMM compute and memory reuse must be tuned together."},
+        "resource_headroom": {"DSP": 0.6, "BRAM_18K": 0.7},
+        "history": [{"status": "REJECTED", "reason": "large unroll factor grew DSP"}],
+        "description": "Tiled matrix MAC."
+      }
+    },
+    {
+      "id": "stencil-01",
+      "expected_id": "hlsgen.stencil.line_buffer",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0}, {"nesting_depth": 1}], "arrays": [{"rank": 2, "access_pattern": {"kind": "fixed_stride", "stride": 1}}]},
+        "baseline_qor": {"latency_worst": 5000},
+        "synth_diagnostics": {"summary": "Repeated 2D neighbor accesses dominate external memory traffic."},
+        "resource_headroom": {"BRAM_18K": 0.85},
+        "history": [],
+        "description": "2D stencil window with fixed boundary policy."
+      }
+    },
+    {
+      "id": "stencil-02",
+      "expected_id": "hlsgen.stencil.line_buffer",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0}, {"nesting_depth": 1}, {"nesting_depth": 2}], "arrays": [{"rank": 3}]},
+        "baseline_qor": {"latency_worst": 12000},
+        "synth_diagnostics": {"summary": "3D grid neighborhood reuse is not captured by the current memory layout."},
+        "resource_headroom": {"BRAM_18K": 0.7},
+        "history": [],
+        "description": "Stencil line/window buffering."
+      }
+    },
+    {
+      "id": "dataflow-stage-01",
+      "expected_id": "hlsgen.dataflow.stage_boundaries",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 256}], "arrays": []},
+        "baseline_qor": {"interval_max": 800},
+        "synth_diagnostics": {"summary": "Producer, compute, and consumer stages are independent and reviewable."},
+        "resource_headroom": {"LUT": 0.8, "BRAM_18K": 0.8},
+        "history": [],
+        "description": "Overlap load compute store with DATAFLOW."
+      }
+    },
+    {
+      "id": "dataflow-stage-02",
+      "expected_id": "hlsgen.dataflow.stage_boundaries",
+      "query": {
+        "source_metadata": {"loops": [{"trip_count": 64}], "arrays": []},
+        "baseline_qor": {"latency_worst": 600},
+        "synth_diagnostics": {"summary": "Clear stage ownership exists between reader, transform, and writer."},
+        "resource_headroom": {"LUT": 0.75},
+        "history": [],
+        "description": "Dataflow task regions with bounded producer consumer behavior."
+      }
+    },
+    {
+      "id": "dataflow-depth-01",
+      "expected_id": "hlsgen.dataflow.explicit_depth",
+      "query": {
+        "source_metadata": {"loops": [], "arrays": []},
+        "baseline_qor": {"latency_worst": 100},
+        "synth_diagnostics": {"summary": "RTL CoSim deadlock: stream FIFO depth is too small for a producer burst."},
+        "resource_headroom": {"BRAM_18K": 0.9},
+        "history": [{"status": "REJECTED_BY_REQUIRED_COSIM"}],
+        "description": "Set evidence-based explicit stream depth and verify backpressure."
+      }
+    },
+    {
+      "id": "dataflow-depth-02",
+      "expected_id": "hlsgen.dataflow.explicit_depth",
+      "query": {
+        "source_metadata": {"loops": [], "arrays": []},
+        "baseline_qor": {"interval_max": 64},
+        "synth_diagnostics": {"summary": "Producer and consumer rates differ; bounded FIFO stalls during CoSim."},
+        "resource_headroom": {"BRAM_18K": 0.85},
+        "history": [],
+        "description": "Review channel depth, burst, and deadlock safety."
+      }
+    },
+    {
+      "id": "outer-pipeline-01",
+      "expected_id": "hlsgen.pipeline.outer_concurrency",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0, "trip_count": 32}, {"nesting_depth": 1, "trip_count": 32}], "arrays": [{"rank": 2}]},
+        "baseline_qor": {"latency_worst": 1024},
+        "synth_diagnostics": {"summary": "Outer-loop pipeline would imply concurrent inner-loop memory accesses."},
+        "resource_headroom": {"LUT": 0.8},
+        "history": [],
+        "description": "Inspect inner concurrency before pipelining the outer loop."
+      }
+    },
+    {
+      "id": "outer-pipeline-02",
+      "expected_id": "hlsgen.pipeline.outer_concurrency",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0}, {"nesting_depth": 1}], "arrays": [{"name": "matrix", "rank": 2}]},
+        "baseline_qor": {"interval_max": 512},
+        "synth_diagnostics": {"summary": "Nested loop outer PIPELINE may require multiple reads from matrix."},
+        "resource_headroom": {"BRAM_18K": 0.8},
+        "history": [],
+        "description": "Model inner-loop concurrency and accessed dimension."
+      }
+    },
+    {
+      "id": "outer-pipeline-03",
+      "expected_id": "hlsgen.pipeline.outer_concurrency",
+      "query": {
+        "source_metadata": {"loops": [{"nesting_depth": 0, "trip_count": 8}, {"nesting_depth": 1, "trip_count": 64}], "arrays": [{"rank": 2}]},
+        "baseline_qor": {"latency_worst": 520},
+        "synth_diagnostics": {"summary": "An outer pipeline is being considered but memory ports for the inner loop are unknown."},
+        "resource_headroom": {"LUT": 0.9, "BRAM_18K": 0.9},
+        "history": [],
+        "description": "Do not guess partition factor for implied inner concurrency."
+      }
+    }
+  ]
+}

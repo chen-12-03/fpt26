@@ -1,0 +1,322 @@
+{
+  "baseline": {
+    "acceleration_geomean": 1.779452198,
+    "mean_credits_per_task": 12.916667,
+    "mean_tokens_per_task": 9458.5,
+    "median_tokens_per_task": 8218.5,
+    "missing": [],
+    "optimization_metrics_complete": true,
+    "q_hw_geomean": 0.779127154,
+    "scorable_count": 12,
+    "task_count": 12,
+    "tasks": {
+      "c2hlsc__cusums": {
+        "acceleration": 2.0,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/c2hlsc__cusums/attempt_001/evaluator/c2hlsc__cusums/run_report.json",
+        "q_hw": 0.778,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/c2hlsc__cusums/attempt_001/submission/c2hlsc__cusums/run_report.json",
+        "tokens": 7166.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "c2hlsc__present": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/c2hlsc__present/attempt_001/evaluator/c2hlsc__present/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/c2hlsc__present/attempt_001/submission/c2hlsc__present/run_report.json",
+        "tokens": 13049.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "dotProduct_optimize": {
+        "acceleration": 1.99,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/dotProduct_optimize/attempt_001/evaluator/dotProduct_optimize/run_report.json",
+        "q_hw": 0.7666,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/dotProduct_optimize/attempt_001/submission/dotProduct_optimize/run_report.json",
+        "tokens": 6928.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "gnnbuilder__compute_neighbor_tables": {
+        "acceleration": 2.78,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/gnnbuilder__compute_neighbor_tables/attempt_001/evaluator/gnnbuilder__compute_neighbor_tables/run_report.json",
+        "q_hw": 0.8345,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/gnnbuilder__compute_neighbor_tables/attempt_001/submission/gnnbuilder__compute_neighbor_tables/run_report.json",
+        "tokens": 8398.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "machsuite__aes_aes": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/machsuite__aes_aes/attempt_001/evaluator/machsuite__aes_aes/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/machsuite__aes_aes/attempt_001/submission/machsuite__aes_aes/run_report.json",
+        "tokens": 22162.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__gemm_blocked": {
+        "acceleration": 1.0,
+        "credits": 5.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/machsuite__gemm_blocked/attempt_001/evaluator/machsuite__gemm_blocked/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/machsuite__gemm_blocked/attempt_001/submission/machsuite__gemm_blocked/run_report.json",
+        "tokens": 4390.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__stencil_stencil2d": {
+        "acceleration": 1.67,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/machsuite__stencil_stencil2d/attempt_001/evaluator/machsuite__stencil_stencil2d/run_report.json",
+        "q_hw": 0.774,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/machsuite__stencil_stencil2d/attempt_001/submission/machsuite__stencil_stencil2d/run_report.json",
+        "tokens": 8775.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "polybench__2mm": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/polybench__2mm/attempt_001/evaluator/polybench__2mm/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/polybench__2mm/attempt_001/submission/polybench__2mm/run_report.json",
+        "tokens": 8039.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "polybench__cholesky": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/polybench__cholesky/attempt_001/evaluator/polybench__cholesky/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/polybench__cholesky/attempt_001/submission/polybench__cholesky/run_report.json",
+        "tokens": 7763.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "pp4fpga__pp4fpga_cordic": {
+        "acceleration": 1.91,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/pp4fpga__pp4fpga_cordic/attempt_001/evaluator/pp4fpga__pp4fpga_cordic/run_report.json",
+        "q_hw": 0.8304,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/pp4fpga__pp4fpga_cordic/attempt_001/submission/pp4fpga__pp4fpga_cordic/run_report.json",
+        "tokens": 12258.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__digit_recognition__popcount": {
+        "acceleration": 14.28,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/rosetta__digit_recognition__popcount/attempt_001/evaluator/rosetta__digit_recognition__popcount/run_report.json",
+        "q_hw": 0.8594,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/rosetta__digit_recognition__popcount/attempt_001/submission/rosetta__digit_recognition__popcount/run_report.json",
+        "tokens": 6103.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__optical_flow__outer_product": {
+        "acceleration": 2.0,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/rosetta__optical_flow__outer_product/attempt_001/evaluator/rosetta__optical_flow__outer_product/run_report.json",
+        "q_hw": 0.767,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3/tasks/rosetta__optical_flow__outer_product/attempt_001/submission/rosetta__optical_flow__outer_product/run_report.json",
+        "tokens": 8471.0,
+        "valid": true,
+        "wasted_attempts": 0
+      }
+    },
+    "wasted_attempts": 4
+  },
+  "candidate": {
+    "acceleration_geomean": 1.917972622,
+    "mean_credits_per_task": 12.083333,
+    "mean_tokens_per_task": 7492.25,
+    "median_tokens_per_task": 5147.5,
+    "missing": [],
+    "optimization_metrics_complete": true,
+    "q_hw_geomean": 0.803725492,
+    "scorable_count": 12,
+    "task_count": 12,
+    "tasks": {
+      "c2hlsc__cusums": {
+        "acceleration": 2.0,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/c2hlsc__cusums/attempt_001/evaluator/c2hlsc__cusums/run_report.json",
+        "q_hw": 0.7951,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/c2hlsc__cusums/attempt_001/submission/c2hlsc__cusums/run_report.json",
+        "tokens": 3534.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "c2hlsc__present": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/c2hlsc__present/attempt_001/evaluator/c2hlsc__present/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/c2hlsc__present/attempt_001/submission/c2hlsc__present/run_report.json",
+        "tokens": 12644.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "dotProduct_optimize": {
+        "acceleration": 1.99,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/dotProduct_optimize/attempt_001/evaluator/dotProduct_optimize/run_report.json",
+        "q_hw": 0.7666,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/dotProduct_optimize/attempt_001/submission/dotProduct_optimize/run_report.json",
+        "tokens": 3885.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "gnnbuilder__compute_neighbor_tables": {
+        "acceleration": 2.78,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/gnnbuilder__compute_neighbor_tables/attempt_001/evaluator/gnnbuilder__compute_neighbor_tables/run_report.json",
+        "q_hw": 0.8345,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/gnnbuilder__compute_neighbor_tables/attempt_001/submission/gnnbuilder__compute_neighbor_tables/run_report.json",
+        "tokens": 4157.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "machsuite__aes_aes": {
+        "acceleration": 8.8,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/machsuite__aes_aes/attempt_001/evaluator/machsuite__aes_aes/run_report.json",
+        "q_hw": 0.9966,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/machsuite__aes_aes/attempt_001/submission/machsuite__aes_aes/run_report.json",
+        "tokens": 22123.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "machsuite__gemm_blocked": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/machsuite__gemm_blocked/attempt_001/evaluator/machsuite__gemm_blocked/run_report.json",
+        "q_hw": 0.75,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/machsuite__gemm_blocked/attempt_001/submission/machsuite__gemm_blocked/run_report.json",
+        "tokens": 8911.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "machsuite__stencil_stencil2d": {
+        "acceleration": 1.67,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/machsuite__stencil_stencil2d/attempt_001/evaluator/machsuite__stencil_stencil2d/run_report.json",
+        "q_hw": 0.774,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/machsuite__stencil_stencil2d/attempt_001/submission/machsuite__stencil_stencil2d/run_report.json",
+        "tokens": 4224.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "polybench__2mm": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/polybench__2mm/attempt_001/evaluator/polybench__2mm/run_report.json",
+        "q_hw": 0.7549,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/polybench__2mm/attempt_001/submission/polybench__2mm/run_report.json",
+        "tokens": 9248.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "polybench__cholesky": {
+        "acceleration": 1.01,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/polybench__cholesky/attempt_001/evaluator/polybench__cholesky/run_report.json",
+        "q_hw": 0.8224,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/polybench__cholesky/attempt_001/submission/polybench__cholesky/run_report.json",
+        "tokens": 3452.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "pp4fpga__pp4fpga_cordic": {
+        "acceleration": 1.91,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/pp4fpga__pp4fpga_cordic/attempt_001/evaluator/pp4fpga__pp4fpga_cordic/run_report.json",
+        "q_hw": 0.8304,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/pp4fpga__pp4fpga_cordic/attempt_001/submission/pp4fpga__pp4fpga_cordic/run_report.json",
+        "tokens": 6071.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__digit_recognition__popcount": {
+        "acceleration": 3.95,
+        "credits": 15.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_hybrid_popcount_20260724_v1/evaluator/rosetta__digit_recognition__popcount/run_report.json",
+        "q_hw": 0.8326,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_hybrid_popcount_20260724_v1/submission/rosetta__digit_recognition__popcount/run_report.json",
+        "tokens": 7739.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__optical_flow__outer_product": {
+        "acceleration": 2.0,
+        "credits": 10.0,
+        "evaluator_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/rosetta__optical_flow__outer_product/attempt_001/evaluator/rosetta__optical_flow__outer_product/run_report.json",
+        "q_hw": 0.767,
+        "submission_report": "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3/tasks/rosetta__optical_flow__outer_product/attempt_001/submission/rosetta__optical_flow__outer_product/run_report.json",
+        "tokens": 3919.0,
+        "valid": true,
+        "wasted_attempts": 0
+      }
+    },
+    "wasted_attempts": 1
+  },
+  "comparison": {
+    "acceleration_geomean_relative_change": 0.07784442,
+    "baseline_correct_count": 12,
+    "correctness_preservation_rate": 1.0,
+    "correctness_preserved_count": 12,
+    "mean_credits_relative_change_monitor_only": -0.064516179,
+    "mean_tokens_relative_change": -0.207881799,
+    "q_hw_geomean_relative_change": 0.031571661,
+    "wasted_attempts_relative_change": -0.75
+  },
+  "gates": {
+    "acceleration_geomean_improves_5pct": true,
+    "all_reports_present": true,
+    "correctness_preserved_100pct": true,
+    "fixed_task_count_12_to_20": true,
+    "mean_tokens_increase_at_most_10pct": true,
+    "q_hw_geomean_improves_1pct": true,
+    "scorable_count_not_lower": true,
+    "wasted_attempts_reduce_20pct": true
+  },
+  "passed": true,
+  "provenance": {
+    "baseline_roots": [
+      "/workspace/runs/phase2a_qor_rag_ab_baseline_20260724_v3"
+    ],
+    "candidate_roots": [
+      "/workspace/runs/phase2a_qor_rag_ab_candidate_20260724_v3",
+      "/workspace/runs/phase2a_qor_rag_hybrid_popcount_20260724_v1"
+    ],
+    "overlay_semantics": "later roots replace earlier reports for the same task and role",
+    "report_roles": [
+      "submission",
+      "evaluator"
+    ]
+  },
+  "schema_version": 2,
+  "task_count": 12,
+  "task_list": "/workspace/fpt26-agent-v3/evals/qor_rag_fixed_correct_tasks.txt",
+  "tasks": [
+    "rosetta__digit_recognition__popcount",
+    "machsuite__gemm_blocked",
+    "machsuite__aes_aes",
+    "c2hlsc__present",
+    "gnnbuilder__compute_neighbor_tables",
+    "c2hlsc__cusums",
+    "rosetta__optical_flow__outer_product",
+    "dotProduct_optimize",
+    "pp4fpga__pp4fpga_cordic",
+    "polybench__cholesky",
+    "polybench__2mm",
+    "machsuite__stencil_stencil2d"
+  ]
+}

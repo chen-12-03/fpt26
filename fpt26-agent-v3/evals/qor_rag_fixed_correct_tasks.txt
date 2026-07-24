@@ -1,0 +1,14 @@
+# Phase 2A paired A/B set: public tasks whose starter was already correct and
+# whose pre-Phase-2 Phase-1 results demonstrated optimization headroom.
+rosetta__digit_recognition__popcount
+machsuite__gemm_blocked
+machsuite__aes_aes
+c2hlsc__present
+gnnbuilder__compute_neighbor_tables
+c2hlsc__cusums
+rosetta__optical_flow__outer_product
+dotProduct_optimize
+pp4fpga__pp4fpga_cordic
+polybench__cholesky
+polybench__2mm
+machsuite__stencil_stencil2d

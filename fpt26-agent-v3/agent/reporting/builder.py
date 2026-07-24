@@ -101,6 +101,24 @@ def build_report(state: Any) -> dict[str, Any]:
             and final_kernel == getattr(state, "safe_fallback_kernel", None)
         ),
     }
+    optimization_keys = (
+        "qor_rag_mode",
+        "knowledge_retrievals",
+        "synth_candidates",
+        "optimization_failures",
+        "semantic_duplicate_skips",
+        "semantic_current_best_skips",
+        "cross_strategy_duplicate_skips",
+        "strategy_contract_rejections",
+        "ii_resource_intent_rejections",
+        "minimum_factor_convergence",
+    )
+    if any(key in state.metadata for key in optimization_keys):
+        report["optimization_metrics"] = {
+            key: state.metadata.get(key)
+            for key in optimization_keys
+            if key in state.metadata
+        }
     if getattr(state, "metadata", {}).get("optimization_search"):
         report["optimization_search"] = state.metadata["optimization_search"]
 

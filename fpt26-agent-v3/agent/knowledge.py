@@ -1,183 +1,775 @@
-"""Iter3 Unified HLS optimization pattern lookup — keyword-matching only, no task-type awareness."""
+"""Deterministic QoR knowledge retrieval for the optimization loop.
+
+The runtime deliberately uses a small, auditable hybrid retriever instead of
+an embedding service.  Rules are curated seeds; measured cases are admitted
+only when their evidence proves the required public validation gates.
+"""
+
 from __future__ import annotations
-from typing import Any
 
-_PATTERNS = [
-    {
-        "keywords": ["single loop", "vector", "dot product", "accumulate", "reduction", "sum"],
-        "family": "Reduction / Single-Loop Pipeline",
-        "steps": [
-            "1. PIPELINE II=1 on the accumulation loop (highest ROI, single pragma).",
-            "2. If II>1 after pipelining: check array port count → ARRAY_PARTITION dim=1 on the input arrays.",
-            "3. For very long vectors: tiled loop + ARRAY_PARTITION cyclic + PIPELINE on tiled outer loop.",
-            "4. If multiple independent accumulations exist: separate them into parallel paths.",
-        ],
-        "signal": "Achieved II=1, latency ≈ trip_count + pipeline depth.",
-        "warning": "Do NOT fully unroll if trip_count > 64. UNROLL on long vectors causes massive FF/LUT explosion.",
-    },
-    {
-        "keywords": ["nested loop", "double loop", "2d", "matrix", "row", "column", "grid"],
-        "family": "Nested-Loop Pipeline",
-        "steps": [
-            "1. PIPELINE the inner loop first (best ROI, lowest resource cost).",
-            "2. If outer loop is the bottleneck: PIPELINE outer loop instead (forces inner concurrency).",
-            "3. For 2D access: ARRAY_PARTITION dim=2 (column access) or dim=1 (row access) based on pattern.",
-            "4. UNROLL inner by 2-4 + PIPELINE outer for moderate speedup without resource explosion.",
-        ],
-        "signal": "Latency reduced by ~inner_trip_count factor; moderate FF growth.",
-        "warning": "Outer PIPELINE forces all inner loops to run concurrently — check memory port count FIRST.",
-    },
-    {
-        "keywords": ["parallel array", "multiple access", "bank", "memory port", "bandwidth", "dual port"],
-        "family": "Array Partition for Memory Bandwidth",
-        "steps": [
-            "1. Identify the loop dimension that performs multiple reads/writes per iteration.",
-            "2. ARRAY_PARTITION variable=<name> dim=<access_dim> factor=<N> cyclic (or block).",
-            "3. Match UNROLL factor=N on the same loop that accesses the partitioned array.",
-            "4. Check resource growth: each partition factor doubles BRAM/register count.",
-        ],
-        "signal": "II decreases from >1 to 1; LUT/FF grow proportionally to partition factor.",
-        "warning": "PARTITION + RESHAPE on same variable is redundant — pick ONE. Cyclic is usually better for interleaved access.",
-    },
-    {
-        "keywords": ["producer consumer", "stream", "stage", "dataflow", "fifo", "pipeline stage"],
-        "family": "Dataflow with Stream FIFOs",
-        "steps": [
-            "1. Split the design into clear stages: producer → compute → consumer.",
-            "2. Define hls::stream<T> channels between stages with EXPLICIT depth: stream.depth(N).",
-            "3. Apply DATAFLOW pragma on the top-level function (not inside sub-functions).",
-            "4. Set stream depth = max(producer_burst_size, consumer_burst_size) + pipeline latency margin.",
-            "5. For cosim safety: start with depth=16 or more, then reduce after cosim passes.",
-        ],
-        "signal": "Stages run concurrently; throughput = 1 / max(stage_latency).",
-        "warning": "DATAFLOW without explicit .depth() → cosim DEADLOCK with default depth-2 FIFOs. C-simulation CANNOT detect this.",
-    },
-    {
-        "keywords": ["deadlock", "cosim fail", "timeout", "fifo depth", "stream depth", "burst"],
-        "family": "Streaming Deadlock Resolution",
-        "steps": [
-            "1. Identify ALL hls::stream declarations — check if any lack .depth(N).",
-            "2. Trace the DATAFLOW: does any stage write an ENTIRE stream before writing side-channel data?",
-            "3. If stage A writes main stream fully before skip/control stream: RESTRUCTURE to interleave writes in a SINGLE loop.",
-            "4. Alternative: increase ALL stream depths to cover worst-case burst (depth ≥ burst_size).",
-            "5. For skip/residual patterns: ensure BOTH streams are read alternately by consumer, not sequentially.",
-            "6. Re-run cosim after EACH change to verify.",
-        ],
-        "signal": "Cosim passes without timeout; stream depths are explicit and bounded.",
-        "warning": "Simply increasing all depths to large values hides the architectural bug — prefer restructuring to interleaved writes.",
-    },
-    {
-        "keywords": ["matmul", "matrix multiply", "gemm", "triple loop", "blocked", "tile"],
-        "family": "Tiled Matrix Multiply",
-        "steps": [
-            "1. PIPELINE outermost loop for maximum throughput.",
-            "2. UNROLL innermost by factor 4-8 for parallel MAC.",
-            "3. ARRAY_PARTITION accumulator dim=2 for parallel reduction.",
-            "4. For large matrices: tile into local buffers + DATAFLOW between tile load/compute/store.",
-        ],
-        "signal": "Dramatic latency reduction (10-100x); DSP usage = unroll factor.",
-        "warning": "O(N²) resource growth with tile size. Start with factor=2 and measure before scaling.",
-    },
-    {
-        "keywords": ["fir", "filter", "tap", "coefficient", "symmetric", "convolution"],
-        "family": "FIR Filter Optimization",
-        "steps": [
-            "1. PIPELINE II=1 on the sample-processing loop.",
-            "2. For symmetric FIR: halve MAC operations by pre-adding symmetric tap pairs.",
-            "3. ARRAY_PARTITION coefficient array for parallel coefficient read.",
-            "4. For streaming (AXIS): DATAFLOW with separate coefficient load and MAC stages.",
-        ],
-        "signal": "II=1 sustained; DSP count ≈ taps/2 (symmetric) or taps (direct).",
-        "warning": "Full unroll of large FIR (>100 taps) → massive DSP usage. Prefer PIPELINE over UNROLL.",
-    },
-    {
-        "keywords": ["csim fail", "mismatch", "wrong", "bug", "incorrect", "assert", "fix", "error"],
-        "family": "Functional Bug Diagnosis & Repair",
-        "steps": [
-            "1. Read the csim error log: find the EXACT line where output differs from expected.",
-            "2. Trace the dataflow to that output: which input values, which computation path?",
-            "3. Check edge cases: zero values, boundary indices, off-by-one, sign errors, missing terms in sums.",
-            "4. Fix the minimal code section — do NOT restructure the entire kernel.",
-            "5. Re-run csim to verify the fix BEFORE adding any pragmas.",
-        ],
-        "signal": "Csim passes; output matches expected values.",
-        "warning": "Do NOT add pragmas to a functionally broken kernel. Fix correctness FIRST, then optimize.",
-    },
-    {
-        "keywords": ["ap_fixed", "fixed point", "quantize", "precision", "overflow", "underflow"],
-        "family": "Fixed-Point Precision Tuning",
-        "steps": [
-            "1. Document required integer bits: ceil(log2(max_abs_value)) + 1 (sign).",
-            "2. Allocate remaining bits to fractional precision: W = I + F.",
-            "3. Use AP_RND and AP_SAT for rounding/overflow control.",
-            "4. Add assertions in testbench to catch overflow/underflow in csim.",
-        ],
-        "signal": "Resource reduction vs float; precision within error budget.",
-        "warning": "Fixed-point range violations are SILENT in csim without assertions. Add them.",
-    },
-    {
-        "keywords": ["cordic", "trig", "sin", "cos", "atan", "rotation", "angle", "projection"],
-        "family": "CORDIC / Trigonometric Optimization",
-        "steps": [
-            "1. ap_fixed<W,I> with well-documented bit widths for angle and result.",
-            "2. PIPELINE the iterative shift-add loop for throughput.",
-            "3. UNROLL CORDIC stages for latency reduction (costs DSP/LUT).",
-            "4. Pre-compute arctan table as static const array for the CORDIC gain.",
-        ],
-        "signal": "No DSP blocks for trig; latency = stages × II.",
-        "warning": "CORDIC gain factor must be compensated. Check rotation mode vs vectoring mode.",
-    },
-    {
-        "keywords": ["ii violation", "pipeline ii", "ii>1", "ii=", "initiation interval",
-                     "lower bound", "resource limit", "memory port limit", "hls 200-448"],
-        "family": "Pipeline II Violation Resolution",
-        "steps": [
-            "1. CLASSIFY the cause: (a) memory port limit → HLS 200-448 names the array, "
-            "(b) data dependency / recurrence → loop-carried dependence, "
-            "(c) timing → clock too aggressive, (d) resource contention.",
-            "2. FOR MEMORY PORT: ARRAY_PARTITION cyclic on the reported array with factor matching II lower bound.",
-            "3. FOR DATA DEPENDENCY: restructure to break the recurrence, or accept II>1 and use PIPELINE II=N.",
-            "4. FOR TIMING: if estimated clock > target, reduce combinational path (fewer operations per cycle).",
-            "5. Always match ARRAY_PARTITION factor to II lower bound — factor too small = II unchanged, "
-            "factor too large = wasted resources.",
-        ],
-        "signal": "PipelineII decreases from N to 1 or to match partition factor.",
-        "warning": "ARRAY_PARTITION increases BRAM/LUT/FF linearly with factor. Only partition the dimension "
-        "that is accessed in the bottleneck loop; partition factor = II lower bound is the minimum viable.",
-    },
-]
+import hashlib
+import json
+import math
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Iterable, Mapping, Sequence
 
 
-def lookup_patterns(desc: str) -> list[dict]:
-    """Find matching HLS optimization patterns by keyword matching only.
+KNOWLEDGE_SCHEMA_VERSION = 1
+MAX_KNOWLEDGE_PROMPT_TOKENS = 1_800
+_CHARS_PER_TOKEN_UPPER_BOUND = 3
+_MAX_KNOWLEDGE_PROMPT_CHARS = (
+    MAX_KNOWLEDGE_PROMPT_TOKENS * _CHARS_PER_TOKEN_UPPER_BOUND
+)
+_ASSET_ROOT = Path(__file__).with_name("knowledge_assets")
+_DEFAULT_SEED_PATH = _ASSET_ROOT / "hls_generator_seeds.json"
+_DEFAULT_CASE_PATH = _ASSET_ROOT / "verified_cases.json"
+_FORBIDDEN_RUNTIME_COMPONENTS = frozenset(
+    {"hidden", "reference", "evaluator"}
+)
+_KINDS = frozenset({"rule", "verified_case", "failure_case"})
+_STATUSES = frozenset(
+    {"unverified_seed", "verified_case", "verified_failure"}
+)
+_CONFIDENCE = frozenset({"low", "medium", "high"})
+_TOKEN_RE = re.compile(r"[a-z0-9]+")
 
-    Returns top 3 patterns matching the description keywords.
-    """
-    d = desc.lower()
-    scored: list[tuple[int, dict]] = []
-    for p in _PATTERNS:
-        kw_score = sum(1 for kw in p["keywords"] if kw in d)
-        if kw_score > 0:
-            scored.append((kw_score, p))
 
-    scored.sort(key=lambda x: x[0], reverse=True)
-    return [p for _, p in scored[:3]]
+class KnowledgeValidationError(ValueError):
+    """Raised when a knowledge source violates schema or provenance policy."""
 
 
-def format_for_prompt(matches: list[dict]) -> str:
-    """Format matched patterns as actionable optimization hints for the LLM."""
+@dataclass(frozen=True)
+class KnowledgeEntry:
+    """One bounded optimization rule or measured case."""
+
+    id: str
+    family: str
+    preconditions: tuple[str, ...]
+    action: str
+    expected_signal: str
+    contraindications: tuple[str, ...]
+    source: str
+    confidence: str
+    vitis_version: str
+    kind: str = "rule"
+    status: str = "unverified_seed"
+    tags: tuple[str, ...] = ()
+    evidence: Mapping[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "KnowledgeEntry":
+        if not isinstance(raw, Mapping):
+            raise KnowledgeValidationError("knowledge entry must be an object")
+        entry = cls(
+            id=_required_text(raw, "id"),
+            family=_required_text(raw, "family").lower(),
+            preconditions=_text_tuple(raw, "preconditions"),
+            action=_required_text(raw, "action"),
+            expected_signal=_required_text(raw, "expected_signal"),
+            contraindications=_text_tuple(raw, "contraindications"),
+            source=_required_text(raw, "source"),
+            confidence=_required_text(raw, "confidence").lower(),
+            vitis_version=_required_text(raw, "vitis_version"),
+            kind=str(raw.get("kind", "rule")).strip().lower(),
+            status=str(raw.get("status", "unverified_seed")).strip().lower(),
+            tags=tuple(
+                sorted(
+                    {
+                        str(item).strip().lower()
+                        for item in raw.get("tags", [])
+                        if str(item).strip()
+                    }
+                )
+            ),
+            evidence=(
+                dict(raw.get("evidence", {}))
+                if isinstance(raw.get("evidence", {}), Mapping)
+                else {}
+            ),
+        )
+        entry.validate()
+        return entry
+
+    def validate(self) -> None:
+        if self.kind not in _KINDS:
+            raise KnowledgeValidationError(
+                f"{self.id}: unsupported kind {self.kind!r}"
+            )
+        if self.status not in _STATUSES:
+            raise KnowledgeValidationError(
+                f"{self.id}: unsupported status {self.status!r}"
+            )
+        if self.confidence not in _CONFIDENCE:
+            raise KnowledgeValidationError(
+                f"{self.id}: unsupported confidence {self.confidence!r}"
+            )
+        if not self.preconditions or not self.contraindications:
+            raise KnowledgeValidationError(
+                f"{self.id}: preconditions and contraindications are required"
+            )
+        _reject_forbidden_provenance(self.source, entry_id=self.id)
+        _reject_forbidden_provenance(self.evidence, entry_id=self.id)
+
+        if self.kind == "rule":
+            if self.status != "unverified_seed":
+                raise KnowledgeValidationError(
+                    f"{self.id}: imported rules must remain unverified_seed"
+                )
+            return
+
+        if not self.source.startswith("submission:"):
+            raise KnowledgeValidationError(
+                f"{self.id}: measured cases require submission: provenance"
+            )
+        if self.kind == "verified_case":
+            if self.status != "verified_case":
+                raise KnowledgeValidationError(
+                    f"{self.id}: successful case must have verified_case status"
+                )
+            _validate_success_evidence(self.id, self.evidence)
+        elif self.status != "verified_failure":
+            raise KnowledgeValidationError(
+                f"{self.id}: failure case must have verified_failure status"
+            )
+        elif not self.evidence.get("observed_failure"):
+            raise KnowledgeValidationError(
+                f"{self.id}: failure case lacks observed_failure evidence"
+            )
+        else:
+            _validate_q_hw_failure_evidence(self.id, self.evidence)
+
+    def prompt_record(self) -> dict[str, Any]:
+        record: dict[str, Any] = {
+            "id": self.id,
+            "kind": self.kind,
+            "family": self.family,
+            "status": self.status,
+            "preconditions": list(self.preconditions),
+            "action": self.action,
+            "expected_signal": self.expected_signal,
+            "contraindications": list(self.contraindications),
+            "source": self.source,
+            "confidence": self.confidence,
+            "vitis_version": self.vitis_version,
+        }
+        if self.evidence:
+            record["evidence"] = _bounded_value(self.evidence)
+        return record
+
+
+@dataclass(frozen=True)
+class KnowledgeQuery:
+    """Structured evidence used by every runtime retrieval."""
+
+    source_metadata: Mapping[str, Any]
+    baseline_qor: Mapping[str, Any]
+    synth_diagnostics: Any
+    resource_headroom: Mapping[str, Any]
+    history: Sequence[Any]
+    description: str = ""
+    target_part: str = ""
+    vitis_version: str = ""
+
+    def validate(self) -> None:
+        missing = []
+        if not isinstance(self.source_metadata, Mapping):
+            missing.append("source_metadata")
+        if not isinstance(self.baseline_qor, Mapping):
+            missing.append("baseline_qor")
+        if self.synth_diagnostics is None:
+            missing.append("synth_diagnostics")
+        if not isinstance(self.resource_headroom, Mapping):
+            missing.append("resource_headroom")
+        if not isinstance(self.history, Sequence) or isinstance(
+            self.history, (str, bytes)
+        ):
+            missing.append("history")
+        if missing:
+            raise KnowledgeValidationError(
+                "structured retrieval requires: " + ", ".join(missing)
+            )
+
+    def signature(self) -> str:
+        self.validate()
+        payload = {
+            "source_metadata": self.source_metadata,
+            "baseline_qor": self.baseline_qor,
+            "synth_diagnostics": self.synth_diagnostics,
+            "resource_headroom": self.resource_headroom,
+            "history": list(self.history),
+            "description": self.description,
+            "target_part": self.target_part,
+            "vitis_version": self.vitis_version,
+        }
+        encoded = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            default=str,
+        ).encode("utf-8", errors="replace")
+        return hashlib.sha256(encoded).hexdigest()
+
+
+def load_knowledge_entries(
+    *,
+    seed_path: Path | str = _DEFAULT_SEED_PATH,
+    case_paths: Sequence[Path | str] = (_DEFAULT_CASE_PATH,),
+) -> tuple[KnowledgeEntry, ...]:
+    """Load curated seeds and policy-compliant public submission cases."""
+
+    entries = list(_load_entry_file(Path(seed_path), runtime_cases=False))
+    for path_like in case_paths:
+        path = Path(path_like)
+        _validate_runtime_case_path(path)
+        entries.extend(_load_entry_file(path, runtime_cases=True))
+
+    seen: set[str] = set()
+    for entry in entries:
+        if entry.id in seen:
+            raise KnowledgeValidationError(
+                f"duplicate knowledge id: {entry.id}"
+            )
+        seen.add(entry.id)
+    return tuple(sorted(entries, key=lambda item: item.id))
+
+
+def retrieve_knowledge(
+    query: KnowledgeQuery,
+    *,
+    entries: Sequence[KnowledgeEntry] | None = None,
+) -> tuple[KnowledgeEntry, ...]:
+    """Return at most one rule, one successful case, and one failure case."""
+
+    query.validate()
+    candidates = tuple(entries) if entries is not None else load_knowledge_entries()
+    buckets = (
+        ("rule", "unverified_seed"),
+        ("verified_case", "verified_case"),
+        ("failure_case", "verified_failure"),
+    )
+    selected: list[KnowledgeEntry] = []
+    for kind, status in buckets:
+        ranked = sorted(
+            (
+                (_entry_score(entry, query), entry.id, entry)
+                for entry in candidates
+                if entry.kind == kind
+                and entry.status == status
+                and _version_compatible(entry, query)
+                and _case_structure_compatible(entry, query)
+            ),
+            key=lambda item: (-item[0], item[1]),
+        )
+        if ranked and ranked[0][0] > 0:
+            selected.append(ranked[0][2])
+    return tuple(selected)
+
+
+def format_for_prompt(
+    matches: Sequence[KnowledgeEntry],
+    *,
+    max_tokens: int = MAX_KNOWLEDGE_PROMPT_TOKENS,
+) -> str:
+    """Serialize retrieved knowledge with a conservative token upper bound."""
+
     if not matches:
         return ""
+    limit = max(
+        300,
+        min(int(max_tokens), MAX_KNOWLEDGE_PROMPT_TOKENS)
+        * _CHARS_PER_TOKEN_UPPER_BOUND,
+    )
+    payload = {
+        "policy": [
+            "Retrieved knowledge is advisory; real CSim/Synth/required CoSim and Q_HW decide acceptance.",
+            "unverified_seed entries are hypotheses, not measured speedup claims.",
+            "Check every precondition and contraindication against current evidence.",
+            "Apply at most one optimization family in this candidate.",
+        ],
+        "entries": [entry.prompt_record() for entry in matches[:3]],
+    }
+    text = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=str,
+    )
+    if len(text) <= limit:
+        return text
 
-    lines = ["## Applicable HLS Optimization Patterns"]
-    for i, m in enumerate(matches, 1):
-        lines.append(f"\n### Pattern {i}: {m['family']}")
-        lines.append("**Steps:**")
-        lines.extend(f"  {step}" for step in m["steps"])
-        lines.append(f"**Expected Signal:** {m['signal']}")
-        lines.append(f"**⚠ Warning:** {m['warning']}")
+    compact_entries = []
+    for entry in matches[:3]:
+        compact_entries.append(
+            {
+                "id": entry.id,
+                "kind": entry.kind,
+                "family": entry.family,
+                "status": entry.status,
+                "preconditions": list(entry.preconditions[:2]),
+                "action": entry.action[:500],
+                "expected_signal": entry.expected_signal[:320],
+                "contraindications": list(entry.contraindications[:2]),
+                "source": entry.source,
+            }
+        )
+    compact = json.dumps(
+        {
+            "policy": payload["policy"],
+            "entries": compact_entries,
+            "truncated": True,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    if len(compact) <= limit:
+        return compact
+    return compact[: max(0, limit - 18)] + "...[truncated]"
 
-    lines.append("\n---")
-    lines.append("**Apply ONLY ONE pattern at a time.** Re-synthesize and verify improvement.")
-    lines.append("If the pattern does not improve the limiting metric, REMOVE the added pragma and try another.")
-    return "\n".join(lines)
+
+def prompt_token_upper_bound(text: str) -> int:
+    """Conservative deterministic budget estimate used by offline gates."""
+
+    return math.ceil(len(text) / _CHARS_PER_TOKEN_UPPER_BOUND)
+
+
+def resource_headroom_from_report(report: Any) -> dict[str, float | str]:
+    """Project measured resource availability into normalized free capacity."""
+
+    if report is None:
+        return {}
+    used = getattr(report, "resources", None) or {}
+    available = getattr(report, "available", None) or {}
+    result: dict[str, float | str] = {}
+    for key in ("LUT", "FF", "DSP", "BRAM_18K", "URAM"):
+        capacity = available.get(key)
+        value = used.get(key)
+        if not isinstance(capacity, (int, float)) or capacity <= 0:
+            result[key] = "unknown"
+            continue
+        numeric = value if isinstance(value, (int, float)) else 0
+        result[key] = round(max(0.0, (capacity - numeric) / capacity), 4)
+    return result
+
+
+def baseline_qor_from_report(
+    report: Any,
+    *,
+    q_hw: float | None,
+    bottleneck: str = "",
+) -> dict[str, Any]:
+    """Build the compact baseline-QoR portion of a retrieval query."""
+
+    if report is None:
+        return {
+            "latency_worst": None,
+            "clock_period_ns": None,
+            "resources": {},
+            "loop_metrics": [],
+            "q_hw": q_hw,
+            "bottleneck": bottleneck,
+        }
+    loops = []
+    for loop in (getattr(report, "loop_metrics", None) or [])[:12]:
+        loops.append(
+            {
+                "name": loop.get("name"),
+                "trip_count": loop.get("trip_count"),
+                "latency": loop.get("latency"),
+                "pipeline_ii": loop.get("pipeline_ii"),
+            }
+        )
+    return {
+        "latency_worst": getattr(report, "latency_worst", None),
+        "interval_max": getattr(report, "interval_max", None),
+        "clock_period_ns": getattr(report, "clock_period_ns", None),
+        "resources": dict(getattr(report, "resources", None) or {}),
+        "loop_metrics": loops,
+        "q_hw": q_hw,
+        "bottleneck": bottleneck,
+    }
+
+
+def _load_entry_file(
+    path: Path, *, runtime_cases: bool
+) -> tuple[KnowledgeEntry, ...]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise KnowledgeValidationError(
+            f"cannot load knowledge file {path}: {exc}"
+        ) from exc
+    if not isinstance(raw, Mapping):
+        raise KnowledgeValidationError(f"{path}: root must be an object")
+    if raw.get("schema_version") != KNOWLEDGE_SCHEMA_VERSION:
+        raise KnowledgeValidationError(
+            f"{path}: unsupported schema_version"
+        )
+    records = raw.get("entries")
+    if not isinstance(records, list):
+        raise KnowledgeValidationError(f"{path}: entries must be a list")
+    parsed = tuple(KnowledgeEntry.from_dict(record) for record in records)
+    if not runtime_cases and any(
+        entry.kind != "rule" or entry.status != "unverified_seed"
+        for entry in parsed
+    ):
+        raise KnowledgeValidationError(
+            f"{path}: seed files may contain only unverified rule entries"
+        )
+    if runtime_cases and any(entry.kind == "rule" for entry in parsed):
+        raise KnowledgeValidationError(
+            f"{path}: runtime case files cannot introduce rules"
+        )
+    return parsed
+
+
+def _required_text(raw: Mapping[str, Any], key: str) -> str:
+    value = str(raw.get(key, "")).strip()
+    if not value:
+        raise KnowledgeValidationError(f"missing required field: {key}")
+    return value
+
+
+def _text_tuple(raw: Mapping[str, Any], key: str) -> tuple[str, ...]:
+    value = raw.get(key)
+    if not isinstance(value, list):
+        raise KnowledgeValidationError(f"{key} must be a list")
+    items = tuple(str(item).strip() for item in value if str(item).strip())
+    if not items:
+        raise KnowledgeValidationError(f"{key} cannot be empty")
+    return items
+
+
+def _validate_runtime_case_path(path: Path) -> None:
+    resolved = path.resolve(strict=False)
+    lowered = {part.lower() for part in resolved.parts}
+    forbidden = lowered & _FORBIDDEN_RUNTIME_COMPONENTS
+    if forbidden:
+        raise KnowledgeValidationError(
+            f"runtime case path uses forbidden component: {sorted(forbidden)}"
+        )
+
+
+def _reject_forbidden_provenance(value: Any, *, entry_id: str) -> None:
+    for text in _iter_strings(value):
+        normalized = text.replace("\\", "/").lower()
+        parts = {part for part in normalized.split("/") if part}
+        if parts & _FORBIDDEN_RUNTIME_COMPONENTS:
+            raise KnowledgeValidationError(
+                f"{entry_id}: forbidden provenance component"
+            )
+
+
+def _iter_strings(value: Any) -> Iterable[str]:
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, Mapping):
+        for key, item in value.items():
+            yield str(key)
+            yield from _iter_strings(item)
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        for item in value:
+            yield from _iter_strings(item)
+
+
+def _validate_success_evidence(
+    entry_id: str, evidence: Mapping[str, Any]
+) -> None:
+    required_true = ("interface_ok", "csim_ok", "synth_ok", "frequency_ok", "resource_ok")
+    missing = [key for key in required_true if evidence.get(key) is not True]
+    if evidence.get("cosim_required") and evidence.get("cosim_ok") is not True:
+        missing.append("cosim_ok")
+    before = evidence.get("q_hw_before")
+    after = evidence.get("q_hw_after")
+    if not isinstance(before, (int, float)) or not isinstance(
+        after, (int, float)
+    ) or not after > before:
+        missing.append("q_hw_improvement")
+    if missing:
+        raise KnowledgeValidationError(
+            f"{entry_id}: verified case lacks gates: {sorted(set(missing))}"
+        )
+
+
+def _validate_q_hw_failure_evidence(
+    entry_id: str, evidence: Mapping[str, Any]
+) -> None:
+    stage = str(evidence.get("stage", "") or "")
+    has_q_hw = "q_hw_before" in evidence or "q_hw_after" in evidence
+    if stage != "q_hw_selection" and not has_q_hw:
+        return
+    required_true = ("interface_ok", "csim_ok", "synth_ok", "frequency_ok", "resource_ok")
+    missing = [key for key in required_true if evidence.get(key) is not True]
+    if evidence.get("cosim_required") and evidence.get("cosim_ok") is not True:
+        missing.append("cosim_ok")
+    before = evidence.get("q_hw_before")
+    after = evidence.get("q_hw_after")
+    if not isinstance(before, (int, float)) or not isinstance(after, (int, float)):
+        missing.append("q_hw_measurement")
+    elif after > before:
+        missing.append("non_improving_q_hw")
+    if missing:
+        raise KnowledgeValidationError(
+            f"{entry_id}: q_hw failure case lacks gates: {sorted(set(missing))}"
+        )
+
+
+def _bounded_value(value: Any, *, depth: int = 0) -> Any:
+    if depth > 3:
+        return "<bounded>"
+    if isinstance(value, Mapping):
+        return {
+            str(key)[:80]: _bounded_value(item, depth=depth + 1)
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))[:20]
+        }
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return [_bounded_value(item, depth=depth + 1) for item in value[:20]]
+    if isinstance(value, str):
+        return value[:500]
+    if isinstance(value, (int, float, bool)) or value is None:
+        return value
+    return str(value)[:200]
+
+
+def _tokens(value: Any) -> set[str]:
+    text = json.dumps(
+        value,
+        sort_keys=True,
+        ensure_ascii=False,
+        default=str,
+    ).lower()
+    return set(_TOKEN_RE.findall(text))
+
+
+def _entry_tokens(entry: KnowledgeEntry) -> set[str]:
+    return _tokens(
+        {
+            "family": entry.family,
+            "preconditions": entry.preconditions,
+            "action": entry.action,
+            "expected_signal": entry.expected_signal,
+            "contraindications": entry.contraindications,
+            "tags": entry.tags,
+            "evidence": entry.evidence,
+        }
+    )
+
+
+def _entry_score(entry: KnowledgeEntry, query: KnowledgeQuery) -> float:
+    entry_tokens = _entry_tokens(entry)
+    score = 0.0
+    score += 3.0 * len(entry_tokens & _tokens(query.source_metadata))
+    score += 2.0 * len(entry_tokens & _tokens(query.baseline_qor))
+    score += 4.0 * len(entry_tokens & _tokens(query.synth_diagnostics))
+    score += 2.0 * len(entry_tokens & _tokens(query.resource_headroom))
+    score += 3.0 * len(entry_tokens & _tokens(list(query.history)))
+    score += 1.0 * len(entry_tokens & _tokens(query.description))
+
+    signals = _family_signals(query)
+    score += 24.0 * signals.get(entry.family, 0.0)
+    score += _entry_specific_boost(entry, query)
+    if entry.kind == "verified_case":
+        score += 3.0
+    if entry.kind == "failure_case":
+        history_tokens = _tokens(list(query.history))
+        if entry_tokens & history_tokens:
+            score += 8.0
+    return score
+
+
+def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
+    diagnostic = _tokens(query.synth_diagnostics)
+    description = _tokens(query.description)
+    metadata = query.source_metadata
+    combined = diagnostic | description | _tokens(metadata)
+    signals: dict[str, float] = {"report_driven": 0.15}
+
+    loops = metadata.get("loops", []) if isinstance(metadata, Mapping) else []
+    qor_loops = (
+        query.baseline_qor.get("loop_metrics", [])
+        if isinstance(query.baseline_qor, Mapping)
+        else []
+    )
+    all_loops = [
+        loop
+        for loop in [*loops, *qor_loops]
+        if isinstance(loop, Mapping)
+    ]
+    arrays = metadata.get("arrays", []) if isinstance(metadata, Mapping) else []
+    loop_iis = [
+        loop.get("pipeline_ii")
+        for loop in all_loops
+        if isinstance(loop.get("pipeline_ii"), (int, float))
+    ]
+    trip_counts = [
+        loop.get("trip_count")
+        for loop in all_loops
+        if isinstance(loop.get("trip_count"), (int, float))
+    ]
+    nesting = [
+        loop.get("nesting_depth")
+        for loop in loops
+        if isinstance(loop, Mapping)
+        and isinstance(loop.get("nesting_depth"), (int, float))
+    ]
+
+    if (
+        {"memory", "port"} <= diagnostic
+        or {"memory", "ports"} <= diagnostic
+        or "448" in diagnostic
+        or {"parallel", "reads"} <= diagnostic
+        or "contended" in diagnostic
+    ):
+        signals["array_partition"] = 1.0
+    if {"adjacent", "bandwidth"} & combined or "reshape" in combined:
+        signals["array_reshape"] = 0.9
+    if {"reduction", "accumulate", "sum", "dot", "recurrence"} & combined:
+        signals["reduction"] = 1.0
+    if {"gemm", "matmul", "multiply", "multiplication"} & combined and (
+        max(nesting, default=0) >= 1 or len(loops) >= 2
+    ):
+        signals["gemm"] = 1.0
+    if {"stencil", "neighbor", "grid", "window"} & combined:
+        signals["stencil"] = 1.0
+    if {"dataflow", "stream", "fifo", "producer", "consumer", "deadlock"} & combined:
+        signals["dataflow"] = 1.0
+
+    # Task descriptions carry architectural intent.  Give explicit families
+    # enough weight to outrank generic report/II vocabulary that is present in
+    # nearly every synthesis summary.
+    if {"gemm", "matmul"} & description or {
+        "matrix",
+        "multiplication",
+    } <= description:
+        signals["gemm"] = max(signals.get("gemm", 0.0), 2.5)
+    if {"stencil", "neighborhood"} & description or (
+        "grid" in description and {"window", "neighbor"} & description
+    ):
+        signals["stencil"] = max(signals.get("stencil", 0.0), 2.5)
+    if {"reduction", "dot", "popcount", "accumulate"} & description or {
+        "cumulative",
+        "sum",
+    } <= description:
+        signals["reduction"] = max(signals.get("reduction", 0.0), 2.0)
+    if "dataflow" in description and {
+        "producer",
+        "consumer",
+        "stage",
+        "stream",
+    } & description:
+        signals["dataflow"] = max(signals.get("dataflow", 0.0), 2.0)
+    if loop_iis and max(loop_iis) > 1:
+        signals["report_driven"] = 0.9
+        if not (
+            {"memory", "port"} <= diagnostic
+            or {"memory", "ports"} <= diagnostic
+            or "448" in diagnostic
+        ):
+            signals["pipeline"] = 0.75
+    elif loop_iis and max(loop_iis) == 1 and max(trip_counts, default=0) > 32:
+        signals["unroll"] = 0.9
+    elif loops:
+        signals["pipeline"] = 0.6
+
+    if any(
+        isinstance(array, Mapping)
+        and isinstance(array.get("access_pattern"), Mapping)
+        and array["access_pattern"].get("kind") == "contiguous"
+        for array in arrays
+    ) and {"lane", "packed", "adjacent"} & combined:
+        signals["array_reshape"] = 1.0
+    return signals
+
+
+def _entry_specific_boost(
+    entry: KnowledgeEntry, query: KnowledgeQuery
+) -> float:
+    """Disambiguate entries within one family using explicit evidence."""
+
+    description = _tokens(query.description)
+    combined = (
+        _tokens(query.synth_diagnostics)
+        | description
+        | _tokens(query.baseline_qor)
+    )
+    metadata = query.source_metadata
+    loops = metadata.get("loops", []) if isinstance(metadata, Mapping) else []
+    qor_loops = (
+        query.baseline_qor.get("loop_metrics", [])
+        if isinstance(query.baseline_qor, Mapping)
+        else []
+    )
+    loop_iis = [
+        loop.get("pipeline_ii")
+        for loop in [*loops, *qor_loops]
+        if isinstance(loop, Mapping)
+        and isinstance(loop.get("pipeline_ii"), (int, float))
+    ]
+    nested = (
+        len(loops) >= 2
+        or any(
+            isinstance(loop, Mapping)
+            and isinstance(loop.get("nesting_depth"), (int, float))
+            and loop["nesting_depth"] >= 1
+            for loop in loops
+        )
+    )
+
+    if entry.id == "hlsgen.report_driven.ii_triage":
+        explicit_architecture = bool(
+            {"gemm", "matmul", "stencil", "neighborhood"} & description
+            or {"matrix", "multiplication"} <= description
+        )
+        if loop_iis and max(loop_iis) > 1 and (
+            {"recurrence", "timing", "target", "violation"} & combined
+        ) and not explicit_architecture:
+            return 28.0
+    if entry.id == "hlsgen.report_driven.baseline_first":
+        if {"baseline", "report", "measurable", "stacking"} & combined:
+            return 22.0
+    if entry.id == "hlsgen.pipeline.outer_concurrency":
+        if nested and "outer" in combined and (
+            {"inner", "concurrency", "concurrent"} & combined
+        ):
+            return 34.0
+    return 0.0
+
+
+def _version_compatible(
+    entry: KnowledgeEntry, query: KnowledgeQuery
+) -> bool:
+    if entry.kind != "rule":
+        measured_part = str(entry.evidence.get("target_part", "") or "").strip()
+        requested_part = str(query.target_part or "").strip()
+        if measured_part and requested_part and measured_part != requested_part:
+            return False
+    requested = str(query.vitis_version or "").strip()
+    if not requested or entry.vitis_version.endswith("+"):
+        return True
+    entry_version = entry.vitis_version.strip()
+    return requested == entry_version or requested.startswith(entry_version)
+
+
+def _case_structure_compatible(
+    entry: KnowledgeEntry, query: KnowledgeQuery
+) -> bool:
+    """Reject measured examples whose workload semantics are not compatible."""
+
+    if entry.kind == "rule":
+        return True
+    description = _tokens(query.description)
+    if "dot_product" in entry.tags:
+        return "dotproduct" in description or {
+            "dot",
+            "product",
+        } <= description
+    if "popcount" in entry.tags:
+        return "popcount" in description
+    for family_tag in ("gemm", "stencil", "cordic"):
+        if family_tag in entry.tags:
+            return family_tag in description
+    return True

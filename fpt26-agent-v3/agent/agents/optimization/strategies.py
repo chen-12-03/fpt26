@@ -104,6 +104,49 @@ def _hls_pragmas(code: str) -> list[str]:
     ]
 
 
+def candidate_action_summary(best: str, candidate: str) -> dict[str, Any]:
+    """Return a bounded semantic action summary for public run evidence."""
+
+    best_pragmas = {pragma.lower(): pragma for pragma in _hls_pragmas(best)}
+    candidate_pragmas = {
+        pragma.lower(): pragma for pragma in _hls_pragmas(candidate)
+    }
+    added = [
+        candidate_pragmas[key]
+        for key in sorted(candidate_pragmas.keys() - best_pragmas.keys())
+    ]
+    removed = [
+        best_pragmas[key]
+        for key in sorted(best_pragmas.keys() - candidate_pragmas.keys())
+    ]
+    families = sorted(
+        {
+            match.group(1).upper()
+            for pragma in added
+            for match in [
+                re.search(
+                    r"#\s*pragma\s+HLS\s+([A-Za-z_]+)",
+                    pragma,
+                    re.IGNORECASE,
+                )
+            ]
+            if match is not None
+        }
+    )
+    source_changed = (
+        _without_hls_pragmas_fingerprint(best)
+        != _without_hls_pragmas_fingerprint(candidate)
+    )
+    if source_changed and not families:
+        families = ["SOURCE_RESTRUCTURE"]
+    return {
+        "families": families[:4],
+        "added_pragmas": added[:8],
+        "removed_pragmas": removed[:8],
+        "source_changed": source_changed,
+    }
+
+
 def _source_array_rank(code: str, variable: str) -> int | None:
     ranks = [
         brackets.count("[")

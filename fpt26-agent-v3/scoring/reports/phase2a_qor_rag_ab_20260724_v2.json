@@ -1,0 +1,260 @@
+{
+  "baseline": {
+    "acceleration_geomean": 3.027835216,
+    "mean_credits_per_task": 12.916667,
+    "mean_tokens_per_task": 8886.333333,
+    "median_tokens_per_task": 8423.5,
+    "missing": [],
+    "optimization_metrics_complete": true,
+    "q_hw_geomean": 0.799534885,
+    "scorable_count": 12,
+    "task_count": 12,
+    "tasks": {
+      "c2hlsc__cusums": {
+        "acceleration": 2.0,
+        "credits": 15.0,
+        "q_hw": 0.7951,
+        "tokens": 7174.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "c2hlsc__present": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 13043.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "dotProduct_optimize": {
+        "acceleration": 1.99,
+        "credits": 15.0,
+        "q_hw": 0.7666,
+        "tokens": 6924.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "gnnbuilder__compute_neighbor_tables": {
+        "acceleration": 2.78,
+        "credits": 15.0,
+        "q_hw": 0.8345,
+        "tokens": 8384.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "machsuite__aes_aes": {
+        "acceleration": 1.0,
+        "credits": 5.0,
+        "q_hw": 0.75,
+        "tokens": 10831.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__gemm_blocked": {
+        "acceleration": 32.73,
+        "credits": 10.0,
+        "q_hw": 0.863,
+        "tokens": 9066.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__stencil_stencil2d": {
+        "acceleration": 1.67,
+        "credits": 15.0,
+        "q_hw": 0.774,
+        "tokens": 8741.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "polybench__2mm": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 8019.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "polybench__cholesky": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 7993.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "pp4fpga__pp4fpga_cordic": {
+        "acceleration": 1.91,
+        "credits": 15.0,
+        "q_hw": 0.8447,
+        "tokens": 12241.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__digit_recognition__popcount": {
+        "acceleration": 257.0,
+        "credits": 10.0,
+        "q_hw": 0.9798,
+        "tokens": 5757.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "rosetta__optical_flow__outer_product": {
+        "acceleration": 2.0,
+        "credits": 15.0,
+        "q_hw": 0.767,
+        "tokens": 8463.0,
+        "valid": true,
+        "wasted_attempts": 0
+      }
+    },
+    "wasted_attempts": 4
+  },
+  "candidate": {
+    "acceleration_geomean": 2.133967165,
+    "mean_credits_per_task": 10.833333,
+    "mean_tokens_per_task": 10964.833333,
+    "median_tokens_per_task": 9589.0,
+    "missing": [],
+    "optimization_metrics_complete": true,
+    "q_hw_geomean": 0.801193564,
+    "scorable_count": 12,
+    "task_count": 12,
+    "tasks": {
+      "c2hlsc__cusums": {
+        "acceleration": 2.0,
+        "credits": 10.0,
+        "q_hw": 0.7951,
+        "tokens": 8082.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "c2hlsc__present": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 14047.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "dotProduct_optimize": {
+        "acceleration": 1.99,
+        "credits": 10.0,
+        "q_hw": 0.7666,
+        "tokens": 7887.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "gnnbuilder__compute_neighbor_tables": {
+        "acceleration": 2.78,
+        "credits": 10.0,
+        "q_hw": 0.8345,
+        "tokens": 9599.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__aes_aes": {
+        "acceleration": 3.84,
+        "credits": 10.0,
+        "q_hw": 0.9834,
+        "tokens": 23056.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "machsuite__gemm_blocked": {
+        "acceleration": 32.73,
+        "credits": 10.0,
+        "q_hw": 0.863,
+        "tokens": 10051.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "machsuite__stencil_stencil2d": {
+        "acceleration": 1.67,
+        "credits": 10.0,
+        "q_hw": 0.774,
+        "tokens": 9666.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "polybench__2mm": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 9579.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "polybench__cholesky": {
+        "acceleration": 1.92,
+        "credits": 15.0,
+        "q_hw": 0.8628,
+        "tokens": 8980.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "pp4fpga__pp4fpga_cordic": {
+        "acceleration": 1.0,
+        "credits": 15.0,
+        "q_hw": 0.75,
+        "tokens": 13616.0,
+        "valid": true,
+        "wasted_attempts": 0
+      },
+      "rosetta__digit_recognition__popcount": {
+        "acceleration": 1.0,
+        "credits": 10.0,
+        "q_hw": 0.75,
+        "tokens": 7631.0,
+        "valid": true,
+        "wasted_attempts": 1
+      },
+      "rosetta__optical_flow__outer_product": {
+        "acceleration": 2.0,
+        "credits": 10.0,
+        "q_hw": 0.767,
+        "tokens": 9384.0,
+        "valid": true,
+        "wasted_attempts": 1
+      }
+    },
+    "wasted_attempts": 8
+  },
+  "comparison": {
+    "acceleration_geomean_relative_change": -0.295216875,
+    "baseline_correct_count": 12,
+    "correctness_preservation_rate": 1.0,
+    "correctness_preserved_count": 12,
+    "mean_credits_relative_change_monitor_only": -0.16129037,
+    "mean_tokens_relative_change": 0.233898496,
+    "q_hw_geomean_relative_change": 0.002074555,
+    "wasted_attempts_relative_change": 1.0
+  },
+  "gates": {
+    "acceleration_geomean_improves_5pct": false,
+    "all_reports_present": true,
+    "correctness_preserved_100pct": true,
+    "fixed_task_count_12_to_20": true,
+    "mean_tokens_increase_at_most_10pct": false,
+    "q_hw_geomean_improves_1pct": false,
+    "scorable_count_not_lower": true,
+    "wasted_attempts_reduce_20pct": false
+  },
+  "passed": false,
+  "schema_version": 1,
+  "task_count": 12,
+  "task_list": "/workspace/fpt26-agent-v3/evals/qor_rag_fixed_correct_tasks.txt",
+  "tasks": [
+    "rosetta__digit_recognition__popcount",
+    "machsuite__gemm_blocked",
+    "machsuite__aes_aes",
+    "c2hlsc__present",
+    "gnnbuilder__compute_neighbor_tables",
+    "c2hlsc__cusums",
+    "rosetta__optical_flow__outer_product",
+    "dotProduct_optimize",
+    "pp4fpga__pp4fpga_cordic",
+    "polybench__cholesky",
+    "polybench__2mm",
+    "machsuite__stencil_stencil2d"
+  ]
+}

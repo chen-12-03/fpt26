@@ -6,6 +6,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 
 _WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 _MANIFEST = _WORKSPACE_ROOT / "fpt26-agent-v3/execution-freeze.json"
@@ -71,3 +73,34 @@ def test_frozen_execution_trees_match_manifest() -> None:
         )
         assert actual_count == spec["count"], f"frozen tree count changed: {name}"
         assert actual_digest == spec["sha256"], f"frozen tree changed: {name}"
+
+
+def test_retained_acceptance_evidence_matches_manifest() -> None:
+    """Bulky run evidence is optional, but must match when retained."""
+
+    validation = json.loads(_MANIFEST.read_text())["validation"]
+    for key in (
+        "official_acceptance_path",
+        "official_acceptance_sha256",
+        "task97_acceptance_path",
+        "task97_acceptance_sha256",
+    ):
+        assert validation.get(key), f"freeze validation missing {key}"
+    records = {
+        validation["official_acceptance_path"]: validation[
+            "official_acceptance_sha256"
+        ],
+        validation["task97_acceptance_path"]: validation[
+            "task97_acceptance_sha256"
+        ],
+    }
+    checked = 0
+    for relative, expected in records.items():
+        path = _WORKSPACE_ROOT / relative
+        if not path.exists():
+            continue
+        assert path.is_file(), f"frozen evidence is not a file: {relative}"
+        assert _sha256(path) == expected, f"frozen evidence changed: {relative}"
+        checked += 1
+    if checked == 0:
+        pytest.skip("retained execution acceptance evidence is not present")

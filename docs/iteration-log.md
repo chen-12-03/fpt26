@@ -3558,3 +3558,152 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
   official acceptance 为 `acceptance_ok=true`。`execution-freeze.json` 已绑定两份
   acceptance 哈希和最终执行源哈希。
 - 最终 Docker/Vitis 完整回归为 **408 passed, 3 skipped, 0 failed**。
+
+## 2026-07-24 — Phase 2A：QoR-RAG hybrid retrieval 与 paired A/B gate
+
+### 实现范围
+
+- 将旧 keyword-only `agent.knowledge` 替换为确定性的 hybrid retriever：结构化
+  `KnowledgeQuery` 同时使用 source metadata、baseline QoR、synth diagnostics、
+  resource headroom、history、task description、target part 和 Vitis version。
+- seed rules 只允许 `unverified_seed`，measured cases 只从 public submission evidence
+  导入；runtime case loader 拒绝 `hidden`、`reference`、`evaluator` 路径或 provenance。
+  verified success 必须证明 interface、CSim、Synth、100 MHz、resource capacity、
+  required CoSim（如适用）和 `q_hw_after > q_hw_before`。
+- Optimization prompt 注入最多 3 条知识：最多一个 rule、一个 verified case、一个
+  failure case；prompt 有 deterministic token upper bound，且 policy 明确知识只是建议，
+  最终仍由真实 validation gates 和 Q_HW 接受准则决定。
+- run report 新增 `optimization_metrics.knowledge_retrievals`、candidate action summary、
+  source metadata 和 per-candidate validation evidence，便于后续 public-only case curation
+  和 paired A/B 审计。
+- 新增 `qor_rag_curate.py`、`qor_rag_retrieval_eval.py`、`qor_rag_ab.py` 作为离线
+  curation、labeled retrieval gate 和固定任务 paired A/B gate。
+
+### 离线 gate 与单测
+
+- 定向回归：
+  `PYTHONPATH=... pytest -p no:cacheprovider tests/test_qor_rag.py tests/test_reporting_state_consistency.py`
+  结果为 **27 passed in 0.21s**。
+- Labeled retrieval eval：
+  `python -m agent.qor_rag_retrieval_eval --labels fpt26-agent-v3/evals/qor_rag_retrieval_labels.json`
+  结果为 30 cases、29 hits、Recall@3=`0.966667`、deterministic=true、
+  max prompt token upper bound=`1133`、passed=true。
+
+### 12-task paired A/B 真实结果
+
+- 固定任务集为 `fpt26-agent-v3/evals/qor_rag_fixed_correct_tasks.txt`，共 12 题。
+  baseline 使用 `runs/phase2a_qor_rag_ab_baseline_20260724_v3`；candidate 使用
+  `runs/phase2a_qor_rag_ab_candidate_20260724_v3`，并以当前 hybrid 路径新鲜重跑的
+  `runs/phase2a_qor_rag_hybrid_popcount_20260724_v1` 作为 popcount retry overlay。
+- overlay popcount submission 为真正的 `phase2a_hybrid` 路径：2 次 LLM response，
+  3 次 CSim、3 次 Synth，public gates 全过；accepted candidate latency
+  `257 → 65` cycles，Q_HW `0.7500 → 0.8326`。独立 evaluator hidden CSim/Synth
+  通过，score=`83.10/100`，valid=true。
+- v4 A/B gate 全部通过：correctness preserved `12/12`，missing=[]，
+  scorable count 不下降；Q_HW geomean `0.779127154 → 0.803725492`（+3.16%）；
+  acceleration geomean `1.779452198 → 1.917972622`（+7.78%）；
+  mean tokens/task `9458.5 → 7492.25`（-20.79%）；
+  wasted attempts `4 → 1`（-75%）；mean credits/task `12.916667 → 12.083333`。
+- A/B 报告：
+  `fpt26-agent-v3/scoring/reports/phase2a_qor_rag_ab_20260724_v4.json`，
+  schema_version=2，记录 baseline/candidate roots、later-root overlay 语义，以及每题
+  最终采用的 submission/evaluator report path；SHA-256
+  `01c2d4570eaec12df085ad128f35da68f33b859724f206c050a9d300577966a5`。
+- popcount evidence hashes：
+  submission run report
+  `0a3ad0b63316f9f0272f18f80ea7a9ac6461218c8e095c6fd0263327f7d21614`；
+  submission evidence
+  `9d85ea2f41a9a0ea5090b8d623da12a2b67b3f499c681eff2dc8e82ff912c283`；
+  evaluator run report
+  `6951386022e9a10a45093adacef439cf38428097ab492a6ddb88a28d47d99179`。
+
+### 后续审计修复
+
+- Runtime query 的 Vitis version 提取改为优先使用真实 preflight/report 字段：
+  `observed_vitis_version`、`required_vitis_version`、`preflight_vitis_version`，
+  最后才回退到兼容测试用的 `vitis_version`。这会让 measured cases 在真实运行中执行
+  版本兼容过滤。
+- Q_HW selection 负例的 knowledge validation 已收紧：带 `q_hw_before/q_hw_after` 或
+  `stage=q_hw_selection` 的 failure case 必须携带 interface、CSim、Synth、frequency、
+  resource 以及 required CoSim（如适用）gate 证据，并且不能是 Q_HW 改善。
+- 更新后的 QoR-RAG/OptimizeAgent 定向回归为 **45 passed in 0.25s**；
+  scoring freeze/reporting 定向回归为 **13 passed in 0.07s**；
+  优化/报告/安全/scoring 扩展回归为 **111 passed in 0.40s**。
+- Docker/Vitis 近完整回归使用 workspace 内 `TMPDIR`，并仅排除当前未封板的
+  `test_frozen_execution_trees_match_manifest`，结果为
+  **437 passed, 1 deselected in 16.83s**。被排除项反映 Phase 2A 新增执行源后
+  当时的 `execution-freeze.json` 尚未更新；按该 manifest policy，更新 freeze 需要新的
+  完整 revalidation，不能只凭 12-task A/B 替换 Phase 1 acceptance hash。该 gap 已由下一节
+  full revalidation 关闭。未设置
+  workspace 内 `TMPDIR` 的原始 `test_all.sh` 会让 real-Vitis tests 在 `/tmp/...`
+  build dir 触发安全根拒绝，这属于测试运行环境问题，不是 Vitis 或 QoR-RAG 逻辑失败。
+
+### 最终 97-task 真实 API + Vitis revalidation 与 freeze
+
+- 当前 Phase 2A 执行源 SHA-256 为
+  `827d2cc5a852e1c4e6bdafdbb5c057c49eff65c3b927fd8e91a363343e294811`。
+  三个 fresh shard 首轮位于 `runs/phase2a_full97_20260724_v1_s0`、
+  `runs/phase2a_full97_20260724_v1_s1`、`runs/phase2a_full97_20260724_v1_s2`；
+  initial audit 覆盖 97/97，但 `chstone__dfsin` 有 3 次 failed API request，触发
+  `real_api_usage_incomplete`，因此未作为最终 freeze 证据。
+- 为避免修改 audit replacement 语义，完整重跑 shard 1 到
+  `runs/phase2a_full97_20260724_v1_s1_r2`。其中 `chstone__dfsin` 仍为正常
+  workflow failed，但 API usage complete=true、request/response=`2/2`、
+  failed_request_count=0、audit_errors=[]。
+- 最终 97-task acceptance 使用 `s0 + s1_r2 + s2`：
+  `runs/phase2a_full97_20260724_v1_acceptance.json`，SHA-256
+  `af6653eb62722c5d1eb75ca542651e2d18e9f6372eb7a95fb9712ee5d2c17af9`。
+  `workflow_integrity_ok=true`，覆盖 97/97，outcome 为 completed=77、failed=20，
+  audit error 0、API usage proven 97/97、failed API request 0，总 API
+  request/response=`142/142`，tokens=`673453`，required CoSim 任务
+  `residual_stream_deadlock` 通过。
+- fresh official split-role run 位于 `runs/phase2a_official_fresh_20260724_v2`；
+  official acceptance 为
+  `runs/phase2a_official_fresh_20260724_v2_acceptance.json`，SHA-256
+  `40e305e31459686bf4d35f96103913c31c8c6ffad852f22fb01b40d4aa31fd82`。
+  结果为 acceptance_ok=true、3/3、request=7、tokens=28371、最低频率
+  315.457 MHz；start/end execution-source snapshot hash 均为
+  `ebe804f1747c89eb821d67dac56d416909a838bd1013461a71b2f149719fc14e`。
+- `execution-freeze.json` 已更新到 Phase 2A acceptance：agent source tree
+  count=`69`、tree hash
+  `2eacdaf7ec511caf3fd146a3afe54618fa7d6ee00c6b93a057c977b4ffef4e2d`；
+  QoR-RAG runtime knowledge assets count=`2`、tree hash
+  `7a20901e972b12c1f3cae2fa461f351fe035cd45d714bc99690ff243af522d9d`；
+  execution-source、official acceptance、97-task acceptance 路径与哈希均绑定上述
+  Phase 2A 证据；freeze test 在 retained run evidence 存在时会校验 acceptance
+  report hash。
+- 回归：
+  `pytest -q tests/test_execution_layer_freeze.py` 为 **3 passed**；
+  Docker/Vitis 完整回归使用 workspace 内 `TMPDIR` 且不再 deselect freeze test，
+  在 retained run evidence 存在的验证 workspace 中结果为 **439 passed in 17.42s**；
+  干净 checkout 若未保留 bulky `runs/` evidence，则 acceptance evidence hash test
+  会 skip，而不是要求重新下载或提交 raw run artifacts。
+
+### Post-freeze source snapshot coverage correction
+
+- 发现 Phase 2A runtime retrieval 依赖 `agent/knowledge_assets/*.json`，但
+  `execution_source_snapshot()` 只覆盖了 `agent/**/*.py` 和 runner/scoring/harness
+  固定文件；这会让知识资产变化没有进入 long-running shard provenance。
+- 已修正为递归纳入 `agent/knowledge_assets/**/*.json`，并在
+  `tests/test_p0_batch_runner.py` 中覆盖顶层和嵌套 JSON asset 内容变化都会改变
+  source snapshot tree hash。
+- 当前 probe snapshot 为 files=`81`、tree SHA-256
+  `8f4e3e948c311fd260bbf93eec39c1be5ddc784ce744b8fd9c8d56ea491a19fc`，
+  且包含 `agent/knowledge_assets/hls_generator_seeds.json` 和
+  `agent/knowledge_assets/verified_cases.json`。
+- QoR-RAG curation 工具进一步收紧为只接受 submission 目录下的
+  `run_report.json`，避免任意 submission JSON 被误晋升为 measured knowledge case。
+- 因为 `scoring/run_p0_real_api_shard.py` 已改变，上一节的 full97 / official
+  acceptance 仍是有效历史证据，但不再能作为当前 source snapshot 的最终 freeze
+  证据复用。`execution-freeze.json` 会保持 stale，直到基于新 snapshot 完成新的
+  full97 与 official fresh revalidation 后再更新。
+- 用户要求暂不继续下一次全 task 测试；刚启动的新 full97 shard 已停止，本轮仅执行
+  非全量聚焦验证：
+  `PYTHONPATH=... pytest -q fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_qor_rag.py`
+  结果为 **36 passed, 1 skipped in 0.28s**；
+  `PYTHONPATH=... pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_reporting_state_consistency.py fpt26-agent-v3/tests/test_source_metadata.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_p0_acceptance_audit.py fpt26-agent-v3/tests/test_p0_official_audit.py fpt26-agent-v3/tests/test_scoring_profiles.py fpt26-agent-v3/tests/test_scoring_freeze.py`
+  结果为 **65 passed, 1 skipped in 0.45s**；labeled retrieval eval 仍为
+  30 cases、Recall@3=`0.966667`、passed=true；`git diff --check` clean。
+  `tests/test_execution_layer_freeze.py` 当前为 **2 failed, 1 passed**，失败项为
+  `run_p0_real_api_shard.py` frozen file hash 和 `agent_sources` tree hash stale；
+  这正是等待 fresh full97/official revalidation 后再更新 manifest 的预期 gate。

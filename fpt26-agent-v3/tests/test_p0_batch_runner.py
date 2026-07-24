@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from scoring.run_p0_real_api_shard import (
     build_evaluator_command,
     classify_outcome,
@@ -12,7 +14,11 @@ from scoring.run_p0_real_api_shard import (
 
 
 def test_discovery_is_exactly_97_unique_tasks() -> None:
-    tasks = discover_tasks(Path("/workspace/tasks"))
+    task_root = Path("/workspace/tasks")
+    if not task_root.exists():
+        pytest.skip("task corpus is only mounted at /workspace/tasks in Docker")
+
+    tasks = discover_tasks(task_root)
 
     assert len(tasks) == 97
     assert len({task.name for task in tasks}) == 97
@@ -64,18 +70,42 @@ def test_execution_source_snapshot_is_deterministic_and_content_sensitive(
 ) -> None:
     project = tmp_path / "project"
     (project / "agent").mkdir(parents=True)
+    (project / "agent" / "knowledge_assets").mkdir()
+    (project / "agent" / "knowledge_assets" / "nested").mkdir()
     (project / "scoring").mkdir()
     (project / "agent" / "main.py").write_text("VALUE = 1\n")
+    (project / "agent" / "knowledge_assets" / "seeds.json").write_text(
+        '{"entries":[]}\n'
+    )
+    (project / "agent" / "knowledge_assets" / "nested" / "case.json").write_text(
+        '{"id":"nested"}\n'
+    )
     (project / "scoring" / "scoring_v3.py").write_text("SCORE = 1\n")
 
     first = execution_source_snapshot(project)
     second = execution_source_snapshot(project)
     assert first == second
-    assert first["file_count"] == 2
+    assert first["file_count"] == 4
 
     (project / "agent" / "main.py").write_text("VALUE = 2\n")
     changed = execution_source_snapshot(project)
     assert changed["tree_sha256"] != first["tree_sha256"]
+
+    (project / "agent" / "main.py").write_text("VALUE = 1\n")
+    (project / "agent" / "knowledge_assets" / "seeds.json").write_text(
+        '{"entries":[{"id":"changed"}]}\n'
+    )
+    changed_asset = execution_source_snapshot(project)
+    assert changed_asset["tree_sha256"] != first["tree_sha256"]
+
+    (project / "agent" / "knowledge_assets" / "seeds.json").write_text(
+        '{"entries":[]}\n'
+    )
+    (project / "agent" / "knowledge_assets" / "nested" / "case.json").write_text(
+        '{"id":"changed-nested"}\n'
+    )
+    changed_nested_asset = execution_source_snapshot(project)
+    assert changed_nested_asset["tree_sha256"] != first["tree_sha256"]
 
 
 def test_submission_audit_rejects_hidden_access_and_incomplete_api() -> None:

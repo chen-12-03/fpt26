@@ -1,17 +1,19 @@
 {
   "schema_version": 1,
   "frozen_at": "2026-07-24",
-  "policy": "Phase 1 structured-information-chain execution freeze after fresh split-role real-API and Vitis 2025.2 acceptance. Any execution, scoring, launcher, Docker, harness, or task-corpus change requires a new regression and full revalidation.",
+  "policy": "Phase 2A QoR-RAG execution freeze after fresh split-role real-API and Vitis 2025.2 acceptance. Any execution, scoring, launcher, Docker, harness, or task-corpus change requires a new regression and full revalidation.",
   "validation": {
-    "clean_image": "fpt26-agent-v3:phase1-20260724",
-    "clean_image_sha256": "2450e1d03d85f7141164e7b6c420eeb37c9d1eaa78626e863d86f900e59efa89",
+    "clean_image": "fpt26-agent-v3:latest",
+    "clean_image_sha256": "112b6e122cbafd7a9780f52ed5cefc639a86ac69b8e4bc99d448841ef511a7ad",
     "scoring_version": "10.0.0",
     "scoring_schema": 10,
     "profile_schema": 11,
     "vitis_hls": "2025.2 build 6295257",
-    "execution_source_tree_sha256": "8b702dce371c6508b4a34792c874129ede403722f8176d4bc44e8c6c7f33dcc7",
-    "official_acceptance_sha256": "ec8c0137e980f6ba93dd337e11c98de5f78d06b11d286d3ec5f4564c6a933730",
-    "task97_acceptance_sha256": "293eefa6d0f849ce5f5f73ade8219bf768ce7a31ef85df9ee772d8e1592aca3f"
+    "execution_source_tree_sha256": "827d2cc5a852e1c4e6bdafdbb5c057c49eff65c3b927fd8e91a363343e294811",
+    "official_acceptance_path": "runs/phase2a_official_fresh_20260724_v2_acceptance.json",
+    "official_acceptance_sha256": "40e305e31459686bf4d35f96103913c31c8c6ffad852f22fb01b40d4aa31fd82",
+    "task97_acceptance_path": "runs/phase2a_full97_20260724_v1_acceptance.json",
+    "task97_acceptance_sha256": "af6653eb62722c5d1eb75ca542651e2d18e9f6372eb7a95fb9712ee5d2c17af9"
   },
   "files": {
     ".dockerignore": "9dc0d65911c9d4cbe048cad7a460ad5f08a89773c75279adb15d49b46bf70f5b",
@@ -35,8 +37,14 @@
     "agent_sources": {
       "root": "fpt26-agent-v3/agent",
       "kind": "python_sources",
-      "count": 65,
-      "sha256": "c5945c7f27f34c81a89007072f6052d7f6caf7b1ea3c788edd2d2735c89262c0"
+      "count": 69,
+      "sha256": "2eacdaf7ec511caf3fd146a3afe54618fa7d6ee00c6b93a057c977b4ffef4e2d"
+    },
+    "qor_rag_knowledge_assets": {
+      "root": "fpt26-agent-v3/agent/knowledge_assets",
+      "kind": "all_files",
+      "count": 2,
+      "sha256": "7a20901e972b12c1f3cae2fa461f351fe035cd45d714bc99690ff243af522d9d"
     },
     "official_harness": {
       "root": "fpt26-harness/llm4hls",

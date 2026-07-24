@@ -130,7 +130,8 @@ def _run_submission(args, task_dir, output_root):
     )
     final_state = run_submission(task=task, config=config, server=server, llm=llm,
                                  run_root=Path(output_root) / task.id / "agent",
-                                 total_budget=total_budget)
+                                 total_budget=total_budget,
+                                 preflight_metadata=preflight.to_dict())
     final_state.metadata["task_preflight"] = preflight.to_dict()
     final_state.metadata["official_budget"] = task.budget
     final_state.metadata["model_compliance"] = model_compliance_evidence(

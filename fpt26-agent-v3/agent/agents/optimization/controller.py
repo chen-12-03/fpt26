@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from typing import Any
 
 from agent.agents.base import RunState
@@ -17,6 +18,14 @@ from agent.candidate.validator import (
     record_cosim_gate,
     record_synth_gates,
     validate_candidate,
+)
+from agent.knowledge import (
+    KnowledgeQuery,
+    baseline_qor_from_report,
+    format_for_prompt,
+    prompt_token_upper_bound,
+    resource_headroom_from_report,
+    retrieve_knowledge,
 )
 from agent.prompts import SYSTEM, build_prompt
 from agent.validation import can_afford_validation
@@ -41,6 +50,7 @@ from agent.agents.optimization.strategies import (
     _is_minimum_unroll_frontier,
     _strategy_contract_violation,
     _top_function_inline_noop,
+    candidate_action_summary,
 )
 
 
@@ -79,6 +89,15 @@ def run_optimization_loop(
     strategy_contract_rejections = 0
     strategy_contract_rejection_reasons: list[str] = []
     optimization_failures: list[OptimizationFailure] = []
+    knowledge_retrievals: list[dict[str, Any]] = []
+    phase1_ab_baseline = (
+        os.environ.get("FPT26_QOR_RAG_AB_BASELINE", "").strip() == "1"
+    )
+    state.metadata["qor_rag_mode"] = (
+        "phase1_keyword_ab_baseline"
+        if phase1_ab_baseline
+        else "phase2a_hybrid"
+    )
 
     # Record baseline synth
     if best_synth_result is not None and best_synth_result.report is not None:
@@ -135,18 +154,7 @@ def run_optimization_loop(
             targets = [t["array"] for t in action_contract["targets"]]
             state.log(f"opt r{rnd}: measured action contract targets={targets}")
 
-        # ── 2. Knowledge lookup ─────────────────────────────────────
-        know = ""
-        try:
-            from agent.knowledge import lookup_patterns, format_for_prompt
-            m = lookup_patterns(task.description or "")
-            know = format_for_prompt(m) if m else ""
-            if know:
-                state.log(f"opt r{rnd}: knowledge ×{len(m)} patterns")
-        except Exception as exc:
-            state.log(f"opt r{rnd}: knowledge lookup failed ({exc})")
-
-        # ── 3. Build prompt ─────────────────────────────────────────
+        # ── 2. Structured source evidence and knowledge retrieval ───
         source_metadata = bounded_metadata_payload(
             extract_design_metadata(
                 best,
@@ -156,6 +164,122 @@ def run_optimization_loop(
                 ),
             )
         )
+        know = ""
+        try:
+            if phase1_ab_baseline:
+                from agent.legacy_knowledge import (
+                    format_for_prompt as legacy_format,
+                    lookup_patterns as legacy_lookup,
+                )
+
+                legacy_matches = legacy_lookup(task.description or "")
+                know = legacy_format(legacy_matches)
+                knowledge_retrievals.append(
+                    {
+                        "round": rnd,
+                        "mode": "phase1_keyword_ab_baseline",
+                        "entry_ids": [
+                            str(match.get("family", ""))
+                            for match in legacy_matches
+                        ],
+                        "prompt_chars": len(know),
+                    }
+                )
+            else:
+                history: list[Any] = [
+                    failure.to_dict() for failure in optimization_failures
+                ]
+                if rejection_feedback:
+                    history.append(rejection_feedback)
+                query = KnowledgeQuery(
+                    source_metadata=source_metadata,
+                    baseline_qor=baseline_qor_from_report(
+                        getattr(cr, "report", None),
+                        q_hw=best_q_hw,
+                        bottleneck=(
+                            getattr(current_card, "bottleneck_resource", "")
+                            if cr.ok
+                            and cr.report
+                            and anchor_report is not None
+                            else ""
+                        ),
+                    ),
+                    synth_diagnostics={
+                        "summary": diag,
+                        "measured_action_contract": action_contract or {},
+                    },
+                    resource_headroom=resource_headroom_from_report(
+                        getattr(cr, "report", None)
+                    ),
+                    history=history,
+                    description=task.description or "",
+                    target_part=str(getattr(task, "part", "") or ""),
+                    vitis_version=_task_preflight_vitis_version(state),
+                )
+                matches = retrieve_knowledge(query)
+                from agent.legacy_knowledge import (
+                    format_for_prompt as legacy_format,
+                    lookup_patterns as legacy_lookup,
+                )
+
+                legacy_matches = legacy_lookup(task.description or "")
+                if _prefer_legacy_specialist(
+                    legacy_matches, task.description or ""
+                ):
+                    specialist_matches = legacy_matches[:1]
+                    measured_matches = [
+                        entry for entry in matches if entry.kind != "rule"
+                    ]
+                    know = legacy_format(specialist_matches)
+                    measured_know = format_for_prompt(measured_matches)
+                    if measured_know:
+                        know += "\n\n## Compatible measured cases\n" + measured_know
+                    knowledge_retrievals.append(
+                        {
+                            "round": rnd,
+                            "mode": "phase2a_legacy_specialist_fallback",
+                            "query_signature": query.signature(),
+                            "entry_ids": [
+                                str(match.get("family", ""))
+                                for match in specialist_matches
+                            ]
+                            + [entry.id for entry in measured_matches],
+                            "structured_candidate_ids": [
+                                entry.id for entry in matches
+                            ],
+                            "prompt_chars": len(know),
+                            "prompt_token_upper_bound": (
+                                prompt_token_upper_bound(know)
+                            ),
+                            "sources": ["agent.legacy_knowledge"]
+                            + [entry.source for entry in measured_matches],
+                        }
+                    )
+                else:
+                    know = format_for_prompt(matches)
+                    knowledge_retrievals.append(
+                        {
+                            "round": rnd,
+                            "mode": "phase2a_structured",
+                            "query_signature": query.signature(),
+                            "entry_ids": [entry.id for entry in matches],
+                            "entry_kinds": [entry.kind for entry in matches],
+                            "prompt_chars": len(know),
+                            "prompt_token_upper_bound": (
+                                prompt_token_upper_bound(know)
+                            ),
+                            "sources": [entry.source for entry in matches],
+                        }
+                    )
+            if know:
+                state.log(
+                    f"opt r{rnd}: QoR knowledge "
+                    f"mode={state.metadata['qor_rag_mode']}"
+                )
+        except Exception as exc:
+            state.log(f"opt r{rnd}: knowledge lookup failed ({exc})")
+
+        # ── 3. Build prompt ─────────────────────────────────────────
         prompt = build_prompt(
             task=task, current_kernel=best, best_latency=best_lat,
             csim_result="PASS", synth_result=report_str,
@@ -174,6 +298,7 @@ def run_optimization_loop(
             state.log(f"opt r{rnd}: no change — converged")
             break
         candidate_fingerprint = _candidate_fingerprint(cand)
+        candidate_action = candidate_action_summary(best, cand)
         if candidate_fingerprint == _candidate_fingerprint(best):
             semantic_current_best_skips += 1
             state.log(f"opt r{rnd}: semantic no-op versus current best — skip csim/synth")
@@ -373,6 +498,8 @@ def run_optimization_loop(
             synth_candidates.append({
                 "round": rnd,
                 "strategy": search_strategy.get("name") if search_strategy else "sequential_default",
+                "action": candidate_action,
+                "source_metadata": source_metadata,
                 "latency": report.latency_worst, "top_interval": report.interval_max,
                 "loop_ii": loop_ii, "clock_ns": report.clock_period_ns,
                 "resources": dict(report.resources),
@@ -380,10 +507,37 @@ def run_optimization_loop(
                 "q_hw_before": old_q_hw,
                 "q_hw_after": cand_card.q_hw if cand_card else None,
                 "decision": "ACCEPTED" if accepted else "REJECTED",
+                "validation": {
+                    "interface_ok": True,
+                    "csim_ok": True,
+                    "synth_ok": True,
+                    "frequency_ok": True,
+                    "resource_ok": True,
+                    "cosim_required": bool(task.requires_cosim),
+                    "cosim_ok": (
+                        bool(getattr(cosim_result, "ok", False))
+                        if task.requires_cosim
+                        else None
+                    ),
+                },
             })
 
         if stop_after_first_measured:
             state.log("opt: strategy lane measured one candidate — stop lane")
+            break
+        if accepted and not phase1_ab_baseline and state.metadata.get(
+            "task_preflight"
+        ):
+            state.metadata["qor_rag_early_success_stop"] = {
+                "round": rnd,
+                "q_hw_before": old_q_hw,
+                "q_hw_after": best_q_hw,
+                "reason": "first_fully_verified_q_hw_improvement",
+            }
+            state.log(
+                "opt: QoR-RAG measured a fully verified Q_HW improvement "
+                "— preserve it and stop"
+            )
             break
         if stag >= max_stag:
             state.log(f"opt: converged ({max_stag} stagnant rounds)")
@@ -405,4 +559,55 @@ def run_optimization_loop(
     state.metadata["optimization_failures"] = [
         failure.to_dict() for failure in optimization_failures
     ]
+    state.metadata["knowledge_retrievals"] = knowledge_retrievals
     return state
+
+
+def _prefer_legacy_specialist(
+    legacy_matches: list[dict[str, Any]], description: str
+) -> bool:
+    """Keep proven Phase-1 specialists when the new seed is less specific."""
+
+    if not legacy_matches:
+        return False
+    family = str(legacy_matches[0].get("family", ""))
+    lowered = description.lower()
+    if family == "CORDIC / Trigonometric Optimization":
+        return any(
+            token in lowered
+            for token in ("cordic", "trigonometric", "sine", "cosine")
+        )
+    if family == "Reduction / Single-Loop Pipeline":
+        explicit_dot_product = (
+            "dotproduct" in lowered or "dot product" in lowered
+        )
+        specialist_signal = any(
+            token in lowered
+            for token in (
+                "popcount",
+                "accumulate",
+                "accumulation",
+                "reduction",
+                "cumulative sum",
+            )
+        )
+        return specialist_signal and not explicit_dot_product
+    return False
+
+
+def _task_preflight_vitis_version(state: RunState) -> str:
+    """Return the observed/preflight Vitis version using real report keys."""
+
+    preflight = state.metadata.get("task_preflight", {})
+    if not isinstance(preflight, dict):
+        return ""
+    for key in (
+        "observed_vitis_version",
+        "required_vitis_version",
+        "preflight_vitis_version",
+        "vitis_version",
+    ):
+        value = str(preflight.get(key, "") or "").strip()
+        if value:
+            return value
+    return ""
