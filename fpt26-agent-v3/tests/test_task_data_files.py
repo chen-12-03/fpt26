@@ -7,6 +7,7 @@ from agent.testbench import (
     discover_task_data_files,
     normalize_task_testbench_data,
 )
+from agent.integrations.task_repository import PublicTaskRepository
 from llm4hls.task import load_task
 
 
@@ -83,3 +84,19 @@ def test_real_machsuite_task_discovers_data():
     assert "check.data" in t.public_data_files
     assert len(t.public_data_files["input.data"]) > 0
     assert t.hidden_data_files["input.data"] == t.public_data_files["input.data"]
+
+
+def test_public_repository_attaches_public_fixtures_during_load():
+    """Submission loading must stage fixtures before ToolServer construction."""
+    task_dir = (
+        Path(__file__).resolve().parents[2]
+        / "tasks/generated/machsuite__gemm_ncubed"
+    )
+    if not task_dir.is_dir():
+        return
+
+    task, _ = PublicTaskRepository().load(task_dir)
+
+    assert sorted(task.public_data_files) == ["check.data", "input.data"]
+    assert task.data_files == task.public_data_files
+    assert not hasattr(task, "reference_code") or task.reference_code is None

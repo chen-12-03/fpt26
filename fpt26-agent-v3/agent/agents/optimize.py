@@ -20,6 +20,7 @@ from agent.agents.optimization.feedback import (  # noqa: F401
 from agent.agents.optimization.strategies import (  # noqa: F401
     _candidate_fingerprint, _hls_pragmas, _is_minimum_unroll_frontier,
     _source_array_rank, _strategy_contract_violation,
+    _top_function_inline_noop,
     _without_hls_pragmas_fingerprint,
 )
 from agent.agents.optimization.intent import (  # noqa: F401

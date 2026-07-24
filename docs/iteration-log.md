@@ -3489,3 +3489,72 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
   scoring freeze 保持
   `b067d4bf2fa02937412f5e367f40ca8f11b128e048bb9b7ff5007d157f200cf6`
   不变。
+
+## 2026-07-24 — Phase 1：结构化 Repair/Synth 信息链与源码元数据
+
+### 改动范围
+
+- Repair prompt 接入 `IssueClassifier` 的 stage、category、confidence、归一化关键日志、
+  源码位置和推荐动作；第二次及以后尝试同时携带上一候选 diff 与验证结果。所有字段
+  有确定上限并经过路径/敏感信息脱敏，没有增加 Repair LLM 调用次数。
+- Optimization 新增结构化 `OptimizationFailure`：记录 synth 失败类别、诊断行、
+  candidate fingerprint、diff 摘要、关联 pragma/loop/array、下一步约束和重复次数。
+  最近历史最多保留 3 类，相同失败模式聚合计数，并作为下一轮
+  `previous_candidate_feedback`；没有独立 reflection API 调用。
+- 新增保守、确定性的 C/C++ 循环和数组元数据提取：loop nesting/trip count/bounds、
+  `PIPELINE II`、`UNROLL factor`、数组类型/rank/extents、`ARRAY_PARTITION`、
+  `ARRAY_RESHAPE` 和简单访问模式。不确定项统一为 `unknown`，模型可见投影有长度上限。
+- 在工具调用前新增/补足语义 no-op 防护：忽略仅改变单语句 `for` 可选花括号的候选，
+  拒绝仅对顶层函数添加 `INLINE/INLINE OFF` 的候选，并继续跳过当前 best、历史 rejected
+  和跨策略重复候选。
+- 保持 `Interface → CSim → Synth → 100 MHz → resource capacity → required CoSim`
+  门禁、credit 单价、scoring_v3 Q_HW 公式和严格 `candidate_q_hw > best_q_hw` 接受条件
+  不变。当前最终 submission pipeline 仍运行单个顺序 `OptimizeAgent`；
+  `DiverseOptimizationStage` 虽有实现，但没有接入该默认路径。
+
+### 12-task paired 真实验证
+
+- baseline/current 各覆盖 12/12，required CoSim 12/12，audit error 0。
+- credits `202 → 196`（-2.97%）；tokens 总量 `109462 → 106439`（-2.76%）；
+  tokens/task 中位数 `8029.0 → 7947.5`（-1.02%）。
+- Q_HW 几何均值 `0.751043 → 0.756193`（+0.69%）；1 个正向、0 个负向、11 个持平。
+- 详细报告：
+  `fpt26-agent-v3/scoring/reports/phase1_structured_information_chain_20260724.md`。
+
+### 最终 97-task 真实 API + Vitis 结果
+
+- 最终 machine acceptance：
+  `runs/phase1_full97_20260724_v4_acceptance.json`；执行源 SHA-256 为
+  `8b702dce371c6508b4a34792c874129ede403722f8176d4bc44e8c6c7f33dcc7`。
+- 97/97 有记录；workflow outcome 为 completed=78、failed=19，因此 workflow
+  成功率为 **78/97 = 80.41%**。public fully-verified 为 **87/97 = 89.69%**；
+  audit error 0、infrastructure error 0、API usage proven 97/97，因此运行/证据
+  基础设施完整率为 **100%**。两种成功率口径不可混用。
+- API request/response/failed=`158/158/0`，总 tokens=`762140`。按全部 97 题（包含
+  8 个 pre-LLM terminal-gate、0-token 任务）平均为 **7857.11 tokens/task**，
+  中位数 `7991`；只看实际调用 API 的 89 题，平均为 **8563.37 tokens/task**，
+  中位数 `8121`；78 个 workflow completed 任务平均为 `7856.32`，中位数 `7988.5`。
+- 78 个有 evaluator scoring 的任务以 `latency_ratio` 表示相对 starter 的有效延迟
+  加速，其中 synth source=77、required-CoSim source=1。几何平均为
+  **1.2284x（+22.84%）**，中位数 `1.00x`；14 个加速、61 个持平、3 个变慢。
+  算术平均为 `4.9515x`，但被
+  `rosetta__digit_recognition__popcount=257x` 等极端值显著拉高，不作为主报告值。
+  3 个 latency ratio 小于 1 的任务仍可能因面积收益获得更高 Q_HW；最终选择标准不是
+  latency 单指标。
+- official 三题独立 acceptance：
+  `runs/phase1_official_from_full97_20260724_v4_acceptance.json`，3/3、
+  errors=0、request=7、tokens=27583、最低频率 315.457 MHz。
+- 原始逐题结果位于
+  `runs/phase1_full97_20260724_v4_s{0,1,2}/tasks/<task-id>/attempt_*/`；
+  每个 attempt 下的 `submission/<task-id>/run_report.json` 是 Agent 运行报告，
+  `evaluator/<task-id>/run_report.json` 是评分和加速报告。欠费窗口的 fresh retry
+  位于 `phase1_full97_20260724_v4_retry_final` 和
+  `phase1_full97_20260724_v4_retry_cholesky_r2`；应以最终 acceptance 的 `tasks`
+  映射确定每题采用的最终 report，不能直接混合所有 attempt。
+
+### Freeze 与回归
+
+- v4 97-task acceptance 为 `workflow_integrity_ok=true`、`retry_task_ids=[]`；
+  official acceptance 为 `acceptance_ok=true`。`execution-freeze.json` 已绑定两份
+  acceptance 哈希和最终执行源哈希。
+- 最终 Docker/Vitis 完整回归为 **408 passed, 3 skipped, 0 failed**。

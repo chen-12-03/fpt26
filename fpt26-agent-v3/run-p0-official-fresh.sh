@@ -62,6 +62,12 @@ do
   final_container_path=$(
     realpath --relative-to="$REPO_ROOT" "${final_candidates[0]}"
   )
+  submission_evidence_host_path="$HOST_OUTPUT_ROOT/$task_id/submission/$task_id/submission_evidence.json"
+  test -f "$submission_evidence_host_path"
+  submission_evidence_container_path=$(
+    realpath --relative-to="$REPO_ROOT" \
+      "$submission_evidence_host_path"
+  )
 
   "${docker_base[@]}" \
     "$IMAGE" \
@@ -71,6 +77,8 @@ do
        --task '$TASK_ROOT/$task_id' \
        --run-role evaluator \
        --final-kernel '/workspace/$final_container_path' \
+       --submission-evidence \
+         '/workspace/$submission_evidence_container_path' \
        --output-root '$evaluator_root'" \
     >"$HOST_OUTPUT_ROOT/${task_id}_evaluator.log" 2>&1
 done

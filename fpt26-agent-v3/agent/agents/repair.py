@@ -16,6 +16,7 @@ Open this file to understand the core repair logic::
 
 from __future__ import annotations
 
+import difflib
 from typing import Any
 
 from agent.integrations.harness import ToolResult
@@ -59,6 +60,7 @@ class RepairAgent:
         server = state.server
         stable_code = state.kernel
         failure = state.results[-1] if state.results else None
+        previous_attempt: dict[str, Any] | None = None
         if getattr(failure, "ok", True):
             failure = None
 
@@ -93,10 +95,11 @@ class RepairAgent:
                 current_kernel=stable_code,
                 normalized_log=normalized,
                 issue=issue,
-                attempt_feedback=(
-                    {"attempt": attempt, "phase": phase}
-                    if attempt > 1 else None
-                ),
+                attempt_feedback={
+                    "attempt": attempt,
+                    "phase": phase,
+                    "previous_attempt": previous_attempt,
+                },
             )
 
             # ── 5. LLM modifies code ──────────────────────────────────────
@@ -104,6 +107,15 @@ class RepairAgent:
             new_code = extract_code(response)
             if new_code is None or new_code.strip() == stable_code.strip():
                 state.log(f"repair attempt {attempt}: LLM returned no change")
+                previous_attempt = {
+                    "attempt": attempt,
+                    "candidate_diff": "",
+                    "result": {
+                        "stage": kind,
+                        "phase": "no_change",
+                        "summary": "LLM returned no material source change.",
+                    },
+                }
                 continue
 
             # ── 6. Validate the proposal immediately in this attempt ─────
@@ -135,6 +147,9 @@ class RepairAgent:
                     ),
                     elapsed_s=0.0,
                 )
+                previous_attempt = _repair_attempt_record(
+                    attempt, stable_code, new_code, failure
+                )
                 continue
 
             cr = server.csim(new_code)
@@ -142,6 +157,9 @@ class RepairAgent:
             state.log(f"repair attempt {attempt}: {cr.brief()}")
             if not cr.ok:
                 failure = cr
+                previous_attempt = _repair_attempt_record(
+                    attempt, stable_code, new_code, failure
+                )
                 continue
 
             sr = server.synth(new_code)
@@ -149,6 +167,9 @@ class RepairAgent:
             state.log(f"repair attempt {attempt}: {sr.brief()}")
             if not sr.ok:
                 failure = sr
+                previous_attempt = _repair_attempt_record(
+                    attempt, stable_code, new_code, failure
+                )
                 continue
             if not record_synth_gates(
                 state,
@@ -170,6 +191,9 @@ class RepairAgent:
                 )
                 state.log(
                     f"repair attempt {attempt}: target gate failed — discard"
+                )
+                previous_attempt = _repair_attempt_record(
+                    attempt, stable_code, new_code, failure
                 )
                 continue
 
@@ -201,3 +225,38 @@ class RepairAgent:
         state.stop_reason = "repair_failed"
         state.log(f"repair: failed after {self.max_attempts} attempts")
         return state
+
+
+def _repair_attempt_record(
+    attempt: int, stable_code: str, candidate: str, result: Any
+) -> dict[str, Any]:
+    """Build bounded evidence for the next repair attempt without another call."""
+    diff = "\n".join(
+        difflib.unified_diff(
+            stable_code.splitlines(),
+            candidate.splitlines(),
+            fromfile="stable_kernel",
+            tofile="failed_candidate",
+            n=2,
+            lineterm="",
+        )
+    )
+    if len(diff) > 2_000:
+        diff = diff[:1_984].rstrip() + "\n... [truncated]"
+    log = getattr(result, "log", "") or ""
+    if isinstance(log, bytes):
+        log = log.decode("utf-8", errors="replace")
+    else:
+        log = str(log)
+    summary = next((line.strip() for line in log.splitlines() if line.strip()), "")
+    if len(summary) > 500:
+        summary = summary[:484].rstrip() + "... [truncated]"
+    return {
+        "attempt": attempt,
+        "candidate_diff": diff,
+        "result": {
+            "stage": getattr(result, "kind", "unknown") or "unknown",
+            "phase": getattr(result, "phase", "unknown") or "unknown",
+            "summary": summary or "candidate validation failed",
+        },
+    }

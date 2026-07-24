@@ -1,5 +1,8 @@
 from llm4hls.llm import TokenUsage
 
+from agent.integrations.llm.protocol import LLMConfig, LLMExecutor
+from agent.reporting.metrics import _llm_summary
+
 
 def test_token_usage_reports_exact_totals_when_all_responses_include_usage() -> None:
     usage = TokenUsage()
@@ -44,3 +47,45 @@ def test_token_usage_does_not_present_partial_observations_as_exact() -> None:
     assert snapshot["observed_total_tokens"] == 120
     assert snapshot["complete"] is False
     assert snapshot["unreported_response_count"] == 1
+
+
+def test_llm_executor_forwards_backend_identity_config_and_exact_usage() -> None:
+    class RawClient:
+        model = "open-model"
+
+        def __init__(self) -> None:
+            self.token_usage = TokenUsage()
+
+        def complete(self, system: str, user: str) -> str:
+            self.token_usage.begin_request()
+            self.token_usage.record_response(
+                {
+                    "usage": {
+                        "prompt_tokens": 120,
+                        "completion_tokens": 30,
+                        "total_tokens": 150,
+                    }
+                }
+            )
+            return "response"
+
+    raw = RawClient()
+    executor = LLMExecutor(
+        raw,
+        LLMConfig(
+            model="open-model",
+            temperature=0.2,
+            max_tokens=2048,
+        ),
+    )
+    assert executor.complete("system", "user") == "response"
+    state = type("State", (), {"llm": executor})()
+
+    summary = _llm_summary(state)
+
+    assert summary["client"] == "RawClient"
+    assert summary["model"] == "open-model"
+    assert summary["temperature"] == 0.2
+    assert summary["max_tokens"] == 2048
+    assert summary["token_usage"]["request_count"] == 1
+    assert summary["token_usage"]["total_tokens"] == 150

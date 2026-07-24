@@ -58,6 +58,24 @@ class LLMExecutor:
         return getattr(self._client, "model", None)
 
     @property
+    def backend_client_name(self) -> str:
+        """Stable reporting name for the metered underlying API client."""
+        return type(self._client).__name__
+
+    @property
+    def temperature(self) -> float:
+        return self._config.temperature
+
+    @property
+    def max_tokens(self) -> int:
+        return self._config.max_tokens
+
+    @property
+    def token_usage(self) -> Any:
+        """Forward the raw client's cumulative usage tracker for audit."""
+        return getattr(self._client, "token_usage", None)
+
+    @property
     def total_tokens(self) -> int:
         return self._total_tokens
 

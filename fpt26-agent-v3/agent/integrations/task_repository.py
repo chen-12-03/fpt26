@@ -19,6 +19,7 @@ class PublicTaskRepository:
         """Return ``(Task, preflight_dict)`` from public artifacts only."""
         from agent.task_io import load_public_task
         task, preflight = load_public_task(task_dir)
+        self.normalize_testbench(task)
         return task, preflight.to_dict()
 
     def load_task_only(self, task_dir: str | Path) -> Any:

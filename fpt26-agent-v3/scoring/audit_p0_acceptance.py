@@ -10,6 +10,7 @@ from typing import Any
 
 from scoring.run_p0_real_api_shard import (
     discover_tasks,
+    submission_requires_evaluator,
     validate_evaluator,
     validate_submission,
 )
@@ -178,7 +179,10 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             final_path_value = (
                 ((submission or {}).get("final_artifact") or {}).get("path")
             )
-            if final_path_value and Path(final_path_value).is_file():
+            if submission_requires_evaluator(
+                submission,
+                Path(final_path_value) if final_path_value else None,
+            ):
                 errors.append("evaluator_report_missing")
         else:
             errors.extend(

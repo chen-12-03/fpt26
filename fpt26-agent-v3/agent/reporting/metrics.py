@@ -131,7 +131,9 @@ def _llm_summary(state: RunState) -> dict[str, Any] | None:
         return None
 
     summary: dict[str, Any] = {
-        "client": type(client).__name__,
+        "client": getattr(
+            client, "backend_client_name", type(client).__name__
+        ),
         "model": getattr(client, "model", None),
         "temperature": getattr(client, "temperature", None),
         "max_tokens": getattr(client, "max_tokens", None),

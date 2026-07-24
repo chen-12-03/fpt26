@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from agent.agents.base import RunState
 from agent.analysis.action_contract import build_ii_resource_action_contract
+from agent.analysis.source_metadata import (
+    bounded_metadata_payload,
+    extract_design_metadata,
+)
 from agent.candidate.validator import (
     extract_code,
     mark_fully_verified,
@@ -18,7 +23,13 @@ from agent.validation import can_afford_validation
 from scoring.profiles import DEFAULT_SCORING_PROFILE
 
 from agent.agents.optimization.diagnostics import _diagnose, _latency, _report, _resource_delta
-from agent.agents.optimization.feedback import _csim_failure_feedback, _rejection_feedback
+from agent.agents.optimization.feedback import (
+    OptimizationFailure,
+    _csim_failure_feedback,
+    _rejection_feedback,
+    build_synth_failure,
+    merge_optimization_failure,
+)
 from agent.agents.optimization.intent import ii_resource_intent_feedback
 from agent.agents.optimization.scoring import (
     latest_successful_cosim_latency,
@@ -29,6 +40,7 @@ from agent.agents.optimization.strategies import (
     _candidate_fingerprint,
     _is_minimum_unroll_frontier,
     _strategy_contract_violation,
+    _top_function_inline_noop,
 )
 
 
@@ -66,6 +78,7 @@ def run_optimization_loop(
     cross_strategy_duplicate_skips = 0
     strategy_contract_rejections = 0
     strategy_contract_rejection_reasons: list[str] = []
+    optimization_failures: list[OptimizationFailure] = []
 
     # Record baseline synth
     if best_synth_result is not None and best_synth_result.report is not None:
@@ -134,6 +147,15 @@ def run_optimization_loop(
             state.log(f"opt r{rnd}: knowledge lookup failed ({exc})")
 
         # ── 3. Build prompt ─────────────────────────────────────────
+        source_metadata = bounded_metadata_payload(
+            extract_design_metadata(
+                best,
+                loop_metrics=(
+                    getattr(getattr(cr, "report", None), "loop_metrics", None)
+                    or []
+                ),
+            )
+        )
         prompt = build_prompt(
             task=task, current_kernel=best, best_latency=best_lat,
             csim_result="PASS", synth_result=report_str,
@@ -142,6 +164,7 @@ def run_optimization_loop(
             rejection_feedback=rejection_feedback,
             action_contract=action_contract,
             search_strategy=search_strategy,
+            design_metadata=source_metadata,
         )
 
         # ── 4. LLM proposes optimization ────────────────────────────
@@ -161,6 +184,13 @@ def run_optimization_loop(
                     "required_next_action": "Stay in the assigned strategy and produce one material, contract-compliant candidate.",
                 }
                 continue
+            break
+        if _top_function_inline_noop(best, cand, task.top):
+            semantic_current_best_skips += 1
+            state.log(
+                f"opt r{rnd}: INLINE on top function {task.top} is a "
+                "deterministic no-op — skip tools and converge"
+            )
             break
         strategy_violation = _strategy_contract_violation(best, cand, search_strategy)
         if strategy_violation is not None:
@@ -237,7 +267,24 @@ def run_optimization_loop(
         sr = server.synth(cand)
         state.results.append(sr)
         if not sr.ok:
-            state.log(f"opt r{rnd}: synth FAIL — discard")
+            rejected_fingerprints.add(candidate_fingerprint)
+            fingerprint_digest = hashlib.sha256(
+                candidate_fingerprint.encode("utf-8", errors="replace")
+            ).hexdigest()
+            synth_failure = build_synth_failure(
+                sr,
+                best,
+                cand,
+                candidate_fingerprint=fingerprint_digest,
+            )
+            optimization_failures = merge_optimization_failure(
+                optimization_failures, synth_failure, max_entries=3
+            )
+            rejection_feedback = optimization_failures[-1].to_dict()
+            state.log(
+                f"opt r{rnd}: synth FAIL — discard and reflect "
+                f"(repeat={optimization_failures[-1].repetition_count})"
+            )
             stag += 1
             continue
 
@@ -355,4 +402,7 @@ def run_optimization_loop(
     state.metadata["search_strategy"] = search_strategy.get("name") if search_strategy else "sequential_default"
     state.metadata["strategy_contract_rejections"] = strategy_contract_rejections
     state.metadata["strategy_contract_rejection_reasons"] = strategy_contract_rejection_reasons
+    state.metadata["optimization_failures"] = [
+        failure.to_dict() for failure in optimization_failures
+    ]
     return state

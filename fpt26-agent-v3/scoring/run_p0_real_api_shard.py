@@ -288,6 +288,46 @@ def _next_attempt(task_root: Path) -> Path:
     return path
 
 
+def build_evaluator_command(
+    *,
+    task_dir: Path,
+    final_kernel: Path,
+    submission_evidence: Path,
+    output_root: Path,
+) -> list[str]:
+    """Build the formal evaluator command with its mandatory evidence link."""
+    return [
+        sys.executable,
+        "-m",
+        "agent.main",
+        "--task",
+        str(task_dir),
+        "--run-role",
+        "evaluator",
+        "--final-kernel",
+        str(final_kernel),
+        "--submission-evidence",
+        str(submission_evidence),
+        "--output-root",
+        str(output_root),
+        "--quiet",
+    ]
+
+
+def submission_requires_evaluator(
+    submission: dict[str, Any] | None,
+    final_kernel: Path | None,
+) -> bool:
+    """Only a completed submission can become formal evaluator input."""
+
+    return bool(
+        submission is not None
+        and submission.get("status") == "completed"
+        and final_kernel is not None
+        and final_kernel.is_file()
+    )
+
+
 def _summary(
     *,
     shard_index: int,
@@ -440,30 +480,24 @@ def run_shard(
         evaluator_elapsed = 0.0
         evaluator_path = evaluator_root / task_id / "run_report.json"
         evaluator_command: list[str] | None = None
+        submission_evidence_path = (
+            submission_root / task_id / "submission_evidence.json"
+        )
         final_path_text = (
             (submission or {}).get("final_artifact") or {}
         ).get("path")
         final_path = Path(final_path_text) if final_path_text else None
         if (
             not launcher_error
-            and submission is not None
-            and final_path is not None
-            and final_path.is_file()
+            and submission_requires_evaluator(submission, final_path)
+            and submission_evidence_path.is_file()
         ):
-            evaluator_command = [
-                sys.executable,
-                "-m",
-                "agent.main",
-                "--task",
-                str(task_dir),
-                "--run-role",
-                "evaluator",
-                "--final-kernel",
-                str(final_path),
-                "--output-root",
-                str(evaluator_root),
-                "--quiet",
-            ]
+            evaluator_command = build_evaluator_command(
+                task_dir=task_dir,
+                final_kernel=final_path,
+                submission_evidence=submission_evidence_path,
+                output_root=evaluator_root,
+            )
             evaluator_rc, evaluator_launcher_error, evaluator_elapsed = _run(
                 evaluator_command, evaluator_log, timeout_s
             )
@@ -478,8 +512,8 @@ def run_shard(
                 evaluator_errors = [str(exc)]
         else:
             evaluator_log.write_text(
-                "Evaluator not launched because submission did not produce a "
-                "readable final kernel.\n",
+                "Evaluator not launched because submission did not complete "
+                "with a readable, evidence-linked final kernel.\n",
                 encoding="utf-8",
             )
 
@@ -518,6 +552,7 @@ def run_shard(
                 "status": (submission or {}).get("status"),
                 "stop_reason": (submission or {}).get("stop_reason"),
                 "final_kernel": final_path_text,
+                "submission_evidence": str(submission_evidence_path),
                 "final_kernel_sha256": (
                     _sha256(final_path)
                     if final_path is not None and final_path.is_file()

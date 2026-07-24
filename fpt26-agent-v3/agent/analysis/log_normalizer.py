@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from agent.security.redaction import redact_sensitive_text
 
 ANSI_RE = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 PATH_RE = re.compile(r"(?<!\w)(?:/[A-Za-z0-9_.:-]+)+")
@@ -66,14 +67,19 @@ class LogNormalizer:
         seen: set[str] = set()
         truncated = False
 
-        raw_lines = (log_text or "").splitlines()
+        safe_log_text = self._safe_text(log_text)
+        raw_lines = safe_log_text.splitlines()
         for raw_line in raw_lines:
+            if len(raw_line) > self.max_line_chars:
+                truncated = True
             normalized = self._normalize_line(raw_line)
             if not normalized or normalized in seen:
                 continue
             seen.add(normalized)
             if WARNING_RE.search(normalized) and len(warnings) < self.max_warnings:
                 warnings.append(normalized)
+            elif WARNING_RE.search(normalized):
+                truncated = True
             if KEYWORD_RE.search(normalized):
                 if len(key_lines) < self.max_key_lines:
                     key_lines.append(normalized)
@@ -89,16 +95,41 @@ class LogNormalizer:
             warnings=warnings,
             key_lines=key_lines,
             truncated=truncated,
-            missing_logs=not log_text or not log_text.strip(),
+            missing_logs=not safe_log_text.strip(),
         )
 
     def _normalize_line(self, line: str) -> str:
-        stripped = ANSI_RE.sub("", line).strip()
-        stripped = PATH_RE.sub("<path>", stripped)
+        stripped = ANSI_RE.sub(
+            "", redact_sensitive_text(self._safe_text(line))
+        ).strip()
+        stripped = PATH_RE.sub(self._redact_path, stripped)
         stripped = re.sub(r"\s+", " ", stripped)
         if len(stripped) > self.max_line_chars:
             stripped = stripped[: self.max_line_chars - 3].rstrip() + "..."
         return stripped
+
+    @staticmethod
+    def _safe_text(value: Any) -> str:
+        """Return deterministic UTF-8-safe text for untrusted tool output."""
+        if value is None:
+            return ""
+        if isinstance(value, bytes):
+            text = value.decode("utf-8", errors="replace")
+        else:
+            try:
+                text = str(value)
+            except Exception:
+                text = "<unprintable tool output>"
+        return text.encode("utf-8", errors="replace").decode("utf-8")
+
+    @staticmethod
+    def _redact_path(match: re.Match[str]) -> str:
+        """Redact host directories while retaining the diagnostic basename."""
+        raw = match.group(0)
+        basename = raw.rstrip("/").rsplit("/", 1)[-1]
+        if "." in basename:
+            return f"<path>/{basename}"
+        return "<path>"
 
     def _summary(self, key_lines: list[str], fallback: str) -> str | None:
         text = key_lines[0] if key_lines else self._normalize_line(fallback)
@@ -107,4 +138,3 @@ class LogNormalizer:
         if len(text) > self.max_summary_chars:
             return text[: self.max_summary_chars - 3].rstrip() + "..."
         return text
-

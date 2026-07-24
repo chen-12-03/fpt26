@@ -6,23 +6,47 @@ import re
 from typing import Any
 
 _BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+_SINGLE_STATEMENT_FOR_RE = re.compile(
+    r"(?P<header>\bfor\s*\([^{}]*\)\s*)"
+    r"\{\s*(?P<body>[^{};]+;)\s*\}",
+    re.DOTALL,
+)
+
+
+def _strip_comments(code: str) -> str:
+    without_blocks = _BLOCK_COMMENT_RE.sub("", code)
+    return "\n".join(
+        line.split("//", 1)[0] for line in without_blocks.splitlines()
+    )
+
+
+def _normalize_optional_for_braces(code: str) -> str:
+    """Remove braces only around one plain ``for`` body statement."""
+    current = code
+    while True:
+        def replace(match: re.Match[str]) -> str:
+            body = match.group("body")
+            if "#" in body or re.search(
+                r"\b(?:for|while|if|switch|do)\b", body
+            ):
+                return match.group(0)
+            return match.group("header") + body.strip()
+
+        updated = _SINGLE_STATEMENT_FOR_RE.sub(replace, current)
+        if updated == current:
+            return current
+        current = updated
 
 
 def _candidate_fingerprint(code: str) -> str:
     """Normalize comments and layout before comparing measured candidates."""
-    without_blocks = _BLOCK_COMMENT_RE.sub("", code)
-    normalized = []
-    for line in without_blocks.splitlines():
-        line = line.split("//", 1)[0]
-        line = re.sub(r"\s+", " ", line).strip()
-        if line:
-            normalized.append(line)
-    return "\n".join(normalized)
+    normalized = _normalize_optional_for_braces(_strip_comments(code))
+    return re.sub(r"\s+", " ", normalized).strip()
 
 
 def _without_hls_pragmas_fingerprint(code: str) -> str:
     """Normalize source while omitting standalone HLS directive lines."""
-    without_blocks = _BLOCK_COMMENT_RE.sub("", code)
+    without_blocks = _strip_comments(code)
     normalized = []
     for line in without_blocks.splitlines():
         line = line.split("//", 1)[0]
@@ -32,7 +56,44 @@ def _without_hls_pragmas_fingerprint(code: str) -> str:
         if re.match(r"^#\s*pragma\s+HLS\b", line, re.IGNORECASE):
             continue
         normalized.append(line)
-    return "\n".join(normalized)
+    return re.sub(r"\s+", " ", " ".join(normalized)).strip()
+
+
+def _top_function_inline_noop(
+    best: str, candidate: str, top_function: str
+) -> bool:
+    """Identify a top-function INLINE-only edit, which HLS cannot realize."""
+    if (
+        _without_hls_pragmas_fingerprint(best)
+        != _without_hls_pragmas_fingerprint(candidate)
+    ):
+        return False
+    best_pragmas = {pragma.lower() for pragma in _hls_pragmas(best)}
+    added = [
+        pragma
+        for pragma in _hls_pragmas(candidate)
+        if pragma.lower() not in best_pragmas
+    ]
+    if not added or any(
+        re.fullmatch(
+            r"#\s*pragma\s+HLS\s+INLINE(?:\s+OFF)?",
+            pragma,
+            re.IGNORECASE,
+        )
+        is None
+        for pragma in added
+    ):
+        return False
+    source = _strip_comments(candidate)
+    return (
+        re.search(
+            rf"\b{re.escape(top_function)}\s*\([^;{{}}]*\)\s*\{{"
+            rf"\s*#\s*pragma\s+HLS\s+INLINE(?:\s+OFF)?\b",
+            source,
+            re.IGNORECASE,
+        )
+        is not None
+    )
 
 
 def _hls_pragmas(code: str) -> list[str]:

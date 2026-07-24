@@ -23,9 +23,10 @@ from agent.security.redaction import redact_sensitive_text
 # ── Identifier validation ────────────────────────────────────────────────────
 
 # task_id: alphanumeric + underscores + hyphens.  Both single-underscore names
-# ("dotProduct_optimize") and double-underscore namespace separators
-# ("polybench__gemm") are valid.
-_TASK_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*(?:_+[A-Za-z][A-Za-z0-9_-]*)*$")
+# ("dotProduct_optimize"), double-underscore namespace separators
+# ("polybench__gemm"), and numeric benchmark segments ("polybench__3mm",
+# "rosetta__rendering_3d__projection") are valid.
+_TASK_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 
 # HLS identifiers: C identifier + optional template/namespace qualifiers
 _HLS_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_:<>]*$")

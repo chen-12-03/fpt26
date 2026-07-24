@@ -1,9 +1,11 @@
 from pathlib import Path
 
 from scoring.run_p0_real_api_shard import (
+    build_evaluator_command,
     classify_outcome,
     discover_tasks,
     execution_source_snapshot,
+    submission_requires_evaluator,
     validate_evaluator,
     validate_submission,
 )
@@ -14,6 +16,47 @@ def test_discovery_is_exactly_97_unique_tasks() -> None:
 
     assert len(tasks) == 97
     assert len({task.name for task in tasks}) == 97
+
+
+def test_formal_evaluator_command_always_links_submission_evidence() -> None:
+    command = build_evaluator_command(
+        task_dir=Path("/workspace/tasks/official/projection_bugfix"),
+        final_kernel=Path("/workspace/runs/final.cpp"),
+        submission_evidence=Path("/workspace/runs/submission_evidence.json"),
+        output_root=Path("/workspace/runs/evaluator"),
+    )
+
+    evidence_index = command.index("--submission-evidence")
+    assert command[evidence_index + 1].endswith("submission_evidence.json")
+    assert command[command.index("--run-role") + 1] == "evaluator"
+
+
+def test_official_fresh_launcher_links_submission_evidence() -> None:
+    launcher = (
+        Path(__file__).resolve().parents[1]
+        / "run-p0-official-fresh.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "--submission-evidence" in launcher
+    assert "submission_evidence.json" in launcher
+
+
+def test_only_completed_submission_requires_evaluator(
+    tmp_path: Path,
+) -> None:
+    final_kernel = tmp_path / "final.cpp"
+    final_kernel.write_text("void top() {}\n")
+
+    assert submission_requires_evaluator(
+        {"status": "completed"}, final_kernel
+    )
+    assert not submission_requires_evaluator(
+        {"status": "failed", "stop_reason": "interface_failed"},
+        final_kernel,
+    )
+    assert not submission_requires_evaluator(
+        {"status": "completed"}, tmp_path / "missing.cpp"
+    )
 
 
 def test_execution_source_snapshot_is_deterministic_and_content_sensitive(

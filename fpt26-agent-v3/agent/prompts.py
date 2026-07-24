@@ -1,10 +1,12 @@
 """Role-scoped prompts driven by real tool results."""
 from __future__ import annotations
 import json
+import re
 from typing import Any
 from agent.integrations.harness import Task
 from agent.analysis.issue_classifier import IssueClassification
 from agent.analysis.log_normalizer import NormalizedLog
+from agent.security.redaction import redact_sensitive_text
 
 _SYS = """You are an expert AMD-Xilinx Vitis HLS engineer optimizing C/C++ kernels for an Alveo U55C (xcu55c-fsvh2892-2L-e, 200 MHz, Vitis 2025.2).
 
@@ -104,8 +106,14 @@ def build_prompt(
     rejection_feedback: dict[str, Any] | None = None,
     action_contract: dict[str, Any] | None = None,
     search_strategy: dict[str, Any] | None = None,
+    repair_evidence: dict[str, Any] | None = None,
+    design_metadata: dict[str, Any] | None = None,
 ) -> str:
     header_text, omitted_attachments = _prompt_header_context(task.headers)
+    try:
+        attempt_number = max(0, int(attempt))
+    except (TypeError, ValueError):
+        attempt_number = 0
 
     payload: dict[str, Any] = {
         "task_id": task.id,
@@ -119,6 +127,7 @@ def build_prompt(
             "cosim": cosim_result or "(not run / N/A)",
         },
         "current_best_latency": f"{best_latency} cycles" if best_latency is not None else "unknown",
+        "attempt": attempt_number,
     }
 
     if omitted_attachments:
@@ -136,6 +145,15 @@ def build_prompt(
         payload["measured_action_contract"] = action_contract
     if search_strategy:
         payload["search_strategy"] = search_strategy
+    if repair_evidence:
+        payload["repair_evidence"] = repair_evidence
+    if design_metadata:
+        payload["source_design_metadata"] = json.dumps(
+            design_metadata,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
 
     # Streaming context — derived from task properties, not task type label
     if task.requires_cosim:
@@ -162,6 +180,9 @@ def build_prompt(
         "- If previous_candidate_feedback.status starts with REJECTED_BY_CSIM: use its exact compiler/runtime evidence "
         "and failed_candidate_diff. Apply required_next_action before considering any new architecture; never blindly "
         "repeat the failed source.\n"
+        "- If previous_candidate_feedback.status starts with REJECTED_BY_SYNTH: use its exact diagnostic lines, "
+        "candidate_action_diff_summary, implicated pragmas/loops/arrays, and repetition_count. Roll back the unsupported "
+        "change, obey recommended_next_constraint, and do not repeat the same candidate or failure pattern.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_STRATEGY_CONTRACT: no candidate tool was run. Stay in the same search_strategy and correct the exact contract violation; do not switch to another lane or repeat the rejected architecture.\n"
         "- If measured_action_contract is present: treat its target, required_candidate_delta, forbidden_as_non_responsive, dimension policy, and verification as hard planning constraints. Implement one recommended minimal trial only when the editable source proves the required dimension; otherwise use its locality alternative or return editable_kernel unchanged.\n"
@@ -180,7 +201,7 @@ def build_repair_prompt(
     task: Task,
     current_kernel: str,
     normalized_log: NormalizedLog,
-    issue: IssueClassification,
+    issue: IssueClassification | None,
     attempt_feedback: dict | None = None,
 ) -> str:
     extra = ""
@@ -189,11 +210,48 @@ def build_repair_prompt(
             "\n[Previous attempt did not fix the issue. "
             "Try a DIFFERENT hypothesis. Re-read the error log carefully.]"
         )
-    failure = f"FAIL: {normalized_log.error_summary}{extra}"
+    summary = _bounded_prompt_text(normalized_log.error_summary or "unknown failure", 500)
+    key_lines = [
+        _bounded_prompt_text(line, 240)
+        for line in list(normalized_log.key_lines or [])[:12]
+        if _bounded_prompt_text(line, 240)
+    ]
+    category = _bounded_prompt_text(
+        getattr(issue, "issue_category", None) or "unknown", 80
+    )
+    confidence = _bounded_prompt_text(
+        getattr(issue, "confidence", None) or "unknown", 40
+    )
+    failure_stage = _bounded_prompt_text(
+        getattr(issue, "stage", None) or normalized_log.stage or "unknown", 40
+    )
+    recommended_action = _bounded_prompt_text(
+        getattr(issue, "recommended_action", None)
+        or "inspect_failure_evidence",
+        240,
+    )
+    location = _source_location([summary, *key_lines])
+    repair_evidence: dict[str, Any] = {
+        "failure_stage": failure_stage,
+        "category": category,
+        "confidence": confidence,
+        "error_summary": summary,
+        "key_lines": key_lines,
+        "suspected_source_location": location or "unknown",
+        "recommended_action": recommended_action,
+        "truncated": bool(normalized_log.truncated or len(normalized_log.key_lines or []) > 12),
+        "missing_logs": bool(normalized_log.missing_logs),
+    }
+    previous = _bounded_previous_attempt(attempt_feedback)
+    if previous:
+        repair_evidence["previous_attempt"] = previous
+
+    failure = f"FAIL: {summary}{extra}"
     kwargs: dict[str, Any] = {
         "task": task,
         "current_kernel": current_kernel,
         "attempt": attempt_feedback.get("attempt", 1) if attempt_feedback else 1,
+        "repair_evidence": repair_evidence,
     }
     if normalized_log.stage == "synth":
         kwargs["csim_result"] = "PASS"
@@ -201,6 +259,72 @@ def build_repair_prompt(
     else:
         kwargs["csim_result"] = failure
     return build_prompt(**kwargs)
+
+
+def _bounded_prompt_text(value: Any, max_chars: int) -> str:
+    """Make prompt evidence UTF-8-safe and deterministically bounded."""
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        text = value.decode("utf-8", errors="replace")
+    else:
+        try:
+            text = str(value)
+        except Exception:
+            text = "<unprintable>"
+    text = text.encode("utf-8", errors="replace").decode("utf-8")
+    text = redact_sensitive_text(text)
+    text = re.sub(
+        r"(?<!\w)(?:/[A-Za-z0-9_.:-]+)+",
+        lambda match: (
+            "<path>/" + match.group(0).rstrip("/").rsplit("/", 1)[-1]
+            if "." in match.group(0).rstrip("/").rsplit("/", 1)[-1]
+            else "<path>"
+        ),
+        text,
+    )
+    if len(text) > max_chars:
+        return text[: max_chars - 16].rstrip() + "... [truncated]"
+    return text
+
+
+def _source_location(lines: list[str]) -> str | None:
+    pattern = re.compile(
+        r"(?:<path>/)?([A-Za-z0-9_.-]+\.(?:c|cc|cpp|cxx|h|hh|hpp|hxx))"
+        r":(\d+)(?::\d+)?",
+        re.IGNORECASE,
+    )
+    for line in lines:
+        match = pattern.search(line)
+        if match:
+            return f"{match.group(1)}:{match.group(2)}"
+    return None
+
+
+def _bounded_previous_attempt(attempt_feedback: dict | None) -> dict[str, Any] | None:
+    if not isinstance(attempt_feedback, dict):
+        return None
+    previous = attempt_feedback.get("previous_attempt")
+    if not isinstance(previous, dict):
+        return None
+    result = previous.get("result")
+    bounded_result: dict[str, Any] = {}
+    if isinstance(result, dict):
+        for key, limit in (("stage", 40), ("phase", 80), ("summary", 500)):
+            if result.get(key) is not None:
+                bounded_result[key] = _bounded_prompt_text(result[key], limit)
+    try:
+        previous_attempt_number = int(previous.get("attempt", 0) or 0)
+    except (TypeError, ValueError):
+        previous_attempt_number = 0
+    payload: dict[str, Any] = {
+        "attempt": previous_attempt_number,
+        "candidate_diff": _bounded_prompt_text(
+            previous.get("candidate_diff", ""), 2_000
+        ),
+        "result": bounded_result,
+    }
+    return payload
 
 
 def build_optimize_prompt(

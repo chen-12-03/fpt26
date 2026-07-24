@@ -26,6 +26,11 @@ class TestTaskIdValidation:
         assert validate_task_id("chstone__df_add128") == "chstone__df_add128"
         assert validate_task_id("machsuite__aes_aes") == "machsuite__aes_aes"
         assert validate_task_id("dotProduct_optimize") == "dotProduct_optimize"
+        assert validate_task_id("polybench__3mm") == "polybench__3mm"
+        assert (
+            validate_task_id("rosetta__rendering_3d__projection")
+            == "rosetta__rendering_3d__projection"
+        )
 
     @pytest.mark.parametrize(
         "bad_id",

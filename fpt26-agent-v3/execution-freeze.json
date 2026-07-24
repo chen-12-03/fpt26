@@ -1,31 +1,31 @@
 {
   "schema_version": 1,
-  "frozen_at": "2026-07-20",
-  "policy": "Post-P0 execution freeze after fresh split-role real-API and Vitis 2025.2 acceptance. Any execution, scoring, launcher, Docker, harness, or task-corpus change requires a new regression and full revalidation.",
+  "frozen_at": "2026-07-24",
+  "policy": "Phase 1 structured-information-chain execution freeze after fresh split-role real-API and Vitis 2025.2 acceptance. Any execution, scoring, launcher, Docker, harness, or task-corpus change requires a new regression and full revalidation.",
   "validation": {
-    "clean_image": "fpt26-agent-v3:p0-clean-20260719",
+    "clean_image": "fpt26-agent-v3:phase1-20260724",
     "clean_image_sha256": "2450e1d03d85f7141164e7b6c420eeb37c9d1eaa78626e863d86f900e59efa89",
     "scoring_version": "10.0.0",
     "scoring_schema": 10,
     "profile_schema": 11,
     "vitis_hls": "2025.2 build 6295257",
-    "execution_source_tree_sha256": "b06672fbcae284a4f562f2f214a3e486e202c898ee7975f4af890e4670d8538e",
-    "official_acceptance_sha256": "b16127cbee402988430f7ffaf9d91362efe7b7d56c064ed798e90bb5ff004b51",
-    "task97_acceptance_sha256": "43687ddf01fcd9b7b4c668d525732bad5a4395c27705588914f13dc2627f5b1d"
+    "execution_source_tree_sha256": "8b702dce371c6508b4a34792c874129ede403722f8176d4bc44e8c6c7f33dcc7",
+    "official_acceptance_sha256": "ec8c0137e980f6ba93dd337e11c98de5f78d06b11d286d3ec5f4564c6a933730",
+    "task97_acceptance_sha256": "293eefa6d0f849ce5f5f73ade8219bf768ce7a31ef85df9ee772d8e1592aca3f"
   },
   "files": {
     ".dockerignore": "9dc0d65911c9d4cbe048cad7a460ad5f08a89773c75279adb15d49b46bf70f5b",
     "fpt26-agent-v3/run-agent.sh": "7c8763600ea6db88660e7c8e13e3289dd7a96ef4f33da3a051e76b9c8531c1c1",
-    "fpt26-agent-v3/run-p0-official-fresh.sh": "564a6e6bb989fc3275e7ea80237a048aa3ebf900b5d7f032201d40e33bf7e321",
+    "fpt26-agent-v3/run-p0-official-fresh.sh": "118410273ef2b1b07d6aec8f719a94b7a80f99ecc1783879911e3d9d02f33891",
     "fpt26-agent-v3/test_all.sh": "f6d6481f7c6b8584896ae257023d24670dabb15a1144f12c75c2817d0bf6dd26",
     "fpt26-agent-v3/Dockerfile": "9e872b4c3f511e227dc36a4bbe5c7f5ab955004f5a27bc99388aa194797b392a",
     "fpt26-agent-v3/docker-compose.yml": "112315fb56997cac8904f457f73185d95bf48540e1269348f641e9ce27b91d05",
     "fpt26-agent-v3/scoring/scoring_v3.py": "c2c9b99cfd66d19cd2268f679d9d5ed071db1cf7589cfa910f15219d36c2c93c",
-    "fpt26-agent-v3/scoring/profiles.py": "e808c1b5756b2202d68d93aa07651eaa3f00fd637450b058ff55377ce91a7caa",
-    "fpt26-agent-v3/scoring/run_p0_real_api_shard.py": "1cc2b9df9b375189bb93e7b5b9a0e8942200d614e8f9449cef0eae6bdf71bec9",
-    "fpt26-agent-v3/scoring/reconcile_p0_evaluators.py": "f6076d2eb0bc7c388ac265ba48f6cef895040c75232f0642a7684ec6ea3d3579",
+    "fpt26-agent-v3/scoring/profiles.py": "f17990b8bb87a4d1819d1e24eb9582264575af21775facfa6c6512284f87d12e",
+    "fpt26-agent-v3/scoring/run_p0_real_api_shard.py": "a63e6010e250b262bfd3fc8618009509700acf4557347079c6a0f2b4d0d32b28",
+    "fpt26-agent-v3/scoring/reconcile_p0_evaluators.py": "50e52930ebfb3512287c266f5ca224bf9207dd002b4f2aab3f8de18b300fe972",
     "fpt26-agent-v3/scoring/snapshot_execution_source.py": "568c466250f93841f58741708c85981feb2cf8bdcc740ec5756c91ffee26d5cd",
-    "fpt26-agent-v3/scoring/audit_p0_acceptance.py": "e73ee512a849bbbc2630a5b6dc20b044262f997d4e49c5e79bbd89b3bf785308",
+    "fpt26-agent-v3/scoring/audit_p0_acceptance.py": "0bffd2b44966245bddbc8f41f2a7bf320b889c6b64953d62c2d227183011c009",
     "fpt26-agent-v3/scoring/audit_p0_official.py": "98ea58ab36eb1983c5208639923e0fd77920e1e77e0bc852cc6c2c3506e6ad15",
     "fpt26-harness/run-vitis.sh": "03cd13475ce1bf05f0afa7453893018fb723cca602ed046770d81a80906968fd",
     "fpt26-harness/run.tcl": "ed5a21cb6f21b2f24ad1188d45da07155602cd787d5cc60f5724b5ae90092dd5",
@@ -35,8 +35,8 @@
     "agent_sources": {
       "root": "fpt26-agent-v3/agent",
       "kind": "python_sources",
-      "count": 29,
-      "sha256": "3ea4bf7a9b5a4920daa0e1670ed84e4a0504864cd895d84c410ef4ee13d7e732"
+      "count": 65,
+      "sha256": "c5945c7f27f34c81a89007072f6052d7f6caf7b1ea3c788edd2d2735c89262c0"
     },
     "official_harness": {
       "root": "fpt26-harness/llm4hls",

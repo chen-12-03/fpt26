@@ -13,6 +13,7 @@ from scoring.run_p0_real_api_shard import (
     _run,
     _sha256,
     _write_summary,
+    build_evaluator_command,
     classify_outcome,
     validate_evaluator,
     validate_submission,
@@ -32,10 +33,17 @@ def reconcile(root: Path, timeout_s: float) -> dict[str, Any]:
             continue
         final_path = Path(submission_record.get("final_kernel") or "")
         submission_path = Path(submission_record.get("report") or "")
+        evidence_text = submission_record.get("submission_evidence")
+        submission_evidence = (
+            Path(evidence_text)
+            if evidence_text
+            else submission_path.with_name("submission_evidence.json")
+        )
         task_dir = Path(record.get("task_dir") or "")
         if (
             not final_path.is_file()
             or not submission_path.is_file()
+            or not submission_evidence.is_file()
             or not task_dir.is_dir()
         ):
             continue
@@ -44,20 +52,12 @@ def reconcile(root: Path, timeout_s: float) -> dict[str, Any]:
         evaluator_root = attempt_root / "evaluator"
         evaluator_log = attempt_root / "evaluator.log"
         task_id = record["task_id"]
-        command = [
-            sys.executable,
-            "-m",
-            "agent.main",
-            "--task",
-            str(task_dir),
-            "--run-role",
-            "evaluator",
-            "--final-kernel",
-            str(final_path),
-            "--output-root",
-            str(evaluator_root),
-            "--quiet",
-        ]
+        command = build_evaluator_command(
+            task_dir=task_dir,
+            final_kernel=final_path,
+            submission_evidence=submission_evidence,
+            output_root=evaluator_root,
+        )
         return_code, launcher_error, elapsed = _run(
             command, evaluator_log, timeout_s
         )
