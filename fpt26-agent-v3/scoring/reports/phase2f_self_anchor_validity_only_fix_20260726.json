@@ -1,0 +1,44 @@
+{
+  "acceptance_boundary": {
+    "is_full199_acceptance": false,
+    "may_claim_global_success_rate_repair": false,
+    "may_update_execution_freeze_json": false,
+    "reason": "Single evaluator-only recheck validates the generic anchor-invalid compatibility fix; full acceptance requires a later fresh run."
+  },
+  "evidence_level": "single_task_evaluator_recheck_measured",
+  "fix": {
+    "hardcoding": false,
+    "kind": "generic_evaluator_anchor_compatibility",
+    "summary": "When candidate correctness, synthesis, interface, frequency, resource, and required cosim gates pass but starter/reference anchors are unusable, evaluator can mark the result as validity-only completed without publishing a QoR score."
+  },
+  "guardrails": {
+    "api_call_in_validation": false,
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "prompt_rag_strategy_optimization_included": false,
+    "qor_score_fabricated": false
+  },
+  "purpose": "phase2f_self_anchor_validity_only_fix_validation",
+  "run_root": "runs/phase2f_self_anchor_eval_recheck2_20260726/chstone__dfdiv",
+  "schema_version": 1,
+  "status": "measured",
+  "validation": {
+    "completed": 1,
+    "failed": 0,
+    "records": [
+      {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "evaluator_acceptance_ok": true,
+        "outcome": "completed",
+        "score_available": false,
+        "scoring": null,
+        "stop_reason": "",
+        "task_id": "chstone__dfdiv",
+        "validity_only": true
+      }
+    ],
+    "success_rate": 1.0,
+    "task_count": 1
+  }
+}

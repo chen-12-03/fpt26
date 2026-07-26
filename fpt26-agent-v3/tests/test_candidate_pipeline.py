@@ -206,6 +206,48 @@ class TestSelector:
         assert anchor.source == "starter"
         assert anchor.valid
 
+    def test_select_anchor_self_anchor_requires_explicit_opt_in(self):
+        from agent.models import (
+            InterfaceGateEvidence,
+            FrequencyGateEvidence,
+            ResourceGateEvidence,
+        )
+
+        starter = CandidateEvaluation(source_sha256="s")
+        starter.fail("csim")
+        candidate = CandidateEvaluation(source_sha256="c")
+        candidate.accepted = True
+        candidate.csim = "pass"
+        candidate.synth = "pass"
+        candidate.interface = InterfaceGateEvidence(ok=True, reason="passed")
+        candidate.synth_latency = 100
+        candidate.synth_ii = 1
+        candidate.synth_clock_ns = 5.0
+        candidate.synth_resources = {"LUT": 100}
+        candidate.frequency = FrequencyGateEvidence(
+            ok=True, reason="passed", frequency_mhz=200.0
+        )
+        candidate.resource = ResourceGateEvidence(
+            ok=True,
+            reason="passed",
+            resources={"LUT": 100},
+            available=dict(_AVAILABLE),
+        )
+
+        anchor = select_anchor(starter, None, candidate_eval=candidate)
+        assert anchor.source == "none"
+        assert not anchor.valid
+
+        anchor = select_anchor(
+            starter,
+            None,
+            candidate_eval=candidate,
+            allow_candidate_self_anchor=True,
+        )
+        assert anchor.source == "candidate_self"
+        assert anchor.valid
+        assert anchor.latency == 100
+
 
 # ── Checkpoint tests ─────────────────────────────────────────────────────────
 

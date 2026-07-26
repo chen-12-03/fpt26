@@ -1,0 +1,283 @@
+{
+  "acceptance_boundary": {
+    "is_full199_acceptance": false,
+    "may_claim_global_success_rate_repair": false,
+    "may_update_execution_freeze_json": false,
+    "reason": "Evaluator-only targeted recheck of prior anchor-invalid tasks after generic validity-only fallback."
+  },
+  "api_requests": 0,
+  "completed": 10,
+  "elapsed_s": 666.198,
+  "evidence_level": "targeted_evaluator_only_recheck_measured",
+  "failed": 0,
+  "guardrails": {
+    "api_call_in_validation": false,
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "qor_score_fabricated": false
+  },
+  "purpose": "phase2f_anchor_validity_only_eval_recheck",
+  "records": [
+    {
+      "elapsed_s": 68.105,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 1,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/chstone__dfdiv/chstone__dfdiv/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  1                    N/A                 \n  Clock                  N/A                  3.541 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=9698 FF=5013 DSP=16 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/40 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "chstone__dfdiv"
+    },
+    {
+      "elapsed_s": 73.562,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 2,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/chstone__dfsin/chstone__dfsin/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  3.626 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=24045 FF=9931 DSP=35 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/40 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "chstone__dfsin"
+    },
+    {
+      "elapsed_s": 64.511,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 3,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__bfs_bulk/machsuite__bfs_bulk/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  1.534 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=673 FF=454 DSP=0 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__bfs_bulk"
+    },
+    {
+      "elapsed_s": 63.312,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 4,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__bfs_queue/machsuite__bfs_queue/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  2.239 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=949 FF=339 DSP=0 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__bfs_queue"
+    },
+    {
+      "elapsed_s": 65.136,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 5,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__fft_strided/machsuite__fft_strided/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  3.33 ns              N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=2373 FF=3009 DSP=38 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__fft_strided"
+    },
+    {
+      "elapsed_s": 64.138,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 6,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__kmp_kmp/machsuite__kmp_kmp/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  2.589 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=837 FF=426 DSP=0 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__kmp_kmp"
+    },
+    {
+      "elapsed_s": 63.691,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 7,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__md_grid/machsuite__md_grid/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  3.574 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=3434 FF=5324 DSP=30 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__md_grid"
+    },
+    {
+      "elapsed_s": 66.917,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 8,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__nw_nw/machsuite__nw_nw/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  3.481 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=1857 FF=647 DSP=0 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__nw_nw"
+    },
+    {
+      "elapsed_s": 70.592,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 9,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__sort_merge/machsuite__sort_merge/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  3.269 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=1066 FF=530 DSP=0 BRAM_18K=4 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__sort_merge"
+    },
+    {
+      "elapsed_s": 66.229,
+      "evaluator_acceptance": {
+        "anchor_source": "starter",
+        "anchor_valid": false,
+        "failures": [],
+        "grading_source": "hidden",
+        "hidden_available": true,
+        "ok": true,
+        "reason": "candidate passed evaluator correctness/synthesis gates, but no valid QoR anchor was available",
+        "score_available": false,
+        "validity_only": true
+      },
+      "ordinal": 10,
+      "return_code": 0,
+      "run_report": "runs/phase2f_anchor_validity_only_eval_recheck_20260726/machsuite__spmv_crs/machsuite__spmv_crs/run_report.json",
+      "scoring_available": false,
+      "status": "completed",
+      "stdout_tail": "\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500SCORE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Evaluator score: N/A (submission role uses public acceptance gates only)\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500STARTER / FINAL BEST / REFERENCE\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         Starter              Final Best           Reference           \n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Lat / Top Int (cyc)    None / None          None / None          None / None         \n  Loop II                N/A                  N/A                  N/A                 \n  Clock                  N/A                  6.179 ns             N/A                 \n  CoSim max latency      N/A                  N/A                  N/A                 \n  Power                  N/A                  N/A                  N/A                 \n  Area                   LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0 LUT=1048 FF=1092 DSP=11 BRAM_18K=0 URAM=0 LUT=0 FF=0 DSP=0 BRAM_18K=0 URAM=0\n  Final Best vs Starter  : latency=N/A | area=N/A\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500MODEL / TOKEN / COST\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Credits=0/60 | CSIM time= | Synthesis time=\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500OPTIMIZATION TARGETS\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Latency : ? \u2192 reduce loop II and loop latency\n  Power   : N/A \u2192 add total, dynamic and static power measurements\n  Token   : 0 \u2192 reduce prompt size and unnecessary repeated tool calls\n  Time    : 0s wall / 0s grading \u2192 reduce unsuccessful synthesis iterations\n================================================================================\n",
+      "stop_reason": "",
+      "task_id": "machsuite__spmv_crs"
+    }
+  ],
+  "run_label": "phase2f_anchor_validity_only_eval_recheck",
+  "run_root": "runs/phase2f_anchor_validity_only_eval_recheck_20260726",
+  "schema_version": 1,
+  "small_sample_summary": {
+    "completed": 10.0,
+    "completion_tokens": 0,
+    "failed": 0.0,
+    "failure_reason_counts": {},
+    "mean_requests_per_task": 0.0,
+    "mean_score_completed_tasks": null,
+    "mean_tokens_per_task": 0.0,
+    "outcome_counts": {
+      "completed": 10,
+      "failed": 0
+    },
+    "prompt_tokens": 0,
+    "recomputed_audit_error_task_count": 0,
+    "score_available_completed": 0,
+    "success_rate": 1.0,
+    "task_count": 10,
+    "total_requests": 0,
+    "total_tokens": 0,
+    "validity_only_completed": 10
+  },
+  "source_run_root": "runs/phase2f_solvable_nonfrequency_ali_recheck_20260726",
+  "status": "measured",
+  "success_rate": 1.0,
+  "task_count": 10,
+  "tasks": [
+    "chstone__dfdiv",
+    "chstone__dfsin",
+    "machsuite__bfs_bulk",
+    "machsuite__bfs_queue",
+    "machsuite__fft_strided",
+    "machsuite__kmp_kmp",
+    "machsuite__md_grid",
+    "machsuite__nw_nw",
+    "machsuite__sort_merge",
+    "machsuite__spmv_crs"
+  ],
+  "total_tokens": 0
+}

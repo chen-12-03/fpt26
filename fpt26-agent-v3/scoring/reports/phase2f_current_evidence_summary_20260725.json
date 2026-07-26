@@ -138,6 +138,49 @@
         "amd_accel__performance_host_global_bandwidth_src_kernel"
       ]
     },
+    "failed_task_small_sample:phase2f_anchor_validity_only_eval_recheck": {
+      "completed": 10.0,
+      "evidence_level": "targeted_evaluator_only_recheck_measured",
+      "failed": 0.0,
+      "failure_reason_counts": {},
+      "may_claim_global_success_rate_repair": false,
+      "may_update_execution_freeze_json": false,
+      "mean_requests_per_task": 0.0,
+      "mean_score_completed_tasks": null,
+      "mean_tokens_per_task": 0.0,
+      "status": "measured",
+      "success_rate": 1.0,
+      "task_count": 10,
+      "tasks": [
+        "chstone__dfdiv",
+        "chstone__dfsin",
+        "machsuite__bfs_bulk",
+        "machsuite__bfs_queue",
+        "machsuite__fft_strided",
+        "machsuite__kmp_kmp",
+        "machsuite__md_grid",
+        "machsuite__nw_nw",
+        "machsuite__sort_merge",
+        "machsuite__spmv_crs"
+      ]
+    },
+    "failed_task_small_sample:phase2f_failed_task_c2hlsc_des_ali_recheck": {
+      "completed": 1.0,
+      "evidence_level": "small_sample_measured",
+      "failed": 0.0,
+      "failure_reason_counts": {},
+      "may_claim_global_success_rate_repair": false,
+      "may_update_execution_freeze_json": false,
+      "mean_requests_per_task": 2.0,
+      "mean_score_completed_tasks": 74.86,
+      "mean_tokens_per_task": 30917.0,
+      "status": "measured",
+      "success_rate": 1.0,
+      "task_count": 1,
+      "tasks": [
+        "c2hlsc__des"
+      ]
+    },
     "failed_task_small_sample:phase2f_failed_task_c2hlsc_des_finalgatefix": {
       "completed": 1.0,
       "evidence_level": "small_sample_measured",
@@ -153,6 +196,57 @@
       "task_count": 1,
       "tasks": [
         "c2hlsc__des"
+      ]
+    },
+    "failed_task_small_sample:phase2f_failed_task_small_sample_ali_recheck": {
+      "completed": 1.0,
+      "evidence_level": "small_sample_measured",
+      "failed": 2.0,
+      "failure_reason_counts": {
+        "frequency_failed": 2
+      },
+      "may_claim_global_success_rate_repair": false,
+      "may_update_execution_freeze_json": false,
+      "mean_requests_per_task": 0.666667,
+      "mean_score_completed_tasks": 74.86,
+      "mean_tokens_per_task": 10305.666667,
+      "status": "measured",
+      "success_rate": 0.333333,
+      "task_count": 3,
+      "tasks": [
+        "c2hlsc__des",
+        "pp4fpga__parallel_merge_sort",
+        "amd_accel__performance_host_global_bandwidth_src_kernel"
+      ]
+    },
+    "failed_task_small_sample:phase2f_solvable_nonfrequency_ali_recheck": {
+      "completed": 2.0,
+      "evidence_level": "targeted_nonfrequency_recheck_measured",
+      "failed": 10.0,
+      "failure_reason_counts": {
+        "anchor_invalid: starter": 10
+      },
+      "may_claim_global_success_rate_repair": false,
+      "may_update_execution_freeze_json": false,
+      "mean_requests_per_task": 1.916667,
+      "mean_score_completed_tasks": 74.91,
+      "mean_tokens_per_task": 13767.0,
+      "status": "measured",
+      "success_rate": 0.166667,
+      "task_count": 12,
+      "tasks": [
+        "amd_intro__misc_malloc_removed",
+        "amd_intro__modeling_pointers_native_casts",
+        "chstone__dfdiv",
+        "chstone__dfsin",
+        "machsuite__bfs_bulk",
+        "machsuite__bfs_queue",
+        "machsuite__fft_strided",
+        "machsuite__kmp_kmp",
+        "machsuite__md_grid",
+        "machsuite__nw_nw",
+        "machsuite__sort_merge",
+        "machsuite__spmv_crs"
       ]
     },
     "qor_rag_small_ab": {

@@ -32,6 +32,43 @@ def _hidden_source(task_dir: Path) -> tuple[bool, str]:
     return EvaluatorTaskRepository().hidden_source(task_dir)
 
 
+def _candidate_validity_only_ok(state: RunState, anchor_evidence: AnchorEvidence) -> bool:
+    """Accept correctness-only evaluator results when QoR anchors are unusable.
+
+    Some imported benchmark tasks have invalid starter/reference anchors or
+    missing top-level latency metrics even though the submitted candidate passes
+    hidden/public CSim, synthesis, interface, frequency, and resource gates.
+    That evidence is enough to accept correctness/synth validity, but not
+    enough to publish an anchored QoR score.
+    """
+
+    if anchor_evidence.passes_all_required_gates:
+        return False
+    if not all(
+        bool(value)
+        for value in (
+            getattr(state, "csim_ok", False),
+            getattr(state, "synth_ok", False),
+            getattr(state, "interface_ok", False),
+            getattr(state, "frequency_ok", False),
+            getattr(state, "resource_ok", False),
+        )
+    ):
+        return False
+    if getattr(state.task, "requires_cosim", False) and not bool(
+        getattr(state, "cosim_ok", False)
+    ):
+        return False
+    scorecard = getattr(state, "scorecard", None)
+    gate_reason = getattr(scorecard, "gate_reason", "") if scorecard else ""
+    stop_reason = getattr(state, "stop_reason", "") or ""
+    return (
+        stop_reason.startswith("anchor_invalid")
+        or gate_reason in {"no_valid_anchor", "required_metric_missing"}
+        or anchor_evidence.source in {"none", "candidate_self"}
+    )
+
+
 def run_evaluator(
     *,
     task_dir: Path,
@@ -157,6 +194,28 @@ def run_evaluator(
         anchor_evidence = AnchorEvidence.from_dict(anchor_data)
     else:
         anchor_evidence = AnchorEvidence(source="none", valid=False)
+
+    # ── Validity-only fallback: correct candidate, unusable QoR anchor ───
+    if _candidate_validity_only_ok(state, anchor_evidence):
+        state.status = RunStatus.COMPLETED.value
+        state.stop_reason = ""
+        state.scorecard = None
+        state.last_verified_kernel = state.kernel
+        state.metadata["evaluator_acceptance"] = {
+            "ok": True,
+            "failures": [],
+            "grading_source": source,
+            "hidden_available": hidden_available,
+            "anchor_source": anchor_evidence.source,
+            "anchor_valid": False,
+            "validity_only": True,
+            "score_available": False,
+            "reason": (
+                "candidate passed evaluator correctness/synthesis gates, "
+                "but no valid QoR anchor was available"
+            ),
+        }
+        return step_finalize(state)
 
     # ── Fail-closed: no valid anchor → no score ─────────────────────────
     if not anchor_evidence.passes_all_required_gates:

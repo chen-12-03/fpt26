@@ -295,29 +295,11 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
         )
         _record("reference_anchor_eval", ref_eval)
 
-    # ── 5. Anchor selection (once) ────────────────────────────────────────
-    from agent.candidate.selector import select_anchor
-
-    anchor_evidence = select_anchor(
-        starter_eval, ref_eval, requires_cosim=task.requires_cosim,
-    )
-
-    # ── 6. Build scoring data structures ──────────────────────────────────
+    # ── 5. Build scoring data structures ──────────────────────────────────
     cfg = TaskScoringConfig(
         task_id=task.id, task_type=task.type, difficulty=task.difficulty,
         requires_cosim=task.requires_cosim, budget_limit=task.budget,
         task_clock_ns=task.clock_ns,
-    )
-
-    # Convert AnchorEvidence → scoring Anchor (may be invalid)
-    anchor = Anchor(
-        source=anchor_evidence.source,
-        valid=anchor_evidence.valid,
-        latency=anchor_evidence.latency,
-        ii=anchor_evidence.ii,
-        clock_ns=anchor_evidence.clock_ns,
-        resources=dict(anchor_evidence.resources),
-        available=dict(anchor_evidence.available),
     )
 
     # Candidate evidence
@@ -331,6 +313,77 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
         if cand_synth.ok and cand_synth.report else task.clock_ns
     )
     cand_resources = cand_synth.report.resources if cand_synth.ok and cand_synth.report else {}
+
+    candidate_freq = _freq_gate_fn(cand_synth.report, task.clock_ns)
+    candidate_res = _res_gate_fn(cand_synth.report)
+    candidate_eval = CandidateEvaluation(
+        source_sha256=hashlib.sha256(kernel.encode("utf-8")).hexdigest(),
+        interface=InterfaceGateEvidence(
+            ok=bool(getattr(state, "interface_ok", False)),
+            reason=(
+                (state.metadata.get("interface_contract") or {}).get("reason")
+                if isinstance(state.metadata.get("interface_contract"), dict)
+                else None
+            ),
+        ),
+        csim="pass" if csim.ok else "fail",
+        synth="pass" if cand_synth.ok else "fail",
+        frequency=FrequencyGateEvidence(
+            ok=candidate_freq.ok,
+            reason=candidate_freq.reason,
+            target_clock_ns=candidate_freq.target_clock_ns,
+            candidate_clock_ns=candidate_freq.candidate_clock_ns,
+            frequency_mhz=candidate_freq.frequency_mhz,
+        ),
+        resource=ResourceGateEvidence(
+            ok=candidate_res.ok,
+            reason=candidate_res.reason,
+            resources=dict(candidate_res.resources),
+            available=dict(candidate_res.available),
+        ),
+        cosim=(
+            CoSimGateEvidence(ok=True, latency_max=cosim_latency)
+            if task.requires_cosim and cosim_ok
+            else None
+        ),
+        stage="candidate_self_anchor",
+        accepted=(
+            bool(getattr(state, "interface_ok", False))
+            and bool(csim.ok)
+            and bool(cand_synth.ok)
+            and bool(candidate_freq.ok)
+            and bool(candidate_res.ok)
+            and (not task.requires_cosim or bool(cosim_ok))
+            and cand_lat is not None
+            and cand_ii is not None
+        ),
+        synth_latency=cand_lat,
+        synth_ii=cand_ii,
+        synth_clock_ns=cand_clock,
+        synth_resources=dict(cand_resources),
+    )
+
+    # ── 6. Anchor selection (once) ────────────────────────────────────────
+    from agent.candidate.selector import select_anchor
+
+    anchor_evidence = select_anchor(
+        starter_eval,
+        ref_eval,
+        requires_cosim=task.requires_cosim,
+        candidate_eval=candidate_eval,
+        allow_candidate_self_anchor=True,
+    )
+
+    # Convert AnchorEvidence → scoring Anchor.
+    anchor = Anchor(
+        source=anchor_evidence.source,
+        valid=anchor_evidence.valid,
+        latency=anchor_evidence.latency,
+        ii=anchor_evidence.ii,
+        clock_ns=anchor_evidence.clock_ns,
+        resources=dict(anchor_evidence.resources),
+        available=dict(anchor_evidence.available),
+    )
 
     evidence = QoREvidence(
         candidate_latency=cand_lat, candidate_ii=cand_ii,

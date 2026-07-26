@@ -1,0 +1,642 @@
+{
+  "acceptance_boundary": {
+    "is_full199_acceptance": false,
+    "may_claim_global_success_rate_repair": false,
+    "may_update_execution_freeze_json": false,
+    "reason": "12-task targeted recheck probes non-frequency remaining failures only; global repair requires later fresh acceptance."
+  },
+  "evidence_level": "targeted_nonfrequency_recheck_measured",
+  "guardrails": {
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "prompt_rag_strategy_optimization_included": false
+  },
+  "purpose": "phase2f_solvable_nonfrequency_targeted_recheck_measured",
+  "raw_audit": {
+    "execution_source_stable_during_run": true,
+    "model_and_api": {
+      "completion_tokens": 25436,
+      "failed_request_count": 0,
+      "prompt_tokens": 139768,
+      "request_count": 23,
+      "total_tokens": 165204,
+      "unreported_response_count": 0
+    },
+    "outcome_counts": {
+      "completed": 2,
+      "failed": 10
+    },
+    "recomputed_audit_error_task_count": 0,
+    "recorded_task_count": 12,
+    "records": [
+      {
+        "evaluator_grading": {
+          "hidden_available": false,
+          "is_fallback": true,
+          "source": "public_fallback"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          }
+        ],
+        "evaluator_score": 74.91,
+        "evaluator_status": "completed",
+        "evaluator_stop_reason": "",
+        "expected_grading_source": "public_fallback",
+        "outcome": "completed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 5,
+        "submission_frequency_mhz": 495.5401387512389,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 13469,
+        "task_id": "amd_intro__misc_malloc_removed"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": false,
+          "is_fallback": true,
+          "source": "public_fallback"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          }
+        ],
+        "evaluator_score": 74.91,
+        "evaluator_status": "completed",
+        "evaluator_stop_reason": "",
+        "expected_grading_source": "public_fallback",
+        "outcome": "completed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 5,
+        "submission_frequency_mhz": 448.2294935006724,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 12685,
+        "task_id": "amd_intro__modeling_pointers_native_casts"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 1,
+        "submission_credits_spent": 5,
+        "submission_frequency_mhz": 282.4060999717594,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 12319,
+        "task_id": "chstone__dfdiv"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 5,
+        "submission_frequency_mhz": 275.78599007170436,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 32459,
+        "task_id": "chstone__dfsin"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 15,
+        "submission_frequency_mhz": 651.8904823989569,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 11505,
+        "task_id": "machsuite__bfs_bulk"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 15,
+        "submission_frequency_mhz": 446.6279589102278,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 12699,
+        "task_id": "machsuite__bfs_queue"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 10,
+        "submission_frequency_mhz": 300.3003003003003,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 11516,
+        "task_id": "machsuite__fft_strided"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 15,
+        "submission_frequency_mhz": 386.24951718810354,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 10824,
+        "task_id": "machsuite__kmp_kmp"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 10,
+        "submission_frequency_mhz": 279.79854504756577,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 13869,
+        "task_id": "machsuite__md_grid"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 10,
+        "submission_frequency_mhz": 287.2737719046251,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 12905,
+        "task_id": "machsuite__nw_nw"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 10,
+        "submission_frequency_mhz": 305.9039461609055,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 10147,
+        "task_id": "machsuite__sort_merge"
+      },
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": null,
+        "evaluator_status": "failed",
+        "evaluator_stop_reason": "anchor_invalid: starter",
+        "expected_grading_source": "hidden",
+        "outcome": "failed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 10,
+        "submission_frequency_mhz": 161.8384851917786,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 10807,
+        "task_id": "machsuite__spmv_crs"
+      }
+    ],
+    "run_root": "runs/phase2f_solvable_nonfrequency_ali_recheck_20260726",
+    "schema_version": 1,
+    "selected_task_count": 12,
+    "source_shard_summary": "runs/phase2f_solvable_nonfrequency_ali_recheck_20260726/shard_summary.json"
+  },
+  "run_label": "phase2f_solvable_nonfrequency_ali_recheck",
+  "run_root": "runs/phase2f_solvable_nonfrequency_ali_recheck_20260726",
+  "schema_version": 1,
+  "selection_policy": {
+    "excluded_already_measured_completed_tasks": [
+      "c2hlsc__des"
+    ],
+    "excluded_failure_reasons": [
+      "frequency_failed"
+    ],
+    "selected_task_count": 12,
+    "source_bucket": "post_quarantine_failures.remaining_failures",
+    "source_report": "fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json"
+  },
+  "small_sample_summary": {
+    "completed": 2.0,
+    "completion_tokens": 25436,
+    "failed": 10.0,
+    "failure_reason_counts": {
+      "anchor_invalid: starter": 10
+    },
+    "mean_requests_per_task": 1.916667,
+    "mean_score_completed_tasks": 74.91,
+    "mean_tokens_per_task": 13767.0,
+    "outcome_counts": {
+      "completed": 2,
+      "failed": 10
+    },
+    "prompt_tokens": 139768,
+    "recomputed_audit_error_task_count": 0,
+    "success_rate": 0.166667,
+    "task_count": 12,
+    "total_requests": 23,
+    "total_tokens": 165204
+  },
+  "source_raw_audit": "fpt26-agent-v3/scoring/reports/phase2f_solvable_nonfrequency_ali_recheck_raw_audit_20260726.json",
+  "status": "measured",
+  "task_count": 12,
+  "tasks": [
+    "amd_intro__misc_malloc_removed",
+    "amd_intro__modeling_pointers_native_casts",
+    "chstone__dfdiv",
+    "chstone__dfsin",
+    "machsuite__bfs_bulk",
+    "machsuite__bfs_queue",
+    "machsuite__fft_strided",
+    "machsuite__kmp_kmp",
+    "machsuite__md_grid",
+    "machsuite__nw_nw",
+    "machsuite__sort_merge",
+    "machsuite__spmv_crs"
+  ]
+}

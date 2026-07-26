@@ -473,7 +473,7 @@ class AnchorEvidence:
     This evidence is recorded so the choice is auditable.
     """
 
-    source: str = "none"                     # "starter" | "reference" | "none"
+    source: str = "none"                     # "starter" | "reference" | "candidate_self" | "none"
     valid: bool = False
 
     # Identity

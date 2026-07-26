@@ -42,10 +42,18 @@ def select_anchor(
     reference_eval: CandidateEvaluation | None,
     *,
     requires_cosim: bool = False,
+    candidate_eval: CandidateEvaluation | None = None,
+    allow_candidate_self_anchor: bool = False,
 ) -> AnchorEvidence:
-    """Choose the best valid anchor (starter preferred, then reference).
+    """Choose the best valid anchor.
 
     Returns an :class:`AnchorEvidence` recording *why* the choice was made.
+    The normal preference order is starter, then reference.  When explicitly
+    enabled, a fully validated candidate may be used as a conservative
+    self-anchor if both external anchors are invalid.  This avoids rejecting
+    correct submissions solely because benchmark-provided anchors are broken;
+    it does not reward QoR improvement because the candidate is compared
+    against itself.
     """
     # Try starter first
     if starter_eval is not None and starter_eval.accepted:
@@ -85,6 +93,27 @@ def select_anchor(
             resources=reference_eval.synth_resources,
             available=dict(reference_eval.resource.available) if reference_eval.resource else {},
         )
+
+    if allow_candidate_self_anchor and candidate_eval is not None and candidate_eval.accepted:
+        if not requires_cosim or (
+            candidate_eval.cosim is not None and candidate_eval.cosim.ok
+        ):
+            return AnchorEvidence(
+                source="candidate_self",
+                valid=True,
+                source_sha256=candidate_eval.source_sha256,
+                csim_ok=(candidate_eval.csim == "pass"),
+                synth_ok=(candidate_eval.synth == "pass"),
+                interface_ok=candidate_eval.interface.ok,
+                frequency=candidate_eval.frequency,
+                resource=candidate_eval.resource,
+                cosim=candidate_eval.cosim,
+                latency=candidate_eval.synth_latency,
+                ii=candidate_eval.synth_ii,
+                clock_ns=candidate_eval.synth_clock_ns,
+                resources=candidate_eval.synth_resources,
+                available=dict(candidate_eval.resource.available) if candidate_eval.resource else {},
+            )
 
     # No valid anchor
     failure = ""

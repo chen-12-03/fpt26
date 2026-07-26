@@ -1,0 +1,572 @@
+{
+  "inputs": {
+    "manifest": "tasks/generated/public_hls_validated_tasks_manifest.json",
+    "smoke": "tasks/generated/public_hls_tasks_smoke.json",
+    "task_root": "tasks/generated",
+    "tripcount_summary": "fpt26-agent-v3/scoring/reports/phase2f_tripcount_patch_sample_summary_20260725.json"
+  },
+  "purpose": "phase2f_public_hls_metric_incomplete_resolution_audit",
+  "recommendations": [
+    "Keep metric-incomplete public-HLS tasks explicitly marked in manifest scoreable_gate.",
+    "Use runner exclusion/quarantine for formal acceptance unless a generic scoreability fix is proven.",
+    "Do not expand LOOP_TRIPCOUNT-only patching; the existing 3-task sample did not restore scoreable metrics.",
+    "If more work is allowed, try at most 1-3 bounded-wrapper samples from simple variable-size memory kernels.",
+    "Do not treat performance-counter, stream, or dataflow protocol tasks as generation failures."
+  ],
+  "records": [
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_copy_buffer_xrt",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "top_function": "krnl_vadd"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "top_function": "copy_kernel"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+      "top_function": "krnl_vadd"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_simple_xrt",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+      "top_function": "krnl_vadd"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "host_xrt/p2p_simple_xrt",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "top_function": "adder"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "top_function": "test_kernel_maxi_256bit_1"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "top_function": "test_kernel_maxi_256bit_2"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "top_function": "test_kernel_maxi_256bit_3"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "top_function": "test_kernel_maxi_256bit_4"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "top_function": "test_kernel_maxi_256bit_5"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "top_function": "test_kernel_maxi_256bit_6"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "top_function": "test_kernel_maxi_512bit_1"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "top_function": "test_kernel_maxi_512bit_2"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+      "top_function": "test_kernel_maxi_512bit_3"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+      "top_function": "test_kernel_maxi_512bit_4"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+      "top_function": "test_kernel_maxi_512bit_5"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_low_value_performance_counter_kernel",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "performance_counter_or_benchmark_kernel",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "performance/axi_burst_performance",
+      "submission_guidance": "Prefer quarantine or task replacement; wrappering performance counter kernels is likely to change task intent.",
+      "synth_ok": true,
+      "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+      "top_function": "test_kernel_maxi_512bit_6"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": true,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "loop_tripcount_present",
+        "variable_size_loop"
+      ],
+      "source": "amd_accel",
+      "source_path": "sys_opt/multiple_devices",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_accel__sys_opt_multiple_devices_src_vector_addition",
+      "top_function": "vadd"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "loop_tripcount_present",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Array/array_partition_complete",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_intro__array_array_partition_complete",
+      "top_function": "matmul_partition"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Interface/Aggregation_Disaggregation/auto_disaggregation_of_struct",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+      "top_function": "dut"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "top_function": "krnl_transfer"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "bounded_wrapper_small_sample_candidate",
+      "signals": [
+        "axi_or_burst_memory",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "submission_guidance": "Eligible for a 1-3 task bounded-wrapper experiment; do not expand without proving top-level latency/II is restored.",
+      "synth_ok": true,
+      "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "top_function": "transfer_kernel"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Interface/Streaming/axi_stream_to_master",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_intro__interface_streaming_axi_stream_to_master",
+      "top_function": "example"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Interface/Streaming/using_axi_stream_with_struct",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_intro__interface_streaming_using_axi_stream_with_struct",
+      "top_function": "example"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "axi_or_burst_memory",
+        "dataflow",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Task_level_Parallelism/Control_driven/Patterns/using_stream_as_sync",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+      "top_function": "dut"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": true,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "dataflow",
+        "stream_or_axis_protocol",
+        "variable_size_loop"
+      ],
+      "source": "amd_intro",
+      "source_path": "Task_level_Parallelism/Data_driven/mixed_control_and_data_driven",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+      "top_function": "dut"
+    },
+    {
+      "csim_ok": true,
+      "generated_testbench": false,
+      "input_size_related": false,
+      "interval_max": null,
+      "latency_worst": null,
+      "resolution_class": "quarantine_protocol_or_dataflow_modeling_required",
+      "signals": [
+        "dataflow",
+        "stream_or_axis_protocol"
+      ],
+      "source": "amd_intro",
+      "source_path": "Task_level_Parallelism/Data_driven/unique_task_regions",
+      "submission_guidance": "Prefer quarantine before submission; protocol/dataflow scoreability requires a separate modeling decision.",
+      "synth_ok": true,
+      "task_id": "amd_intro__task_level_parallelism_data_driven_unique_task_regions",
+      "top_function": "top"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "api_or_vitis_run": false,
+    "hidden_reference_or_evaluator_reads": false,
+    "policy": "public task packages, manifests, and existing reports only",
+    "scoring_prompt_rag_or_strategy_changed_by_this_audit": false
+  },
+  "summary": {
+    "input_size_related_count": 26,
+    "metric_incomplete_count": 27,
+    "resolution_class_counts": {
+      "bounded_wrapper_small_sample_candidate": 8,
+      "quarantine_low_value_performance_counter_kernel": 12,
+      "quarantine_protocol_or_dataflow_modeling_required": 7
+    },
+    "signal_counts": {
+      "axi_or_burst_memory": 22,
+      "dataflow": 17,
+      "loop_tripcount_present": 2,
+      "performance_counter_or_benchmark_kernel": 12,
+      "stream_or_axis_protocol": 18,
+      "variable_size_loop": 26
+    },
+    "tripcount_patch_restores_scoreable_metrics": false
+  }
+}

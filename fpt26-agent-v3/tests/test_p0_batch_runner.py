@@ -4,6 +4,7 @@ import pytest
 
 from scoring.run_p0_real_api_shard import (
     EXPECTED_TASK_COUNT,
+    _summary,
     build_evaluator_command,
     classify_outcome,
     discover_tasks,
@@ -100,6 +101,61 @@ def test_exclusion_loader_accepts_public_hls_validated_manifest(
         "amd_accel__metric_missing_a",
         "amd_intro__metric_missing_b",
     }
+
+
+def test_exclusion_loader_rejects_duplicate_task_ids(tmp_path: Path) -> None:
+    path = tmp_path / "excluded.json"
+    path.write_text(
+        '["amd_accel__a", "amd_accel__a"]\n',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="duplicate excluded task IDs"):
+        load_excluded_task_ids(path)
+
+
+def test_discovery_rejects_unknown_excluded_task_id(tmp_path: Path) -> None:
+    generated = tmp_path / "generated"
+    official = tmp_path / "official"
+    generated.mkdir()
+    official.mkdir()
+    for index in range(196):
+        task_dir = generated / f"generated_{index:03d}"
+        task_dir.mkdir()
+        (task_dir / "task.toml").write_text("task_id = \"x\"\n")
+    for index in range(3):
+        task_dir = official / f"official_{index}"
+        task_dir.mkdir()
+        (task_dir / "task.toml").write_text("task_id = \"x\"\n")
+
+    with pytest.raises(RuntimeError, match="outside the corpus"):
+        discover_tasks(tmp_path, excluded_task_ids={"missing_task"})
+
+
+def test_summary_records_quarantine_without_full199_claim() -> None:
+    quarantine = {
+        "enabled": True,
+        "source": "tasks/generated/public_hls_validated_tasks_manifest.json",
+        "excluded_task_count": 27,
+        "excluded_task_ids": ["public_metric_missing"],
+        "effective_task_count": EXPECTED_TASK_COUNT - 27,
+        "original_expected_task_count": EXPECTED_TASK_COUNT,
+    }
+
+    summary = _summary(
+        shard_index=0,
+        shard_count=1,
+        selected_count=EXPECTED_TASK_COUNT - 27,
+        started=0.0,
+        records=[],
+        source_start={"tree_sha256": "same"},
+        source_current={"tree_sha256": "same"},
+        quarantine=quarantine,
+    )
+
+    assert summary["purpose"] == "p0_split_role_real_api_vitis_acceptance"
+    assert summary["task_quarantine"] == quarantine
+    assert "full199" not in summary["purpose"]
 
 
 def test_formal_evaluator_command_always_links_submission_evidence() -> None:

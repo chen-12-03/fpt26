@@ -1,0 +1,111 @@
+{
+  "acceptance_boundary": {
+    "is_full199_acceptance": false,
+    "may_claim_global_success_rate_repair": false,
+    "may_update_execution_freeze_json": false,
+    "reason": "1-task measured follow-up is representative evidence only; global success-rate repair requires later fresh acceptance."
+  },
+  "evidence_level": "small_sample_measured",
+  "guardrails": {
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "max_real_api_vitis_tasks": 3
+  },
+  "purpose": "phase2f_failed_task_success_rate_single_followup_measured",
+  "raw_audit": {
+    "execution_source_stable_during_run": true,
+    "model_and_api": {
+      "completion_tokens": 8192,
+      "failed_request_count": 0,
+      "prompt_tokens": 22725,
+      "request_count": 2,
+      "total_tokens": 30917,
+      "unreported_response_count": 0
+    },
+    "outcome_counts": {
+      "completed": 1
+    },
+    "recomputed_audit_error_task_count": 0,
+    "recorded_task_count": 1,
+    "records": [
+      {
+        "evaluator_grading": {
+          "hidden_available": true,
+          "is_fallback": false,
+          "source": "hidden"
+        },
+        "evaluator_grading_results": [
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "hidden_csim"
+          },
+          {
+            "error": null,
+            "ok": true,
+            "reason": null,
+            "stage": "candidate_synth"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "starter_anchor_eval"
+          },
+          {
+            "error": null,
+            "ok": false,
+            "reason": null,
+            "stage": "reference_anchor_eval"
+          }
+        ],
+        "evaluator_score": 74.86,
+        "evaluator_status": "completed",
+        "evaluator_stop_reason": "",
+        "expected_grading_source": "hidden",
+        "outcome": "completed",
+        "recomputed_audit_errors": [],
+        "recomputed_audit_ok": true,
+        "submission_api_requests": 2,
+        "submission_credits_spent": 5,
+        "submission_frequency_mhz": 619.5786864931846,
+        "submission_status": "completed",
+        "submission_stop_reason": "",
+        "submission_total_tokens": 30917,
+        "task_id": "c2hlsc__des"
+      }
+    ],
+    "run_root": "runs/phase2f_failed_task_c2hlsc_des_ali_recheck_20260726",
+    "schema_version": 1,
+    "selected_task_count": 1,
+    "source_shard_summary": "runs/phase2f_failed_task_c2hlsc_des_ali_recheck_20260726/shard_summary.json"
+  },
+  "run_label": "phase2f_failed_task_c2hlsc_des_ali_recheck",
+  "run_root": "runs/phase2f_failed_task_c2hlsc_des_ali_recheck_20260726",
+  "schema_version": 1,
+  "small_sample_summary": {
+    "completed": 1.0,
+    "completion_tokens": 8192,
+    "failed": 0.0,
+    "failure_reason_counts": {},
+    "mean_requests_per_task": 2.0,
+    "mean_score_completed_tasks": 74.86,
+    "mean_tokens_per_task": 30917.0,
+    "outcome_counts": {
+      "completed": 1
+    },
+    "prompt_tokens": 22725,
+    "recomputed_audit_error_task_count": 0,
+    "success_rate": 1.0,
+    "task_count": 1,
+    "total_requests": 2,
+    "total_tokens": 30917
+  },
+  "source_raw_audit": "fpt26-agent-v3/scoring/reports/phase2f_failed_task_c2hlsc_des_ali_recheck_raw_audit_20260726.json",
+  "status": "measured",
+  "task_count": 1,
+  "tasks": [
+    "c2hlsc__des"
+  ]
+}
