@@ -1,0 +1,26 @@
+task_id = "amd_intro__pipelining_loops_perfect_loop"
+task_type = "optimize"
+difficulty = 3
+top = "loop_perfect"
+kernel_file = "loop_perfect.cpp"
+header_files = ["loop_perfect.h"]
+public_tb = "loop_perfect_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/perfect_loop"
+license = "Apache-2.0"
+top_function = "loop_perfect"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Pipelining/Loops/perfect_loop"
+source_sha256 = "7eee2b554168a2e0f9b4888f1a39b3f9de5c8fd36f20bdd790d9a3e2c1c20a73"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

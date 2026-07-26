@@ -1,0 +1,26 @@
+task_id = "amd_intro__task_level_parallelism_control_driven_directio_ap_hs"
+task_type = "optimize"
+difficulty = 3
+top = "krnl_stream_vdatamover"
+kernel_file = "krnl_stream_vdatamover.cpp"
+header_files = ["dut.h"]
+public_tb = "krnl_stream_vdatamover_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/directio/ap_hs"
+license = "Apache-2.0"
+top_function = "krnl_stream_vdatamover"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Task_level_Parallelism/Control_driven/directio/ap_hs"
+source_sha256 = "fb9aa98fd1b156223b75a99f8b66695a6cd8bea74a60c0a96d7975f2bea6cb6e"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

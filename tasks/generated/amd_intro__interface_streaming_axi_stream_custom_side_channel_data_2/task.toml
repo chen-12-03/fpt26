@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_streaming_axi_stream_custom_side_channel_data_2"
+task_type = "optimize"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axi_stream_custom_side_channel_data_2"
+license = "Apache-2.0"
+top_function = "example"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Streaming/axi_stream_custom_side_channel_data_2"
+source_sha256 = "09395f1923782e531ad1e11e1355949db199bcc289530f34b84d93f01df17a91"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

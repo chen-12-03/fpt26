@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "purpose": "phase2b_expanded_qor_rag_single_task_real_api_ab",
+  "task_count": 1,
+  "tasks": [
+    "dotProduct_optimize"
+  ],
+  "baseline": {
+    "submission_report": "runs/phase2a_official_fresh_20260724_v3/dotProduct_optimize/submission/dotProduct_optimize/run_report.json",
+    "evaluator_report": "runs/phase2a_official_fresh_20260724_v3/dotProduct_optimize/evaluator/dotProduct_optimize/run_report.json",
+    "status": "completed",
+    "evaluator_status": "completed",
+    "score": 76.5,
+    "valid": true,
+    "q_hw": 0.7666,
+    "latency_ratio": 1.99,
+    "frequency_mhz": 315.45741324921136,
+    "api_requests": 1,
+    "prompt_tokens": 3823,
+    "completion_tokens": 104,
+    "total_tokens": 3927,
+    "credits_spent": 10,
+    "tool_calls": 4
+  },
+  "candidate": {
+    "submission_report": "runs/phase2b_single_dot_current_rag_20260725/tasks/dotProduct_optimize/attempt_001/submission/dotProduct_optimize/run_report.json",
+    "evaluator_report": "runs/phase2b_single_dot_current_rag_20260725/tasks/dotProduct_optimize/attempt_001/evaluator/dotProduct_optimize/run_report.json",
+    "shard_summary": "runs/phase2b_single_dot_current_rag_20260725/shard_summary.json",
+    "status": "completed",
+    "evaluator_status": "completed",
+    "outcome": "completed",
+    "score": 76.5,
+    "valid": true,
+    "q_hw": 0.7666,
+    "latency_ratio": 1.99,
+    "frequency_mhz": 315.45741324921136,
+    "api_requests": 1,
+    "prompt_tokens": 4133,
+    "completion_tokens": 101,
+    "total_tokens": 4234,
+    "credits_spent": 10,
+    "tool_calls": 4
+  },
+  "comparison": {
+    "correctness_preserved": true,
+    "score_delta": 0.0,
+    "q_hw_delta": 0.0,
+    "api_request_delta": 0,
+    "total_token_delta": 307,
+    "total_token_relative_change": 0.078177,
+    "mean_tokens_per_request_baseline": 3927.0,
+    "mean_tokens_per_request_candidate": 4234.0,
+    "mean_tokens_per_task_baseline": 3927.0,
+    "mean_tokens_per_task_candidate": 4234.0,
+    "mean_credits_per_task_baseline": 10.0,
+    "mean_credits_per_task_candidate": 10.0,
+    "credit_delta": 0,
+    "credit_relative_change": 0.0
+  },
+  "limitations": [
+    "Single-task real API A/B only; it is not a full expanded-RAG acceptance claim.",
+    "Full validation still requires fresh split-role real API + Vitis acceptance over the 199-task corpus."
+  ]
+}

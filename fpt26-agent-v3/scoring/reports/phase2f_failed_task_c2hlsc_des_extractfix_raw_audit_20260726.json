@@ -1,0 +1,40 @@
+{
+  "execution_source_stable_during_run": true,
+  "model_and_api": {
+    "completion_tokens": 8192,
+    "failed_request_count": 0,
+    "prompt_tokens": 22216,
+    "request_count": 2,
+    "total_tokens": 30408,
+    "unreported_response_count": 0
+  },
+  "outcome_counts": {
+    "failed": 1
+  },
+  "recomputed_audit_error_task_count": 0,
+  "recorded_task_count": 1,
+  "records": [
+    {
+      "evaluator_grading": null,
+      "evaluator_grading_results": [],
+      "evaluator_score": null,
+      "evaluator_status": null,
+      "evaluator_stop_reason": null,
+      "expected_grading_source": "hidden",
+      "outcome": "failed",
+      "recomputed_audit_errors": [],
+      "recomputed_audit_ok": true,
+      "submission_api_requests": 2,
+      "submission_credits_spent": 5,
+      "submission_frequency_mhz": 619.5786864931846,
+      "submission_status": "failed",
+      "submission_stop_reason": "interface_failed",
+      "submission_total_tokens": 30408,
+      "task_id": "c2hlsc__des"
+    }
+  ],
+  "run_root": "runs/phase2f_failed_task_c2hlsc_des_extractfix_20260726",
+  "schema_version": 1,
+  "selected_task_count": 1,
+  "source_shard_summary": "runs/phase2f_failed_task_c2hlsc_des_extractfix_20260726/shard_summary.json"
+}

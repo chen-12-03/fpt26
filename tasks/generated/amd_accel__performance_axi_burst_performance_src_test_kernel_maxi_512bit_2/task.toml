@@ -1,0 +1,26 @@
+task_id = "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2"
+task_type = "optimize"
+difficulty = 3
+top = "test_kernel_maxi_512bit_2"
+kernel_file = "test_kernel_maxi_512bit_2.cpp"
+header_files = ["test_kernel_common.hpp"]
+public_tb = "test_kernel_maxi_512bit_2_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_accel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance"
+license = "MIT"
+top_function = "test_kernel_maxi_512bit_2"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+source_path = "performance/axi_burst_performance"
+source_sha256 = "efb41ba41bcb9677b5519e1abd4294f1e8dfa824180a2919d53b5dc4f2571588"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

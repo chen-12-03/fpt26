@@ -76,6 +76,18 @@ class TestEnvSanitisation:
         assert "PATH" in clean
         assert "FPT26_LLM_SECRET" not in clean
 
+    def test_keeps_locale_path_without_secret_vars(self):
+        env = {
+            "LOCPATH": "/tmp/fpt26_locale_dirs/usr/lib/locale",
+            "LC_ALL": "en_US.UTF-8",
+            "PATH": "/usr/bin",
+            "FPT26_LLM_API_KEY": "sk-secret",
+        }
+        clean = sanitise_env(env)
+        assert clean["LOCPATH"] == "/tmp/fpt26_locale_dirs/usr/lib/locale"
+        assert clean["LC_ALL"] == "en_US.UTF-8"
+        assert "FPT26_LLM_API_KEY" not in clean
+
     def test_extra_allowlist(self):
         env = {
             "PATH": "/usr/bin",

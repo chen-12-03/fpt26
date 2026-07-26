@@ -4,7 +4,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from agent.validation import CandidateValidator, frequency_gate, resource_gate
+from agent.validation import (
+    CandidateValidator,
+    extract_code,
+    frequency_gate,
+    resource_gate,
+    validate_candidate,
+)
 from llm4hls.task import Task
 
 
@@ -78,6 +84,47 @@ def test_candidate_hidden_reference_embedding_fails() -> None:
     )
     assert not result.ok
     assert result.reason == "hidden_or_reference_embedding"
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        f"```CPP\n{_STARTER}```",
+        f"```cxx\r\n{_STARTER}```",
+        f"```cpp {_STARTER}```",
+        f"```cpp title=kernel.cpp\n{_STARTER}```",
+        f"```cpp\n{_STARTER}",
+    ],
+)
+def test_extract_code_accepts_common_markdown_fence_variants(response: str) -> None:
+    code = extract_code(response)
+    assert code is not None
+    assert "```" not in code
+    assert CandidateValidator.from_task(_task()).validate(code).ok
+
+
+def test_interface_failure_records_bounded_source_diagnostics() -> None:
+    state = SimpleNamespace(
+        task=_task(),
+        kernel=_STARTER,
+        metadata={},
+        log=lambda message: None,
+    )
+    candidate = f"```cpp\n{_STARTER}"
+
+    assert not validate_candidate(
+        state, candidate, stage="optimize_candidate_1", current_best=False
+    )
+
+    record = state.metadata["interface_validations"][-1]
+    diagnostics = record["source_diagnostics"]
+    assert record["reason"] == "markdown_fence_in_candidate"
+    assert diagnostics["char_count"] == len(candidate)
+    assert diagnostics["markdown_fence_count"] == 1
+    assert diagnostics["first_markdown_fence_offset"] == 0
+    assert diagnostics["starts_with_markdown_fence"] is True
+    assert diagnostics["has_top_function_token"] is True
+    assert "source_sha256" in diagnostics
 
 
 @pytest.mark.parametrize("period", [9.99, 10.0])

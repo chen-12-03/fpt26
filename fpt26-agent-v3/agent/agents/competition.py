@@ -208,6 +208,8 @@ class DiverseOptimizationStage:
                 search_strategy=strategy,
                 shared_candidate_fingerprints=shared_fingerprints,
                 stop_after_first_measured=True,
+                early_stop_on_qhw_improvement=False,
+                generalized_qor_rag=True,
             )
             child = agent.run(child)
             new_results = child.results[baseline_result_count:]
@@ -310,6 +312,12 @@ class DiverseOptimizationStage:
             "selector": "highest_measured_q_hw",
             "scoring_profile": self.scoring_profile,
             "sequential_vitis": True,
+            "qor_rag_generalized": True,
+            "qor_rag_policy": (
+                "competition lanes force generalized QoR-RAG so legacy "
+                "specialist fallback and exact-source measured-case boosts "
+                "cannot influence formal strategy selection"
+            ),
             "strategies": strategy_results,
             "winner": strategies[winner_index]["name"],
         }

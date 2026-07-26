@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "purpose": "phase2f_qor_rag_small_ab_aes1_preflight_attempt",
+  "status": "preflight_failed",
+  "evidence_level": "environment_preflight_only",
+  "run_label": "phase2f_qor_rag_small_ab_aes1",
+  "source_plan": "fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_aes1_plan_20260725.json",
+  "task_count": 1,
+  "tasks": [
+    "machsuite__aes_aes"
+  ],
+  "lane_attempted": "legacy_baseline",
+  "candidate_lane_run": false,
+  "output_root": "runs/phase2f_qor_rag_small_ab_aes1_legacy_20260725",
+  "attempt_root": "runs/phase2f_qor_rag_small_ab_aes1_legacy_20260725/tasks/machsuite__aes_aes/attempt_001",
+  "shard_summary": "runs/phase2f_qor_rag_small_ab_aes1_legacy_20260725/shard_summary.json",
+  "submission_report": "runs/phase2f_qor_rag_small_ab_aes1_legacy_20260725/tasks/machsuite__aes_aes/attempt_001/submission/machsuite__aes_aes/run_report.json",
+  "guardrails": {
+    "full199_allowed": false,
+    "execution_freeze_update_allowed": false,
+    "max_real_api_vitis_tasks": 3
+  },
+  "failure": {
+    "type": "TaskPreflightError",
+    "stop_reason": "task_preflight_failed",
+    "message": "configured Vitis environment did not produce a valid version banner",
+    "root_cause": "The local Vitis wrapper forces LC_ALL=en_US.UTF-8, but that locale is unavailable in the current host environment, so vitis-run --version aborts before producing a version banner.",
+    "diagnostic_command": "/tools/Xilinx/2025.2/Vitis/bin/vitis-run --version",
+    "diagnostic_return_code": 134,
+    "diagnostic_excerpt": "locale::facet::_S_create_c_locale name not valid"
+  },
+  "metrics": {
+    "completed": 0,
+    "failed": 1,
+    "success_rate": 0.0,
+    "mean_tokens_per_task": null,
+    "mean_requests_per_task": null,
+    "mean_score_completed_tasks": null,
+    "candidate_q_hw_geomean": null,
+    "q_hw_relative_change": null
+  },
+  "completion_boundary": {
+    "may_claim_qor_repair": false,
+    "may_claim_generalized_improvement": false,
+    "may_update_execution_freeze_json": false,
+    "reason": "The A/B run did not reach model generation or Vitis evaluation, and the candidate lane was intentionally not launched after the baseline environment preflight failed."
+  }
+}

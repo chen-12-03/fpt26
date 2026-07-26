@@ -1,0 +1,743 @@
+{
+  "findings": [
+    {
+      "assessment": "Generalized retrieval rejects measured cases whose source matches the current task id, and exact dotProduct/popcount measured boosts are gated behind not generalized.",
+      "evidence": [
+        {
+          "line": 727,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if {\"reduction\", \"dot\", \"popcount\", \"accumulate\"} & description or {"
+        },
+        {
+          "line": 889,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if entry.kind != \"rule\" and not generalized:"
+        },
+        {
+          "line": 892,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "\"dot_product\" in entry.tags"
+        },
+        {
+          "line": 897,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if \"popcount\" in entry.tags and \"popcount\" in description:"
+        },
+        {
+          "line": 927,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if generalized and _source_matches_task_id(entry.source, query.task_id):"
+        },
+        {
+          "line": 940,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "\"popcount\","
+        },
+        {
+          "line": 948,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if \"dot_product\" not in entry.tags and \"dotproduct\" not in entry_semantics:"
+        },
+        {
+          "line": 953,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if \"dot_product\" in entry.tags:"
+        },
+        {
+          "line": 958,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "if \"popcount\" in entry.tags:"
+        },
+        {
+          "line": 959,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "return \"popcount\" in description"
+        }
+      ],
+      "id": "generalized_qor_rag_exact_source_guard",
+      "mitigation": [
+        "Use FPT26_QOR_RAG_GENERALIZED=1 for formal lanes.",
+        "Keep tests proving exact-source measured cases are excluded."
+      ],
+      "recommendation": "No code change required; keep as a regression guard.",
+      "risk": "low",
+      "runtime_surface": "agent_runtime"
+    },
+    {
+      "assessment": "The legacy specialist fallback uses description keywords for CORDIC/reduction/popcount-style workloads.  It is not a concrete task-id answer branch, but it is a compatibility path that can bias retrieval when generalized mode is off; competition strategy lanes force generalized retrieval.",
+      "evidence": [
+        {
+          "line": 243,
+          "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+          "snippet": "if not generalized_qor_rag and _prefer_legacy_specialist("
+        },
+        {
+          "line": 586,
+          "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+          "snippet": "def _prefer_legacy_specialist("
+        },
+        {
+          "line": 595,
+          "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+          "snippet": "if family == \"CORDIC / Trigonometric Optimization\":"
+        },
+        {
+          "line": 607,
+          "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+          "snippet": "\"popcount\","
+        },
+        {
+          "line": 212,
+          "path": "fpt26-agent-v3/agent/agents/competition.py",
+          "snippet": "generalized_qor_rag=True,"
+        },
+        {
+          "line": 315,
+          "path": "fpt26-agent-v3/agent/agents/competition.py",
+          "snippet": "\"qor_rag_generalized\": True,"
+        },
+        {
+          "line": 317,
+          "path": "fpt26-agent-v3/agent/agents/competition.py",
+          "snippet": "\"competition lanes force generalized QoR-RAG so legacy \""
+        }
+      ],
+      "id": "legacy_specialist_fallback_compatibility_path",
+      "mitigation": [
+        "Disabled in generalized mode.",
+        "DiverseOptimizationStage forces generalized QoR-RAG for competition-like strategy lanes.",
+        "A/B plan uses FPT26_QOR_RAG_GENERALIZED=1 for candidate lane."
+      ],
+      "recommendation": "If generalized small A/B passes, make generalized mode the default for competition-like runs and keep legacy only for controlled ablation.",
+      "risk": "medium",
+      "runtime_surface": "agent_runtime"
+    },
+    {
+      "assessment": "qor_rag_curate.py can derive workload tags from task_id text for legacy asset generation.  This is not runtime retrieval, but it can leak benchmark naming into measured-case tags.",
+      "evidence": [
+        {
+          "line": 81,
+          "path": "fpt26-agent-v3/agent/qor_rag_curate.py",
+          "snippet": "semantic_tags = _semantic_tags(task_id) if derive_task_id_tags else []"
+        },
+        {
+          "line": 328,
+          "path": "fpt26-agent-v3/agent/qor_rag_curate.py",
+          "snippet": "def _semantic_tags(task_id: str) -> list[str]:"
+        },
+        {
+          "line": 332,
+          "path": "fpt26-agent-v3/agent/qor_rag_curate.py",
+          "snippet": "(\"dotproduct\", \"dot_product\"),"
+        },
+        {
+          "line": 334,
+          "path": "fpt26-agent-v3/agent/qor_rag_curate.py",
+          "snippet": "(\"gemm\", \"gemm\"),"
+        },
+        {
+          "line": 335,
+          "path": "fpt26-agent-v3/agent/qor_rag_curate.py",
+          "snippet": "(\"matmul\", \"gemm\"),"
+        },
+        {
+          "line": 350,
+          "path": "fpt26-agent-v3/agent/qor_rag_curate.py",
+          "snippet": "\"--no-task-id-tags\","
+        }
+      ],
+      "id": "task_id_tag_derivation_in_curator",
+      "mitigation": [
+        "--no-task-id-tags is available.",
+        "Generalized retrieval can ignore exact source/task matches."
+      ],
+      "recommendation": "Use --no-task-id-tags for any future generalized measured-case promotion.",
+      "risk": "medium",
+      "runtime_surface": "offline_tool"
+    },
+    {
+      "assessment": "knowledge.py contains workload words such as gemm, stencil, AES, Cholesky, and CORDIC.  They trigger family-level rules from description/source metadata/diagnostics rather than specific task-id branches.",
+      "evidence": [
+        {
+          "line": 649,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"gemm\"] = 1.0"
+        },
+        {
+          "line": 658,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"linear_algebra_factorization\"] = 1.0"
+        },
+        {
+          "line": 660,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"stencil\"] = 1.0"
+        },
+        {
+          "line": 697,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"crypto_lookup\"] = 1.0"
+        },
+        {
+          "line": 712,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"gemm\"] = max(signals.get(\"gemm\", 0.0), 2.5)"
+        },
+        {
+          "line": 720,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"linear_algebra_factorization\"] = max("
+        },
+        {
+          "line": 726,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"stencil\"] = max(signals.get(\"stencil\", 0.0), 2.5)"
+        },
+        {
+          "line": 763,
+          "path": "fpt26-agent-v3/agent/knowledge.py",
+          "snippet": "signals[\"crypto_lookup\"] = max("
+        }
+      ],
+      "id": "family_level_workload_lexicon",
+      "mitigation": [
+        "Signals are combined with source metadata and diagnostics.",
+        "Exact measured cases are filtered in generalized mode."
+      ],
+      "recommendation": "Keep lexicon terms tied to reusable families; avoid adding new concrete task ids here.",
+      "risk": "medium_low",
+      "runtime_surface": "agent_runtime"
+    },
+    {
+      "assessment": "Tools contain fixed task ids for Phase 2F small-sample plans and tripcount probes.  These are report/planning defaults, not agent runtime decision branches.",
+      "evidence": [
+        {
+          "line": 114,
+          "path": "tools/offline_agent_triage.py",
+          "snippet": "\"machsuite__aes_aes\",",
+          "value": "machsuite__aes_aes"
+        },
+        {
+          "line": 115,
+          "path": "tools/offline_agent_triage.py",
+          "snippet": "\"machsuite__gemm_blocked\",",
+          "value": "machsuite__gemm_blocked"
+        },
+        {
+          "line": 116,
+          "path": "tools/offline_agent_triage.py",
+          "snippet": "\"polybench__cholesky\",",
+          "value": "polybench__cholesky"
+        },
+        {
+          "line": 365,
+          "path": "tools/offline_agent_triage.py",
+          "snippet": "\"machsuite__aes_aes\": \"hlsgen.crypto.lookup_round_guard\",",
+          "value": "machsuite__aes_aes"
+        },
+        {
+          "line": 366,
+          "path": "tools/offline_agent_triage.py",
+          "snippet": "\"polybench__cholesky\": (",
+          "value": "polybench__cholesky"
+        },
+        {
+          "line": 369,
+          "path": "tools/offline_agent_triage.py",
+          "snippet": "\"machsuite__gemm_blocked\": \"hlsgen.gemm.tiled_reuse\",",
+          "value": "machsuite__gemm_blocked"
+        },
+        {
+          "line": 22,
+          "path": "tools/prepare_tripcount_patch_sample.py",
+          "snippet": "\"amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd\",",
+          "value": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd"
+        },
+        {
+          "line": 23,
+          "path": "tools/prepare_tripcount_patch_sample.py",
+          "snippet": "\"amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel\",",
+          "value": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel"
+        }
+      ],
+      "id": "fixed_small_sample_task_lists",
+      "mitigation": [
+        "Reports label these as small-sample evidence or execution plans.",
+        "run_p0_real_api_shard.py still requires explicit --task-id selection."
+      ],
+      "recommendation": "Keep fixed samples under tools/evals/reports and do not import them from agent runtime modules.",
+      "risk": "low",
+      "runtime_surface": "offline_tool"
+    },
+    {
+      "assessment": "Many concrete task ids appear in tests and historical analysis scripts.  They are fixtures or representative-report labels, not live optimization policy.",
+      "evidence": [
+        {
+          "line": 27,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"dotProduct_optimize\": \"only observed slower-but-smaller point; official reference trade-off\",",
+          "value": "dotProduct_optimize"
+        },
+        {
+          "line": 28,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"c2hlsc__add_round_key\": \"neutral final/reference identity control\",",
+          "value": "c2hlsc__add_round_key"
+        },
+        {
+          "line": 29,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"gnnbuilder__gather_node_neighbors\": \"lowest-composite faster-but-larger point near neutral\",",
+          "value": "gnnbuilder__gather_node_neighbors"
+        },
+        {
+          "line": 30,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"rosetta__optical_flow__outer_product\": \"approximately 2x speed for 2x DSP trade-off\",",
+          "value": "rosetta__optical_flow__outer_product"
+        },
+        {
+          "line": 31,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"c2hlsc__cusums\": \"moderate faster-but-larger trade-off\",",
+          "value": "c2hlsc__cusums"
+        },
+        {
+          "line": 32,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"machsuite__gemm_blocked\": \"extreme speedup with extreme FF growth\",",
+          "value": "machsuite__gemm_blocked"
+        },
+        {
+          "line": 33,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"c2hlsc__block\": \"large clock-aware speedup with moderate LUT growth\",",
+          "value": "c2hlsc__block"
+        },
+        {
+          "line": 34,
+          "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+          "snippet": "\"polybench__trmm\": \"small performance gain with no worst-resource growth\",",
+          "value": "polybench__trmm"
+        }
+      ],
+      "id": "tests_and_historical_analysis_literals",
+      "mitigation": [
+        "Tests assert generalized behavior rather than driving runtime output.",
+        "Historical analysis scripts are outside agent.main execution."
+      ],
+      "recommendation": "No action unless a test fixture is imported by runtime code.",
+      "risk": "low",
+      "runtime_surface": "tests/offline_analysis"
+    }
+  ],
+  "literal_scan_summary": {
+    "agent_runtime_task_id_literal_count": 0,
+    "agent_runtime_workload_literal_count": 92,
+    "by_kind": {
+      "task_id_literal": 183,
+      "workload_literal": 229
+    },
+    "by_surface": {
+      "agent_runtime": 92,
+      "documentation": 20,
+      "offline_analysis": 11,
+      "offline_tool": 87,
+      "scoring_runtime": 14,
+      "tests": 188
+    },
+    "total_occurrences": 412
+  },
+  "overall_conclusion": {
+    "generalized_runtime_ready": true,
+    "high_risk_task_answer_hardcoding_found": false,
+    "summary": "No runtime branch was found that returns a task-specific kernel or optimization answer for a concrete task id.  The remaining medium risks are compatibility paths or task-id tag curation defaults that are mitigated by FPT26_QOR_RAG_GENERALIZED=1 and --no-task-id-tags."
+  },
+  "purpose": "phase2f_static_agent_hardcoding_audit",
+  "recommended_next_actions": [
+    "Use FPT26_QOR_RAG_GENERALIZED=1 for formal QoR-RAG A/B and competition-like lanes.",
+    "Use qor_rag_curate.py --no-task-id-tags when promoting future measured cases into generalized assets.",
+    "Keep fixed task lists in tools/reports only; do not move them into agent runtime decision paths.",
+    "After each retrieval change, rerun generalized exact-source tests and retrieval eval before any 1-3 task measured A/B."
+  ],
+  "representative_occurrences": [
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 595,
+      "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "if family == \"CORDIC / Trigonometric Optimization\":",
+      "value": "CORDIC"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 602,
+      "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"dotproduct\" in lowered or \"dot product\" in lowered",
+      "value": "dot product"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 602,
+      "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"dotproduct\" in lowered or \"dot product\" in lowered",
+      "value": "dotproduct"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 607,
+      "path": "fpt26-agent-v3/agent/agents/optimization/controller.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"popcount\",",
+      "value": "popcount"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 646,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "if {\"gemm\", \"matmul\", \"multiply\", \"multiplication\"} & combined and (",
+      "value": "gemm"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 646,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "if {\"gemm\", \"matmul\", \"multiply\", \"multiplication\"} & combined and (",
+      "value": "matmul"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 651,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"cholesky\",",
+      "value": "cholesky"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 652,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"lu\",",
+      "value": "lu"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 659,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "if {\"stencil\", \"neighbor\", \"grid\", \"window\"} & combined:",
+      "value": "stencil"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 684,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"aes\",",
+      "value": "aes"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 685,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"cipher\",",
+      "value": "cipher"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 698,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "if {\"math\", \"floating\", \"float\", \"cordic\", \"fir\", \"fft\", \"unsafe\"} & combined:",
+      "value": "fft"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 698,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "if {\"math\", \"floating\", \"float\", \"cordic\", \"fir\", \"fft\", \"unsafe\"} & combined:",
+      "value": "fir"
+    },
+    {
+      "context": "code",
+      "kind": "workload_literal",
+      "line": 933,
+      "path": "fpt26-agent-v3/agent/knowledge.py",
+      "runtime_surface": "agent_runtime",
+      "snippet": "\"des\",",
+      "value": "des"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 6,
+      "path": "fpt26-agent-v3/agent/main.py",
+      "runtime_surface": "documentation",
+      "snippet": "python -m agent.main --task tasks/projection_bugfix --mode baseline",
+      "value": "projection_bugfix"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 7,
+      "path": "fpt26-agent-v3/agent/main.py",
+      "runtime_surface": "documentation",
+      "snippet": "python -m agent.main --task tasks/dotProduct_optimize --mode full",
+      "value": "dotProduct_optimize"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 8,
+      "path": "fpt26-agent-v3/agent/main.py",
+      "runtime_surface": "documentation",
+      "snippet": "python -m agent.main --task tasks/residual_stream_deadlock --mode full --competition",
+      "value": "residual_stream_deadlock"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 27,
+      "path": "fpt26-agent-v3/agent/security/paths.py",
+      "runtime_surface": "documentation",
+      "snippet": "# (\"polybench__gemm\"), and numeric benchmark segments (\"polybench__3mm\",",
+      "value": "polybench__3mm"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 27,
+      "path": "fpt26-agent-v3/agent/security/paths.py",
+      "runtime_surface": "documentation",
+      "snippet": "# (\"polybench__gemm\"), and numeric benchmark segments (\"polybench__3mm\",",
+      "value": "polybench__gemm"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 28,
+      "path": "fpt26-agent-v3/agent/security/paths.py",
+      "runtime_surface": "documentation",
+      "snippet": "# \"rosetta__rendering_3d__projection\") are valid.",
+      "value": "rosetta__rendering_3d__projection"
+    },
+    {
+      "context": "documentation",
+      "kind": "workload_literal",
+      "line": 23,
+      "path": "fpt26-agent-v3/tests/test_agent_hardcoding_audit.py",
+      "runtime_surface": "documentation",
+      "snippet": "if \"dot_product\" in entry.tags and \"dotproduct\" in query.description:",
+      "value": "dotproduct"
+    },
+    {
+      "context": "documentation",
+      "kind": "workload_literal",
+      "line": 25,
+      "path": "fpt26-agent-v3/tests/test_agent_hardcoding_audit.py",
+      "runtime_surface": "documentation",
+      "snippet": "if {\"gemm\", \"matmul\"}:",
+      "value": "gemm"
+    },
+    {
+      "context": "documentation",
+      "kind": "workload_literal",
+      "line": 25,
+      "path": "fpt26-agent-v3/tests/test_agent_hardcoding_audit.py",
+      "runtime_surface": "documentation",
+      "snippet": "if {\"gemm\", \"matmul\"}:",
+      "value": "matmul"
+    },
+    {
+      "context": "documentation",
+      "kind": "workload_literal",
+      "line": 27,
+      "path": "fpt26-agent-v3/tests/test_agent_hardcoding_audit.py",
+      "runtime_surface": "documentation",
+      "snippet": "if {\"stencil\"}:",
+      "value": "stencil"
+    },
+    {
+      "context": "documentation",
+      "kind": "workload_literal",
+      "line": 40,
+      "path": "fpt26-agent-v3/tests/test_agent_hardcoding_audit.py",
+      "runtime_surface": "documentation",
+      "snippet": "return \"popcount\" in description or \"CORDIC\" in description",
+      "value": "CORDIC"
+    },
+    {
+      "context": "documentation",
+      "kind": "workload_literal",
+      "line": 40,
+      "path": "fpt26-agent-v3/tests/test_agent_hardcoding_audit.py",
+      "runtime_surface": "documentation",
+      "snippet": "return \"popcount\" in description or \"CORDIC\" in description",
+      "value": "popcount"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 67,
+      "path": "fpt26-agent-v3/tests/test_p0_batch_runner.py",
+      "runtime_surface": "documentation",
+      "snippet": "\"amd_accel__a\",",
+      "value": "amd_accel__a"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 68,
+      "path": "fpt26-agent-v3/tests/test_p0_batch_runner.py",
+      "runtime_surface": "documentation",
+      "snippet": "\"amd_intro__b\"",
+      "value": "amd_intro__b"
+    },
+    {
+      "context": "documentation",
+      "kind": "task_id_literal",
+      "line": 18,
+      "path": "fpt26-agent-v3/tests/test_tripcount_patch_sample.py",
+      "runtime_surface": "documentation",
+      "snippet": "task_id = \"amd_accel__sample\"",
+      "value": "amd_accel__sample"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 27,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"dotProduct_optimize\": \"only observed slower-but-smaller point; official reference trade-off\",",
+      "value": "dotProduct_optimize"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 28,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"c2hlsc__add_round_key\": \"neutral final/reference identity control\",",
+      "value": "c2hlsc__add_round_key"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 29,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"gnnbuilder__gather_node_neighbors\": \"lowest-composite faster-but-larger point near neutral\",",
+      "value": "gnnbuilder__gather_node_neighbors"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 30,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"rosetta__optical_flow__outer_product\": \"approximately 2x speed for 2x DSP trade-off\",",
+      "value": "rosetta__optical_flow__outer_product"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 31,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"c2hlsc__cusums\": \"moderate faster-but-larger trade-off\",",
+      "value": "c2hlsc__cusums"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 32,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"machsuite__gemm_blocked\": \"extreme speedup with extreme FF growth\",",
+      "value": "machsuite__gemm_blocked"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 33,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"c2hlsc__block\": \"large clock-aware speedup with moderate LUT growth\",",
+      "value": "c2hlsc__block"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 34,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"polybench__trmm\": \"small performance gain with no worst-resource growth\",",
+      "value": "polybench__trmm"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 35,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"polybench__cholesky\": \"balanced faster-and-smaller Pareto improvement\",",
+      "value": "polybench__cholesky"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 36,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "\"machsuite__aes_aes\": \"strongest observed faster-and-smaller Pareto improvement\",",
+      "value": "machsuite__aes_aes"
+    },
+    {
+      "context": "code",
+      "kind": "task_id_literal",
+      "line": 205,
+      "path": "fpt26-agent-v3/scoring/analyze_all_real_api.py",
+      "runtime_surface": "offline_analysis",
+      "snippet": "if task_id == \"residual_stream_deadlock\":",
+      "value": "residual_stream_deadlock"
+    }
+  ],
+  "risk_counts": {
+    "low": 3,
+    "medium": 2,
+    "medium_low": 1
+  },
+  "schema_version": 1,
+  "scope": {
+    "no_api_or_vitis": true,
+    "no_hidden_reference_or_evaluator_reads": true,
+    "repo_root": "/home/chen1/projects/fpt26_new",
+    "source_globs": [
+      "fpt26-agent-v3/agent/**/*.py",
+      "fpt26-agent-v3/scoring/**/*.py",
+      "tools/**/*.py",
+      "fpt26-agent-v3/tests/**/*.py"
+    ]
+  },
+  "status": "static_audit_only"
+}

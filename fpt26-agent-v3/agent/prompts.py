@@ -154,6 +154,14 @@ def build_prompt(
             separators=(",", ":"),
             ensure_ascii=False,
         )
+    domain_constraints = _domain_constraints_for_prompt(
+        description=task.description or "",
+        synth_result=synth_result,
+        bottleneck_hint=bottleneck_hint,
+        knowledge_hint=knowledge_hint,
+    )
+    if domain_constraints:
+        payload["domain_constraints"] = domain_constraints
 
     # Streaming context — derived from task properties, not task type label
     if task.requires_cosim:
@@ -185,6 +193,8 @@ def build_prompt(
         "change, obey recommended_next_constraint, and do not repeat the same candidate or failure pattern.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_STRATEGY_CONTRACT: no candidate tool was run. Stay in the same search_strategy and correct the exact contract violation; do not switch to another lane or repeat the rejected architecture.\n"
+        "- If previous_candidate_feedback.status is REJECTED_BY_INTERFACE_GATE: no candidate tool was run. Obey required_next_action exactly: regenerate a complete C/C++ translation unit, preserve required includes and the exact top function signature, include the top_function token, and balance all braces/parentheses before making any QoR change.\n"
+        "- If domain_constraints is present: it is a hard constraint derived from public task text plus measured synth diagnostics. Apply its required_candidate_shape before generic QoR advice or measured examples; do not produce a candidate listed in forbidden_candidate_shapes.\n"
         "- If measured_action_contract is present: treat its target, required_candidate_delta, forbidden_as_non_responsive, dimension policy, and verification as hard planning constraints. Implement one recommended minimal trial only when the editable source proves the required dimension; otherwise use its locality alternative or return editable_kernel unchanged.\n"
         "- For other previous_candidate_feedback: the prior candidate was measured and rejected by scoring. "
         "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; never "
@@ -193,6 +203,67 @@ def build_prompt(
         "Return the FULL kernel source code. Keep the top function signature UNCHANGED."
     )
     return json.dumps(payload, indent=2, ensure_ascii=False)
+
+
+def _domain_constraints_for_prompt(
+    *,
+    description: str,
+    synth_result: str,
+    bottleneck_hint: str,
+    knowledge_hint: str,
+) -> dict[str, Any] | None:
+    text = " ".join(
+        str(part or "")
+        for part in (description, synth_result, bottleneck_hint, knowledge_hint)
+    ).lower()
+    if not (
+        "cholesky" in text
+        or (
+            "triangular" in text
+            and {"factorization", "decomposition"} & set(re.findall(r"[a-z0-9_]+", text))
+        )
+    ):
+        return None
+    reported_ii = _dominant_dependency_ii(text)
+    if reported_ii is None:
+        return None
+    return {
+        "kind": "triangular_factorization_dependency_guard",
+        "evidence": {
+            "public_description_signal": "cholesky_or_triangular_decomposition",
+            "reported_dependency_ii": reported_ii,
+        },
+        "required_candidate_shape": (
+            "Generate exactly one conservative trial: put "
+            f"#pragma HLS pipeline II={reported_ii} immediately inside the "
+            "outer row-order loop body that preserves Cholesky/triangular "
+            "dependency order. Keep the top signature and algorithm unchanged."
+        ),
+        "forbidden_candidate_shapes": [
+            "Do not add PIPELINE II=1 to the inner accumulation/update loops.",
+            "Do not flatten or interchange loops across triangular dependencies.",
+            "Do not partition the whole matrix for this trial.",
+            "Do not combine this trial with UNROLL or ARRAY_PARTITION.",
+        ],
+    }
+
+
+def _dominant_dependency_ii(text: str) -> int | None:
+    values: list[int] = []
+    for match in re.finditer(
+        r"(?:pipelineii|final\s+ii|ii)\s*(?:=|:)\s*(\d+)",
+        text,
+        flags=re.IGNORECASE,
+    ):
+        try:
+            value = int(match.group(1))
+        except ValueError:
+            continue
+        if 8 <= value <= 16:
+            values.append(value)
+    if values:
+        return max(values)
+    return None
 
 
 # ── Convenience builders ──────────────────────────────────────────────────

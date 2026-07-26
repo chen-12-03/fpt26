@@ -32,16 +32,53 @@ from scoring.scoring_v3 import check_capacity, verified_available_resources
 # Code extraction utility (was duplicated in 4 files)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_CODE_RE = re.compile(r"```(?:cpp|c\+\+|c)?\s*\n(.*?)```", re.DOTALL)
+_CODE_RE = re.compile(r"```(.*?)```", re.DOTALL)
+_FENCE_LANGS = ("cpp", "c++", "c", "cc", "cxx")
 
 
 def extract_code(text: str) -> str | None:
     """Extract kernel source from an LLM response (```cpp fenced block)."""
-    blocks = _CODE_RE.findall(text)
+    blocks = [_fenced_source(match) for match in _CODE_RE.findall(text)]
     if blocks:
         return blocks[0].strip() + "\n"
+    if "```" in text:
+        unfenced = _unmatched_fenced_source(text).strip()
+        if unfenced:
+            return unfenced + "\n"
     stripped = text.strip()
     return stripped + "\n" if stripped else None
+
+
+def _unmatched_fenced_source(text: str) -> str:
+    marker = text.find("```")
+    if marker < 0:
+        return text
+    content = text[marker + 3:]
+    return _fenced_source(content)
+
+
+def _fenced_source(content: str) -> str:
+    first, separator, rest = content.partition("\n")
+    first = first.rstrip("\r")
+    stripped = first.strip()
+    lowered = stripped.lower()
+    for lang in _FENCE_LANGS:
+        if lowered == lang:
+            return rest
+        prefix = lang + " "
+        if lowered.startswith(prefix):
+            after_lang = stripped[len(lang):].strip()
+            if _looks_like_cpp_source(after_lang):
+                return after_lang + (separator + rest if separator else "")
+            return rest
+    return content
+
+
+def _looks_like_cpp_source(text: str) -> bool:
+    return bool(text) and (
+        text.lstrip().startswith("#")
+        or any(token in text for token in (";", "{", "}", "(", ")"))
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -404,7 +441,15 @@ class CandidateValidator:
         ev = self.validate_interface(code)
         ev.stage = stage
         if state is not None:
-            _record_interface_into_state(state, stage, ev.interface.ok, ev.interface.reason)
+            _record_interface_into_state(
+                state,
+                stage,
+                ev.interface.ok,
+                ev.interface.reason,
+                code=code,
+                source_sha256=ev.source_sha256,
+                top=getattr(self._task, "top", ""),
+            )
         return ev
 
     # ── Public API ─────────────────────────────────────────────────────
@@ -621,13 +666,53 @@ class CandidateValidator:
 # Legacy state recording helpers (write into RunState.metadata)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _record_interface_into_state(state: Any, stage: str, ok: bool, reason: str | None) -> None:
+def _record_interface_into_state(
+    state: Any,
+    stage: str,
+    ok: bool,
+    reason: str | None,
+    *,
+    code: str | None = None,
+    source_sha256: str | None = None,
+    top: str = "",
+) -> None:
     if not isinstance(getattr(state, "metadata", None), dict):
         state.metadata = {}
     record = {"stage": stage, "ok": ok, "reason": reason}
+    if code is not None:
+        record["source_diagnostics"] = _source_diagnostics(
+            code, source_sha256=source_sha256, top=top
+        )
     state.metadata.setdefault("interface_validations", []).append(record)
     state.interface_ok = ok
     state.metadata["interface_gate"] = record
+
+
+def _source_diagnostics(
+    code: str,
+    *,
+    source_sha256: str | None,
+    top: str,
+) -> dict[str, Any]:
+    stripped = code.strip()
+    fence_offsets = [match.start() for match in re.finditer(r"```", code)]
+    return {
+        "source_sha256": source_sha256,
+        "char_count": len(code),
+        "line_count": code.count("\n") + (1 if code else 0),
+        "markdown_fence_count": len(fence_offsets),
+        "first_markdown_fence_offset": (
+            fence_offsets[0] if fence_offsets else None
+        ),
+        "last_markdown_fence_offset": (
+            fence_offsets[-1] if fence_offsets else None
+        ),
+        "starts_with_markdown_fence": stripped.startswith("```"),
+        "ends_with_markdown_fence": stripped.endswith("```"),
+        "has_top_function_token": bool(
+            top and re.search(rf"\b{re.escape(top)}\s*\(", code)
+        ),
+    }
 
 
 def _record_synth_into_state(state: Any, stage: str, report: Any, ev: CandidateEvaluation) -> None:
@@ -712,6 +797,10 @@ def validate_candidate(
     """Interface-gate check with RunState recording.  Import from here, not workflow."""
     if not isinstance(getattr(state, "metadata", None), dict):
         state.metadata = {}
+    had_interface_ok = hasattr(state, "interface_ok")
+    previous_interface_ok = getattr(state, "interface_ok", None)
+    had_interface_gate = "interface_gate" in state.metadata
+    previous_interface_gate = state.metadata.get("interface_gate")
     task = getattr(state, "task", None)
     starter = getattr(task, "kernel_code", None) if task else None
     if not starter:
@@ -723,6 +812,15 @@ def validate_candidate(
         state.metadata["interface_gate"] = {
             "stage": stage, "ok": ev.interface.ok, "reason": ev.interface.reason,
         }
+    else:
+        if had_interface_ok:
+            state.interface_ok = previous_interface_ok
+        elif hasattr(state, "interface_ok"):
+            delattr(state, "interface_ok")
+        if had_interface_gate:
+            state.metadata["interface_gate"] = previous_interface_gate
+        else:
+            state.metadata.pop("interface_gate", None)
     if not ev.interface.ok:
         if hasattr(state, "log"):
             state.log(f"{stage}: interface gate FAIL ({ev.interface.reason})")

@@ -1,0 +1,131 @@
+{
+  "audit": {
+    "command": "PYTHONPATH=fpt26-agent-v3:. python3 tools/finalize_failed_task_small_sample.py --plan fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_plan_20260725.json --run-root runs/phase2f_failed_task_small_sample_current_20260725 --output fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_measured_20260725.json",
+    "output_report": "fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_measured_20260725.json",
+    "raw_audit_command": "PYTHONPATH=fpt26-agent-v3:. python3 tools/audit_public_hls_sample.py --run-root runs/phase2f_failed_task_small_sample_current_20260725 --output fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_raw_audit_20260725.json",
+    "raw_audit_output_report": "fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_raw_audit_20260725.json"
+  },
+  "evidence_level": "execution_plan_only",
+  "guardrails": [
+    "Do not run full199 for this plan.",
+    "Do not update fpt26-agent-v3/execution-freeze.json from this plan.",
+    "Run at most 1-3 real API/Vitis tasks.",
+    "Write measured output under fpt26-agent-v3/scoring/reports/.",
+    "Label measured output as small-sample evidence, not acceptance."
+  ],
+  "offline_context": {
+    "measured_success_rate_repair_proven": false,
+    "post_quarantine_success_rate": 0.8662790697674418,
+    "remaining_failure_count": 23
+  },
+  "promotion_policy": {
+    "may_claim_success_rate_repair": "only after measured small sample improves or explains the representative failures and a later fresh acceptance confirms it",
+    "may_update_execution_freeze_json": "false for small samples; requires explicit fresh full199 acceptance"
+  },
+  "purpose": "phase2f_failed_task_success_rate_small_sample_plan",
+  "required_measured_fields": [
+    "task_id",
+    "outcome",
+    "submission status and stop_reason",
+    "evaluator status and stop_reason",
+    "score, frequency, interface/frequency/resource gate evidence",
+    "request_count, prompt_tokens, completion_tokens, total_tokens",
+    "credits_spent",
+    "recomputed audit errors"
+  ],
+  "run": {
+    "command": "PYTHONPATH=fpt26-agent-v3:. python3 -m scoring.run_p0_real_api_shard --task-root tasks --output-root runs/phase2f_failed_task_small_sample_current_20260725 --shard-index 0 --shard-count 1 --task-id c2hlsc__des --task-id pp4fpga__parallel_merge_sort --task-id amd_accel__performance_host_global_bandwidth_src_kernel",
+    "description": "Current agent recheck for representative remaining failures after offline triage/quarantine.",
+    "env": {
+      "PYTHONPATH": "fpt26-agent-v3:."
+    },
+    "output_root": "runs/phase2f_failed_task_small_sample_current_20260725"
+  },
+  "sample_policy": {
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "max_real_api_vitis_tasks": 3,
+    "measured_report_required": true,
+    "planned_task_count": 3
+  },
+  "schema_version": 1,
+  "selected_task_count": 3,
+  "selected_tasks": [
+    {
+      "family": "c2hlsc",
+      "prior_failure_reason": "interface_failed",
+      "prior_final_hardware": {
+        "clock_period_ns": 1.614,
+        "frequency_mhz": 619.5786864931846,
+        "interval_max": 92,
+        "latency_worst": 91,
+        "stage": "pipeline_synth"
+      },
+      "prior_frequency_mhz": 619.5786864931846,
+      "prior_interface_ok": false,
+      "prior_submission_status": "failed",
+      "prior_submission_stop_reason": "interface_failed",
+      "prior_token_usage": {
+        "completion_tokens": 8192,
+        "prompt_tokens": 22086,
+        "request_count": 2,
+        "total_tokens": 30278
+      },
+      "required_evidence": "fresh split-role real API/Vitis recheck for this representative failure task, followed by measured audit report",
+      "task_id": "c2hlsc__des",
+      "triage_class": "interface_contract_or_wrapper"
+    },
+    {
+      "family": "pp4fpga",
+      "prior_failure_reason": "frequency_failed",
+      "prior_final_hardware": {
+        "clock_period_ns": 10.607,
+        "frequency_mhz": 94.27736400490242,
+        "interval_max": 16,
+        "latency_worst": 75,
+        "stage": "pipeline_synth"
+      },
+      "prior_frequency_mhz": 94.27736400490242,
+      "prior_interface_ok": true,
+      "prior_submission_status": "failed",
+      "prior_submission_stop_reason": "frequency_failed",
+      "prior_token_usage": {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "request_count": 0,
+        "total_tokens": 0
+      },
+      "required_evidence": "fresh split-role real API/Vitis recheck for this representative failure task, followed by measured audit report",
+      "task_id": "pp4fpga__parallel_merge_sort",
+      "triage_class": "frequency_gate_or_over_parallelization"
+    },
+    {
+      "family": "amd_accel",
+      "prior_failure_reason": "frequency_failed",
+      "prior_final_hardware": {
+        "clock_period_ns": 0.0,
+        "frequency_mhz": null,
+        "interval_max": 1,
+        "latency_worst": 0,
+        "stage": "pipeline_synth"
+      },
+      "prior_frequency_mhz": null,
+      "prior_interface_ok": true,
+      "prior_submission_status": "failed",
+      "prior_submission_stop_reason": "frequency_failed",
+      "prior_token_usage": {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "request_count": 0,
+        "total_tokens": 0
+      },
+      "required_evidence": "fresh split-role real API/Vitis recheck for this representative failure task, followed by measured audit report",
+      "task_id": "amd_accel__performance_host_global_bandwidth_src_kernel",
+      "triage_class": "frequency_gate_or_over_parallelization"
+    }
+  ],
+  "source_triage_report": "fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json",
+  "status": "not_executed",
+  "task_list_output": "fpt26-agent-v3/evals/failed_task_small_sample_priority_tasks_latest.txt",
+  "task_list_text": "c2hlsc__des\npp4fpga__parallel_merge_sort\namd_accel__performance_host_global_bandwidth_src_kernel\n"
+}

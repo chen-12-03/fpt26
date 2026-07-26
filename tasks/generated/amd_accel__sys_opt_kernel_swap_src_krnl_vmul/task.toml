@@ -1,0 +1,26 @@
+task_id = "amd_accel__sys_opt_kernel_swap_src_krnl_vmul"
+task_type = "optimize"
+difficulty = 3
+top = "krnl_vmul"
+kernel_file = "krnl_vmul.cpp"
+header_files = []
+public_tb = "krnl_vmul_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_accel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/kernel_swap"
+license = "MIT"
+top_function = "krnl_vmul"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+source_path = "sys_opt/kernel_swap"
+source_sha256 = "6f8c9a5c7062ce5a6029952f732a034d4244a1d96f023a6f65faba429f998baf"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

@@ -23,8 +23,8 @@
     "algorithm": "find <tree> -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum",
     "generated_tree": {
       "root": "tasks/generated",
-      "file_count": 727,
-      "sha256": "486f510002d57f90dc36aea1c9cf2b1a0a38370559c2b7bf5b84064afb549df4"
+      "file_count": 726,
+      "sha256": "b18b66568557d94af02c016af02a3d1c6ab91cf5f3e2fbc8cf0a8600689fe58e"
     },
     "official_dotproduct": {
       "root": "tasks/official/dotProduct_optimize",

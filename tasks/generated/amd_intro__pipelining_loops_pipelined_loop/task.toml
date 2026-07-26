@@ -1,0 +1,26 @@
+task_id = "amd_intro__pipelining_loops_pipelined_loop"
+task_type = "optimize"
+difficulty = 3
+top = "loop_pipeline"
+kernel_file = "loop_pipeline.cpp"
+header_files = ["loop_pipeline.h"]
+public_tb = "loop_pipeline_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/pipelined_loop"
+license = "Apache-2.0"
+top_function = "loop_pipeline"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Pipelining/Loops/pipelined_loop"
+source_sha256 = "c1e5433949dea4e9721d2d82fa36018e67a55ba38090b14b73b8d003c5eeb9f4"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

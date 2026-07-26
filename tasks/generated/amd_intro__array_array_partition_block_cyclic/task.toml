@@ -1,0 +1,26 @@
+task_id = "amd_intro__array_array_partition_block_cyclic"
+task_type = "optimize"
+difficulty = 3
+top = "matmul_partition"
+kernel_file = "matmul_partition.cpp"
+header_files = ["matmul_partition.h"]
+public_tb = "matmul_partition_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic"
+license = "Apache-2.0"
+top_function = "matmul_partition"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Array/array_partition_block_cyclic"
+source_sha256 = "f19625cae10cad2ab205c09369d25464d369f7f27f6fdea459e1069b150f2582"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

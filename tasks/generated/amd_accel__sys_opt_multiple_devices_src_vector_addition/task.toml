@@ -1,0 +1,26 @@
+task_id = "amd_accel__sys_opt_multiple_devices_src_vector_addition"
+task_type = "optimize"
+difficulty = 3
+top = "vadd"
+kernel_file = "vadd.cpp"
+header_files = []
+public_tb = "vadd_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_accel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/multiple_devices"
+license = "MIT"
+top_function = "vadd"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+source_path = "sys_opt/multiple_devices"
+source_sha256 = "cfc4c5636ac5d4af31961a26b88abeef5dff6990b504dde5e071dc2a44d60513"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

@@ -3,25 +3,103 @@ from pathlib import Path
 import pytest
 
 from scoring.run_p0_real_api_shard import (
+    EXPECTED_TASK_COUNT,
     build_evaluator_command,
     classify_outcome,
     discover_tasks,
     execution_source_snapshot,
+    load_excluded_task_ids,
     submission_requires_evaluator,
     validate_evaluator,
     validate_submission,
 )
 
 
-def test_discovery_is_exactly_97_unique_tasks() -> None:
+def test_discovery_is_exactly_expected_unique_tasks() -> None:
     task_root = Path("/workspace/tasks")
     if not task_root.exists():
         pytest.skip("task corpus is only mounted at /workspace/tasks in Docker")
 
     tasks = discover_tasks(task_root)
 
-    assert len(tasks) == 97
-    assert len({task.name for task in tasks}) == 97
+    assert len(tasks) == EXPECTED_TASK_COUNT
+    assert len({task.name for task in tasks}) == EXPECTED_TASK_COUNT
+
+
+def test_discovery_can_explicitly_quarantine_metric_incomplete_tasks(
+    tmp_path: Path,
+) -> None:
+    generated = tmp_path / "generated"
+    official = tmp_path / "official"
+    generated.mkdir()
+    official.mkdir()
+    excluded = {
+        "amd_accel__metric_missing_a",
+        "amd_intro__metric_missing_b",
+    }
+    generated_names = [
+        *sorted(excluded),
+        *[f"generated_{index:03d}" for index in range(194)],
+    ]
+    for name in generated_names:
+        task_dir = generated / name
+        task_dir.mkdir()
+        (task_dir / "task.toml").write_text("task_id = \"x\"\n")
+    for index in range(3):
+        task_dir = official / f"official_{index}"
+        task_dir.mkdir()
+        (task_dir / "task.toml").write_text("task_id = \"x\"\n")
+
+    tasks = discover_tasks(tmp_path, excluded_task_ids=excluded)
+
+    assert len(tasks) == EXPECTED_TASK_COUNT - len(excluded)
+    assert not ({task.name for task in tasks} & excluded)
+
+
+def test_exclusion_loader_accepts_offline_triage_report(tmp_path: Path) -> None:
+    path = tmp_path / "triage.json"
+    path.write_text(
+        """
+{
+  "full199_failures": {
+    "public_hls_metric_completeness": {
+      "metric_incomplete_task_ids": [
+        "amd_accel__a",
+        "amd_intro__b"
+      ]
+    }
+  }
+}
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    assert load_excluded_task_ids(path) == {"amd_accel__a", "amd_intro__b"}
+
+
+def test_exclusion_loader_accepts_public_hls_validated_manifest(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "public_hls_validated_tasks_manifest.json"
+    path.write_text(
+        """
+{
+  "scoreable_gate": {
+    "allow_missing_score_metrics": false,
+    "metric_incomplete_task_ids": [
+      "amd_accel__metric_missing_a",
+      "amd_intro__metric_missing_b"
+    ]
+  }
+}
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    assert load_excluded_task_ids(path) == {
+        "amd_accel__metric_missing_a",
+        "amd_intro__metric_missing_b",
+    }
 
 
 def test_formal_evaluator_command_always_links_submission_evidence() -> None:
@@ -166,7 +244,74 @@ def test_evaluator_audit_requires_truthful_fallback_label() -> None:
     )
 
     assert "grading_source_hidden_expected_public_fallback" in errors
-    assert "official_public_fallback_not_labelled" in errors
+    assert "public_fallback_not_labelled" in errors
+
+
+def test_evaluator_audit_allows_public_only_generated_fallback() -> None:
+    report = {
+        "task_id": "public_generated",
+        "run_role": "evaluator",
+        "status": "completed",
+        "llm": None,
+        "grading": {"source": "public_fallback", "is_fallback": True},
+        "execution_trace": {
+            "grading_results": [
+                {"stage": "hidden_csim", "ok": True},
+                {"stage": "candidate_synth", "ok": True},
+            ]
+        },
+        "cosim_ok": None,
+        "toolchain": {"version_gate_ok": True, "part_gate_ok": True},
+        "gates": {
+            "interface": {"ok": True},
+            "frequency_100mhz": {"ok": True},
+            "resource_capacity": {"ok": True},
+            "evaluator_acceptance": {"ok": True},
+        },
+    }
+
+    errors = validate_evaluator(
+        report,
+        "public_generated",
+        official_task=False,
+        expected_grading_source="public_fallback",
+    )
+
+    assert errors == []
+
+
+def test_evaluator_audit_rejects_legacy_generated_fallback() -> None:
+    report = {
+        "task_id": "legacy_generated",
+        "run_role": "evaluator",
+        "status": "completed",
+        "llm": None,
+        "grading": {"source": "public_fallback", "is_fallback": True},
+        "execution_trace": {
+            "grading_results": [
+                {"stage": "hidden_csim", "ok": True},
+                {"stage": "candidate_synth", "ok": True},
+            ]
+        },
+        "cosim_ok": None,
+        "toolchain": {"version_gate_ok": True, "part_gate_ok": True},
+        "gates": {
+            "interface": {"ok": True},
+            "frequency_100mhz": {"ok": True},
+            "resource_capacity": {"ok": True},
+            "evaluator_acceptance": {"ok": True},
+        },
+    }
+
+    errors = validate_evaluator(
+        report,
+        "legacy_generated",
+        official_task=False,
+        expected_grading_source="hidden",
+    )
+
+    assert "grading_source_public_fallback_expected_hidden" in errors
+    assert "generated_hidden_grading_mislabelled_fallback" in errors
 
 
 def test_outcome_classifies_expected_no_valid_anchor() -> None:

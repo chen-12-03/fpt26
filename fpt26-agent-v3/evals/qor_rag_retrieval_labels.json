@@ -360,6 +360,58 @@
         "history": [],
         "description": "Do not guess partition factor for implied inner concurrency."
       }
+    },
+    {
+      "id": "crypto-lookup-01",
+      "expected_id": "hlsgen.crypto.lookup_round_guard",
+      "query": {
+        "source_metadata": {
+          "loops": [
+            {"trip_count": 16, "nesting_depth": 0},
+            {"trip_count": 14, "nesting_depth": 0}
+          ],
+          "arrays": [
+            {"name": "state", "rank": 1},
+            {"name": "round_key", "rank": 1}
+          ]
+        },
+        "baseline_qor": {
+          "latency_worst": 900,
+          "clock_period_ns": 5.0,
+          "loop_metrics": [{"pipeline_ii": 1, "trip_count": 16}]
+        },
+        "synth_diagnostics": {
+          "summary": "AES encryption round uses byte substitution, XOR key addition, and Galois-field S-box arithmetic."
+        },
+        "resource_headroom": {"LUT": 0.75, "FF": 0.8},
+        "history": [{"status": "REJECTED_BY_SCORING_V3_Q_HW", "reason": "full unroll increased area and hurt clock"}],
+        "description": "Optimize a byte-oriented cipher without changing S-box semantics or key schedule."
+      }
+    },
+    {
+      "id": "linear-factorization-01",
+      "expected_id": "hlsgen.linear_algebra.factorization_dependency_guard",
+      "query": {
+        "source_metadata": {
+          "loops": [
+            {"trip_count": 40, "nesting_depth": 0},
+            {"trip_count": 40, "nesting_depth": 1},
+            {"trip_count": 40, "nesting_depth": 2}
+          ],
+          "arrays": [{"name": "A", "rank": 2}]
+        },
+        "baseline_qor": {
+          "latency_worst": 64000,
+          "clock_period_ns": 5.0,
+          "loop_metrics": [{"pipeline_ii": 11, "trip_count": 40}]
+        },
+        "synth_diagnostics": {
+          "summary": "Cholesky decomposition updates a lower triangular matrix row by row with floating-point accumulation dependencies."
+        },
+        "resource_headroom": {"LUT": 0.8, "FF": 0.8, "DSP": 0.7},
+        "history": [{"status": "REJECTED_BY_SCORING_V3_Q_HW", "reason": "loop flatten crossed triangular dependencies"}],
+        "description": "Optimize triangular matrix factorization while preserving Cholesky dependency order."
+      }
     }
   ]
 }

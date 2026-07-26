@@ -15,6 +15,15 @@ _PROVEN_MODELS: dict[str, dict[str, Any]] = {
             "Official Qwen Hugging Face model card declares apache-2.0",
         ],
     },
+    "qwen/qwen-2.5-coder-32b-instruct": {
+        "open_weight_model": "Qwen/Qwen2.5-Coder-32B-Instruct",
+        "license": "Apache-2.0",
+        "evidence": [
+            "OpenRouter lists qwen/qwen-2.5-coder-32b-instruct with "
+            "model weights for Qwen2.5-Coder-32B-Instruct",
+            "Official Qwen Hugging Face model card declares apache-2.0",
+        ],
+    },
 }
 
 

@@ -1,0 +1,26 @@
+task_id = "amd_intro__modeling_fixed_point_sqrt"
+task_type = "optimize"
+difficulty = 3
+top = "fxp_sqrt_top"
+kernel_file = "fxp_sqrt_top.cpp"
+header_files = ["fxp_sqrt.h", "fxp_sqrt_top.h"]
+public_tb = "fxp_sqrt_top_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/fixed_point_sqrt"
+license = "Apache-2.0"
+top_function = "fxp_sqrt_top"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Modeling/fixed_point_sqrt"
+source_sha256 = "d013aec9907683e1f4e2f4d29da5fe5911ead54d44f373595bcfb3f705607bfa"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

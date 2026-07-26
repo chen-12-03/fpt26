@@ -314,6 +314,42 @@ def test_interface_rejection_calls_no_candidate_tool_and_preserves_starter(
     assert state.metadata["interface_validations"][-1]["ok"] is False
 
 
+def test_rejected_optimize_candidate_does_not_poison_final_interface_gate(
+    tmp_path,
+) -> None:
+    task = _task(tmp_path)
+    malformed = """int helper(int x) {
+  if (x > 0) {
+    return x + 1;
+"""
+
+    server = _Server(
+        task.budget,
+        csim=lambda code: _result("csim", True),
+        synth=lambda code: _result("synth", True, report=_report()),
+    )
+
+    state = _run_auto(
+        tmp_path,
+        task,
+        server,
+        _Llm([malformed, malformed]),
+        max_optimization_rounds=2,
+    )
+
+    assert state.status == "completed"
+    assert state.stop_reason == ""
+    assert state.kernel == _STARTER
+    assert state.interface_ok is True
+    assert state.metadata["interface_gate"]["ok"] is True
+    assert state.metadata["public_acceptance"] == {"ok": True, "failures": []}
+    assert state.metadata["interface_validations"][-1]["ok"] is False
+    assert state.metadata["interface_validations"][-1]["reason"] == (
+        "unbalanced_cpp_delimiters"
+    )
+    assert state.metadata["semantic_duplicate_skips"] == 1
+
+
 def test_auto_structural_candidate_repeats_full_cosim_gate(tmp_path) -> None:
     task = _task(tmp_path, requires_cosim=True, budget=80)
 

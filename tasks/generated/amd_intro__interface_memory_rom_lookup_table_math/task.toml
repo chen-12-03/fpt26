@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_memory_rom_lookup_table_math"
+task_type = "optimize"
+difficulty = 3
+top = "lookup_math"
+kernel_file = "lookup_math.cpp"
+header_files = ["lookup_math.h"]
+public_tb = "lookup_math_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/rom_lookup_table_math"
+license = "Apache-2.0"
+top_function = "lookup_math"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Memory/rom_lookup_table_math"
+source_sha256 = "b593c626d21d140753c784c4e029f627dab0108996f98cb8388ae7f8eed25686"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

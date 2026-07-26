@@ -1,0 +1,26 @@
+task_id = "amd_intro__modeling_using_arbitrary_precision_casting"
+task_type = "optimize"
+difficulty = 3
+top = "arbitrary_precision_casting"
+kernel_file = "arbitrary_precision_casting.cpp"
+header_files = ["arbitrary_precision_casting.h"]
+public_tb = "arbitrary_precision_casting_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_arbitrary_precision_casting"
+license = "Apache-2.0"
+top_function = "arbitrary_precision_casting"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Modeling/using_arbitrary_precision_casting"
+source_sha256 = "9ed7150b0383b75a047e8b4d507454cabb9570f5547444911269f1abfc760a5e"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

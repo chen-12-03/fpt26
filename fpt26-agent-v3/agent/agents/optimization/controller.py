@@ -35,6 +35,7 @@ from agent.agents.optimization.diagnostics import _diagnose, _latency, _report, 
 from agent.agents.optimization.feedback import (
     OptimizationFailure,
     _csim_failure_feedback,
+    _interface_gate_feedback,
     _rejection_feedback,
     build_synth_failure,
     merge_optimization_failure,
@@ -64,6 +65,8 @@ def run_optimization_loop(
     search_strategy: dict[str, Any] | None = None,
     shared_candidate_fingerprints: set[str] | None = None,
     stop_after_first_measured: bool = False,
+    early_stop_on_qhw_improvement: bool | None = None,
+    generalized_qor_rag: bool | None = None,
     max_stag: int = 3,
 ) -> RunState:
     """Run the full optimization loop, mutating *state* in place and returning it."""
@@ -93,10 +96,22 @@ def run_optimization_loop(
     phase1_ab_baseline = (
         os.environ.get("FPT26_QOR_RAG_AB_BASELINE", "").strip() == "1"
     )
+    if generalized_qor_rag is None:
+        generalized_qor_rag = _env_flag("FPT26_QOR_RAG_GENERALIZED", False)
+    if early_stop_on_qhw_improvement is None:
+        early_stop_on_qhw_improvement = _env_flag(
+            "FPT26_QOR_RAG_EARLY_STOP", True
+        )
     state.metadata["qor_rag_mode"] = (
         "phase1_keyword_ab_baseline"
         if phase1_ab_baseline
+        else "phase2a_hybrid_generalized"
+        if generalized_qor_rag
         else "phase2a_hybrid"
+    )
+    state.metadata["qor_rag_generalized"] = generalized_qor_rag
+    state.metadata["qor_rag_early_stop_enabled"] = (
+        bool(early_stop_on_qhw_improvement)
     )
 
     # Record baseline synth
@@ -215,15 +230,18 @@ def run_optimization_loop(
                     description=task.description or "",
                     target_part=str(getattr(task, "part", "") or ""),
                     vitis_version=_task_preflight_vitis_version(state),
+                    task_id=str(getattr(task, "id", "") or ""),
                 )
-                matches = retrieve_knowledge(query)
+                matches = retrieve_knowledge(
+                    query, generalized=generalized_qor_rag
+                )
                 from agent.legacy_knowledge import (
                     format_for_prompt as legacy_format,
                     lookup_patterns as legacy_lookup,
                 )
 
                 legacy_matches = legacy_lookup(task.description or "")
-                if _prefer_legacy_specialist(
+                if not generalized_qor_rag and _prefer_legacy_specialist(
                     legacy_matches, task.description or ""
                 ):
                     specialist_matches = legacy_matches[:1]
@@ -352,11 +370,10 @@ def run_optimization_loop(
 
         if not validate_candidate(state, cand, stage=f"optimize_candidate_{rnd}", current_best=False):
             validation = state.metadata.get("interface_validations", [{}])[-1]
-            rejection_feedback = {
-                "status": "REJECTED_BY_INTERFACE_GATE",
-                "reason": validation.get("reason", "interface validation failed"),
-                "required_next_action": "Preserve the exact starter top function signature and required includes.",
-            }
+            rejection_feedback = _interface_gate_feedback(
+                validation,
+                top_function=str(getattr(task, "top", "") or ""),
+            )
             rejected_fingerprints.add(candidate_fingerprint)
             stag += 1
             continue
@@ -525,8 +542,11 @@ def run_optimization_loop(
         if stop_after_first_measured:
             state.log("opt: strategy lane measured one candidate — stop lane")
             break
-        if accepted and not phase1_ab_baseline and state.metadata.get(
-            "task_preflight"
+        if (
+            accepted
+            and early_stop_on_qhw_improvement
+            and not phase1_ab_baseline
+            and state.metadata.get("task_preflight")
         ):
             state.metadata["qor_rag_early_success_stop"] = {
                 "round": rnd,
@@ -611,3 +631,10 @@ def _task_preflight_vitis_version(state: RunState) -> str:
         if value:
             return value
     return ""
+
+
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}

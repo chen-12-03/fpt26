@@ -80,7 +80,10 @@ def audit(run_root: Path) -> dict[str, Any]:
         errors = validate_submission(submission, task_id)
         errors.extend(
             validate_evaluator(
-                evaluator, task_id, official_task=True
+                evaluator,
+                task_id,
+                official_task=True,
+                expected_grading_source="public_fallback",
             )
         )
         if submission.get("status") != "completed":

@@ -12,6 +12,17 @@ def test_known_qwen_api_alias_has_audited_open_weight_evidence() -> None:
     )
 
 
+def test_openrouter_default_qwen_coder_has_audited_open_weight_evidence() -> None:
+    evidence = model_compliance_evidence("qwen/qwen-2.5-coder-32b-instruct")
+
+    assert evidence["compliance_proven"] is True
+    assert evidence["license"] == "Apache-2.0"
+    assert (
+        evidence["open_weight_model"]
+        == "Qwen/Qwen2.5-Coder-32B-Instruct"
+    )
+
+
 def test_unknown_model_is_not_claimed_compliant_without_full_evidence() -> None:
     evidence = model_compliance_evidence("unknown-provider-model")
 

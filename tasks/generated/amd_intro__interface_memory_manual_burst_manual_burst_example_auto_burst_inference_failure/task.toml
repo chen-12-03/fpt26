@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure"
+task_type = "optimize"
+difficulty = 3
+top = "krnl_transfer"
+kernel_file = "krnl_transfer.cpp"
+header_files = ["example.h"]
+public_tb = "krnl_transfer_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure"
+license = "Apache-2.0"
+top_function = "krnl_transfer"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure"
+source_sha256 = "187d6fdfc5c01931f9e3f2d32c79fd93a8a158e669079272d2bc43ce167904c8"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

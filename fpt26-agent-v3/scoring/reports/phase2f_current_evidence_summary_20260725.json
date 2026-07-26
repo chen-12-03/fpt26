@@ -1,0 +1,267 @@
+{
+  "constraints": {
+    "api_or_vitis_run": false,
+    "execution_freeze_updated": false,
+    "full199_run": false,
+    "hidden_reference_or_evaluator_private_reads": false,
+    "small_sample_attempts_included": false,
+    "summary_generation_api_or_vitis_run": false
+  },
+  "failed_task_small_sample_plan": {
+    "audit_command": "PYTHONPATH=fpt26-agent-v3:. python3 tools/finalize_failed_task_small_sample.py --plan fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_plan_20260725.json --run-root runs/phase2f_failed_task_small_sample_current_20260725 --output fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_measured_20260725.json",
+    "evidence_level": "execution_plan_only",
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "post_quarantine_success_rate": 0.8662790697674418,
+    "remaining_failure_count": 23,
+    "run_command": "PYTHONPATH=fpt26-agent-v3:. python3 -m scoring.run_p0_real_api_shard --task-root tasks --output-root runs/phase2f_failed_task_small_sample_current_20260725 --shard-index 0 --shard-count 1 --task-id c2hlsc__des --task-id pp4fpga__parallel_merge_sort --task-id amd_accel__performance_host_global_bandwidth_src_kernel",
+    "selected_failure_reasons": [
+      "interface_failed",
+      "frequency_failed",
+      "frequency_failed"
+    ],
+    "selected_task_count": 3,
+    "selected_task_ids": [
+      "c2hlsc__des",
+      "pp4fpga__parallel_merge_sort",
+      "amd_accel__performance_host_global_bandwidth_src_kernel"
+    ],
+    "status": "not_executed"
+  },
+  "formal_qor_rag_ab": {
+    "baseline": {
+      "acceleration_geomean": 2.814188489,
+      "failure_reason_counts": null,
+      "mean_completion_tokens_per_task": null,
+      "mean_credits_per_task": 13.333333,
+      "mean_prompt_tokens_per_task": null,
+      "mean_requests_per_task": null,
+      "mean_tokens_per_task": 9775.666667,
+      "q_hw_geomean": 0.823427699,
+      "report_error_counts": null,
+      "success_count": null,
+      "success_rate": null
+    },
+    "candidate": {
+      "acceleration_geomean": 1.639286518,
+      "failure_reason_counts": null,
+      "mean_completion_tokens_per_task": null,
+      "mean_credits_per_task": 10.916667,
+      "mean_prompt_tokens_per_task": null,
+      "mean_requests_per_task": null,
+      "mean_tokens_per_task": 8107.5,
+      "q_hw_geomean": 0.784930663,
+      "report_error_counts": null,
+      "success_count": null,
+      "success_rate": null
+    },
+    "comparison": {
+      "acceleration_geomean_relative_change": -0.417492281,
+      "correctness_preservation_rate": 1.0,
+      "mean_credits_relative_change_monitor_only": -0.181249955,
+      "mean_tokens_relative_change": -0.170644798,
+      "q_hw_geomean_relative_change": -0.046752175
+    },
+    "failed_gates": [
+      "acceleration_geomean_improves_5pct",
+      "q_hw_geomean_improves_1pct"
+    ],
+    "passed": false,
+    "task_count": 12
+  },
+  "full199_acceptance": {
+    "audit_error_task_count": 0,
+    "completed": 149.0,
+    "credits_spent": 2002,
+    "failed": 50.0,
+    "failure_reason_counts": {
+      "anchor_invalid: starter": 36,
+      "frequency_failed": 10,
+      "interface_failed": 4
+    },
+    "fresh_evidence_only": true,
+    "mean_credits_per_task": 10.060302,
+    "mean_q_hw_valid_tasks": 0.760053,
+    "mean_requests_per_api_task": 1.661376,
+    "mean_requests_per_task": 1.577889,
+    "mean_score_valid_tasks": 75.894094,
+    "mean_tokens_per_api_task": 8612.719577,
+    "mean_tokens_per_task": 8179.919598,
+    "success_rate": 0.748744,
+    "target_gate_counts": {
+      "frequency_100mhz_pass_count": 189,
+      "interface_pass_count": 195,
+      "minimum_observed_frequency_mhz": 66.02839220864972,
+      "resource_capacity_pass_count": 199
+    },
+    "task_count": 199.0,
+    "tasks_with_api_requests": 189.0,
+    "tool_call_count": 781,
+    "total_requests": 314.0,
+    "total_tokens": 1627804.0,
+    "valid_score_count": 149,
+    "workflow_integrity_ok": true
+  },
+  "hardcoding_audit": {
+    "agent_runtime_task_id_literal_count": 0,
+    "agent_runtime_workload_literal_count": 92,
+    "generalized_runtime_ready": true,
+    "high_risk_task_answer_hardcoding_found": false,
+    "risk_counts": {
+      "low": 3,
+      "medium": 2,
+      "medium_low": 1
+    },
+    "status": "static_audit_only",
+    "summary": "No runtime branch was found that returns a task-specific kernel or optimization answer for a concrete task id.  The remaining medium risks are compatibility paths or task-id tag curation defaults that are mitigated by FPT26_QOR_RAG_GENERALIZED=1 and --no-task-id-tags."
+  },
+  "measured_small_samples": {
+    "failed_task_small_sample": {
+      "completed": 0.0,
+      "evidence_level": "small_sample_measured",
+      "failed": 3.0,
+      "failure_reason_counts": {
+        "frequency_failed": 2,
+        "interface_failed": 1
+      },
+      "may_claim_global_success_rate_repair": false,
+      "may_update_execution_freeze_json": false,
+      "mean_requests_per_task": 0.666667,
+      "mean_score_completed_tasks": null,
+      "mean_tokens_per_task": 10136.0,
+      "status": "measured",
+      "success_rate": 0.0,
+      "task_count": 3,
+      "tasks": [
+        "c2hlsc__des",
+        "pp4fpga__parallel_merge_sort",
+        "amd_accel__performance_host_global_bandwidth_src_kernel"
+      ]
+    },
+    "failed_task_small_sample:phase2f_failed_task_c2hlsc_des_finalgatefix": {
+      "completed": 1.0,
+      "evidence_level": "small_sample_measured",
+      "failed": 0.0,
+      "failure_reason_counts": {},
+      "may_claim_global_success_rate_repair": false,
+      "may_update_execution_freeze_json": false,
+      "mean_requests_per_task": 2.0,
+      "mean_score_completed_tasks": 74.86,
+      "mean_tokens_per_task": 30819.0,
+      "status": "measured",
+      "success_rate": 1.0,
+      "task_count": 1,
+      "tasks": [
+        "c2hlsc__des"
+      ]
+    },
+    "qor_rag_small_ab": {
+      "acceleration_relative_change": 0.427083333,
+      "candidate_mean_requests_per_task": 2.0,
+      "candidate_mean_tokens_per_task": 21811.0,
+      "candidate_q_hw_geomean": 0.9871,
+      "candidate_success_rate": 1.0,
+      "evidence_level": "small_sample_measured",
+      "may_claim_qor_repair": true,
+      "may_update_execution_freeze_json": false,
+      "q_hw_relative_change": 0.003762457,
+      "run_label": "phase2f_qor_rag_small_ab_aes1_envfix",
+      "status": "measured",
+      "task_count": 1,
+      "tasks": [
+        "machsuite__aes_aes"
+      ]
+    },
+    "qor_rag_small_ab:phase2f_qor_rag_small_ab_rem2_envfix": {
+      "acceleration_relative_change": 3.374968671,
+      "candidate_mean_requests_per_task": 2.0,
+      "candidate_mean_tokens_per_task": 9548.5,
+      "candidate_q_hw_geomean": 0.842455459,
+      "candidate_success_rate": 1.0,
+      "evidence_level": "small_sample_measured",
+      "may_claim_qor_repair": true,
+      "may_update_execution_freeze_json": false,
+      "q_hw_relative_change": 0.041104471,
+      "run_label": "phase2f_qor_rag_small_ab_rem2_envfix",
+      "status": "measured",
+      "task_count": 2,
+      "tasks": [
+        "polybench__cholesky",
+        "machsuite__gemm_blocked"
+      ]
+    }
+  },
+  "objective_status": {
+    "blocking_missing_evidence": [
+      "expanded QoR-RAG regressions have offline prompt coverage but no fresh measured small A/B",
+      "post-quarantine success-rate improvement is an offline estimate, not a fresh acceptance",
+      "execution-freeze.json must remain stale until an explicit fresh full199 acceptance"
+    ],
+    "current_blocking_missing_evidence": [
+      "execution-freeze.json must remain stale until an explicit fresh full199 acceptance"
+    ],
+    "fresh_measured_qor_small_sample_count": 2,
+    "fresh_measured_qor_small_sample_tasks": [
+      "machsuite__aes_aes",
+      "polybench__cholesky",
+      "machsuite__gemm_blocked"
+    ],
+    "measured_qor_repair_proven": false,
+    "measured_success_rate_repair_proven": false,
+    "objective_complete": false
+  },
+  "purpose": "phase2f_current_evidence_summary",
+  "real_small_samples": {
+    "public_hls_12_task_sample": {
+      "completed": 9.0,
+      "failed": 3,
+      "mean_requests_per_task": 1.666667,
+      "mean_tokens_per_task": 10580.916667,
+      "success_rate": 0.75,
+      "task_count": 12.0,
+      "total_requests": 20,
+      "total_tokens": 126971
+    },
+    "single_dot_current_rag_ab": {
+      "mean_tokens_per_task": 4234,
+      "q_hw": 0.7666,
+      "q_hw_delta": 0.0,
+      "requests": 1,
+      "score": 76.5,
+      "success_rate": 1.0,
+      "task_count": 1,
+      "token_relative_change": 0.078177,
+      "total_tokens": 4234
+    }
+  },
+  "recommended_next_actions": [
+    "Treat the measured QoR small A/B as supportive small-sample evidence only; formal QoR A/B is still required before claiming global repair.",
+    "Use the failed-task measured sample to target the remaining interface/frequency failure classes before any larger acceptance run.",
+    "Keep execution-freeze.json unchanged until an explicit fresh full199 acceptance is completed."
+  ],
+  "retrieval_eval": {
+    "case_count": 32,
+    "deterministic": true,
+    "hits_at_3": 29,
+    "max_prompt_token_upper_bound": 1791,
+    "passed": true,
+    "recall_at_3": 0.90625
+  },
+  "schema_version": 1,
+  "small_ab_plan": {
+    "evidence_level": "execution_plan_only",
+    "execution_freeze_update_allowed": false,
+    "finalize_command": "PYTHONPATH=fpt26-agent-v3:. python3 tools/finalize_qor_rag_small_ab.py --plan fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_plan_20260725.json --baseline-root runs/phase2f_qor_rag_small_ab_legacy_20260725 --candidate-root runs/phase2f_qor_rag_small_ab_generalized_20260725 --task-list fpt26-agent-v3/evals/qor_rag_small_ab_priority_tasks_latest.txt --output fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_measured_20260725.json",
+    "full199_allowed": false,
+    "measured_report_required": true,
+    "selected_task_count": 3,
+    "selected_task_ids": [
+      "machsuite__aes_aes",
+      "polybench__cholesky",
+      "machsuite__gemm_blocked"
+    ],
+    "status": "not_executed"
+  },
+  "small_sample_attempts": {},
+  "status": "offline_summary_only"
+}

@@ -1,247 +1,1305 @@
 {
-  "schema_version": 1,
   "entries": [
     {
-      "id": "hlsgen.report_driven.baseline_first",
-      "kind": "rule",
-      "family": "report_driven",
-      "preconditions": [
-        "A functionally correct C-simulation baseline exists.",
-        "A real synthesis report provides latency, clock, loop, and resource evidence."
-      ],
-      "action": "Choose one measurable bottleneck and change only one optimization class before re-synthesizing.",
-      "expected_signal": "The limiting report metric improves and the effect is attributable to the selected action.",
-      "contraindications": [
-        "Do not stack directives on an unverified baseline.",
-        "Remove or revise a directive that does not improve the limiting metric."
-      ],
-      "source": "third_party/hls-generator/references/hls-report-driven-optimization.md#baseline-first",
+      "action": "Use complete ARRAY_PARTITION on the small local dimension that maps to concurrent lane reads.",
       "confidence": "medium",
-      "vitis_version": "2022.2+",
-      "status": "unverified_seed",
-      "tags": ["baseline", "report", "qor", "latency", "clock", "resource", "single_action"]
-    },
-    {
-      "id": "hlsgen.report_driven.ii_triage",
-      "kind": "rule",
-      "family": "report_driven",
-      "preconditions": [
-        "The synthesis report shows achieved II above the target.",
-        "The blocker can be classified from timing, recurrence, memory-port, or interface evidence."
-      ],
-      "action": "Classify the II blocker first. If the exact array/recurrence/timing cause is absent, return the kernel unchanged; never add a standalone PIPELINE directive as an II fix.",
-      "expected_signal": "Achieved II moves toward target II without disproportionate worst-resource growth.",
       "contraindications": [
-        "Do not infer memory pressure from top interval alone.",
-        "Do not add another PIPELINE directive without matching the measured blocker."
+        "Do not complete-partition large external arrays.",
+        "Do not partition a dimension not used by the concurrent accesses."
       ],
-      "source": "third_party/hls-generator/references/hls-report-driven-optimization.md#ii-violation-triage",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
-      "status": "unverified_seed",
-      "tags": ["ii", "pipeline_ii", "recurrence", "memory_port", "timing", "hls_200_448"]
-    },
-    {
-      "id": "hlsgen.pipeline.measured_scope",
-      "kind": "rule",
-      "family": "pipeline",
-      "preconditions": [
-        "A specific loop or function scope controls throughput.",
-        "Loop structure and current achieved II are known."
-      ],
-      "action": "Apply PIPELINE to the throughput-controlling scope with a report-supported II target.",
-      "expected_signal": "Loop interval or function throughput improves while timing and resource capacity remain valid.",
-      "contraindications": [
-        "Outer-loop pipelining may force inner-loop concurrency and expose memory-port pressure.",
-        "Do not add PIPELINE when the measured loop is already II=1 and latency is trip-count dominated."
-      ],
-      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#pipeline-and-ii",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
-      "status": "unverified_seed",
-      "tags": ["pipeline", "throughput", "loop", "target_ii", "achieved_ii", "interval"]
-    },
-    {
-      "id": "hlsgen.unroll.conservative_partial",
-      "kind": "rule",
-      "family": "unroll",
-      "preconditions": [
-        "A statically bounded loop dominates latency.",
-        "The loop is already pipelined effectively or exposes independent iterations.",
-        "Resource headroom is available."
-      ],
-      "action": "Try one loop-local partial UNROLL with the smallest useful factor, then measure latency, clock, and worst-resource growth.",
-      "expected_signal": "Effective latency improves more than the worst proportional resource growth.",
-      "contraindications": [
-        "Do not fully unroll a long or dynamically bounded loop.",
-        "Do not increase a factor after measured resource growth outweighed speedup."
-      ],
-      "source": "third_party/hls-generator/references/hls-modeling-strategy.md#loop-bounds-and-trip-counts",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
-      "status": "unverified_seed",
-      "tags": ["unroll", "partial", "trip_count", "ii_1", "latency", "resource_headroom"]
-    },
-    {
-      "id": "hlsgen.array_partition.measured_ports",
-      "kind": "rule",
+      "expected_signal": "The lane loop reaches lower II with bounded register growth.",
       "family": "array_partition",
+      "id": "hlsgen.array_partition.complete_small_local",
+      "kind": "rule",
       "preconditions": [
-        "Synthesis identifies parallel accesses or a memory-port II lower bound on a named array.",
-        "The contended array dimension and required access factor are known."
+        "A small local array is indexed with parallel lane accesses.",
+        "Complete banking is within LUT/FF budget."
       ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#array-partition-and-reshape",
+      "status": "unverified_seed",
+      "tags": [
+        "array_partition",
+        "complete",
+        "local_array",
+        "lane",
+        "bank"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Prefer cyclic ARRAY_PARTITION when strided lane accesses need distinct banks.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not use cyclic banking for contiguous packed-word bandwidth.",
+        "Do not choose a factor unrelated to the lane/stride pattern."
+      ],
+      "expected_signal": "Bank conflicts fall and achieved II improves on the measured loop.",
+      "family": "array_partition",
+      "id": "hlsgen.array_partition.cyclic_stride",
+      "kind": "rule",
+      "preconditions": [
+        "Accesses are strided across a known dimension.",
+        "The modulo pattern maps lanes across banks."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#array-partition-and-reshape",
+      "status": "unverified_seed",
+      "tags": [
+        "array_partition",
+        "cyclic",
+        "stride",
+        "bank_conflict"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
       "action": "Apply ARRAY_PARTITION to the measured array and access dimension, using the minimum factor that can satisfy the required ports.",
-      "expected_signal": "The memory-port II lower bound falls and achieved II improves.",
+      "confidence": "medium",
       "contraindications": [
         "Do not partition unrelated top-level arrays speculatively.",
         "Do not combine ARRAY_PARTITION and ARRAY_RESHAPE on the same variable.",
         "Over-partitioning can increase LUT, FF, and BRAM disproportionately."
       ],
+      "expected_signal": "The memory-port II lower bound falls and achieved II improves.",
+      "family": "array_partition",
+      "id": "hlsgen.array_partition.measured_ports",
+      "kind": "rule",
+      "preconditions": [
+        "Synthesis identifies parallel accesses or a memory-port II lower bound on a named array.",
+        "The contended array dimension and required access factor are known."
+      ],
       "source": "third_party/hls-generator/references/hls-optimization-patterns.md#array-partition-and-reshape",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
       "status": "unverified_seed",
-      "tags": ["array_partition", "memory_port", "bank", "hls_200_448", "ii_lower_bound", "cyclic", "block"]
+      "tags": [
+        "array_partition",
+        "memory_port",
+        "bank",
+        "hls_200_448",
+        "ii_lower_bound",
+        "cyclic",
+        "block"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.array_reshape.adjacent_width",
-      "kind": "rule",
-      "family": "array_reshape",
-      "preconditions": [
-        "Adjacent elements are consumed together.",
-        "The limiting evidence is storage or interface word width rather than independent-bank access."
-      ],
       "action": "Apply ARRAY_RESHAPE to the adjacent access dimension with a width/factor justified by the consumer lanes.",
-      "expected_signal": "Useful bandwidth per access increases without unnecessary bank replication.",
+      "confidence": "medium",
       "contraindications": [
         "Do not use reshape for irregular or independent-bank access.",
         "Do not combine ARRAY_RESHAPE and ARRAY_PARTITION on the same variable."
       ],
+      "expected_signal": "Useful bandwidth per access increases without unnecessary bank replication.",
+      "family": "array_reshape",
+      "id": "hlsgen.array_reshape.adjacent_width",
+      "kind": "rule",
+      "preconditions": [
+        "Adjacent elements are consumed together.",
+        "The limiting evidence is storage or interface word width rather than independent-bank access."
+      ],
       "source": "third_party/hls-generator/references/hls-memory-burst-and-layout.md#lane-packing",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
       "status": "unverified_seed",
-      "tags": ["array_reshape", "adjacent", "contiguous", "packed", "lane", "bandwidth", "wide_word"]
+      "tags": [
+        "array_reshape",
+        "adjacent",
+        "contiguous",
+        "packed",
+        "lane",
+        "bandwidth",
+        "wide_word"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.reduction.explicit_tree",
-      "kind": "rule",
-      "family": "reduction",
-      "preconditions": [
-        "The dominant computation is an associative reduction.",
-        "The operator, accumulator type, numerical behavior, and desired tree shape are explicit."
-      ],
-      "action": "For a statically bounded associative integer reduction, first try only a loop-local partial UNROLL factor=2; preserve the accumulator and numeric contract. Do not introduce a new tree architecture in this phase.",
-      "expected_signal": "The loop-carried accumulation path shortens and effective latency improves at acceptable area cost.",
+      "action": "Choose either ARRAY_RESHAPE for packed adjacent bandwidth or ARRAY_PARTITION for independent banks, not both on the same variable.",
+      "confidence": "medium",
       "contraindications": [
-        "Do not restructure non-associative floating-point operations without permission.",
-        "Unrolling without an accumulator policy can hide overflow and timing risk."
+        "Do not stack storage directives to guess around an II issue.",
+        "Do not reshape irregular access patterns."
       ],
-      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#reduction-trees",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
+      "expected_signal": "The directive set remains explainable and avoids redundant storage expansion.",
+      "family": "array_reshape",
+      "id": "hlsgen.array_reshape.no_partition_mix",
+      "kind": "rule",
+      "preconditions": [
+        "A candidate proposes both reshape and partition on the same variable.",
+        "The access pattern is not independently proven for both."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#array-partition-and-reshape",
       "status": "unverified_seed",
-      "tags": ["reduction", "sum", "accumulate", "dot_product", "tree", "recurrence", "associative"]
+      "tags": [
+        "array_reshape",
+        "array_partition",
+        "mutual_exclusion",
+        "storage"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.gemm.tiled_reuse",
-      "kind": "rule",
-      "family": "gemm",
-      "preconditions": [
-        "The source has matrix-multiply-style nested loops.",
-        "Tile shape, layout, accumulator type, and local reuse are explicit."
-      ],
-      "action": "Preserve the existing GEMM architecture. If the source already has tiled/local reuse, try only one small loop-local UNROLL factor=2; add banking only for an exact measured port bottleneck. Do not introduce new tiles or buffers in this phase.",
-      "expected_signal": "External accesses per MAC fall and compute parallelism improves effective latency within resource limits.",
+      "action": "Keep top-level interface widths stable; narrow only internal temporaries unless the contract allows an ABI change.",
+      "confidence": "medium",
       "contraindications": [
-        "Do not copy template interfaces or fixed tile sizes into an existing kernel.",
-        "Do not partition tiles without a visible reuse and access-dimension argument."
+        "Do not change top argument types in optimize mode.",
+        "Do not break m_axi word alignment."
       ],
-      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
+      "expected_signal": "Interface validation remains pass while internal resource use can improve.",
+      "family": "bitwidth",
+      "id": "hlsgen.bitwidth.interface_width_guard",
+      "kind": "rule",
+      "preconditions": [
+        "A type-width change touches top-level ports.",
+        "The testbench or host interface expects a fixed ABI."
+      ],
+      "source": "third_party/hls-generator/references/hls-project-structure-patterns.md#bundle-and-depth-stability",
       "status": "unverified_seed",
-      "tags": ["gemm", "matmul", "matrix", "triple_loop", "tile", "reuse", "local_buffer"]
+      "tags": [
+        "bitwidth",
+        "interface",
+        "abi",
+        "m_axi",
+        "top_function"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.stencil.line_buffer",
-      "kind": "rule",
-      "family": "stencil",
-      "preconditions": [
-        "The source performs repeated neighborhood access over a 2D or 3D grid.",
-        "Window shape, boundary policy, and reuse distance are known."
-      ],
-      "action": "Preserve the existing stencil architecture and boundary behavior. First try only a small UNROLL factor=2 on a statically bounded filter loop; do not introduce a new line buffer in this phase.",
-      "expected_signal": "Memory traffic falls and the stencil loop sustains a lower interval.",
+      "action": "Narrow bitwidth only when range and quantization behavior are explicit in source or task contract.",
+      "confidence": "medium",
       "contraindications": [
-        "Do not change the boundary policy.",
-        "Do not apply both partition and reshape to the same line buffer."
+        "Do not infer a narrower type from one test vector.",
+        "Do not change saturation or rounding semantics silently."
       ],
-      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#stencil-and-window-patterns",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
+      "expected_signal": "DSP/LUT/FF use falls without public CSim mismatch.",
+      "family": "bitwidth",
+      "id": "hlsgen.bitwidth.range_first",
+      "kind": "rule",
+      "preconditions": [
+        "The source uses ap_int or ap_fixed.",
+        "Value range or error budget is known."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#fixed-point-and-floating-point",
       "status": "unverified_seed",
-      "tags": ["stencil", "grid", "neighbor", "window", "line_buffer", "2d", "3d", "reuse"]
+      "tags": [
+        "bitwidth",
+        "ap_int",
+        "ap_fixed",
+        "range",
+        "quantization"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.dataflow.stage_boundaries",
-      "kind": "rule",
-      "family": "dataflow",
-      "preconditions": [
-        "The kernel has clear producer, compute, and consumer stages.",
-        "Channel ownership and bounded producer/consumer behavior are explicit."
-      ],
-      "action": "Tune DATAFLOW only when a DATAFLOW region and explicit stage boundaries already exist. Do not introduce a new task graph in this phase; every change requires real CoSim.",
-      "expected_signal": "Stage execution overlaps and throughput approaches the slowest stage interval.",
+      "action": "For byte-oriented crypto kernels, improve one measured round component at a time: pipeline the dominant bounded loop or partition only the small lookup/state array that supplies concurrent byte lanes.",
+      "confidence": "medium",
       "contraindications": [
-        "Do not introduce DATAFLOW into shared mutable state or ambiguous stage ownership.",
-        "C simulation alone cannot prove bounded FIFO behavior or absence of RTL deadlock."
+        "Do not fully unroll all encryption rounds without clock and resource evidence.",
+        "Do not replace arithmetic S-box or Galois-field logic with an unverified lookup table.",
+        "Do not change byte ordering, key schedule semantics, or top-level buffers."
       ],
-      "source": "third_party/hls-generator/references/hls-task-parallel-strategy.md#task-regions-and-dataflow-boundaries",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
+      "expected_signal": "The selected round or substitution loop improves latency or II while preserving clock and avoiding broad LUT/FF growth.",
+      "family": "crypto_lookup",
+      "id": "hlsgen.crypto.lookup_round_guard",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel is byte-oriented crypto or substitution logic such as AES, DES, S-box, XOR rounds, or Galois-field byte transforms.",
+        "A small state, key, or lookup-like array is the local source of parallel byte accesses.",
+        "Synthesis evidence identifies a single bounded loop or helper as the next optimization target."
+      ],
+      "source": "third_party/hls-generator/references/hls-modeling-strategy.md#modeling-checklist",
       "status": "unverified_seed",
-      "tags": ["dataflow", "producer", "consumer", "stage", "stream", "fifo", "cosim"]
+      "tags": [
+        "crypto_lookup",
+        "aes",
+        "cipher",
+        "byte",
+        "sbox",
+        "substitution",
+        "xor",
+        "array_partition",
+        "pipeline",
+        "clock_guard"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.dataflow.explicit_depth",
-      "kind": "rule",
-      "family": "dataflow",
-      "preconditions": [
-        "Producer and consumer rates or burst sizes can differ.",
-        "The channel is an hls::stream or equivalent bounded FIFO."
-      ],
       "action": "Set an evidence-based explicit channel depth and verify backpressure, stall behavior, and required CoSim.",
-      "expected_signal": "Required CoSim completes without deadlock while FIFO resources remain bounded.",
+      "confidence": "medium",
       "contraindications": [
         "Do not use a very large depth to hide an architectural ordering bug.",
         "Do not claim deadlock safety from C simulation."
       ],
+      "expected_signal": "Required CoSim completes without deadlock while FIFO resources remain bounded.",
+      "family": "dataflow",
+      "id": "hlsgen.dataflow.explicit_depth",
+      "kind": "rule",
+      "preconditions": [
+        "Producer and consumer rates or burst sizes can differ.",
+        "The channel is an hls::stream or equivalent bounded FIFO."
+      ],
       "source": "third_party/hls-generator/references/hls-optimization-patterns.md#dataflow",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
       "status": "unverified_seed",
-      "tags": ["dataflow", "stream", "fifo", "depth", "deadlock", "cosim", "backpressure", "burst"]
+      "tags": [
+        "dataflow",
+        "stream",
+        "fifo",
+        "depth",
+        "deadlock",
+        "cosim",
+        "backpressure",
+        "burst"
+      ],
+      "vitis_version": "2022.2+"
     },
     {
-      "id": "hlsgen.pipeline.outer_concurrency",
-      "kind": "rule",
-      "family": "pipeline",
-      "preconditions": [
-        "An outer loop is considered for pipelining.",
-        "Inner-loop access concurrency and memory ports can be inspected."
+      "action": "Do not add DATAFLOW until producer/consumer ownership is separated by streams or clearly single-writer buffers.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not rely on CSim to prove task-level scheduling safety.",
+        "Do not split functions that share hidden global state."
       ],
+      "expected_signal": "Avoids synthesis or CoSim failures from ambiguous shared mutation.",
+      "family": "dataflow",
+      "id": "hlsgen.dataflow.shared_state_guard",
+      "kind": "rule",
+      "preconditions": [
+        "A DATAFLOW region has shared arrays or globals between stages.",
+        "Stage ownership is ambiguous."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#dataflow",
+      "status": "unverified_seed",
+      "tags": [
+        "dataflow",
+        "shared_state",
+        "producer",
+        "consumer",
+        "cosim"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Tune DATAFLOW only when a DATAFLOW region and explicit stage boundaries already exist. Do not introduce a new task graph in this phase; every change requires real CoSim.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not introduce DATAFLOW into shared mutable state or ambiguous stage ownership.",
+        "C simulation alone cannot prove bounded FIFO behavior or absence of RTL deadlock."
+      ],
+      "expected_signal": "Stage execution overlaps and throughput approaches the slowest stage interval.",
+      "family": "dataflow",
+      "id": "hlsgen.dataflow.stage_boundaries",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel has clear producer, compute, and consumer stages.",
+        "Channel ownership and bounded producer/consumer behavior are explicit."
+      ],
+      "source": "third_party/hls-generator/references/hls-task-parallel-strategy.md#task-regions-and-dataflow-boundaries",
+      "status": "unverified_seed",
+      "tags": [
+        "dataflow",
+        "producer",
+        "consumer",
+        "stage",
+        "stream",
+        "fifo",
+        "cosim"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Diagnose the compile-stage error before proposing any QoR optimization.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not accept a QoR claim from a compile-failing candidate.",
+        "Do not inspect hidden or evaluator artifacts for the fix."
+      ],
+      "expected_signal": "The next candidate restores CSim/Synth pass before Q_HW selection.",
+      "family": "failure_triage",
+      "id": "hlsgen.failure_triage.compile_first",
+      "kind": "rule",
+      "preconditions": [
+        "A candidate fails CSim compile or synthesis compile.",
+        "The previous best was valid."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#optimization-discipline",
+      "status": "unverified_seed",
+      "tags": [
+        "failure_triage",
+        "compile_error",
+        "csim",
+        "synth"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Record the action as a negative case and choose a different measured bottleneck rather than repeating it.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not ban the whole optimization family.",
+        "Only reject the measured action under compatible structure and target."
+      ],
+      "expected_signal": "Subsequent retrieval avoids wasting API tokens on repeated no-op changes.",
+      "family": "failure_triage",
+      "id": "hlsgen.failure_triage.noop_reject",
+      "kind": "rule",
+      "preconditions": [
+        "A candidate preserves public correctness but Q_HW does not improve.",
+        "The action contract is no-op or unrelated to the bottleneck."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#report-driven-checks",
+      "status": "unverified_seed",
+      "tags": [
+        "failure_triage",
+        "noop",
+        "q_hw_rejected",
+        "history"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Compare clock-adjusted latency and worst-resource growth before accepting additional MAC lanes.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not accept a lower cycle count with severe clock degradation.",
+        "Do not exceed DSP headroom."
+      ],
+      "expected_signal": "Q_HW improves rather than cycle latency alone.",
+      "family": "gemm",
+      "id": "hlsgen.gemm.dsp_clock_guard",
+      "kind": "rule",
+      "preconditions": [
+        "A GEMM candidate increases DSP parallelism.",
+        "Estimated clock or DSP use worsens."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#report-driven-checks",
+      "status": "unverified_seed",
+      "tags": [
+        "gemm",
+        "dsp",
+        "clock",
+        "q_hw",
+        "resource"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Bank only the local tile dimension that is read concurrently by the unrolled compute lanes.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not complete-partition full matrices.",
+        "Do not change tile shape without measuring memory and DSP pressure."
+      ],
+      "expected_signal": "Compute-lane II improves without partitioning unrelated matrices.",
+      "family": "gemm",
+      "id": "hlsgen.gemm.partition_k_dimension_guard",
+      "kind": "rule",
+      "preconditions": [
+        "A GEMM-style kernel reuses local tiles.",
+        "The proposed partition targets the accumulation or lane dimension."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+      "status": "unverified_seed",
+      "tags": [
+        "gemm",
+        "tile",
+        "array_partition",
+        "lane",
+        "dsp"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Preserve the existing blocked/tiled GEMM architecture and local reuse. If the source already has local tiles, keep the tile shape and try only one small loop-local UNROLL factor=2; add minimum banking only on the local tile dimension that feeds concurrent K/lane reads. Do not regress to a scalar fallback or introduce unrelated new tiles/buffers in this phase.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not copy template interfaces or fixed tile sizes into an existing kernel.",
+        "Do not partition tiles without a visible reuse and access-dimension argument.",
+        "Do not remove existing blocked/local-buffer reuse just to make the prompt simpler."
+      ],
+      "expected_signal": "External accesses per MAC fall and compute parallelism improves effective latency within resource limits.",
+      "family": "gemm",
+      "id": "hlsgen.gemm.tiled_reuse",
+      "kind": "rule",
+      "preconditions": [
+        "The source has matrix-multiply-style nested loops.",
+        "Tile shape, layout, accumulator type, and local reuse are explicit.",
+        "The local tile dimension that supplies concurrent K/lane reads is identifiable before banking."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+      "status": "unverified_seed",
+      "tags": [
+        "gemm",
+        "matmul",
+        "matrix",
+        "triple_loop",
+        "tile",
+        "reuse",
+        "local_buffer",
+        "blocked",
+        "k_dimension",
+        "minimum_banking"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "For triangular matrix factorization, preserve row/column dependency order. If baseline synthesis already reports floating-point carried-dependence loops with II around 8-12 and high DSP/LUT pressure, first measure a conservative outer-loop PIPELINE with an II near the reported dependency II before trying II=1 or loop flattening. Otherwise optimize one inner accumulation or update loop at a time with measured pipeline or small-dimension partitioning.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not interchange or flatten loops across triangular data dependencies unless dependence evidence proves it safe.",
+        "Do not fully partition the whole matrix when only one row, column, or local accumulation window needs ports.",
+        "Do not change floating-point operation order aggressively unless the task contract allows numeric drift.",
+        "Do not force II=1 on floating-point triangular update loops when the report shows dependency-limited II near 10; this often trades a small latency gain for a frequency failure."
+      ],
+      "expected_signal": "The selected triangular update, accumulation, or conservative outer-loop pipeline improves Q_HW by reducing latency or floating-point resource replication without changing factorization semantics or causing broad matrix storage growth.",
+      "family": "linear_algebra_factorization",
+      "id": "hlsgen.linear_algebra.factorization_dependency_guard",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel performs matrix factorization or triangular solve/decomposition such as Cholesky or LU.",
+        "The algorithm has loop-carried dependencies across rows, columns, or diagonal updates.",
+        "Synthesis evidence identifies a bounded inner accumulation/update loop or a small local matrix dimension."
+      ],
+      "source": "third_party/hls-generator/references/hls-linear-algebra-template-family.md#reusable-design-facts",
+      "status": "unverified_seed",
+      "tags": [
+        "linear_algebra_factorization",
+        "cholesky",
+        "lu",
+        "triangular",
+        "decomposition",
+        "factorization",
+        "matrix",
+        "pipeline",
+        "array_partition",
+        "floating_point",
+        "dependency_guard"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Inline only the measured hotspot helper, then synthesize to verify schedule and resource effects.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not recursively inline a whole helper tree.",
+        "Do not inline large functions that hide memory stages."
+      ],
+      "expected_signal": "Function overhead or scheduling barriers fall without widespread code growth.",
+      "family": "inline",
+      "id": "hlsgen.inline.hotspot_only",
+      "kind": "rule",
+      "preconditions": [
+        "A small helper function is on the measured critical path.",
+        "Inlining exposes pipeline or constant-propagation opportunities."
+      ],
+      "source": "third_party/hls-generator/references/hls-project-structure-patterns.md#hotspot-file-organization",
+      "status": "unverified_seed",
+      "tags": [
+        "inline",
+        "helper",
+        "hotspot",
+        "pipeline"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Keep m_axi depth concrete and consistent with public testbench allocation.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not delete depth metadata to simplify pragmas.",
+        "Do not use a depth smaller than the public test extent."
+      ],
+      "expected_signal": "Interface checks and CoSim memory modeling remain valid.",
+      "family": "interface",
+      "id": "hlsgen.interface.depth_concrete",
+      "kind": "rule",
+      "preconditions": [
+        "A top-level pointer or m_axi interface is present.",
+        "C/RTL co-simulation or host modeling needs bounded memory."
+      ],
+      "source": "third_party/hls-generator/references/hls-project-structure-patterns.md#bundle-and-depth-stability",
+      "status": "unverified_seed",
+      "tags": [
+        "interface",
+        "depth",
+        "m_axi",
+        "cosim"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Keep scalar controls and return on s_axilite unless the task explicitly requires another control protocol.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not switch ap_ctrl_none on a transactional kernel.",
+        "Do not alter top-level ABI in optimize mode."
+      ],
+      "expected_signal": "Interface validation remains stable while internal QoR changes are isolated.",
+      "family": "interface",
+      "id": "hlsgen.interface.s_axilite_return",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel uses accelerator-style top-level control.",
+        "Scalar control arguments are present."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#multi-m-axi-bundles",
+      "status": "unverified_seed",
+      "tags": [
+        "interface",
+        "s_axilite",
+        "return",
+        "control"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Split the loop only when stage boundaries and storage ownership are explicit.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not split loops with ambiguous dependencies.",
+        "Do not duplicate memory traffic while chasing parallelism."
+      ],
+      "expected_signal": "The bottleneck stage becomes independently pipelinable or dataflow-capable.",
+      "family": "loop_fission",
+      "id": "hlsgen.loop_fission.isolate_memory_stage",
+      "kind": "rule",
+      "preconditions": [
+        "One loop mixes memory movement and compute.",
+        "Separate stages can communicate through a bounded buffer or stream."
+      ],
+      "source": "third_party/hls-generator/references/hls-task-parallel-strategy.md#task-regions-and-dataflow-boundaries",
+      "status": "unverified_seed",
+      "tags": [
+        "loop_fission",
+        "split",
+        "stage",
+        "memory",
+        "dataflow"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Apply LOOP_FLATTEN only to a compatible nest with proven bounds and no intervening side effects.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not flatten imperfect nests with boundary code.",
+        "Do not flatten when dependence analysis is uncertain."
+      ],
+      "expected_signal": "Loop overhead or scheduling interval improves without functional changes.",
+      "family": "loop_flatten",
+      "id": "hlsgen.loop_flatten.perfect_nest_only",
+      "kind": "rule",
+      "preconditions": [
+        "A nested loop is perfect or semi-perfect.",
+        "Flattening does not change loop-carried state semantics."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#pipeline-and-ii",
+      "status": "unverified_seed",
+      "tags": [
+        "loop_flatten",
+        "perfect_nest",
+        "bounds",
+        "dependence"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Fuse adjacent passes only when it reduces memory traffic without worsening II.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not fuse loops with conflicting pipeline schedules.",
+        "Do not fuse when it creates additional live-range pressure."
+      ],
+      "expected_signal": "Latency or memory transactions fall while achieved II remains stable.",
+      "family": "loop_fusion",
+      "id": "hlsgen.loop_fusion.reduce_passes",
+      "kind": "rule",
+      "preconditions": [
+        "Adjacent loops traverse the same bounded range.",
+        "Fusion does not increase recurrence or memory-port conflicts."
+      ],
+      "source": "third_party/hls-generator/references/hls-task-parallel-strategy.md#task-regions-and-dataflow-boundaries",
+      "status": "unverified_seed",
+      "tags": [
+        "loop_fusion",
+        "fuse",
+        "passes",
+        "memory_traffic"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Add LOOP_TRIPCOUNT only as reporting guidance; do not treat it as a performance optimization by itself.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not count tripcount annotation as Q_HW improvement.",
+        "Do not invent bounds not present in source or task contract."
+      ],
+      "expected_signal": "Reports become more interpretable while synthesized hardware behavior remains unchanged.",
+      "family": "loop_tripcount",
+      "id": "hlsgen.loop_tripcount.bound_annotation",
+      "kind": "rule",
+      "preconditions": [
+        "A loop bound is data-dependent but bounded by task constants.",
+        "The report lacks useful latency estimates."
+      ],
+      "source": "third_party/hls-generator/references/hls-modeling-strategy.md#loop-bounds-and-trip-counts",
+      "status": "unverified_seed",
+      "tags": [
+        "loop_tripcount",
+        "report",
+        "bound",
+        "diagnostic"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Use CORDIC-specific structure only for confirmed CORDIC intent; otherwise preserve existing math code.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not introduce CORDIC for unrelated bit rotations.",
+        "Do not change numeric scale without a contract."
+      ],
+      "expected_signal": "DSP/latency tradeoff improves for the intended transform family.",
+      "family": "math_kernel",
+      "id": "hlsgen.math_kernel.cordic_intent_only",
+      "kind": "rule",
+      "preconditions": [
+        "The confirmed design intent is trigonometric or vector rotation.",
+        "CORDIC numeric format and iteration count are explicit."
+      ],
+      "source": "third_party/hls-generator/references/hls-fft-cordic-template-family.md#cordic",
+      "status": "unverified_seed",
+      "tags": [
+        "math_kernel",
+        "cordic",
+        "fixed_point",
+        "rotation"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Exploit FIR symmetry or specialized structure only when coefficients and sample ordering prove it.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not assume coefficient symmetry.",
+        "Do not change sample phase or decimator schedule."
+      ],
+      "expected_signal": "Multiplier count or latency improves with identical public output.",
+      "family": "math_kernel",
+      "id": "hlsgen.math_kernel.fir_symmetry",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel is a FIR filter.",
+        "Coefficients are symmetric or decimation/interpolation intent is explicit."
+      ],
+      "source": "third_party/hls-generator/references/hls-fir-template-family.md#fir-patterns",
+      "status": "unverified_seed",
+      "tags": [
+        "math_kernel",
+        "fir",
+        "dsp",
+        "coefficient",
+        "symmetry"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Enable unsafe math or algebraic reassociation only when explicitly allowed and validated against tolerance.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not assume unsafe math for sensitive kernels.",
+        "Do not change NaN, rounding, or exception-sensitive behavior silently."
+      ],
+      "expected_signal": "Latency or DSP use improves while CSim remains within tolerance.",
+      "family": "math_kernel",
+      "id": "hlsgen.math_kernel.unsafe_math_opt_in",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel uses floating-point math or transcendental operations.",
+        "The task contract allows approximate numerical behavior."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#fixed-point-and-floating-point",
+      "status": "unverified_seed",
+      "tags": [
+        "math_kernel",
+        "float",
+        "unsafe_math",
+        "tolerance"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Assign independent m_axi ports to distinct bundle names when concurrent bandwidth is required.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not split bundles for intentionally shared arbitration.",
+        "Keep depth concrete for C/RTL co-simulation."
+      ],
+      "expected_signal": "Interface arbitration pressure falls and memory throughput improves.",
+      "family": "memory_banking",
+      "id": "hlsgen.memory_banking.distinct_m_axi_bundles",
+      "kind": "rule",
+      "preconditions": [
+        "Independent external memories are read or written concurrently.",
+        "The top-level interface uses m_axi ports."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#multi-m-axi-bundles",
+      "status": "unverified_seed",
+      "tags": [
+        "memory_banking",
+        "m_axi",
+        "bundle",
+        "bandwidth",
+        "interface"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Prefer explicit local buffering for reuse before increasing external memory ports.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not introduce a buffer without a reuse story.",
+        "Do not change output ordering or boundary behavior."
+      ],
+      "expected_signal": "External memory transactions per operation fall and local storage growth is bounded.",
+      "family": "memory_banking",
+      "id": "hlsgen.memory_banking.local_buffer_before_ports",
+      "kind": "rule",
+      "preconditions": [
+        "The kernel repeatedly accesses external memory.",
+        "A local reuse window or tile is visible."
+      ],
+      "source": "third_party/hls-generator/references/hls-project-structure-patterns.md#hotspot-file-organization",
+      "status": "unverified_seed",
+      "tags": [
+        "memory_banking",
+        "local_buffer",
+        "reuse",
+        "m_axi"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Apply PIPELINE to the throughput-controlling scope with a report-supported II target.",
+      "confidence": "medium",
+      "contraindications": [
+        "Outer-loop pipelining may force inner-loop concurrency and expose memory-port pressure.",
+        "Do not add PIPELINE when the measured loop is already II=1 and latency is trip-count dominated."
+      ],
+      "expected_signal": "Loop interval or function throughput improves while timing and resource capacity remain valid.",
+      "family": "pipeline",
+      "id": "hlsgen.pipeline.measured_scope",
+      "kind": "rule",
+      "preconditions": [
+        "A specific loop or function scope controls throughput.",
+        "Loop structure and current achieved II are known."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#pipeline-and-ii",
+      "status": "unverified_seed",
+      "tags": [
+        "pipeline",
+        "throughput",
+        "loop",
+        "target_ii",
+        "achieved_ii",
+        "interval"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
       "action": "Model the implied inner-loop concurrency before outer-loop PIPELINE; add banking only when the accessed dimension proves it.",
-      "expected_signal": "Outer-loop throughput improves without unresolved port conflicts or uncontrolled resource replication.",
+      "confidence": "medium",
       "contraindications": [
         "Do not treat outer PIPELINE as a syntax-only change.",
         "Do not guess partition dimension or factor."
       ],
+      "expected_signal": "Outer-loop throughput improves without unresolved port conflicts or uncontrolled resource replication.",
+      "family": "pipeline",
+      "id": "hlsgen.pipeline.outer_concurrency",
+      "kind": "rule",
+      "preconditions": [
+        "An outer loop is considered for pipelining.",
+        "Inner-loop access concurrency and memory ports can be inspected."
+      ],
       "source": "third_party/hls-generator/references/hls-tutorial-derived-templates.md#outer-pipeline-and-inner-concurrency",
-      "confidence": "medium",
-      "vitis_version": "2022.2+",
       "status": "unverified_seed",
-      "tags": ["pipeline", "outer_loop", "nested_loop", "inner_concurrency", "memory_port", "partition"]
+      "tags": [
+        "pipeline",
+        "outer_loop",
+        "nested_loop",
+        "inner_concurrency",
+        "memory_port",
+        "partition"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Pipeline the outer loop only when the report and source prove inner-loop concurrency is intended and memory ports can support it.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not pipeline an outer loop as a default latency fix.",
+        "Avoid this when inner loops have variable bounds or shared mutable state."
+      ],
+      "expected_signal": "Function interval improves without new memory-port II warnings or large resource growth.",
+      "family": "pipeline",
+      "id": "hlsgen.pipeline.outer_loop_caution",
+      "kind": "rule",
+      "preconditions": [
+        "An outer loop controls throughput.",
+        "Inner loops or memory accesses may become concurrent."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#pipeline-and-ii",
+      "status": "unverified_seed",
+      "tags": [
+        "pipeline",
+        "outer_loop",
+        "memory_port",
+        "concurrency"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Use PIPELINE rewind only for a valid continuous loop pipeline whose state behavior remains correct across transactions.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not use rewind to mask a deadlock.",
+        "Do not use rewind on a loop with invalid persistent state semantics."
+      ],
+      "expected_signal": "Back-to-back interval improves while CSim and required CoSim preserve transaction behavior.",
+      "family": "pipeline",
+      "id": "hlsgen.pipeline.rewind_only_streaming",
+      "kind": "rule",
+      "preconditions": [
+        "A loop pipeline handles back-to-back transactions.",
+        "State carried between loop invocations is understood."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#pipeline-and-ii",
+      "status": "unverified_seed",
+      "tags": [
+        "pipeline",
+        "rewind",
+        "transaction",
+        "state"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "For a statically bounded associative integer reduction, first try only a loop-local partial UNROLL factor=2; preserve the accumulator and numeric contract. Do not introduce a new tree architecture in this phase.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not restructure non-associative floating-point operations without permission.",
+        "Unrolling without an accumulator policy can hide overflow and timing risk."
+      ],
+      "expected_signal": "The loop-carried accumulation path shortens and effective latency improves at acceptable area cost.",
+      "family": "reduction",
+      "id": "hlsgen.reduction.explicit_tree",
+      "kind": "rule",
+      "preconditions": [
+        "The dominant computation is an associative reduction.",
+        "The operator, accumulator type, numerical behavior, and desired tree shape are explicit."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#reduction-trees",
+      "status": "unverified_seed",
+      "tags": [
+        "reduction",
+        "sum",
+        "accumulate",
+        "dot_product",
+        "tree",
+        "recurrence",
+        "associative"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Preserve floating-point associativity semantics unless the task contract allows numerical differences.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not build a tree for bit-exact floating-point code without permission.",
+        "Do not enable unsafe math silently."
+      ],
+      "expected_signal": "CSim remains stable under the public tolerance and timing does not regress.",
+      "family": "reduction",
+      "id": "hlsgen.reduction.float_associativity_guard",
+      "kind": "rule",
+      "preconditions": [
+        "The reduction uses floating-point arithmetic.",
+        "A candidate changes operation order."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#reduction-trees",
+      "status": "unverified_seed",
+      "tags": [
+        "reduction",
+        "floating_point",
+        "associativity",
+        "unsafe_math"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Use a small number of independent accumulators before a final combine, then measure Q_HW.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not change overflow semantics.",
+        "Do not over-unroll beyond measured resource headroom."
+      ],
+      "expected_signal": "Recurrence pressure falls and effective latency improves within area limits.",
+      "family": "reduction",
+      "id": "hlsgen.reduction.multi_accumulator_integer",
+      "kind": "rule",
+      "preconditions": [
+        "An integer associative reduction has a fixed trip count.",
+        "Resource headroom supports multiple accumulators."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#reduction-trees",
+      "status": "unverified_seed",
+      "tags": [
+        "reduction",
+        "integer",
+        "multi_accumulator",
+        "recurrence",
+        "unroll"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Choose one measurable bottleneck and change only one optimization class before re-synthesizing.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not stack directives on an unverified baseline.",
+        "Remove or revise a directive that does not improve the limiting metric."
+      ],
+      "expected_signal": "The limiting report metric improves and the effect is attributable to the selected action.",
+      "family": "report_driven",
+      "id": "hlsgen.report_driven.baseline_first",
+      "kind": "rule",
+      "preconditions": [
+        "A functionally correct C-simulation baseline exists.",
+        "A real synthesis report provides latency, clock, loop, and resource evidence."
+      ],
+      "source": "third_party/hls-generator/references/hls-report-driven-optimization.md#baseline-first",
+      "status": "unverified_seed",
+      "tags": [
+        "baseline",
+        "report",
+        "qor",
+        "latency",
+        "clock",
+        "resource",
+        "single_action"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Compare max(target_clock, estimated_clock) times latency before accepting the candidate.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not use cycles alone as acceptance evidence.",
+        "Do not ignore frequency gate failures."
+      ],
+      "expected_signal": "Candidates with lower cycles but worse actual time are rejected.",
+      "family": "report_driven",
+      "id": "hlsgen.report_driven.clock_adjusted_latency",
+      "kind": "rule",
+      "preconditions": [
+        "A candidate improves cycle latency but worsens estimated clock.",
+        "The scoring target uses hardware time or Q_HW."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#report-driven-checks",
+      "status": "unverified_seed",
+      "tags": [
+        "report_driven",
+        "clock",
+        "latency",
+        "q_hw",
+        "frequency"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Classify the II blocker first. If the exact array/recurrence/timing cause is absent, return the kernel unchanged; never add a standalone PIPELINE directive as an II fix.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not infer memory pressure from top interval alone.",
+        "Do not add another PIPELINE directive without matching the measured blocker."
+      ],
+      "expected_signal": "Achieved II moves toward target II without disproportionate worst-resource growth.",
+      "family": "report_driven",
+      "id": "hlsgen.report_driven.ii_triage",
+      "kind": "rule",
+      "preconditions": [
+        "The synthesis report shows achieved II above the target.",
+        "The blocker can be classified from timing, recurrence, memory-port, or interface evidence."
+      ],
+      "source": "third_party/hls-generator/references/hls-report-driven-optimization.md#ii-violation-triage",
+      "status": "unverified_seed",
+      "tags": [
+        "ii",
+        "pipeline_ii",
+        "recurrence",
+        "memory_port",
+        "timing",
+        "hls_200_448"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Apply at most one optimization family per candidate and measure before asking for another candidate.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not stack pipeline, unroll, partition, and dataflow in one unmeasured edit.",
+        "Do not repeat rejected actions from history."
+      ],
+      "expected_signal": "Token and synthesis budget are spent on attributable changes.",
+      "family": "report_driven",
+      "id": "hlsgen.report_driven.one_family_budget",
+      "kind": "rule",
+      "preconditions": [
+        "Token budget or credit budget is constrained.",
+        "Multiple speculative actions are possible."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#optimization-discipline",
+      "status": "unverified_seed",
+      "tags": [
+        "report_driven",
+        "budget",
+        "token",
+        "single_action",
+        "credits"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Preserve the top function signature, header contract, and public testbench-visible behavior during any source restructure.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not change top arguments or header APIs.",
+        "Do not import reference or evaluator-only code."
+      ],
+      "expected_signal": "Interface and CSim gates remain pass while QoR evidence changes.",
+      "family": "source_restructure",
+      "id": "hlsgen.source_restructure.preserve_top_abi",
+      "kind": "rule",
+      "preconditions": [
+        "A candidate restructures source around helper functions or local buffers.",
+        "The task is optimize mode with fixed public TB."
+      ],
+      "source": "third_party/hls-generator/references/hls-project-structure-patterns.md#helper-header-boundaries",
+      "status": "unverified_seed",
+      "tags": [
+        "source_restructure",
+        "top_function",
+        "abi",
+        "public_only"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Preserve the existing border policy exactly when introducing window or line-buffer optimizations.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not skip border elements for throughput.",
+        "Do not change padding, clamp, or zero-fill behavior silently."
+      ],
+      "expected_signal": "Public CSim remains bit-equivalent while memory reuse improves.",
+      "family": "stencil",
+      "id": "hlsgen.stencil.border_policy_guard",
+      "kind": "rule",
+      "preconditions": [
+        "A stencil kernel handles image/grid borders.",
+        "The candidate changes buffering or loop order."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#stencil-and-window-patterns",
+      "status": "unverified_seed",
+      "tags": [
+        "stencil",
+        "border",
+        "line_buffer",
+        "window",
+        "correctness"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Preserve the existing stencil architecture and boundary behavior. First try only a small UNROLL factor=2 on a statically bounded filter loop; do not introduce a new line buffer in this phase.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not change the boundary policy.",
+        "Do not apply both partition and reshape to the same line buffer."
+      ],
+      "expected_signal": "Memory traffic falls and the stencil loop sustains a lower interval.",
+      "family": "stencil",
+      "id": "hlsgen.stencil.line_buffer",
+      "kind": "rule",
+      "preconditions": [
+        "The source performs repeated neighborhood access over a 2D or 3D grid.",
+        "Window shape, boundary policy, and reuse distance are known."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#stencil-and-window-patterns",
+      "status": "unverified_seed",
+      "tags": [
+        "stencil",
+        "grid",
+        "neighbor",
+        "window",
+        "line_buffer",
+        "2d",
+        "3d",
+        "reuse"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Use a shift-register style local window before larger line-buffer restructuring.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not use for large 2D images without a line-buffer plan.",
+        "Do not alter warm-up or boundary behavior."
+      ],
+      "expected_signal": "Repeated loads fall and loop II improves with small FF/LUT growth.",
+      "family": "stencil",
+      "id": "hlsgen.stencil.shift_register_small_window",
+      "kind": "rule",
+      "preconditions": [
+        "The stencil has a small fixed 1D window.",
+        "Neighbor reuse is local and bounded."
+      ],
+      "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#stencil-and-window-patterns",
+      "status": "unverified_seed",
+      "tags": [
+        "stencil",
+        "shift_register",
+        "window",
+        "reuse"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Preserve side-channel fields and TLAST policy when optimizing stream loops.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not drop side-channel fields during type simplification.",
+        "Do not change TLAST generation without a matching interface contract."
+      ],
+      "expected_signal": "CSim and required CoSim preserve packet framing while throughput improves.",
+      "family": "stream_fifo",
+      "id": "hlsgen.stream_fifo.axis_tlast_contract",
+      "kind": "rule",
+      "preconditions": [
+        "The interface uses AXIS side channels or TLAST.",
+        "The testbench expects frame boundaries."
+      ],
+      "source": "third_party/hls-generator/references/hls-stream-codec-template-family.md#stream-codec-framing",
+      "status": "unverified_seed",
+      "tags": [
+        "stream_fifo",
+        "axis",
+        "tlast",
+        "side_channel",
+        "framing"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Set stream depth from the measured burst/rate mismatch instead of using an arbitrary large FIFO.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not hide ordering bugs with large depths.",
+        "Do not tune FIFO depth without a DATAFLOW or stream boundary."
+      ],
+      "expected_signal": "Required CoSim passes and FIFO resource use remains bounded.",
+      "family": "stream_fifo",
+      "id": "hlsgen.stream_fifo.depth_from_burst",
+      "kind": "rule",
+      "preconditions": [
+        "Producer and consumer burst sizes differ.",
+        "The FIFO is explicit in source or report evidence."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#dataflow",
+      "status": "unverified_seed",
+      "tags": [
+        "stream_fifo",
+        "depth",
+        "burst",
+        "dataflow",
+        "cosim"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Try one loop-local partial UNROLL with the smallest useful factor, then measure latency, clock, and worst-resource growth.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not fully unroll a long or dynamically bounded loop.",
+        "Do not increase a factor after measured resource growth outweighed speedup."
+      ],
+      "expected_signal": "Effective latency improves more than the worst proportional resource growth.",
+      "family": "unroll",
+      "id": "hlsgen.unroll.conservative_partial",
+      "kind": "rule",
+      "preconditions": [
+        "A statically bounded loop dominates latency.",
+        "The loop is already pipelined effectively or exposes independent iterations.",
+        "Resource headroom is available."
+      ],
+      "source": "third_party/hls-generator/references/hls-modeling-strategy.md#loop-bounds-and-trip-counts",
+      "status": "unverified_seed",
+      "tags": [
+        "unroll",
+        "partial",
+        "trip_count",
+        "ii_1",
+        "latency",
+        "resource_headroom"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Stop increasing the unroll factor once worst-resource growth exceeds effective latency improvement.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not compare cycle latency alone.",
+        "Do not extrapolate from one target part to another."
+      ],
+      "expected_signal": "Candidate selection avoids Q_HW regressions from area-dominated unrolls.",
+      "family": "unroll",
+      "id": "hlsgen.unroll.resource_stop",
+      "kind": "rule",
+      "preconditions": [
+        "A prior unroll factor was measured.",
+        "The next factor would increase replicated operators or banks."
+      ],
+      "source": "third_party/hls-generator/references/hls-optimization-patterns.md#report-driven-checks",
+      "status": "unverified_seed",
+      "tags": [
+        "unroll",
+        "resource",
+        "q_hw",
+        "factor",
+        "area"
+      ],
+      "vitis_version": "2022.2+"
+    },
+    {
+      "action": "Avoid unrolling dynamic-bound loops unless a fixed upper bound and validation budget are explicit.",
+      "confidence": "medium",
+      "contraindications": [
+        "Do not full-unroll a data-dependent loop.",
+        "Do not invent trip counts absent from source or report evidence."
+      ],
+      "expected_signal": "Synthesis avoids capacity blowups and unsupported full-unroll behavior.",
+      "family": "unroll",
+      "id": "hlsgen.unroll.variable_bound_guard",
+      "kind": "rule",
+      "preconditions": [
+        "A loop has a dynamic or unproven trip count.",
+        "The candidate proposes loop unrolling."
+      ],
+      "source": "third_party/hls-generator/references/hls-modeling-strategy.md#loop-bounds-and-trip-counts",
+      "status": "unverified_seed",
+      "tags": [
+        "unroll",
+        "variable_bound",
+        "trip_count",
+        "capacity"
+      ],
+      "vitis_version": "2022.2+"
     }
-  ]
+  ],
+  "schema_version": 1
 }

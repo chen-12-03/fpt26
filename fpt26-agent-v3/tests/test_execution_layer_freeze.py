@@ -79,19 +79,11 @@ def test_retained_acceptance_evidence_matches_manifest() -> None:
     """Bulky run evidence is optional, but must match when retained."""
 
     validation = json.loads(_MANIFEST.read_text())["validation"]
-    for key in (
-        "official_acceptance_path",
-        "official_acceptance_sha256",
-        "task97_acceptance_path",
-        "task97_acceptance_sha256",
-    ):
+    for key in ("full199_acceptance_path", "full199_acceptance_sha256"):
         assert validation.get(key), f"freeze validation missing {key}"
     records = {
-        validation["official_acceptance_path"]: validation[
-            "official_acceptance_sha256"
-        ],
-        validation["task97_acceptance_path"]: validation[
-            "task97_acceptance_sha256"
+        validation["full199_acceptance_path"]: validation[
+            "full199_acceptance_sha256"
         ],
     }
     checked = 0

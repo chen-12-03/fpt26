@@ -12,7 +12,7 @@ from agent.agents.optimization.feedback import (
     build_synth_failure,
     merge_optimization_failure,
 )
-from agent.prompts import build_repair_prompt
+from agent.prompts import build_prompt, build_repair_prompt
 
 
 def _task(**overrides):
@@ -48,6 +48,50 @@ def _normalized(**overrides) -> NormalizedLog:
     }
     values.update(overrides)
     return NormalizedLog(**values)
+
+
+def test_cholesky_prompt_adds_dependency_guard_domain_constraint() -> None:
+    prompt = build_prompt(
+        task=_task(
+            description=(
+                "Optimize Cholesky decomposition while preserving lower "
+                "triangular row dependency order."
+            ),
+            top="kernel_cholesky",
+            headers={"cholesky.h": "void kernel_cholesky(double A[40][40]);"},
+            kernel_name="cholesky.cpp",
+        ),
+        current_kernel=(
+            '#include "cholesky.h"\n'
+            "void kernel_cholesky(double A[40][40]) {\n"
+            "  for (int i = 0; i < 40; ++i) {}\n"
+            "}\n"
+        ),
+        csim_result="PASS",
+        synth_result=(
+            "Loops=[VITIS_LOOP_13_3(trip=None,lat=None,II=11)]"
+        ),
+        bottleneck_hint=(
+            "Measured loop PipelineII=11>1 due to triangular dependency."
+        ),
+        knowledge_hint=(
+            "Do not force II=1 on floating-point triangular update loops."
+        ),
+    )
+
+    payload = json.loads(prompt)
+    constraints = payload["domain_constraints"]
+    assert constraints["kind"] == "triangular_factorization_dependency_guard"
+    assert constraints["evidence"]["reported_dependency_ii"] == 11
+    assert "#pragma HLS pipeline II=11" in constraints[
+        "required_candidate_shape"
+    ]
+    assert "outer row-order loop" in constraints["required_candidate_shape"]
+    assert any(
+        "PIPELINE II=1" in item
+        for item in constraints["forbidden_candidate_shapes"]
+    )
+    assert "If domain_constraints is present" in payload["instruction"]
 
 
 def test_repair_prompt_contains_structured_issue_and_previous_attempt() -> None:

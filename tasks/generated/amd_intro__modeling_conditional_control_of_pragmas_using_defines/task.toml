@@ -1,0 +1,26 @@
+task_id = "amd_intro__modeling_conditional_control_of_pragmas_using_defines"
+task_type = "optimize"
+difficulty = 3
+top = "dot_product"
+kernel_file = "dot_product.cpp"
+header_files = ["dot_product.h"]
+public_tb = "dot_product_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_defines"
+license = "Apache-2.0"
+top_function = "dot_product"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Modeling/conditional_control_of_pragmas/using_defines"
+source_sha256 = "de9fbf6887cd02dceb7ca1bad77b40c7a3bbf339ff8956e5408d37b01125320a"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

@@ -1,0 +1,105 @@
+{
+  "elapsed_s": 68.093,
+  "failed_count": 3,
+  "failed_task_ids": [
+    "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+    "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+    "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+  ],
+  "metric_incomplete_task_ids": [
+    "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+    "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+    "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+  ],
+  "passed_by_source": {},
+  "passed_count": 0,
+  "passed_task_ids": [],
+  "purpose": "public_hls_task_csim_synth_smoke",
+  "results": [
+    {
+      "clock_period_ns": 2.867,
+      "csim_elapsed_s": 8.395,
+      "csim_ok": true,
+      "csim_phase": "pass",
+      "interval_max": null,
+      "latency_worst": null,
+      "measurable_ii_ok": false,
+      "measurable_latency_ok": false,
+      "passed": false,
+      "resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 289,
+        "LUT": 530,
+        "URAM": 0
+      },
+      "scoreable_synth_ok": false,
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_copy_buffer_xrt",
+      "synth_elapsed_s": 16.199,
+      "synth_ok": true,
+      "synth_phase": "pass",
+      "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "top_function": "krnl_vadd",
+      "work_dir": "/tmp/fpt26_tripcount_patch_sample/work/amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd"
+    },
+    {
+      "clock_period_ns": 3.65,
+      "csim_elapsed_s": 5.959,
+      "csim_ok": true,
+      "csim_phase": "pass",
+      "interval_max": null,
+      "latency_worst": null,
+      "measurable_ii_ok": false,
+      "measurable_latency_ok": false,
+      "passed": false,
+      "resources": {
+        "BRAM_18K": 2,
+        "DSP": 0,
+        "FF": 1878,
+        "LUT": 2516,
+        "URAM": 0
+      },
+      "scoreable_synth_ok": false,
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+      "synth_elapsed_s": 16.022,
+      "synth_ok": true,
+      "synth_phase": "pass",
+      "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "top_function": "copy_kernel",
+      "work_dir": "/tmp/fpt26_tripcount_patch_sample/work/amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel"
+    },
+    {
+      "clock_period_ns": 2.867,
+      "csim_elapsed_s": 5.881,
+      "csim_ok": true,
+      "csim_phase": "pass",
+      "interval_max": null,
+      "latency_worst": null,
+      "measurable_ii_ok": false,
+      "measurable_latency_ok": false,
+      "passed": false,
+      "resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 289,
+        "LUT": 530,
+        "URAM": 0
+      },
+      "scoreable_synth_ok": false,
+      "source": "amd_accel",
+      "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+      "synth_elapsed_s": 15.626,
+      "synth_ok": true,
+      "synth_phase": "pass",
+      "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+      "top_function": "krnl_vadd",
+      "work_dir": "/tmp/fpt26_tripcount_patch_sample/work/amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+    }
+  ],
+  "schema_version": 1,
+  "scoreable_count": 0,
+  "source_manifest": "public_hls_tripcount_patch_sample",
+  "total_checked": 3
+}

@@ -26,6 +26,7 @@ _ENV_ALLOWLIST: frozenset[str] = frozenset(
         "LANG",
         "LC_ALL",
         "LC_CTYPE",
+        "LOCPATH",
         "TMPDIR",
         "TMP",
         "TEMP",

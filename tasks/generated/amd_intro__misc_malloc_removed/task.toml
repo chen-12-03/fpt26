@@ -1,0 +1,26 @@
+task_id = "amd_intro__misc_malloc_removed"
+task_type = "optimize"
+difficulty = 3
+top = "malloc_removed"
+kernel_file = "malloc_removed.cpp"
+header_files = ["malloc_removed.h"]
+public_tb = "malloc_removed_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/malloc_removed"
+license = "Apache-2.0"
+top_function = "malloc_removed"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Misc/malloc_removed"
+source_sha256 = "b167ea888ba8787338cc8897ed8411cd15fab38c9ee40d0644fcb0d826366689"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

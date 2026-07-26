@@ -1,0 +1,10 @@
+# amd_accel__sys_opt_multiple_devices_src_vector_addition
+
+Optimize the public HLS top function `vadd` imported from `sys_opt/multiple_devices`.
+
+Provenance:
+- Source: https://github.com/Xilinx/Vitis_Accel_Examples
+- Commit: 81187602355a7c2b666351154c5acca2074cae64
+- License: MIT
+- Source SHA-256: cfc4c5636ac5d4af31961a26b88abeef5dff6990b504dde5e071dc2a44d60513
+- Public-only import: no hidden, reference, or evaluator-only artifacts imported.

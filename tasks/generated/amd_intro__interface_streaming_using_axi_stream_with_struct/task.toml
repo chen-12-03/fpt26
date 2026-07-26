@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_streaming_using_axi_stream_with_struct"
+task_type = "optimize"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/using_axi_stream_with_struct"
+license = "Apache-2.0"
+top_function = "example"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Streaming/using_axi_stream_with_struct"
+source_sha256 = "f2b442e14c6057e755a67c49e517def756521492373f4cc9fa482e94ca079b92"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

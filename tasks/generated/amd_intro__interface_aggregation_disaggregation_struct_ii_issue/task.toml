@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_aggregation_disaggregation_struct_ii_issue"
+task_type = "optimize"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["example.h"]
+public_tb = "dut_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/struct_ii_issue"
+license = "Apache-2.0"
+top_function = "dut"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Aggregation_Disaggregation/struct_ii_issue"
+source_sha256 = "b5e21cbf29d08583ac540baf411ad643b0bf0a17a70dd2ee736017b4acfe496f"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

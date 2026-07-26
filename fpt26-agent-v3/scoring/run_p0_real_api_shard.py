@@ -25,14 +25,72 @@ TERMINAL_STATUSES = {
     "infrastructure_error",
 }
 
+EXPECTED_GENERATED_TASK_COUNT = 196
+EXPECTED_OFFICIAL_TASK_COUNT = 3
+EXPECTED_TASK_COUNT = EXPECTED_GENERATED_TASK_COUNT + EXPECTED_OFFICIAL_TASK_COUNT
 
-def discover_tasks(task_root: Path) -> list[Path]:
+
+def discover_tasks(
+    task_root: Path,
+    *,
+    excluded_task_ids: set[str] | None = None,
+) -> list[Path]:
     manifests = sorted((task_root / "generated").glob("*/task.toml"))
     manifests += sorted((task_root / "official").glob("*/task.toml"))
     tasks = [manifest.parent.resolve() for manifest in manifests]
-    if len(tasks) != 97 or len({task.name for task in tasks}) != 97:
-        raise RuntimeError(f"expected 97 unique tasks, found {len(tasks)}")
+    if (
+        len(tasks) != EXPECTED_TASK_COUNT
+        or len({task.name for task in tasks}) != EXPECTED_TASK_COUNT
+    ):
+        raise RuntimeError(
+            f"expected {EXPECTED_TASK_COUNT} unique tasks, found {len(tasks)}"
+        )
+    if excluded_task_ids:
+        available = {task.name for task in tasks}
+        unknown = sorted(excluded_task_ids - available)
+        if unknown:
+            raise RuntimeError(
+                f"excluded tasks are outside the corpus: {unknown}"
+            )
+        tasks = [task for task in tasks if task.name not in excluded_task_ids]
     return tasks
+
+
+def load_excluded_task_ids(path: Path) -> set[str]:
+    """Load an explicit quarantine/exclusion task-id set from JSON."""
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    values: Any
+    if isinstance(raw, list):
+        values = raw
+    elif isinstance(raw, dict):
+        values = (
+            raw.get("exclude_task_ids")
+            or raw.get("metric_incomplete_task_ids")
+            or ((raw.get("scoreable_gate") or {}).get(
+                "metric_incomplete_task_ids"
+            ))
+            or (
+                (
+                    (raw.get("full199_failures") or {}).get(
+                        "public_hls_metric_completeness"
+                    )
+                    or {}
+                ).get("metric_incomplete_task_ids")
+            )
+        )
+    else:
+        values = None
+    if not isinstance(values, list) or not all(
+        isinstance(item, str) for item in values
+    ):
+        raise RuntimeError(
+            f"{path}: expected a JSON list or an object containing task IDs"
+        )
+    task_ids = {item.strip() for item in values if item.strip()}
+    if len(task_ids) != len([item for item in values if item.strip()]):
+        raise RuntimeError(f"{path}: duplicate excluded task IDs")
+    return task_ids
 
 
 def _sha256(path: Path) -> str:
@@ -178,6 +236,7 @@ def validate_evaluator(
     task_id: str,
     *,
     official_task: bool,
+    expected_grading_source: str | None = None,
 ) -> list[str]:
     errors: list[str] = []
     if report.get("task_id") != task_id:
@@ -188,14 +247,20 @@ def validate_evaluator(
         errors.append("evaluator_unexpected_llm")
 
     grading = report.get("grading") or {}
-    expected_source = "public_fallback" if official_task else "hidden"
+    expected_source = (
+        expected_grading_source
+        if expected_grading_source is not None
+        else "public_fallback"
+        if official_task
+        else "hidden"
+    )
     if grading.get("source") != expected_source:
         errors.append(
             f"grading_source_{grading.get('source')}_expected_{expected_source}"
         )
-    if official_task:
+    if expected_source == "public_fallback":
         if grading.get("is_fallback") is not True:
-            errors.append("official_public_fallback_not_labelled")
+            errors.append("public_fallback_not_labelled")
     elif grading.get("is_fallback") is True:
         errors.append("generated_hidden_grading_mislabelled_fallback")
 
@@ -340,12 +405,13 @@ def _summary(
     records: list[dict[str, Any]],
     source_start: dict[str, Any],
     source_current: dict[str, Any],
+    quarantine: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     outcomes: dict[str, int] = {}
     for record in records:
         outcome = record["outcome"]
         outcomes[outcome] = outcomes.get(outcome, 0) + 1
-    return {
+    summary = {
         "schema_version": 2,
         "purpose": "p0_split_role_real_api_vitis_acceptance",
         "freshness_policy": (
@@ -371,6 +437,9 @@ def _summary(
         "elapsed_s": time.monotonic() - started,
         "records": records,
     }
+    if quarantine is not None:
+        summary["task_quarantine"] = quarantine
+    return summary
 
 
 def _write_summary(path: Path, value: dict[str, Any]) -> None:
@@ -391,8 +460,20 @@ def run_shard(
     timeout_s: float,
     resume: bool,
     requested_task_ids: set[str] | None = None,
+    excluded_task_ids: set[str] | None = None,
+    excluded_task_source: str | None = None,
 ) -> dict[str, Any]:
-    tasks = discover_tasks(task_root)
+    tasks = discover_tasks(task_root, excluded_task_ids=excluded_task_ids)
+    quarantine = None
+    if excluded_task_ids:
+        quarantine = {
+            "enabled": True,
+            "source": excluded_task_source or "explicit",
+            "excluded_task_count": len(excluded_task_ids),
+            "excluded_task_ids": sorted(excluded_task_ids),
+            "effective_task_count": len(tasks),
+            "original_expected_task_count": EXPECTED_TASK_COUNT,
+        }
     if requested_task_ids is not None:
         available = {task.name for task in tasks}
         unknown = sorted(requested_task_ids - available)
@@ -443,6 +524,11 @@ def run_shard(
         if task_id in done:
             continue
         official = task_dir.parent.name == "official"
+        expected_grading_source = (
+            "hidden"
+            if (task_dir / "hidden").is_dir()
+            else "public_fallback"
+        )
         attempt_root = _next_attempt(output_root / "tasks" / task_id)
         submission_root = attempt_root / "submission"
         evaluator_root = attempt_root / "evaluator"
@@ -509,7 +595,10 @@ def run_shard(
             try:
                 evaluator = _load_report(evaluator_path)
                 evaluator_errors = validate_evaluator(
-                    evaluator, task_id, official_task=official
+                    evaluator,
+                    task_id,
+                    official_task=official,
+                    expected_grading_source=expected_grading_source,
                 )
             except Exception as exc:
                 evaluator_errors = [str(exc)]
@@ -600,6 +689,7 @@ def run_shard(
                 records=records,
                 source_start=source_start,
                 source_current=source_current,
+                quarantine=quarantine,
             ),
         )
         if source_current.get("tree_sha256") != source_start.get(
@@ -633,6 +723,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--task-id", action="append", default=[])
     parser.add_argument(
+        "--exclude-task-ids",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON list/report of task IDs to quarantine from this "
+            "run. Default preserves the full expected corpus."
+        ),
+    )
+    parser.add_argument(
         "--retry-from-audit",
         type=Path,
         default=None,
@@ -646,6 +745,11 @@ def main() -> int:
     if not 0 <= args.shard_index < args.shard_count:
         raise RuntimeError("shard index is outside shard count")
     requested = set(args.task_id)
+    excluded = (
+        load_excluded_task_ids(args.exclude_task_ids)
+        if args.exclude_task_ids is not None
+        else None
+    )
     if args.retry_from_audit is not None:
         audit = json.loads(
             args.retry_from_audit.read_text(encoding="utf-8")
@@ -659,6 +763,10 @@ def main() -> int:
         timeout_s=args.task_timeout_s,
         resume=args.resume,
         requested_task_ids=requested or None,
+        excluded_task_ids=excluded,
+        excluded_task_source=(
+            str(args.exclude_task_ids) if args.exclude_task_ids is not None else None
+        ),
     )
     return 0 if result["completed_record_count"] == result[
         "selected_task_count"

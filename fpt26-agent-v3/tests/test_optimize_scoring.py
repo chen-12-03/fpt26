@@ -859,6 +859,86 @@ def test_optimize_reflects_csim_compile_error_into_next_round() -> None:
     assert server.synth_calls == 1
 
 
+def test_optimize_reflects_interface_shape_failure_into_next_round() -> None:
+    task = SimpleNamespace(
+        id="interface_shape_reflection",
+        type="optimize",
+        difficulty=3,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+        description="",
+        headers={"top.h": "void top(int *out);"},
+        top="top",
+        kernel_name="top.cpp",
+    )
+    starter_report = _report(
+        latency=100,
+        ii=100,
+        clock=5.0,
+        lut=200,
+        ff=100,
+        dsp=0,
+    )
+    starter = '#include "top.h"\nvoid top(int *out) { *out = 1; }\n'
+    malformed_helper_only = """int helper(int x) {
+  if (x > 0) {
+    return x + 1;
+"""
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            if self.calls == 1:
+                return malformed_helper_only
+            payload = json.loads(prompt)
+            feedback = payload["previous_candidate_feedback"]
+            assert feedback["status"] == "REJECTED_BY_INTERFACE_GATE"
+            assert feedback["reason"] == "unbalanced_cpp_delimiters"
+            assert feedback["no_candidate_tools_run"] is True
+            assert feedback["top_function"] == "top"
+            assert feedback["source_diagnostics"]["has_top_function_token"] is False
+            assert feedback["source_diagnostics"]["markdown_fence_count"] == 0
+            assert "complete C/C++ translation unit" in feedback[
+                "required_next_action"
+            ]
+            assert "REJECTED_BY_INTERFACE_GATE" in payload["instruction"]
+            return starter
+
+    class Server:
+        def csim(self, kernel):
+            raise AssertionError("interface-rejected candidate must skip C-sim")
+
+        def synth(self, kernel):
+            raise AssertionError("interface-rejected candidate must skip synthesis")
+
+    llm = Llm()
+    state = SimpleNamespace(
+        task=task,
+        server=Server(),
+        kernel=starter,
+        best_latency=100,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=starter_report, log=""
+            )
+        ],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=2).run(state)
+
+    assert result.kernel == starter
+    assert llm.calls == 2
+    validation = result.metadata["interface_validations"][-1]
+    assert validation["reason"] == "unbalanced_cpp_delimiters"
+    assert validation["source_diagnostics"]["has_top_function_token"] is False
+
+
 def test_optimize_skips_tools_for_semantic_current_best_noop() -> None:
     task = SimpleNamespace(
         id="semantic_noop",

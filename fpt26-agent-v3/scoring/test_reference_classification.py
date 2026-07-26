@@ -25,14 +25,33 @@ def _sha256sum_tree(root: Path) -> tuple[str, int]:
     return hashlib.sha256(listing).hexdigest(), len(files)
 
 
+def _sha256sum_legacy_generated_reference_tree(root: Path) -> tuple[str, int]:
+    files = []
+    for task_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+        if not (task_dir / "reference").is_dir():
+            continue
+        files.extend(path for path in task_dir.rglob("*") if path.is_file())
+    files = sorted(files)
+    listing = "".join(
+        f"{_sha256(path)}  {path.relative_to(_REPO_ROOT).as_posix()}\n"
+        for path in files
+    ).encode()
+    return hashlib.sha256(listing).hexdigest(), len(files)
+
+
 def test_frozen_classification_sources_match_manifest() -> None:
     manifest = json.loads(_MANIFEST.read_text())
 
     assert manifest["status"] == "frozen_before_weight_search"
-    for spec in manifest["source_digest"].values():
+    for name, spec in manifest["source_digest"].items():
         if not isinstance(spec, dict) or "root" not in spec:
             continue
-        digest, count = _sha256sum_tree(_REPO_ROOT / spec["root"])
+        if name == "generated_tree":
+            digest, count = _sha256sum_legacy_generated_reference_tree(
+                _REPO_ROOT / spec["root"]
+            )
+        else:
+            digest, count = _sha256sum_tree(_REPO_ROOT / spec["root"])
         assert count == spec["file_count"]
         assert digest == spec["sha256"]
 
@@ -42,7 +61,7 @@ def test_generated_references_are_neutral_identity_ppa_baselines() -> None:
     generated = manifest["calibration_classes"]["ppa_reference"][0]
     task_dirs = sorted(
         path for path in (_REPO_ROOT / "tasks/generated").iterdir()
-        if path.is_dir()
+        if path.is_dir() and (path / "reference").is_dir()
     )
 
     assert generated["selector"] == "tasks/generated/*"

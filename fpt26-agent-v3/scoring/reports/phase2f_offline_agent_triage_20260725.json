@@ -1,0 +1,3629 @@
+{
+  "full199_failures": {
+    "expected_task_count": 199,
+    "failure_count": 50,
+    "failure_reason_counts": {
+      "anchor_invalid: starter": 36,
+      "frequency_failed": 10,
+      "interface_failed": 4
+    },
+    "family_reason_counts": {
+      "amd_accel": {
+        "anchor_invalid: starter": 18,
+        "frequency_failed": 2
+      },
+      "amd_intro": {
+        "anchor_invalid: starter": 9,
+        "interface_failed": 2
+      },
+      "c2hlsc": {
+        "frequency_failed": 1,
+        "interface_failed": 1
+      },
+      "chstone": {
+        "anchor_invalid: starter": 1,
+        "frequency_failed": 4,
+        "interface_failed": 1
+      },
+      "flowgnn": {
+        "frequency_failed": 1
+      },
+      "machsuite": {
+        "anchor_invalid: starter": 8
+      },
+      "pp4fpga": {
+        "frequency_failed": 1
+      },
+      "rosetta": {
+        "frequency_failed": 1
+      }
+    },
+    "priority_static_audit_samples": [
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      },
+      {
+        "family": "amd_accel",
+        "reason": "anchor_invalid: starter",
+        "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+        "triage_class": "public_hls_import_or_anchor_validation"
+      }
+    ],
+    "priority_static_audits": [
+      {
+        "anchor_hypothesis": "starter synth may pass but lack latency/II because variable-bound loops have no LOOP_TRIPCOUNT",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check",
+          "variable_bound_loops_without_tripcount"
+        ],
+        "kernel_file": "krnl_vadd.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "host_xrt/host_memory_copy_buffer_xrt",
+          "top_function": "krnl_vadd"
+        },
+        "public_files_read": [
+          "description.md",
+          "krnl_vadd.cpp",
+          "krnl_vadd_tb.cpp",
+          "task.toml"
+        ],
+        "public_tb": "krnl_vadd_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "top": "krnl_vadd",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 3,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 3
+        }
+      },
+      {
+        "anchor_hypothesis": "starter synth may pass but lack latency/II because variable-bound loops have no LOOP_TRIPCOUNT",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check",
+          "variable_bound_loops_without_tripcount"
+        ],
+        "kernel_file": "copy_kernel.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+          "top_function": "copy_kernel"
+        },
+        "public_files_read": [
+          "copy_kernel.cpp",
+          "copy_kernel_tb.cpp",
+          "description.md",
+          "task.toml"
+        ],
+        "public_tb": "copy_kernel_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "top": "copy_kernel",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 2,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 2
+        }
+      },
+      {
+        "anchor_hypothesis": "starter synth may pass but lack latency/II because variable-bound loops have no LOOP_TRIPCOUNT",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check",
+          "variable_bound_loops_without_tripcount"
+        ],
+        "kernel_file": "krnl_vadd.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+          "top_function": "krnl_vadd"
+        },
+        "public_files_read": [
+          "description.md",
+          "krnl_vadd.cpp",
+          "krnl_vadd_tb.cpp",
+          "task.toml"
+        ],
+        "public_tb": "krnl_vadd_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+        "top": "krnl_vadd",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 3,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 3
+        }
+      },
+      {
+        "anchor_hypothesis": "starter synth may pass but lack latency/II because variable-bound loops have no LOOP_TRIPCOUNT",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check",
+          "variable_bound_loops_without_tripcount"
+        ],
+        "kernel_file": "krnl_vadd.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "host_xrt/host_memory_simple_xrt",
+          "top_function": "krnl_vadd"
+        },
+        "public_files_read": [
+          "description.md",
+          "krnl_vadd.cpp",
+          "krnl_vadd_tb.cpp",
+          "task.toml"
+        ],
+        "public_tb": "krnl_vadd_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+        "top": "krnl_vadd",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 3,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 3
+        }
+      },
+      {
+        "anchor_hypothesis": "starter synth may pass but lack latency/II because variable-bound loops have no LOOP_TRIPCOUNT",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check",
+          "variable_bound_loops_without_tripcount"
+        ],
+        "kernel_file": "adder.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "host_xrt/p2p_simple_xrt",
+          "top_function": "adder"
+        },
+        "public_files_read": [
+          "adder.cpp",
+          "adder_tb.cpp",
+          "description.md",
+          "task.toml"
+        ],
+        "public_tb": "adder_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+        "top": "adder",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 1,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 1
+        }
+      },
+      {
+        "anchor_hypothesis": "starter anchor may pass CSim without proving output behavior",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [
+          "test_kernel_common.hpp"
+        ],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check"
+        ],
+        "kernel_file": "test_kernel_maxi_256bit_1.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "performance/axi_burst_performance",
+          "top_function": "test_kernel_maxi_256bit_1"
+        },
+        "public_files_read": [
+          "description.md",
+          "task.toml",
+          "test_kernel_common.hpp",
+          "test_kernel_maxi_256bit_1.cpp",
+          "test_kernel_maxi_256bit_1_tb.cpp"
+        ],
+        "public_tb": "test_kernel_maxi_256bit_1_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+        "top": "test_kernel_maxi_256bit_1",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 0,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 0
+        }
+      },
+      {
+        "anchor_hypothesis": "starter anchor may pass CSim without proving output behavior",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [
+          "test_kernel_common.hpp"
+        ],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check"
+        ],
+        "kernel_file": "test_kernel_maxi_256bit_2.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "performance/axi_burst_performance",
+          "top_function": "test_kernel_maxi_256bit_2"
+        },
+        "public_files_read": [
+          "description.md",
+          "task.toml",
+          "test_kernel_common.hpp",
+          "test_kernel_maxi_256bit_2.cpp",
+          "test_kernel_maxi_256bit_2_tb.cpp"
+        ],
+        "public_tb": "test_kernel_maxi_256bit_2_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+        "top": "test_kernel_maxi_256bit_2",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 0,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 0
+        }
+      },
+      {
+        "anchor_hypothesis": "starter anchor may pass CSim without proving output behavior",
+        "available": true,
+        "generated_public_tb": true,
+        "headers": [
+          "test_kernel_common.hpp"
+        ],
+        "host_runtime_markers": [],
+        "issues": [
+          "generated_public_tb_has_no_observable_result_check"
+        ],
+        "kernel_file": "test_kernel_maxi_256bit_3.cpp",
+        "kernel_host_runtime_markers": [],
+        "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+        "provenance": {
+          "generated_testbench": true,
+          "hidden_imported": false,
+          "license": "MIT",
+          "public_only": true,
+          "reference_imported": false,
+          "source": "amd_accel",
+          "source_path": "performance/axi_burst_performance",
+          "top_function": "test_kernel_maxi_256bit_3"
+        },
+        "public_files_read": [
+          "description.md",
+          "task.toml",
+          "test_kernel_common.hpp",
+          "test_kernel_maxi_256bit_3.cpp",
+          "test_kernel_maxi_256bit_3_tb.cpp"
+        ],
+        "public_tb": "test_kernel_maxi_256bit_3_tb.cpp",
+        "public_tb_calls_top": true,
+        "public_tb_has_result_check": false,
+        "task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+        "top": "test_kernel_maxi_256bit_3",
+        "top_in_header": false,
+        "top_in_kernel": true,
+        "tripcount_static_summary": {
+          "for_loop_count": 0,
+          "loop_tripcount_pragma_count": 0,
+          "variable_bound_loop_count": 0
+        }
+      }
+    ],
+    "public_hls_metric_completeness": {
+      "anchor_invalid_overlap_count": 27,
+      "anchor_invalid_overlap_task_ids": [
+        "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+        "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+        "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+        "amd_accel__sys_opt_multiple_devices_src_vector_addition",
+        "amd_intro__array_array_partition_complete",
+        "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+        "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+        "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+        "amd_intro__interface_streaming_axi_stream_to_master",
+        "amd_intro__interface_streaming_using_axi_stream_with_struct",
+        "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+        "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+        "amd_intro__task_level_parallelism_data_driven_unique_task_regions"
+      ],
+      "available": true,
+      "hypothesis": "CSim+Synth-only public-HLS smoke admitted tasks whose starter synth reports lacked latency/II; these cannot serve as scoreable starter anchors until tripcount/metric completeness is fixed or they are quarantined from the scored corpus.",
+      "manifest": "tasks/generated/public_hls_validated_tasks_manifest.json",
+      "metric_incomplete_by_source": {
+        "amd_accel": 18,
+        "amd_intro": 9
+      },
+      "metric_incomplete_count": 27,
+      "metric_incomplete_task_ids": [
+        "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+        "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+        "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+        "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+        "amd_accel__sys_opt_multiple_devices_src_vector_addition",
+        "amd_intro__array_array_partition_complete",
+        "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+        "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+        "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+        "amd_intro__interface_streaming_axi_stream_to_master",
+        "amd_intro__interface_streaming_using_axi_stream_with_struct",
+        "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+        "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+        "amd_intro__task_level_parallelism_data_driven_unique_task_regions"
+      ],
+      "suggested_tripcount_small_sample_tasks": [
+        "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+      ],
+      "tripcount_patch_candidate_count": 11,
+      "tripcount_patch_candidates": [
+        {
+          "for_loop_count": 3,
+          "source": "amd_accel",
+          "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+          "variable_bound_loop_count": 3
+        },
+        {
+          "for_loop_count": 2,
+          "source": "amd_accel",
+          "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+          "variable_bound_loop_count": 2
+        },
+        {
+          "for_loop_count": 3,
+          "source": "amd_accel",
+          "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+          "variable_bound_loop_count": 3
+        },
+        {
+          "for_loop_count": 3,
+          "source": "amd_accel",
+          "task_id": "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+          "variable_bound_loop_count": 3
+        },
+        {
+          "for_loop_count": 1,
+          "source": "amd_accel",
+          "task_id": "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+          "variable_bound_loop_count": 1
+        },
+        {
+          "for_loop_count": 1,
+          "source": "amd_intro",
+          "task_id": "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+          "variable_bound_loop_count": 1
+        },
+        {
+          "for_loop_count": 3,
+          "source": "amd_intro",
+          "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+          "variable_bound_loop_count": 3
+        },
+        {
+          "for_loop_count": 3,
+          "source": "amd_intro",
+          "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+          "variable_bound_loop_count": 3
+        },
+        {
+          "for_loop_count": 1,
+          "source": "amd_intro",
+          "task_id": "amd_intro__interface_streaming_axi_stream_to_master",
+          "variable_bound_loop_count": 1
+        },
+        {
+          "for_loop_count": 3,
+          "source": "amd_intro",
+          "task_id": "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+          "variable_bound_loop_count": 3
+        },
+        {
+          "for_loop_count": 3,
+          "source": "amd_intro",
+          "task_id": "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+          "variable_bound_loop_count": 3
+        }
+      ],
+      "validated_count": 102
+    },
+    "suggested_small_sample_tasks": [
+      "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+    ],
+    "triage_notes": {
+      "anchor_invalid: starter": "audit imported starter/reference/anchor validity before changing prompt behavior",
+      "frequency_failed": "inspect achieved clock and candidate pragmas; likely target gate or over-parallelization issue",
+      "interface_failed": "inspect top signature, generated wrappers, and task.toml interface contract"
+    }
+  },
+  "inputs": {
+    "ab_report": "fpt26-agent-v3/scoring/reports/phase2e_qor_rag_ab_current_vs_legacy_20260725.json",
+    "full199_report": "fpt26-agent-v3/scoring/reports/phase2d_full199_acceptance_with_retry1_20260725.json",
+    "quarantine_report": "fpt26-agent-v3/scoring/reports/phase2f_metric_incomplete_quarantine_20260725.json",
+    "task_root": "tasks"
+  },
+  "phase2f_objective_status": {
+    "completion": {
+      "blocking_missing_evidence": [
+        "expanded QoR-RAG regressions have offline prompt coverage but no fresh measured small A/B",
+        "post-quarantine success-rate improvement is an offline estimate, not a fresh acceptance",
+        "execution-freeze.json must remain stale until an explicit fresh full199 acceptance"
+      ],
+      "objective_complete": false
+    },
+    "failed_task_success_rate_offline": {
+      "measured_success_rate_repair_proven": false,
+      "post_quarantine_success_rate": 0.8662790697674418,
+      "remaining_failure_count": 23,
+      "suggested_failure_small_sample_tasks": [
+        "c2hlsc__des",
+        "pp4fpga__parallel_merge_sort",
+        "amd_accel__performance_host_global_bandwidth_src_kernel"
+      ]
+    },
+    "qor_rag_generalized_offline": {
+      "exact_source_clean_count": 3,
+      "measured_qor_repair_proven": false,
+      "offline_prompt_coverage_ready_count": 3,
+      "priority_task_count": 3,
+      "records": [
+        {
+          "acceleration_delta": -7.800000000000001,
+          "expected_generalized_rule": "hlsgen.crypto.lookup_round_guard",
+          "generalized_exact_source_measured_case_count": 0,
+          "generalized_retrieved_ids": [
+            "hlsgen.crypto.lookup_round_guard"
+          ],
+          "hypotheses": [
+            "early_stop_or_under_exploration_possible",
+            "missed_parallel_architecture_or_strategy_lane",
+            "lower_tool_spend_correlates_with_lower_qor"
+          ],
+          "q_hw_delta": -0.24660000000000004,
+          "requires_real_small_ab": true,
+          "status": "offline_prompt_coverage_ready",
+          "task_id": "machsuite__aes_aes"
+        },
+        {
+          "acceleration_delta": -0.8999999999999999,
+          "expected_generalized_rule": "hlsgen.linear_algebra.factorization_dependency_guard",
+          "generalized_exact_source_measured_case_count": 0,
+          "generalized_retrieved_ids": [
+            "hlsgen.linear_algebra.factorization_dependency_guard",
+            "submission.polybench__lu.r1.4b801a729ce2",
+            "submission.polybench__heat_3d.r2.negative.3ababb6708dd"
+          ],
+          "hypotheses": [
+            "missed_parallel_architecture_or_strategy_lane",
+            "lower_tool_spend_correlates_with_lower_qor"
+          ],
+          "q_hw_delta": -0.128,
+          "requires_real_small_ab": true,
+          "status": "offline_prompt_coverage_ready",
+          "task_id": "polybench__cholesky"
+        },
+        {
+          "acceleration_delta": -65.30000000000001,
+          "expected_generalized_rule": "hlsgen.gemm.tiled_reuse",
+          "generalized_exact_source_measured_case_count": 0,
+          "generalized_retrieved_ids": [
+            "hlsgen.gemm.tiled_reuse",
+            "submission.polybench__gemm.r1.negative.fa3674c37579"
+          ],
+          "hypotheses": [
+            "prompt_or_retrieval_became_more_conservative",
+            "early_stop_or_under_exploration_possible",
+            "missed_parallel_architecture_or_strategy_lane",
+            "lower_tool_spend_correlates_with_lower_qor"
+          ],
+          "q_hw_delta": -0.11299999999999999,
+          "requires_real_small_ab": true,
+          "status": "offline_prompt_coverage_ready",
+          "task_id": "machsuite__gemm_blocked"
+        }
+      ],
+      "remaining_required_evidence": "1-task generalized-RAG real API/Vitis A/B for each priority regression before claiming QoR recovery",
+      "suggested_qor_small_ab_tasks": [
+        "machsuite__aes_aes",
+        "polybench__cholesky",
+        "machsuite__gemm_blocked"
+      ]
+    },
+    "schema_version": 1
+  },
+  "post_quarantine_failures": {
+    "completed_count": 149,
+    "estimated_success_rate_after_quarantine": 0.8662790697674418,
+    "excluded_failed_task_count": 27,
+    "excluded_task_count": 27,
+    "failure_reason_counts": {
+      "anchor_invalid: starter": 9,
+      "frequency_failed": 10,
+      "interface_failed": 4
+    },
+    "family_reason_counts": {
+      "amd_accel": {
+        "frequency_failed": 2
+      },
+      "amd_intro": {
+        "interface_failed": 2
+      },
+      "c2hlsc": {
+        "frequency_failed": 1,
+        "interface_failed": 1
+      },
+      "chstone": {
+        "anchor_invalid: starter": 1,
+        "frequency_failed": 4,
+        "interface_failed": 1
+      },
+      "flowgnn": {
+        "frequency_failed": 1
+      },
+      "machsuite": {
+        "anchor_invalid: starter": 8
+      },
+      "pp4fpga": {
+        "frequency_failed": 1
+      },
+      "rosetta": {
+        "frequency_failed": 1
+      }
+    },
+    "remaining_failure_count": 23,
+    "remaining_failures": [
+      {
+        "family": "amd_accel",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 177,
+              "LUT": 296,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 177,
+                "LUT": 296,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "amd_accel__performance_host_global_bandwidth_src_kernel",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "amd_accel",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 177,
+              "LUT": 296,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 177,
+                "LUT": 296,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "amd_accel__performance_p2p_fpga2fpga_bandwidth_src_bandwidth",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "amd_intro",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 2.018,
+            "frequency_mhz": 495.5401387512389,
+            "interval_max": 71,
+            "latency_worst": 70,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 130,
+              "LUT": 349,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 2.018,
+              "frequency_mhz": 495.5401387512389,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": false,
+              "reason": "top_interface_changed",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [
+                "interface_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 130,
+                "LUT": 349,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "interface_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 2930,
+              "prompt_tokens": 9959,
+              "request_count": 2,
+              "total_tokens": 12889
+            }
+          }
+        },
+        "reason": "interface_failed",
+        "task_id": "amd_intro__misc_malloc_removed",
+        "triage_class": "interface_contract_or_wrapper"
+      },
+      {
+        "family": "amd_intro",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 2.231,
+            "frequency_mhz": 448.2294935006724,
+            "interval_max": 408,
+            "latency_worst": 410,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 32,
+              "LUT": 216,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 2.231,
+              "frequency_mhz": 448.2294935006724,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": false,
+              "reason": "top_interface_changed",
+              "stage": "optimize_candidate_2"
+            },
+            "public_acceptance": {
+              "failures": [
+                "interface_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 32,
+                "LUT": 216,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "interface_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 2684,
+              "prompt_tokens": 9403,
+              "request_count": 2,
+              "total_tokens": 12087
+            }
+          }
+        },
+        "reason": "interface_failed",
+        "task_id": "amd_intro__modeling_pointers_native_casts",
+        "triage_class": "interface_contract_or_wrapper"
+      },
+      {
+        "family": "c2hlsc",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 1.614,
+            "frequency_mhz": 619.5786864931846,
+            "interval_max": 92,
+            "latency_worst": 91,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 471,
+              "LUT": 776,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 1.614,
+              "frequency_mhz": 619.5786864931846,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": false,
+              "reason": "markdown_fence_in_candidate",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [
+                "interface_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 471,
+                "LUT": 776,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "interface_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 8192,
+              "prompt_tokens": 22086,
+              "request_count": 2,
+              "total_tokens": 30278
+            }
+          }
+        },
+        "reason": "interface_failed",
+        "task_id": "c2hlsc__des",
+        "triage_class": "interface_contract_or_wrapper"
+      },
+      {
+        "family": "c2hlsc",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 12,
+            "latency_worst": 11,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 92,
+              "LUT": 287,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 92,
+                "LUT": 287,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "c2hlsc__shift_rows",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 0,
+              "LUT": 0,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 0,
+                "LUT": 0,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "chstone__df_extractFloat64Exp",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 0,
+              "LUT": 0,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 0,
+                "LUT": 0,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "chstone__df_extractFloat64Frac",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 0,
+              "LUT": 0,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 0,
+                "LUT": 0,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "chstone__df_extractFloat64Sign",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 0,
+              "LUT": 0,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 0,
+                "LUT": 0,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "chstone__df_float64_abs",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.541,
+              "frequency_mhz": 282.4060999717594,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.541,
+            "frequency_mhz": 282.4060999717594,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 16,
+              "FF": 5013,
+              "LUT": 9698,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.541,
+              "frequency_mhz": 282.4060999717594,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 16,
+                "FF": 5013,
+                "LUT": 9698,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 3607,
+              "prompt_tokens": 8488,
+              "request_count": 1,
+              "total_tokens": 12095
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "chstone__dfdiv",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.626,
+            "frequency_mhz": 275.78599007170436,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 35,
+              "FF": 9931,
+              "LUT": 24045,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.626,
+              "frequency_mhz": 275.78599007170436,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": false,
+              "reason": "markdown_fence_in_candidate",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [
+                "interface_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 35,
+                "FF": 9931,
+                "LUT": 24045,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "interface_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 8192,
+              "prompt_tokens": 23664,
+              "request_count": 2,
+              "total_tokens": 31856
+            }
+          }
+        },
+        "reason": "interface_failed",
+        "task_id": "chstone__dfsin",
+        "triage_class": "interface_contract_or_wrapper"
+      },
+      {
+        "family": "flowgnn",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 15.145,
+            "frequency_mhz": 66.02839220864972,
+            "interval_max": 25,
+            "latency_worst": 24,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 320,
+              "FF": 23514,
+              "LUT": 20038,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 15.145,
+              "frequency_mhz": 66.02839220864972,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "minimum_100mhz_not_met",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 320,
+                "FF": 23514,
+                "LUT": 20038,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "flowgnn__fgnn_linear_input_stationary",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 1.534,
+              "frequency_mhz": 651.8904823989569,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 1.534,
+            "frequency_mhz": 651.8904823989569,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 454,
+              "LUT": 673,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 1.534,
+              "frequency_mhz": 651.8904823989569,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "optimize_candidate_2"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 454,
+                "LUT": 673,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 770,
+              "prompt_tokens": 12144,
+              "request_count": 2,
+              "total_tokens": 12914
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__bfs_bulk",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 2.239,
+              "frequency_mhz": 446.6279589102278,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 2.239,
+            "frequency_mhz": 446.6279589102278,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 339,
+              "LUT": 949,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 2.239,
+              "frequency_mhz": 446.6279589102278,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "optimize_candidate_2"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 339,
+                "LUT": 949,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 1173,
+              "prompt_tokens": 11191,
+              "request_count": 2,
+              "total_tokens": 12364
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__bfs_queue",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.33,
+              "frequency_mhz": 300.3003003003003,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.33,
+            "frequency_mhz": 300.3003003003003,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 38,
+              "FF": 3009,
+              "LUT": 2373,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.33,
+              "frequency_mhz": 300.3003003003003,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 38,
+                "FF": 3009,
+                "LUT": 2373,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 611,
+              "prompt_tokens": 10319,
+              "request_count": 2,
+              "total_tokens": 10930
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__fft_strided",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 2.589,
+              "frequency_mhz": 386.24951718810354,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 2.589,
+            "frequency_mhz": 386.24951718810354,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 426,
+              "LUT": 837,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 2.589,
+              "frequency_mhz": 386.24951718810354,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "optimize_candidate_2"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 426,
+                "LUT": 837,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 690,
+              "prompt_tokens": 9320,
+              "request_count": 2,
+              "total_tokens": 10010
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__kmp_kmp",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.574,
+              "frequency_mhz": 279.79854504756577,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.574,
+            "frequency_mhz": 279.79854504756577,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 30,
+              "FF": 5324,
+              "LUT": 3434,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.574,
+              "frequency_mhz": 279.79854504756577,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 30,
+                "FF": 5324,
+                "LUT": 3434,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 1892,
+              "prompt_tokens": 11599,
+              "request_count": 2,
+              "total_tokens": 13491
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__md_grid",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.481,
+              "frequency_mhz": 287.2737719046251,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.481,
+            "frequency_mhz": 287.2737719046251,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 647,
+              "LUT": 1857,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.481,
+              "frequency_mhz": 287.2737719046251,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 647,
+                "LUT": 1857,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 830,
+              "prompt_tokens": 5181,
+              "request_count": 1,
+              "total_tokens": 6011
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__nw_nw",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.269,
+              "frequency_mhz": 305.9039461609055,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.269,
+            "frequency_mhz": 305.9039461609055,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 4,
+              "DSP": 0,
+              "FF": 530,
+              "LUT": 1066,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.269,
+              "frequency_mhz": 305.9039461609055,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 4,
+                "DSP": 0,
+                "FF": 530,
+                "LUT": 1066,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 714,
+              "prompt_tokens": 8805,
+              "request_count": 2,
+              "total_tokens": 9519
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__sort_merge",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "machsuite",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 6.179,
+              "frequency_mhz": 161.8384851917786,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 6.179,
+            "frequency_mhz": 161.8384851917786,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 11,
+              "FF": 1092,
+              "LUT": 1048,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 6.179,
+              "frequency_mhz": 161.8384851917786,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 11,
+                "FF": 1092,
+                "LUT": 1048,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 222,
+              "prompt_tokens": 4775,
+              "request_count": 1,
+              "total_tokens": 4997
+            }
+          }
+        },
+        "reason": "anchor_invalid: starter",
+        "task_id": "machsuite__spmv_crs",
+        "triage_class": "starter_anchor_invalid"
+      },
+      {
+        "family": "pp4fpga",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 10.607,
+            "frequency_mhz": 94.27736400490242,
+            "interval_max": 16,
+            "latency_worst": 75,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 1056,
+              "LUT": 3131,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 10.607,
+              "frequency_mhz": 94.27736400490242,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "minimum_100mhz_not_met",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 1056,
+                "LUT": 3131,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "pp4fpga__parallel_merge_sort",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      },
+      {
+        "family": "rosetta",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 0,
+              "LUT": 0,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 0,
+                "LUT": 0,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "reason": "frequency_failed",
+        "task_id": "rosetta__rendering_3d__clockwise_vertices",
+        "triage_class": "frequency_gate_or_over_parallelization"
+      }
+    ],
+    "remaining_task_count": 172,
+    "suggested_small_sample_records": [
+      {
+        "category": "interface_markdown_fence",
+        "family": "c2hlsc",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 1.614,
+            "frequency_mhz": 619.5786864931846,
+            "interval_max": 92,
+            "latency_worst": 91,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 471,
+              "LUT": 776,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 1.614,
+              "frequency_mhz": 619.5786864931846,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": false,
+              "reason": "markdown_fence_in_candidate",
+              "stage": "optimize_candidate_1"
+            },
+            "public_acceptance": {
+              "failures": [
+                "interface_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 471,
+                "LUT": 776,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "interface_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 8192,
+              "prompt_tokens": 22086,
+              "request_count": 2,
+              "total_tokens": 30278
+            }
+          }
+        },
+        "rationale": "candidate extraction/sanitization can be fixed generically",
+        "reason": "interface_failed",
+        "task_id": "c2hlsc__des"
+      },
+      {
+        "category": "true_frequency_miss",
+        "family": "pp4fpga",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 10.607,
+            "frequency_mhz": 94.27736400490242,
+            "interval_max": 16,
+            "latency_worst": 75,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 1056,
+              "LUT": 3131,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 10.607,
+              "frequency_mhz": 94.27736400490242,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "minimum_100mhz_not_met",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 1056,
+                "LUT": 3131,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "rationale": "closest synthesized clock miss is the cheapest clock-policy probe",
+        "reason": "frequency_failed",
+        "task_id": "pp4fpga__parallel_merge_sort"
+      },
+      {
+        "category": "candidate_clock_invalid",
+        "family": "amd_accel",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": null,
+            "frequency_100mhz": null,
+            "grading": null,
+            "interface": null,
+            "status": null,
+            "stop_reason": null
+          },
+          "final_hardware": {
+            "clock_period_ns": 0.0,
+            "frequency_mhz": null,
+            "interval_max": 1,
+            "latency_worst": 0,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 0,
+              "FF": 177,
+              "LUT": 296,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 0.0,
+              "frequency_mhz": null,
+              "minimum_frequency_mhz": 100.0,
+              "ok": false,
+              "reason": "candidate_clock_invalid",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [
+                "frequency_failed"
+              ],
+              "ok": false
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 0,
+                "FF": 177,
+                "LUT": 296,
+                "URAM": 0
+              }
+            },
+            "status": "failed",
+            "stop_reason": "frequency_failed",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 0,
+              "prompt_tokens": 0,
+              "request_count": 0,
+              "total_tokens": 0
+            }
+          }
+        },
+        "rationale": "zero/invalid clock cluster needs metric-extraction diagnosis",
+        "reason": "frequency_failed",
+        "task_id": "amd_accel__performance_host_global_bandwidth_src_kernel"
+      },
+      {
+        "category": "residual_anchor_invalid",
+        "family": "chstone",
+        "gate_evidence": {
+          "evaluator": {
+            "evaluator_acceptance": {
+              "anchor_source": "starter",
+              "anchor_valid": false,
+              "failures": [
+                "anchor_invalid: starter"
+              ],
+              "grading_source": "hidden",
+              "hidden_available": true,
+              "ok": false
+            },
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.541,
+              "frequency_mhz": 282.4060999717594,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "grading": {
+              "hidden_available": true,
+              "is_fallback": false,
+              "source": "hidden"
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "evaluator_input"
+            },
+            "status": "failed",
+            "stop_reason": "anchor_invalid: starter"
+          },
+          "final_hardware": {
+            "clock_period_ns": 3.541,
+            "frequency_mhz": 282.4060999717594,
+            "interval_max": null,
+            "latency_worst": null,
+            "resources": {
+              "BRAM_18K": 0,
+              "DSP": 16,
+              "FF": 5013,
+              "LUT": 9698,
+              "URAM": 0
+            },
+            "stage": "pipeline_synth"
+          },
+          "submission": {
+            "frequency_100mhz": {
+              "candidate_clock_ns": 3.541,
+              "frequency_mhz": 282.4060999717594,
+              "minimum_frequency_mhz": 100.0,
+              "ok": true,
+              "reason": "passed",
+              "target_clock_ns": 5.0
+            },
+            "interface": {
+              "ok": true,
+              "reason": "passed",
+              "stage": "baseline"
+            },
+            "public_acceptance": {
+              "failures": [],
+              "ok": true
+            },
+            "resource_capacity": {
+              "available": {
+                "BRAM_18K": 4032,
+                "DSP": 9024,
+                "FF": 2607360,
+                "LUT": 1303680,
+                "URAM": 960
+              },
+              "ok": true,
+              "reason": "passed",
+              "resources": {
+                "BRAM_18K": 0,
+                "DSP": 16,
+                "FF": 5013,
+                "LUT": 9698,
+                "URAM": 0
+              }
+            },
+            "status": "completed",
+            "stop_reason": "",
+            "token_usage": {
+              "complete": true,
+              "completion_tokens": 3607,
+              "prompt_tokens": 8488,
+              "request_count": 1,
+              "total_tokens": 12095
+            }
+          }
+        },
+        "rationale": "remaining starter-anchor failures are not covered by metric quarantine",
+        "reason": "anchor_invalid: starter",
+        "task_id": "chstone__dfdiv"
+      }
+    ],
+    "suggested_small_sample_tasks": [
+      "c2hlsc__des",
+      "pp4fpga__parallel_merge_sort",
+      "amd_accel__performance_host_global_bandwidth_src_kernel"
+    ],
+    "triage_notes": {
+      "candidate_clock_invalid": "clock/frequency gate saw invalid or zero clock; inspect synth metric extraction and empty/constant datapath cases",
+      "markdown_fence_in_candidate": "generic candidate extraction/sanitization issue; verify with one interface-failed task before touching optimizer policy",
+      "residual_anchor_invalid": "not explained by metric-incomplete quarantine; audit starter anchor provenance before changing prompt behavior",
+      "true_frequency_miss": "candidate synthesized but missed 100 MHz; prioritize the closest miss to test clock-aware acceptance"
+    }
+  },
+  "qor_rag_ab": {
+    "comparison": {
+      "acceleration_geomean_relative_change": -0.417492281,
+      "baseline_correct_count": 12,
+      "correctness_preservation_rate": 1.0,
+      "correctness_preserved_count": 12,
+      "mean_credits_relative_change_monitor_only": -0.181249955,
+      "mean_tokens_relative_change": -0.170644798,
+      "q_hw_geomean_relative_change": -0.046752175,
+      "wasted_attempts_relative_change": -0.5
+    },
+    "evidence_limitations": [
+      "aggregate A/B report is enough for metric deltas but not final root-cause",
+      "raw submission metadata is required to prove retrieval-vs-prompt-vs-early-stop cause"
+    ],
+    "gates": {
+      "acceleration_geomean_improves_5pct": false,
+      "all_reports_present": true,
+      "correctness_preserved_100pct": true,
+      "fixed_task_count_12_to_20": true,
+      "mean_tokens_increase_at_most_10pct": true,
+      "q_hw_geomean_improves_1pct": false,
+      "scorable_count_not_lower": true,
+      "wasted_attempts_reduce_20pct": true
+    },
+    "improvement_count": 0,
+    "largest_regressions": [
+      {
+        "acceleration_delta": -7.800000000000001,
+        "acceleration_relative_change": -0.886363636,
+        "baseline_acceleration": 8.8,
+        "baseline_credits": 10.0,
+        "baseline_q_hw": 0.9966,
+        "baseline_tokens": 21696.0,
+        "baseline_wasted_attempts": 1,
+        "candidate_acceleration": 1.0,
+        "candidate_credits": 6.0,
+        "candidate_q_hw": 0.75,
+        "candidate_tokens": 22218.0,
+        "candidate_wasted_attempts": 1,
+        "credits_relative_change": -0.4,
+        "hypotheses": [
+          "early_stop_or_under_exploration_possible",
+          "missed_parallel_architecture_or_strategy_lane",
+          "lower_tool_spend_correlates_with_lower_qor"
+        ],
+        "next_offline_checks": [
+          "inspect candidate and baseline knowledge_retrievals in raw submission run_report metadata",
+          "diff accepted candidate pragmas/source against baseline final kernel",
+          "check whether early stop or low measured-candidate count limited exploration"
+        ],
+        "offline_retrieval_replay": {
+          "available": true,
+          "hypothesis_evidence": {
+            "acceleration_relative_change": -0.886363636,
+            "credit_delta": -4.0,
+            "credit_relative_change": -0.4,
+            "signals": [
+              "lower_credit_under_exploration",
+              "missed_strategy_lane",
+              "same_or_fewer_wasted_attempts"
+            ],
+            "token_delta": 522.0,
+            "token_relative_change": 0.024059735,
+            "wasted_attempt_delta": 0
+          },
+          "modes": {
+            "default": {
+              "entries": [
+                {
+                  "family": "crypto_lookup",
+                  "id": "hlsgen.crypto.lookup_round_guard",
+                  "kind": "rule",
+                  "source": "third_party/hls-generator/references/hls-modeling-strategy.md#modeling-checklist",
+                  "source_matches_task": false,
+                  "status": "unverified_seed",
+                  "tags": [
+                    "aes",
+                    "array_partition",
+                    "byte",
+                    "cipher",
+                    "clock_guard",
+                    "crypto_lookup",
+                    "pipeline",
+                    "sbox",
+                    "substitution",
+                    "xor"
+                  ]
+                }
+              ],
+              "exact_source_measured_case_count": 0,
+              "families": [
+                "crypto_lookup"
+              ],
+              "generalized": false,
+              "measured_case_count": 0,
+              "prompt_token_upper_bound": 509,
+              "retrieved_ids": [
+                "hlsgen.crypto.lookup_round_guard"
+              ],
+              "sources": [
+                "third_party/hls-generator/references/hls-modeling-strategy.md#modeling-checklist"
+              ]
+            },
+            "generalized": {
+              "entries": [
+                {
+                  "family": "crypto_lookup",
+                  "id": "hlsgen.crypto.lookup_round_guard",
+                  "kind": "rule",
+                  "source": "third_party/hls-generator/references/hls-modeling-strategy.md#modeling-checklist",
+                  "source_matches_task": false,
+                  "status": "unverified_seed",
+                  "tags": [
+                    "aes",
+                    "array_partition",
+                    "byte",
+                    "cipher",
+                    "clock_guard",
+                    "crypto_lookup",
+                    "pipeline",
+                    "sbox",
+                    "substitution",
+                    "xor"
+                  ]
+                }
+              ],
+              "exact_source_measured_case_count": 0,
+              "families": [
+                "crypto_lookup"
+              ],
+              "generalized": true,
+              "measured_case_count": 0,
+              "prompt_token_upper_bound": 509,
+              "retrieved_ids": [
+                "hlsgen.crypto.lookup_round_guard"
+              ],
+              "sources": [
+                "third_party/hls-generator/references/hls-modeling-strategy.md#modeling-checklist"
+              ]
+            }
+          },
+          "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+          "public_files_read": [
+            "aes_aes.cpp",
+            "aes_aes.h",
+            "aes_aes_tb.cpp",
+            "description.md",
+            "task.toml"
+          ],
+          "source_metadata_summary": {
+            "array_count": 16,
+            "loop_count": 7,
+            "parse_status": "ok"
+          }
+        },
+        "q_hw_delta": -0.24660000000000004,
+        "q_hw_relative_change": -0.2474413,
+        "task_id": "machsuite__aes_aes",
+        "tokens_relative_change": 0.024059735
+      },
+      {
+        "acceleration_delta": -0.8999999999999999,
+        "acceleration_relative_change": -0.473684211,
+        "baseline_acceleration": 1.9,
+        "baseline_credits": 15.0,
+        "baseline_q_hw": 0.878,
+        "baseline_tokens": 7483.0,
+        "baseline_wasted_attempts": 0,
+        "candidate_acceleration": 1.0,
+        "candidate_credits": 10.0,
+        "candidate_q_hw": 0.75,
+        "candidate_tokens": 8554.0,
+        "candidate_wasted_attempts": 1,
+        "credits_relative_change": -0.333333333,
+        "hypotheses": [
+          "missed_parallel_architecture_or_strategy_lane",
+          "lower_tool_spend_correlates_with_lower_qor"
+        ],
+        "next_offline_checks": [
+          "inspect candidate and baseline knowledge_retrievals in raw submission run_report metadata",
+          "diff accepted candidate pragmas/source against baseline final kernel",
+          "check whether early stop or low measured-candidate count limited exploration"
+        ],
+        "offline_retrieval_replay": {
+          "available": true,
+          "hypothesis_evidence": {
+            "acceleration_relative_change": -0.473684211,
+            "credit_delta": -5.0,
+            "credit_relative_change": -0.333333333,
+            "signals": [
+              "lower_credit_under_exploration",
+              "missed_strategy_lane"
+            ],
+            "token_delta": 1071.0,
+            "token_relative_change": 0.143124415,
+            "wasted_attempt_delta": 1
+          },
+          "modes": {
+            "default": {
+              "entries": [
+                {
+                  "family": "linear_algebra_factorization",
+                  "id": "hlsgen.linear_algebra.factorization_dependency_guard",
+                  "kind": "rule",
+                  "source": "third_party/hls-generator/references/hls-linear-algebra-template-family.md#reusable-design-facts",
+                  "source_matches_task": false,
+                  "status": "unverified_seed",
+                  "tags": [
+                    "array_partition",
+                    "cholesky",
+                    "decomposition",
+                    "dependency_guard",
+                    "factorization",
+                    "floating_point",
+                    "linear_algebra_factorization",
+                    "lu",
+                    "matrix",
+                    "pipeline",
+                    "triangular"
+                  ]
+                },
+                {
+                  "family": "pipeline",
+                  "id": "submission.polybench__lu.r1.4b801a729ce2",
+                  "kind": "verified_case",
+                  "source": "submission:polybench__lu:4b801a729ce2",
+                  "source_matches_task": false,
+                  "status": "verified_case",
+                  "tags": [
+                    "measured",
+                    "pipeline",
+                    "q_hw_improved"
+                  ]
+                },
+                {
+                  "family": "pipeline",
+                  "id": "submission.polybench__heat_3d.r2.negative.3ababb6708dd",
+                  "kind": "failure_case",
+                  "source": "submission:polybench__heat_3d:3ababb6708dd",
+                  "source_matches_task": false,
+                  "status": "verified_failure",
+                  "tags": [
+                    "measured",
+                    "pipeline",
+                    "q_hw_rejected"
+                  ]
+                }
+              ],
+              "exact_source_measured_case_count": 0,
+              "families": [
+                "linear_algebra_factorization",
+                "pipeline",
+                "pipeline"
+              ],
+              "generalized": false,
+              "measured_case_count": 2,
+              "prompt_token_upper_bound": 990,
+              "retrieved_ids": [
+                "hlsgen.linear_algebra.factorization_dependency_guard",
+                "submission.polybench__lu.r1.4b801a729ce2",
+                "submission.polybench__heat_3d.r2.negative.3ababb6708dd"
+              ],
+              "sources": [
+                "third_party/hls-generator/references/hls-linear-algebra-template-family.md#reusable-design-facts",
+                "submission:polybench__lu:4b801a729ce2",
+                "submission:polybench__heat_3d:3ababb6708dd"
+              ]
+            },
+            "generalized": {
+              "entries": [
+                {
+                  "family": "linear_algebra_factorization",
+                  "id": "hlsgen.linear_algebra.factorization_dependency_guard",
+                  "kind": "rule",
+                  "source": "third_party/hls-generator/references/hls-linear-algebra-template-family.md#reusable-design-facts",
+                  "source_matches_task": false,
+                  "status": "unverified_seed",
+                  "tags": [
+                    "array_partition",
+                    "cholesky",
+                    "decomposition",
+                    "dependency_guard",
+                    "factorization",
+                    "floating_point",
+                    "linear_algebra_factorization",
+                    "lu",
+                    "matrix",
+                    "pipeline",
+                    "triangular"
+                  ]
+                },
+                {
+                  "family": "pipeline",
+                  "id": "submission.polybench__lu.r1.4b801a729ce2",
+                  "kind": "verified_case",
+                  "source": "submission:polybench__lu:4b801a729ce2",
+                  "source_matches_task": false,
+                  "status": "verified_case",
+                  "tags": [
+                    "measured",
+                    "pipeline",
+                    "q_hw_improved"
+                  ]
+                },
+                {
+                  "family": "pipeline",
+                  "id": "submission.polybench__heat_3d.r2.negative.3ababb6708dd",
+                  "kind": "failure_case",
+                  "source": "submission:polybench__heat_3d:3ababb6708dd",
+                  "source_matches_task": false,
+                  "status": "verified_failure",
+                  "tags": [
+                    "measured",
+                    "pipeline",
+                    "q_hw_rejected"
+                  ]
+                }
+              ],
+              "exact_source_measured_case_count": 0,
+              "families": [
+                "linear_algebra_factorization",
+                "pipeline",
+                "pipeline"
+              ],
+              "generalized": true,
+              "measured_case_count": 2,
+              "prompt_token_upper_bound": 990,
+              "retrieved_ids": [
+                "hlsgen.linear_algebra.factorization_dependency_guard",
+                "submission.polybench__lu.r1.4b801a729ce2",
+                "submission.polybench__heat_3d.r2.negative.3ababb6708dd"
+              ],
+              "sources": [
+                "third_party/hls-generator/references/hls-linear-algebra-template-family.md#reusable-design-facts",
+                "submission:polybench__lu:4b801a729ce2",
+                "submission:polybench__heat_3d:3ababb6708dd"
+              ]
+            }
+          },
+          "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+          "public_files_read": [
+            "cholesky.cpp",
+            "cholesky.h",
+            "cholesky_tb.cpp",
+            "description.md",
+            "task.toml"
+          ],
+          "source_metadata_summary": {
+            "array_count": 2,
+            "loop_count": 16,
+            "parse_status": "ok"
+          }
+        },
+        "q_hw_delta": -0.128,
+        "q_hw_relative_change": -0.145785877,
+        "task_id": "polybench__cholesky",
+        "tokens_relative_change": 0.143124415
+      },
+      {
+        "acceleration_delta": -65.30000000000001,
+        "acceleration_relative_change": -0.974481421,
+        "baseline_acceleration": 67.01,
+        "baseline_credits": 10.0,
+        "baseline_q_hw": 0.9092,
+        "baseline_tokens": 9352.0,
+        "baseline_wasted_attempts": 1,
+        "candidate_acceleration": 1.71,
+        "candidate_credits": 10.0,
+        "candidate_q_hw": 0.7962,
+        "candidate_tokens": 4671.0,
+        "candidate_wasted_attempts": 0,
+        "credits_relative_change": 0.0,
+        "hypotheses": [
+          "prompt_or_retrieval_became_more_conservative",
+          "early_stop_or_under_exploration_possible",
+          "missed_parallel_architecture_or_strategy_lane",
+          "lower_tool_spend_correlates_with_lower_qor"
+        ],
+        "next_offline_checks": [
+          "inspect candidate and baseline knowledge_retrievals in raw submission run_report metadata",
+          "diff accepted candidate pragmas/source against baseline final kernel",
+          "check whether early stop or low measured-candidate count limited exploration"
+        ],
+        "offline_retrieval_replay": {
+          "available": true,
+          "hypothesis_evidence": {
+            "acceleration_relative_change": -0.974481421,
+            "credit_delta": 0.0,
+            "credit_relative_change": 0.0,
+            "signals": [
+              "low_token_conservative_behavior",
+              "missed_strategy_lane",
+              "same_or_fewer_wasted_attempts"
+            ],
+            "token_delta": -4681.0,
+            "token_relative_change": -0.500534645,
+            "wasted_attempt_delta": -1
+          },
+          "modes": {
+            "default": {
+              "entries": [
+                {
+                  "family": "gemm",
+                  "id": "hlsgen.gemm.tiled_reuse",
+                  "kind": "rule",
+                  "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+                  "source_matches_task": false,
+                  "status": "unverified_seed",
+                  "tags": [
+                    "blocked",
+                    "gemm",
+                    "k_dimension",
+                    "local_buffer",
+                    "matmul",
+                    "matrix",
+                    "minimum_banking",
+                    "reuse",
+                    "tile",
+                    "triple_loop"
+                  ]
+                },
+                {
+                  "family": "array_partition",
+                  "id": "submission.machsuite__gemm_blocked.r1.3b91e49785a0",
+                  "kind": "verified_case",
+                  "source": "submission:machsuite__gemm_blocked:3b91e49785a0",
+                  "source_matches_task": true,
+                  "status": "verified_case",
+                  "tags": [
+                    "array_partition",
+                    "gemm",
+                    "measured",
+                    "q_hw_improved"
+                  ]
+                },
+                {
+                  "family": "pipeline",
+                  "id": "submission.polybench__gemm.r1.negative.fa3674c37579",
+                  "kind": "failure_case",
+                  "source": "submission:polybench__gemm:fa3674c37579",
+                  "source_matches_task": false,
+                  "status": "verified_failure",
+                  "tags": [
+                    "gemm",
+                    "measured",
+                    "pipeline",
+                    "q_hw_rejected"
+                  ]
+                }
+              ],
+              "exact_source_measured_case_count": 1,
+              "families": [
+                "gemm",
+                "array_partition",
+                "pipeline"
+              ],
+              "generalized": false,
+              "measured_case_count": 2,
+              "prompt_token_upper_bound": 1000,
+              "retrieved_ids": [
+                "hlsgen.gemm.tiled_reuse",
+                "submission.machsuite__gemm_blocked.r1.3b91e49785a0",
+                "submission.polybench__gemm.r1.negative.fa3674c37579"
+              ],
+              "sources": [
+                "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+                "submission:machsuite__gemm_blocked:3b91e49785a0",
+                "submission:polybench__gemm:fa3674c37579"
+              ]
+            },
+            "generalized": {
+              "entries": [
+                {
+                  "family": "gemm",
+                  "id": "hlsgen.gemm.tiled_reuse",
+                  "kind": "rule",
+                  "source": "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+                  "source_matches_task": false,
+                  "status": "unverified_seed",
+                  "tags": [
+                    "blocked",
+                    "gemm",
+                    "k_dimension",
+                    "local_buffer",
+                    "matmul",
+                    "matrix",
+                    "minimum_banking",
+                    "reuse",
+                    "tile",
+                    "triple_loop"
+                  ]
+                },
+                {
+                  "family": "pipeline",
+                  "id": "submission.polybench__gemm.r1.negative.fa3674c37579",
+                  "kind": "failure_case",
+                  "source": "submission:polybench__gemm:fa3674c37579",
+                  "source_matches_task": false,
+                  "status": "verified_failure",
+                  "tags": [
+                    "gemm",
+                    "measured",
+                    "pipeline",
+                    "q_hw_rejected"
+                  ]
+                }
+              ],
+              "exact_source_measured_case_count": 0,
+              "families": [
+                "gemm",
+                "pipeline"
+              ],
+              "generalized": true,
+              "measured_case_count": 1,
+              "prompt_token_upper_bound": 1351,
+              "retrieved_ids": [
+                "hlsgen.gemm.tiled_reuse",
+                "submission.polybench__gemm.r1.negative.fa3674c37579"
+              ],
+              "sources": [
+                "third_party/hls-generator/references/hls-stencil-reduction-gemm-patterns.md#tiled-gemm",
+                "submission:polybench__gemm:fa3674c37579"
+              ]
+            }
+          },
+          "policy": "public task package only; no Vitis, LLM, hidden, or reference reads",
+          "public_files_read": [
+            "description.md",
+            "gemm_blocked.cpp",
+            "gemm_blocked.h",
+            "gemm_blocked_tb.cpp",
+            "task.toml"
+          ],
+          "source_metadata_summary": {
+            "array_count": 10,
+            "loop_count": 8,
+            "parse_status": "ok"
+          }
+        },
+        "q_hw_delta": -0.11299999999999999,
+        "q_hw_relative_change": -0.124285086,
+        "task_id": "machsuite__gemm_blocked",
+        "tokens_relative_change": -0.500534645
+      }
+    ],
+    "passed": false,
+    "priority_tasks": [
+      "machsuite__aes_aes",
+      "polybench__cholesky",
+      "machsuite__gemm_blocked"
+    ],
+    "regression_count": 3,
+    "task_count": 12,
+    "unchanged_count": 9
+  },
+  "schema_version": 2
+}

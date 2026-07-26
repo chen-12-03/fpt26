@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_memory_memory_bottleneck_modified"
+task_type = "optimize"
+difficulty = 3
+top = "mem_bottleneck_resolved"
+kernel_file = "mem_bottleneck_resolved.cpp"
+header_files = ["mem_bottleneck_resolved.h"]
+public_tb = "mem_bottleneck_resolved_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/memory_bottleneck/modified"
+license = "Apache-2.0"
+top_function = "mem_bottleneck_resolved"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Memory/memory_bottleneck/modified"
+source_sha256 = "2e46d6c98d7f7628904eb47400957bb31aa3948648d87be479c1cd64511236c6"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

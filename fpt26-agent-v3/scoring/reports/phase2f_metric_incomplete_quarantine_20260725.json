@@ -1,0 +1,57 @@
+{
+  "exclude_task_count": 27,
+  "exclude_task_ids": [
+    "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+    "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+    "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+    "amd_accel__host_xrt_host_memory_simple_xrt_src_kernel",
+    "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+    "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+    "amd_accel__sys_opt_multiple_devices_src_vector_addition",
+    "amd_intro__array_array_partition_complete",
+    "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+    "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+    "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+    "amd_intro__interface_streaming_axi_stream_to_master",
+    "amd_intro__interface_streaming_using_axi_stream_with_struct",
+    "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+    "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+    "amd_intro__task_level_parallelism_data_driven_unique_task_regions"
+  ],
+  "inputs": {
+    "full199_report": "fpt26-agent-v3/scoring/reports/phase2d_full199_acceptance_with_retry1_20260725.json",
+    "full199_report_sha256": "f29e21b3a00d8ff8686a8320a5f80d841a07df9e1f02cf862251a448643f7d09",
+    "triage_report": "fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json",
+    "triage_report_sha256": "f1a9384b16f3443f6e7f3372f794c11a9e388483ae54a779e44d3d43782c0acf"
+  },
+  "offline_effect_estimate": {
+    "baseline_completed": 149,
+    "baseline_expected_task_count": 199,
+    "baseline_failed": 50,
+    "baseline_success_rate": 0.748743719,
+    "quarantined_anchor_invalid_overlap": 27,
+    "quarantined_task_count": 27,
+    "remaining_completed_if_only_quarantine_changes": 149,
+    "remaining_expected_task_count": 172,
+    "remaining_failed_if_only_quarantine_changes": 23,
+    "remaining_success_rate_if_only_quarantine_changes": 0.86627907
+  },
+  "purpose": "phase2f_metric_incomplete_public_hls_quarantine",
+  "reason": "public-HLS CSim+Synth passed but starter synth lacks scoreable latency/II; tripcount 3-task Vitis sample did not restore top-level metrics",
+  "runner_usage": {
+    "default_full199_semantics_unchanged": true,
+    "split_role_runner_arg": "--exclude-task-ids fpt26-agent-v3/scoring/reports/phase2f_metric_incomplete_quarantine_20260725.json"
+  },
+  "schema_version": 1
+}

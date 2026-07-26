@@ -1,0 +1,69 @@
+{
+  "execution_source_stable_during_run": true,
+  "model_and_api": {
+    "completion_tokens": 405,
+    "failed_request_count": 0,
+    "prompt_tokens": 8106,
+    "request_count": 2,
+    "total_tokens": 8511,
+    "unreported_response_count": 0
+  },
+  "outcome_counts": {
+    "completed": 1
+  },
+  "recomputed_audit_error_task_count": 0,
+  "recorded_task_count": 1,
+  "records": [
+    {
+      "evaluator_grading": {
+        "hidden_available": true,
+        "is_fallback": false,
+        "source": "hidden"
+      },
+      "evaluator_grading_results": [
+        {
+          "error": null,
+          "ok": true,
+          "reason": null,
+          "stage": "hidden_csim"
+        },
+        {
+          "error": null,
+          "ok": true,
+          "reason": null,
+          "stage": "candidate_synth"
+        },
+        {
+          "error": null,
+          "ok": false,
+          "reason": null,
+          "stage": "starter_anchor_eval"
+        },
+        {
+          "error": null,
+          "ok": false,
+          "reason": null,
+          "stage": "reference_anchor_eval"
+        }
+      ],
+      "evaluator_score": 82.09,
+      "evaluator_status": "completed",
+      "evaluator_stop_reason": "",
+      "expected_grading_source": "hidden",
+      "outcome": "completed",
+      "recomputed_audit_errors": [],
+      "recomputed_audit_ok": true,
+      "submission_api_requests": 2,
+      "submission_credits_spent": 15,
+      "submission_frequency_mhz": 275.86206896551727,
+      "submission_status": "completed",
+      "submission_stop_reason": "",
+      "submission_total_tokens": 8511,
+      "task_id": "polybench__cholesky"
+    }
+  ],
+  "run_root": "runs/phase2f_qor_rag_cholesky_domainconstraint_generalized_20260726",
+  "schema_version": 1,
+  "selected_task_count": 1,
+  "source_shard_summary": "runs/phase2f_qor_rag_cholesky_domainconstraint_generalized_20260726/shard_summary.json"
+}

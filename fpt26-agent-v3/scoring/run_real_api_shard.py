@@ -23,14 +23,21 @@ OFFICIAL_MODES = {
     "residual_stream_deadlock": "structural",
 }
 
+EXPECTED_GENERATED_TASK_COUNT = 196
+EXPECTED_OFFICIAL_TASK_COUNT = 3
+EXPECTED_TASK_COUNT = EXPECTED_GENERATED_TASK_COUNT + EXPECTED_OFFICIAL_TASK_COUNT
+
 
 def discover_tasks(task_root: Path) -> list[Path]:
     tasks = sorted((task_root / "generated").glob("*/task.toml"))
     tasks += sorted((task_root / "official").glob("*/task.toml"))
     task_dirs = [path.parent.resolve() for path in tasks]
-    if len(task_dirs) != 97 or len({path.name for path in task_dirs}) != 97:
+    if (
+        len(task_dirs) != EXPECTED_TASK_COUNT
+        or len({path.name for path in task_dirs}) != EXPECTED_TASK_COUNT
+    ):
         raise RuntimeError(
-            f"expected 97 unique tasks, found {len(task_dirs)}"
+            f"expected {EXPECTED_TASK_COUNT} unique tasks, found {len(task_dirs)}"
         )
     return task_dirs
 

@@ -1,0 +1,26 @@
+task_id = "amd_intro__modeling_using_array_stencil_2d"
+task_type = "optimize"
+difficulty = 3
+top = "Filter2DKernel"
+kernel_file = "Filter2DKernel.cpp"
+header_files = ["cmdlineparser.h", "coefficients.h", "common.h"]
+public_tb = "Filter2DKernel_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_array_stencil_2d"
+license = "Apache-2.0"
+top_function = "Filter2DKernel"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Modeling/using_array_stencil_2d"
+source_sha256 = "2d4f2c0964bd3ab1ba6b433c0435cc9f197e6ae33529d0ddcab493f1132e8308"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

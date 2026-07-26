@@ -69,12 +69,12 @@ Agent 根据工具结果（csim fail / cosim deadlock / all pass）自行判断�
 
 ```
 fpt26_new/                  ← 仓库根目录
-├── tasks/                  ← 🆕 统一测试任务库（97 个 task）
+├── tasks/                  ← 🆕 统一测试任务库（199 个 task）
 │   ├── official/           ← 官方 3 个竞赛任务
 │   │   ├── dotProduct_optimize/
 │   │   ├── projection_bugfix/
 │   │   └── residual_stream_deadlock/
-│   └── generated/          ← 自动生成 94 个任务（8 个来源）
+│   └── generated/          ← 196 个任务（10 个来源）
 │       ├── c2hlsc__*/      ← C2HLSC 加密/HLS 任务
 │       ├── chstone__*/     ← CHStone HLS benchmark
 │       ├── flowgnn__*/     ← FlowGNN 图神经网络
@@ -82,7 +82,9 @@ fpt26_new/                  ← 仓库根目录
 │       ├── machsuite__*/   ← MachSuite FPGA benchmark
 │       ├── polybench__*/   ← PolyBench 数值计算
 │       ├── pp4fpga__*/     ← PP4FPGA 并行模式
-│       └── rosetta__*/     ← Rosetta HLS benchmark
+│       ├── rosetta__*/     ← Rosetta HLS benchmark
+│       ├── amd_intro__*/   ← AMD Vitis-HLS-Introductory-Examples public tasks
+│       └── amd_accel__*/   ← AMD Vitis_Accel_Examples public tasks
 ├── fpt26-agent-v3/         ← 当前 agent（v3）
 ├── fpt26-harness/          ← 官方 harness（llm4hls/）
 ├── third_party/            ← 第三方参考（hls-generator）
@@ -234,10 +236,12 @@ docker run ... python3 -m agent.main --task /workspace/tasks/generated/machsuite
 | 场景 | 环境变量 |
 |------|---------|
 | 自定义 OpenAI 兼容 API | `FPT26_LLM_BASE_URL=...` + `FPT26_LLM_API_KEY=...` + `FPT26_LLM_MODEL=...` |
-| OpenRouter | `OPENROUTER_API_KEY=sk-...` |
+| OpenRouter | `OPENROUTER_API_KEY=sk-...` + optional `OPENROUTER_BASE_URL=https://openrouter.ai/api/v1` + optional `LLM4HLS_MODEL=...` |
 | 离线 Scripted | `--backend scripted` |
 
 配置通常放在 `/tmp/fpt26.env` 并通过 `--env-file` 传入 Docker。
+`FPT26_LLM_BASE_URL` 和 `OPENROUTER_BASE_URL` 均可填写 API 根地址或完整
+`/chat/completions` endpoint；运行时会统一规范化，避免重复拼接路径。
 
 ## 7. 代码规范
 

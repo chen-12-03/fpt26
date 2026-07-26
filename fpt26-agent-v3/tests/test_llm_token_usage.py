@@ -1,4 +1,10 @@
-from llm4hls.llm import TokenUsage
+from llm4hls.llm import (
+    OpenAICompatClient,
+    OpenRouterClient,
+    TokenUsage,
+    chat_completions_url,
+    create_llm,
+)
 
 from agent.integrations.llm.protocol import LLMConfig, LLMExecutor
 from agent.reporting.metrics import _llm_summary
@@ -89,3 +95,72 @@ def test_llm_executor_forwards_backend_identity_config_and_exact_usage() -> None
     assert summary["max_tokens"] == 2048
     assert summary["token_usage"]["request_count"] == 1
     assert summary["token_usage"]["total_tokens"] == 150
+
+
+def test_chat_completion_url_accepts_api_base_or_full_endpoint() -> None:
+    assert (
+        chat_completions_url("https://openrouter.ai/api/v1")
+        == "https://openrouter.ai/api/v1/chat/completions"
+    )
+    assert (
+        chat_completions_url("https://openrouter.ai/api/v1/chat/completions")
+        == "https://openrouter.ai/api/v1/chat/completions"
+    )
+    assert (
+        chat_completions_url(" https://dashscope.aliyuncs.com/compatible-mode/v1/ ")
+        == "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    )
+
+
+def test_openai_compat_client_normalizes_custom_full_endpoint() -> None:
+    client = OpenAICompatClient(
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+        api_key="test-key",
+        model="qwen3-coder-plus",
+    )
+
+    assert (
+        client.base_url
+        == "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    )
+    assert client.model == "qwen3-coder-plus"
+
+
+def test_openrouter_client_normalizes_configured_api_base(monkeypatch) -> None:
+    from llm4hls import config
+
+    monkeypatch.setattr(config, "OPENROUTER_API_KEY", "test-router-key")
+    monkeypatch.setattr(config, "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+
+    client = OpenRouterClient(model="qwen/qwen-2.5-coder-32b-instruct")
+
+    assert client.base_url == "https://openrouter.ai/api/v1/chat/completions"
+
+
+def test_create_llm_auto_prefers_custom_endpoint(monkeypatch) -> None:
+    monkeypatch.setenv("FPT26_LLM_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+    monkeypatch.setenv("FPT26_LLM_API_KEY", "test-key")
+    monkeypatch.setenv("FPT26_LLM_MODEL", "qwen3-coder-plus")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-router-key")
+
+    client = create_llm("auto")
+
+    assert isinstance(client, OpenAICompatClient)
+    assert (
+        client.base_url
+        == "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    )
+    assert client.model == "qwen3-coder-plus"
+
+
+def test_create_llm_openrouter_backend_uses_openrouter_client(monkeypatch) -> None:
+    from llm4hls import config
+
+    monkeypatch.delenv("FPT26_LLM_BASE_URL", raising=False)
+    monkeypatch.setattr(config, "OPENROUTER_API_KEY", "test-router-key")
+    monkeypatch.setattr(config, "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+
+    client = create_llm("openrouter")
+
+    assert isinstance(client, OpenRouterClient)
+    assert client.base_url == "https://openrouter.ai/api/v1/chat/completions"

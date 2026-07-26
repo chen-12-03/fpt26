@@ -1,0 +1,26 @@
+task_id = "amd_intro__modeling_using_float_and_double"
+task_type = "optimize"
+difficulty = 3
+top = "double_mul_pow2"
+kernel_file = "double_mul_pow2.cpp"
+header_files = ["fp_mul_pow2.h"]
+public_tb = "double_mul_pow2_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double"
+license = "Apache-2.0"
+top_function = "double_mul_pow2"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Modeling/using_float_and_double"
+source_sha256 = "f58027813c47cd91b386e82aa3c3f6506a9000c7cda38326661fc7a1cf45da49"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

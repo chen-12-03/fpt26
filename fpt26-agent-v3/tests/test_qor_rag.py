@@ -100,12 +100,48 @@ def _case_entry(kind: str) -> KnowledgeEntry:
     )
 
 
+def _verified_source_case(
+    source_task: str,
+    *,
+    family: str = "unroll",
+    tags: list[str] | None = None,
+) -> KnowledgeEntry:
+    return KnowledgeEntry.from_dict(
+        {
+            "id": f"submission.{source_task}.synthetic",
+            "kind": "verified_case",
+            "family": family,
+            "preconditions": ["A comparable public loop dominates latency."],
+            "action": "Apply a measured bounded optimization.",
+            "expected_signal": "Q_HW improves on compatible source structure.",
+            "contraindications": ["Do not use as a task-specific answer."],
+            "source": f"submission:{source_task}:abc123",
+            "confidence": "high",
+            "vitis_version": "2025.2",
+            "status": "verified_case",
+            "tags": tags or ["measured"],
+            "evidence": {
+                "interface_ok": True,
+                "csim_ok": True,
+                "synth_ok": True,
+                "frequency_ok": True,
+                "resource_ok": True,
+                "cosim_required": False,
+                "q_hw_before": 0.75,
+                "q_hw_after": 0.80,
+            },
+        }
+    )
+
+
 def test_seed_schema_and_status_are_auditable() -> None:
     entries = load_knowledge_entries()
     rules = [entry for entry in entries if entry.kind == "rule"]
+    measured = [entry for entry in entries if entry.kind != "rule"]
 
-    assert len(entries) >= 12
-    assert len(rules) >= 12
+    assert len(entries) >= 120
+    assert len(rules) >= 40
+    assert len(measured) >= 80
     assert all(entry.status == "unverified_seed" for entry in rules)
     assert all(entry.source.startswith("third_party/hls-generator/") for entry in rules)
     assert {
@@ -117,6 +153,13 @@ def test_seed_schema_and_status_are_auditable() -> None:
         "gemm",
         "stencil",
         "dataflow",
+        "stream_fifo",
+        "memory_banking",
+        "loop_flatten",
+        "loop_fission",
+        "loop_fusion",
+        "bitwidth",
+        "math_kernel",
         "report_driven",
     } <= {entry.family for entry in rules}
 
@@ -136,7 +179,12 @@ def test_default_measured_cases_fill_success_and_failure_slots() -> None:
         "verified_case",
         "failure_case",
     }
-    assert any(entry.id == "submission.dotProduct_optimize.r1.2a7e144732e0" for entry in matches)
+    assert any(
+        entry.kind == "verified_case"
+        and entry.source.startswith("submission:dotProduct_optimize:")
+        and "dot_product" in entry.tags
+        for entry in matches
+    )
     assert any(
         entry.id == "submission.dotProduct_optimize.r2.negative.fa93b6af6eb0"
         for entry in matches
@@ -165,6 +213,67 @@ def test_dot_product_case_is_not_injected_into_unrelated_ii_loop() -> None:
     )
 
     assert all(entry.kind == "rule" for entry in matches)
+
+
+@pytest.mark.parametrize(
+    ("source_task", "description"),
+    [
+        ("dotProduct_optimize", "Optimize a correct dot product reduction."),
+        (
+            "rosetta__digit_recognition__popcount",
+            "Optimize a correct popcount reduction.",
+        ),
+        ("machsuite__gemm_blocked", "Optimize blocked GEMM matrix multiply."),
+        ("machsuite__stencil_stencil2d", "Optimize a 2D stencil window."),
+    ],
+)
+def test_generalized_retrieval_does_not_match_exact_task_source_tokens(
+    source_task: str,
+    description: str,
+) -> None:
+    source_only_case = _verified_source_case(source_task)
+    entries = [_case_entry("failure_case"), source_only_case]
+    query = _query(
+        description=description,
+        target_part="xcu55c-fsvh2892-2L-e",
+        vitis_version="2025.2",
+    )
+
+    default_matches = retrieve_knowledge(query, entries=entries)
+    generalized_matches = retrieve_knowledge(
+        query, entries=entries, generalized=True
+    )
+
+    assert source_only_case in default_matches
+    assert source_only_case not in generalized_matches
+
+
+def test_generalized_retrieval_rejects_exact_source_even_with_family_tag() -> None:
+    exact_gemm_case = _verified_source_case(
+        "machsuite__gemm_blocked", family="array_partition", tags=["gemm", "measured"]
+    )
+    related_gemm_case = _verified_source_case(
+        "polybench__gemm", family="array_partition", tags=["gemm", "measured"]
+    )
+    query = _query(
+        description="Optimize blocked GEMM matrix multiply.",
+        target_part="xcu55c-fsvh2892-2L-e",
+        vitis_version="2025.2",
+        task_id="machsuite__gemm_blocked",
+    )
+
+    default_matches = retrieve_knowledge(
+        query, entries=[exact_gemm_case, related_gemm_case]
+    )
+    generalized_matches = retrieve_knowledge(
+        query,
+        entries=[exact_gemm_case, related_gemm_case],
+        generalized=True,
+    )
+
+    assert exact_gemm_case in default_matches
+    assert exact_gemm_case not in generalized_matches
+    assert related_gemm_case in generalized_matches
 
 
 def test_popcount_cases_are_structure_limited() -> None:
@@ -243,6 +352,120 @@ def test_explicit_architecture_outranks_generic_ii_triage(
     )
 
     assert matches[0].id == expected
+
+
+def test_gemm_tiled_reuse_rule_preserves_blocked_local_architecture() -> None:
+    matches = retrieve_knowledge(
+        _query(
+            source_metadata={
+                "loops": [
+                    {"nesting_depth": 0, "trip_count": 16},
+                    {"nesting_depth": 1, "trip_count": 16},
+                    {"nesting_depth": 2, "trip_count": 16},
+                ],
+                "arrays": [
+                    {"name": "a_local", "rank": 2},
+                    {"name": "b_local", "rank": 2},
+                    {"name": "c", "rank": 2},
+                ],
+            },
+            baseline_qor={
+                "latency_worst": 20_000,
+                "loop_metrics": [{"pipeline_ii": 1, "trip_count": 16}],
+            },
+            synth_diagnostics={
+                "summary": (
+                    "Blocked GEMM uses local tile buffers and K-dimension "
+                    "reuse for matrix multiplication."
+                )
+            },
+            description=(
+                "Optimize blocked GEMM matrix multiplication with local "
+                "tile reuse."
+            ),
+            target_part="xcu55c-fsvh2892-2L-e",
+            vitis_version="2025.2",
+        ),
+        generalized=True,
+    )
+
+    assert matches[0].id == "hlsgen.gemm.tiled_reuse"
+    action = matches[0].action.lower()
+    assert "preserve the existing blocked/tiled gemm architecture" in action
+    assert "minimum banking" in action
+    assert "scalar fallback" in action
+
+
+def test_crypto_lookup_architecture_outranks_generic_baseline_rule() -> None:
+    matches = retrieve_knowledge(
+        _query(
+            source_metadata={
+                "loops": [{"trip_count": 16, "nesting_depth": 0}],
+                "arrays": [{"name": "state", "rank": 1}],
+            },
+            baseline_qor={
+                "latency_worst": 900,
+                "loop_metrics": [{"pipeline_ii": 1, "trip_count": 16}],
+            },
+            synth_diagnostics={
+                "summary": (
+                    "AES encryption round uses byte substitution, XOR key "
+                    "addition, and Galois-field S-box arithmetic."
+                )
+            },
+            description=(
+                "Optimize a byte-oriented cipher without changing S-box "
+                "semantics or key schedule."
+            ),
+            target_part="xcu55c-fsvh2892-2L-e",
+            vitis_version="2025.2",
+        ),
+        generalized=True,
+    )
+
+    assert matches[0].id == "hlsgen.crypto.lookup_round_guard"
+    assert all(not entry.source.startswith("submission:machsuite__aes_aes") for entry in matches)
+
+
+def test_linear_factorization_architecture_outranks_generic_baseline_rule() -> None:
+    matches = retrieve_knowledge(
+        _query(
+            source_metadata={
+                "loops": [
+                    {"trip_count": 40, "nesting_depth": 0},
+                    {"trip_count": 40, "nesting_depth": 1},
+                    {"trip_count": 40, "nesting_depth": 2},
+                ],
+                "arrays": [{"name": "A", "rank": 2}],
+            },
+            baseline_qor={
+                "latency_worst": 64_000,
+                "loop_metrics": [{"pipeline_ii": 11, "trip_count": 40}],
+            },
+            synth_diagnostics={
+                "summary": (
+                    "Cholesky decomposition updates a lower triangular "
+                    "matrix row by row with floating-point accumulation "
+                    "dependencies."
+                )
+            },
+            description=(
+                "Optimize triangular matrix factorization while preserving "
+                "Cholesky dependency order."
+            ),
+            target_part="xcu55c-fsvh2892-2L-e",
+            vitis_version="2025.2",
+            task_id="polybench__cholesky",
+        ),
+        generalized=True,
+    )
+
+    assert matches[0].id == "hlsgen.linear_algebra.factorization_dependency_guard"
+    assert all(not entry.source.startswith("submission:polybench__cholesky") for entry in matches)
+    prompt = format_for_prompt([matches[0]])
+    assert "conservative outer-loop PIPELINE" in prompt
+    assert "II near the reported dependency II" in prompt
+    assert "Do not force II=1" in prompt
 
 
 def test_description_only_retrieval_cannot_bypass_structured_inputs() -> None:
@@ -493,6 +716,117 @@ def test_optimizer_uses_structured_qor_rag_without_an_extra_llm_call() -> None:
     )
 
 
+def test_optimizer_generalized_env_disables_legacy_specialist_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FPT26_QOR_RAG_GENERALIZED", "1")
+    starter = (
+        "int top(int a[128]) {\n"
+        "  int sum = 0;\n"
+        "  for (int i = 0; i < 128; ++i) {\n"
+        "    sum += a[i];\n"
+        "  }\n"
+        "  return sum;\n"
+        "}\n"
+    )
+    report = SimpleNamespace(
+        latency_worst=130,
+        latency_avg=130,
+        interval_max=129,
+        clock_period_ns=5.0,
+        resources={
+            "LUT": 100,
+            "FF": 100,
+            "DSP": 0,
+            "BRAM_18K": 0,
+            "URAM": 0,
+        },
+        available={
+            "LUT": 100_000,
+            "FF": 200_000,
+            "DSP": 1_000,
+            "BRAM_18K": 1_000,
+            "URAM": 100,
+        },
+        loop_metrics=[
+            {
+                "name": "VITIS_LOOP_3_1",
+                "trip_count": 128,
+                "latency": 128,
+                "pipeline_ii": 1,
+            }
+        ],
+        pipeline_type="loop",
+    )
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system: str, prompt: str) -> str:
+            self.calls += 1
+            return starter
+
+    state = SimpleNamespace(
+        task=SimpleNamespace(
+            id="generalized_probe",
+            description="Compute a popcount reduction.",
+            top="top",
+            part="xcu55c-fsvh2892-2L-e",
+            requires_cosim=False,
+            clock_ns=5.0,
+            budget=40,
+            difficulty=1,
+            type="optimize",
+            headers={},
+            kernel_name="top.cpp",
+        ),
+        server=SimpleNamespace(),
+        kernel=starter,
+        best_latency=130,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=report, log=""
+            )
+        ],
+        metadata={"task_preflight": {"observed_vitis_version": "2025.2"}},
+        log=lambda message: None,
+    )
+
+    result = run_optimization_loop(state, Llm(), max_rounds=1)
+
+    assert result.metadata["qor_rag_generalized"] is True
+    assert result.metadata["qor_rag_mode"] == "phase2a_hybrid_generalized"
+    assert result.metadata["knowledge_retrievals"][0]["mode"] == (
+        "phase2a_structured"
+    )
+
+
+def test_optimizer_generalized_parameter_overrides_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FPT26_QOR_RAG_GENERALIZED", "0")
+    state = SimpleNamespace(
+        task=SimpleNamespace(id="generalized_param_probe"),
+        server=SimpleNamespace(),
+        kernel="int top(){return 0;}",
+        best_latency=None,
+        results=[],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = run_optimization_loop(
+        state,
+        llm=SimpleNamespace(),
+        max_rounds=0,
+        generalized_qor_rag=True,
+    )
+
+    assert result.metadata["qor_rag_generalized"] is True
+    assert result.metadata["qor_rag_mode"] == "phase2a_hybrid_generalized"
+
+
 def test_real_preflight_vitis_version_keys_drive_runtime_query() -> None:
     assert (
         _task_preflight_vitis_version(
@@ -682,6 +1016,139 @@ def test_qor_rag_early_stops_after_verified_improvement_with_preflight() -> None
     )
 
 
+def test_qor_rag_early_stop_can_be_disabled_for_formal_search() -> None:
+    starter = (
+        "int top(int a[128]) {\n"
+        "  int sum = 0;\n"
+        "  for (int i = 0; i < 128; ++i) {\n"
+        "    sum += a[i];\n"
+        "  }\n"
+        "  return sum;\n"
+        "}\n"
+    )
+    candidate = starter.replace(
+        "    sum += a[i];",
+        "    #pragma HLS UNROLL factor=2\n    sum += a[i];",
+    )
+    baseline_report = SimpleNamespace(
+        latency_worst=130,
+        latency_avg=130,
+        interval_max=129,
+        clock_period_ns=5.0,
+        resources={
+            "LUT": 100,
+            "FF": 100,
+            "DSP": 0,
+            "BRAM_18K": 0,
+            "URAM": 0,
+        },
+        available={
+            "LUT": 100_000,
+            "FF": 200_000,
+            "DSP": 1_000,
+            "BRAM_18K": 1_000,
+            "URAM": 100,
+        },
+        loop_metrics=[
+            {
+                "name": "VITIS_LOOP_3_1",
+                "trip_count": 128,
+                "latency": 128,
+                "pipeline_ii": 1,
+            }
+        ],
+        pipeline_type="loop",
+    )
+    improved_report = SimpleNamespace(
+        latency_worst=66,
+        latency_avg=66,
+        interval_max=65,
+        clock_period_ns=5.0,
+        resources={
+            "LUT": 140,
+            "FF": 130,
+            "DSP": 0,
+            "BRAM_18K": 0,
+            "URAM": 0,
+        },
+        available=baseline_report.available,
+        loop_metrics=[
+            {
+                "name": "VITIS_LOOP_3_1",
+                "trip_count": 64,
+                "latency": 64,
+                "pipeline_ii": 1,
+            }
+        ],
+        pipeline_type="loop",
+    )
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system: str, prompt: str) -> str:
+            self.calls += 1
+            return candidate
+
+    class Server:
+        def __init__(self) -> None:
+            self.csim_calls = 0
+            self.synth_calls = 0
+
+        def csim(self, kernel: str) -> SimpleNamespace:
+            self.csim_calls += 1
+            return SimpleNamespace(kind="csim", ok=True, report=None, log="")
+
+        def synth(self, kernel: str) -> SimpleNamespace:
+            self.synth_calls += 1
+            return SimpleNamespace(
+                kind="synth", ok=True, report=improved_report, log=""
+            )
+
+    llm = Llm()
+    server = Server()
+    state = SimpleNamespace(
+        task=SimpleNamespace(
+            id="qor_rag_no_early_stop",
+            description="Optimize a correct long vector reduction.",
+            top="top",
+            part="xcu55c-fsvh2892-2L-e",
+            requires_cosim=False,
+            clock_ns=5.0,
+            budget=40,
+            difficulty=1,
+            type="optimize",
+            headers={},
+            kernel_name="top.cpp",
+        ),
+        server=server,
+        kernel=starter,
+        best_latency=130,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=baseline_report, log=""
+            )
+        ],
+        metadata={"task_preflight": {"observed_vitis_version": "2025.2"}},
+        log=lambda message: None,
+    )
+
+    result = run_optimization_loop(
+        state,
+        llm,
+        max_rounds=2,
+        early_stop_on_qhw_improvement=False,
+    )
+
+    assert result.kernel == candidate
+    assert llm.calls == 2
+    assert server.csim_calls == 1
+    assert server.synth_calls == 1
+    assert "qor_rag_early_success_stop" not in result.metadata
+    assert result.metadata["qor_rag_early_stop_enabled"] is False
+
+
 def test_curator_promotes_only_fully_verified_public_submission_cases(
     tmp_path: Path,
 ) -> None:
@@ -826,6 +1293,71 @@ def test_curator_adds_structure_tag_from_public_task_id(
     assert "popcount" in entries[0].tags
 
 
+def test_curator_can_disable_task_id_derived_structure_tags(
+    tmp_path: Path,
+) -> None:
+    report_path = (
+        tmp_path
+        / "runs"
+        / "submission"
+        / "rosetta__popcount"
+        / "run_report.json"
+    )
+    report_path.parent.mkdir(parents=True)
+    report_path.write_text(
+        json.dumps(
+            {
+                "task_id": "rosetta__popcount",
+                "run_role": "submission",
+                "status": "completed",
+                "gates": {"public_acceptance": {"ok": True}},
+                "final_artifact": {
+                    "fully_verified": True,
+                    "sha256": "c" * 64,
+                },
+                "target": {"part": "xcu55c-fsvh2892-2L-e"},
+                "toolchain": {"preflight_vitis_version": "2025.2"},
+                "optimization_metrics": {
+                    "synth_candidates": [
+                        {
+                            "round": 1,
+                            "action": {
+                                "families": ["UNROLL"],
+                                "added_pragmas": [
+                                    "#pragma HLS UNROLL factor=4"
+                                ],
+                            },
+                            "source_metadata": {
+                                "loop_count": 1,
+                                "array_count": 0,
+                            },
+                            "q_hw_before": 0.75,
+                            "q_hw_after": 0.85,
+                            "decision": "ACCEPTED",
+                            "validation": {
+                                "interface_ok": True,
+                                "csim_ok": True,
+                                "synth_ok": True,
+                                "frequency_ok": True,
+                                "resource_ok": True,
+                                "cosim_required": False,
+                            },
+                        }
+                    ]
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    entries = curate_submission_report(
+        report_path, derive_task_id_tags=False
+    )
+
+    assert entries[0].tags[-1] == "unroll"
+    assert "popcount" not in entries[0].tags
+
+
 def test_curator_rejects_evaluator_report_path(tmp_path: Path) -> None:
     report = (
         tmp_path / "runs" / "evaluator" / "task_a" / "run_report.json"
@@ -872,16 +1404,20 @@ def test_ab_gate_computes_fixed_set_acceptance_metrics(tmp_path: Path) -> None:
             / task_id
             / "run_report.json"
         )
-        submission.parent.mkdir(parents=True)
-        evaluator.parent.mkdir(parents=True)
+        submission.parent.mkdir(parents=True, exist_ok=True)
+        evaluator.parent.mkdir(parents=True, exist_ok=True)
         submission.write_text(
             json.dumps(
                 {
                     "task_id": task_id,
                     "run_role": "submission",
+                    "status": "completed",
                     "llm": {
                         "token_usage": {
-                            "total_tokens": 105 if candidate else 100
+                            "total_tokens": 105 if candidate else 100,
+                            "prompt_tokens": 90 if candidate else 85,
+                            "completion_tokens": 15,
+                            "request_count": 2 if candidate else 1,
                         }
                     },
                     "budget": {"spent": 10},
@@ -902,8 +1438,10 @@ def test_ab_gate_computes_fixed_set_acceptance_metrics(tmp_path: Path) -> None:
                 {
                     "task_id": task_id,
                     "run_role": "evaluator",
+                    "status": "completed",
                     "scoring": {
                         "valid": True,
+                        "score": 75.0 if candidate else 74.0,
                         "q_hw": 0.765 if candidate else 0.75,
                         "latency_ratio": 1.06 if candidate else 1.0,
                     },
@@ -931,6 +1469,16 @@ def test_ab_gate_computes_fixed_set_acceptance_metrics(tmp_path: Path) -> None:
     assert result["comparison"]["acceleration_geomean_relative_change"] >= 0.05
     assert result["comparison"]["wasted_attempts_relative_change"] <= -0.20
     assert result["comparison"]["mean_tokens_relative_change"] <= 0.10
+    assert result["comparison"]["mean_requests_relative_change_monitor_only"] == 1.0
+    assert result["baseline"]["success_rate"] == 1.0
+    assert result["candidate"]["success_count"] == 12
+    assert result["candidate"]["mean_requests_per_task"] == 2.0
+    assert result["candidate"]["mean_prompt_tokens_per_task"] == 90.0
+    assert result["candidate"]["mean_completion_tokens_per_task"] == 15.0
+    assert result["candidate"]["failure_reason_counts"] == {}
+    assert result["candidate"]["tasks"][task_ids[0]]["success"] is True
+    assert result["candidate"]["tasks"][task_ids[0]]["score"] == 75.0
+    assert result["candidate"]["tasks"][task_ids[0]]["prompt_tokens"] == 90.0
 
 
 def test_ab_later_root_overlays_paired_retry(tmp_path: Path) -> None:
@@ -981,3 +1529,139 @@ def test_ab_later_root_overlays_paired_retry(tmp_path: Path) -> None:
     assert result["candidate"]["tasks"][task_ids[1]][
         "evaluator_report"
     ].startswith(str(full))
+
+
+def test_ab_reports_failure_reasons_and_success_rate(tmp_path: Path) -> None:
+    task_ids = [f"task_{index:02d}" for index in range(12)]
+    task_list = tmp_path / "tasks.txt"
+    task_list.write_text("\n".join(task_ids) + "\n", encoding="utf-8")
+
+    def write_pair(
+        root: Path,
+        task_id: str,
+        *,
+        valid: bool,
+        reason: str | None = None,
+    ) -> None:
+        submission = root / "submission" / task_id / "run_report.json"
+        evaluator = root / "evaluator" / task_id / "run_report.json"
+        submission.parent.mkdir(parents=True, exist_ok=True)
+        evaluator.parent.mkdir(parents=True, exist_ok=True)
+        submission.write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "run_role": "submission",
+                    "status": "completed",
+                    "llm": {
+                        "token_usage": {
+                            "total_tokens": 100,
+                            "request_count": 1,
+                        }
+                    },
+                    "budget": {"spent": 10},
+                    "optimization_metrics": {},
+                }
+            ),
+            encoding="utf-8",
+        )
+        evaluator.write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "run_role": "evaluator",
+                    "status": "completed" if valid else "failed",
+                    "stop_reason": reason,
+                    "scoring": {
+                        "valid": valid,
+                        "score": 75.0 if valid else 0.0,
+                        "q_hw": 0.75 if valid else None,
+                        "latency_ratio": 1.0 if valid else None,
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    baseline = tmp_path / "baseline"
+    candidate = tmp_path / "candidate"
+    for task_id in task_ids:
+        write_pair(baseline, task_id, valid=True)
+        write_pair(candidate, task_id, valid=True)
+    write_pair(candidate, task_ids[0], valid=False, reason="frequency_failed")
+    write_pair(candidate, task_ids[1], valid=False, reason="interface_failed")
+
+    result = compare_runs([baseline], [candidate], task_list)
+
+    assert result["candidate"]["success_count"] == 10
+    assert result["candidate"]["success_rate"] == 0.833333
+    assert result["candidate"]["failure_reason_counts"] == {
+        "frequency_failed": 1,
+        "interface_failed": 1,
+    }
+    assert (
+        result["candidate"]["tasks"][task_ids[0]]["failure_reason"]
+        == "frequency_failed"
+    )
+
+
+def test_ab_reports_invalid_run_report_as_audit_error(tmp_path: Path) -> None:
+    task_ids = [f"task_{index:02d}" for index in range(12)]
+    task_list = tmp_path / "tasks.txt"
+    task_list.write_text("\n".join(task_ids) + "\n", encoding="utf-8")
+
+    root = tmp_path / "candidate"
+    for task_id in task_ids:
+        submission = root / "submission" / task_id / "run_report.json"
+        evaluator = root / "evaluator" / task_id / "run_report.json"
+        submission.parent.mkdir(parents=True)
+        evaluator.parent.mkdir(parents=True)
+        submission.write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "run_role": "submission",
+                    "status": "completed",
+                    "llm": {
+                        "token_usage": {
+                            "total_tokens": 100,
+                            "request_count": 1,
+                        }
+                    },
+                    "budget": {"spent": 10},
+                    "optimization_metrics": {},
+                }
+            ),
+            encoding="utf-8",
+        )
+        evaluator.write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "run_role": "evaluator",
+                    "status": "completed",
+                    "scoring": {
+                        "valid": True,
+                        "score": 75.0,
+                        "q_hw": 0.75,
+                        "latency_ratio": 1.0,
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+    broken = root / "submission" / task_ids[0] / "run_report.json"
+    broken.write_text("{not json", encoding="utf-8")
+
+    result = compare_runs([root], [root], task_list)
+
+    assert result["baseline"]["report_error_counts"] == {"submission_error": 1}
+    assert result["baseline"]["failure_reason_counts"] == {
+        "submission_report_unreadable_or_invalid": 1
+    }
+    assert result["baseline"]["tasks"][task_ids[0]]["failure_reason"] == (
+        "submission_report_unreadable_or_invalid"
+    )
+    assert "JSONDecodeError" in result["baseline"]["tasks"][task_ids[0]][
+        "submission_report_error"
+    ]

@@ -66,10 +66,16 @@ def reconcile(root: Path, timeout_s: float) -> dict[str, Any]:
         errors: list[str] = []
         try:
             evaluator = _load_report(evaluator_path)
+            expected_grading_source = (
+                "hidden"
+                if (task_dir / "hidden").is_dir()
+                else "public_fallback"
+            )
             errors = validate_evaluator(
                 evaluator,
                 task_id,
                 official_task=bool(record.get("official_task")),
+                expected_grading_source=expected_grading_source,
             )
         except Exception as exc:
             errors = [str(exc)]

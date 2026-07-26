@@ -171,6 +171,7 @@ class KnowledgeQuery:
     description: str = ""
     target_part: str = ""
     vitis_version: str = ""
+    task_id: str = ""
 
     def validate(self) -> None:
         missing = []
@@ -202,6 +203,7 @@ class KnowledgeQuery:
             "description": self.description,
             "target_part": self.target_part,
             "vitis_version": self.vitis_version,
+            "task_id": self.task_id,
         }
         encoded = json.dumps(
             payload,
@@ -240,6 +242,7 @@ def retrieve_knowledge(
     query: KnowledgeQuery,
     *,
     entries: Sequence[KnowledgeEntry] | None = None,
+    generalized: bool = False,
 ) -> tuple[KnowledgeEntry, ...]:
     """Return at most one rule, one successful case, and one failure case."""
 
@@ -254,12 +257,18 @@ def retrieve_knowledge(
     for kind, status in buckets:
         ranked = sorted(
             (
-                (_entry_score(entry, query), entry.id, entry)
+                (
+                    _entry_score(entry, query, generalized=generalized),
+                    entry.id,
+                    entry,
+                )
                 for entry in candidates
                 if entry.kind == kind
                 and entry.status == status
                 and _version_compatible(entry, query)
-                and _case_structure_compatible(entry, query)
+                and _case_structure_compatible(
+                    entry, query, generalized=generalized
+                )
             ),
             key=lambda item: (-item[0], item[1]),
         )
@@ -559,7 +568,12 @@ def _entry_tokens(entry: KnowledgeEntry) -> set[str]:
     )
 
 
-def _entry_score(entry: KnowledgeEntry, query: KnowledgeQuery) -> float:
+def _entry_score(
+    entry: KnowledgeEntry,
+    query: KnowledgeQuery,
+    *,
+    generalized: bool = False,
+) -> float:
     entry_tokens = _entry_tokens(entry)
     score = 0.0
     score += 3.0 * len(entry_tokens & _tokens(query.source_metadata))
@@ -571,7 +585,7 @@ def _entry_score(entry: KnowledgeEntry, query: KnowledgeQuery) -> float:
 
     signals = _family_signals(query)
     score += 24.0 * signals.get(entry.family, 0.0)
-    score += _entry_specific_boost(entry, query)
+    score += _entry_specific_boost(entry, query, generalized=generalized)
     if entry.kind == "verified_case":
         score += 3.0
     if entry.kind == "failure_case":
@@ -633,10 +647,60 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
         max(nesting, default=0) >= 1 or len(loops) >= 2
     ):
         signals["gemm"] = 1.0
+    if {
+        "cholesky",
+        "lu",
+        "factorization",
+        "decomposition",
+        "triangular",
+        "solve",
+    } & combined:
+        signals["linear_algebra_factorization"] = 1.0
     if {"stencil", "neighbor", "grid", "window"} & combined:
         signals["stencil"] = 1.0
     if {"dataflow", "stream", "fifo", "producer", "consumer", "deadlock"} & combined:
         signals["dataflow"] = 1.0
+    if {"stream", "fifo", "axis", "tlast", "side", "channel"} & combined:
+        signals["stream_fifo"] = 1.0
+    if {
+        "bank",
+        "banking",
+        "bundle",
+        "burst",
+        "m_axi",
+        "local",
+        "buffer",
+    } & combined:
+        signals["memory_banking"] = 1.0
+    if {"flatten", "perfect", "nest"} & combined:
+        signals["loop_flatten"] = 1.0
+    if {"fission", "split", "separate"} & combined:
+        signals["loop_fission"] = 1.0
+    if {"fusion", "fuse", "sweep", "sweeps"} & combined:
+        signals["loop_fusion"] = 1.0
+    if {"bitwidth", "fixed", "ap_fixed", "ap_int", "range"} & combined:
+        signals["bitwidth"] = 1.0
+    if {
+        "aes",
+        "cipher",
+        "crypto",
+        "encrypt",
+        "encryption",
+        "decrypt",
+        "decryption",
+        "sbox",
+        "substitution",
+        "byte",
+        "xor",
+        "galois",
+    } & combined:
+        signals["crypto_lookup"] = 1.0
+    if {"math", "floating", "float", "cordic", "fir", "fft", "unsafe"} & combined:
+        signals["math_kernel"] = 1.0
+    if {"interface", "m_axi", "s_axilite", "depth", "bundle"} & combined:
+        signals["interface"] = 1.0
+    if {"failure", "fail", "rejected", "deadlock", "noop", "no", "op"} & combined:
+        signals["failure_triage"] = 1.0
 
     # Task descriptions carry architectural intent.  Give explicit families
     # enough weight to outrank generic report/II vocabulary that is present in
@@ -646,6 +710,16 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
         "multiplication",
     } <= description:
         signals["gemm"] = max(signals.get("gemm", 0.0), 2.5)
+    if {
+        "cholesky",
+        "lu",
+        "factorization",
+        "decomposition",
+        "triangular",
+    } & description:
+        signals["linear_algebra_factorization"] = max(
+            signals.get("linear_algebra_factorization", 0.0), 2.4
+        )
     if {"stencil", "neighborhood"} & description or (
         "grid" in description and {"window", "neighbor"} & description
     ):
@@ -662,6 +736,44 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
         "stream",
     } & description:
         signals["dataflow"] = max(signals.get("dataflow", 0.0), 2.0)
+    if {"stream", "fifo", "axis"} & description:
+        signals["stream_fifo"] = max(signals.get("stream_fifo", 0.0), 2.0)
+    if {"banking", "bank", "bundle", "burst"} & description:
+        signals["memory_banking"] = max(
+            signals.get("memory_banking", 0.0), 2.0
+        )
+    if "flatten" in description:
+        signals["loop_flatten"] = max(signals.get("loop_flatten", 0.0), 2.0)
+    if "fission" in description or "split" in description:
+        signals["loop_fission"] = max(signals.get("loop_fission", 0.0), 2.0)
+    if "fusion" in description or "fuse" in description:
+        signals["loop_fusion"] = max(signals.get("loop_fusion", 0.0), 2.0)
+    if {"bitwidth", "ap_fixed", "ap_int"} & description:
+        signals["bitwidth"] = max(signals.get("bitwidth", 0.0), 2.0)
+    if {
+        "aes",
+        "cipher",
+        "crypto",
+        "encrypt",
+        "encryption",
+        "sbox",
+        "substitution",
+        "byte",
+    } & description:
+        signals["crypto_lookup"] = max(
+            signals.get("crypto_lookup", 0.0), 2.4
+        )
+    if {"cordic", "fir", "fft"} & description or {
+        "math",
+        "kernel",
+    } <= description:
+        signals["math_kernel"] = max(signals.get("math_kernel", 0.0), 2.0)
+    if {"interface", "s_axilite", "m_axi"} & description:
+        signals["interface"] = max(signals.get("interface", 0.0), 2.0)
+    if {"failure", "fail", "rejected", "noop", "deadlock"} & description:
+        signals["failure_triage"] = max(
+            signals.get("failure_triage", 0.0), 2.0
+        )
     if loop_iis and max(loop_iis) > 1:
         signals["report_driven"] = 0.9
         if not (
@@ -686,7 +798,10 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
 
 
 def _entry_specific_boost(
-    entry: KnowledgeEntry, query: KnowledgeQuery
+    entry: KnowledgeEntry,
+    query: KnowledgeQuery,
+    *,
+    generalized: bool = False,
 ) -> float:
     """Disambiguate entries within one family using explicit evidence."""
 
@@ -731,11 +846,56 @@ def _entry_specific_boost(
     if entry.id == "hlsgen.report_driven.baseline_first":
         if {"baseline", "report", "measurable", "stacking"} & combined:
             return 22.0
+    if entry.id == "hlsgen.gemm.tiled_reuse" and (
+        {"gemm", "matmul"} & description
+        or {"matrix", "multiplication"} <= description
+    ):
+        return 18.0
+    if entry.id == "hlsgen.linear_algebra.factorization_dependency_guard" and (
+        {
+            "cholesky",
+            "lu",
+            "factorization",
+            "decomposition",
+            "triangular",
+        }
+        & description
+    ):
+        return 18.0
+    if entry.id == "hlsgen.stencil.line_buffer" and (
+        {"stencil", "neighborhood"} & description
+        or ("grid" in description and {"window", "neighbor"} & description)
+    ):
+        return 18.0
+    if entry.id == "hlsgen.crypto.lookup_round_guard" and (
+        {
+            "aes",
+            "cipher",
+            "crypto",
+            "encrypt",
+            "encryption",
+            "sbox",
+            "substitution",
+            "byte",
+        }
+        & description
+    ):
+        return 18.0
     if entry.id == "hlsgen.pipeline.outer_concurrency":
         if nested and "outer" in combined and (
             {"inner", "concurrency", "concurrent"} & combined
         ):
             return 34.0
+    if entry.kind != "rule" and not generalized:
+        source_tokens = _tokens(entry.source)
+        if (
+            "dot_product" in entry.tags
+            and {"dotproduct", "optimize"} <= source_tokens
+            and ({"dot", "product"} <= description or "dotproduct" in description)
+        ):
+            return 36.0
+        if "popcount" in entry.tags and "popcount" in description:
+            return 36.0
     return 0.0
 
 
@@ -755,13 +915,41 @@ def _version_compatible(
 
 
 def _case_structure_compatible(
-    entry: KnowledgeEntry, query: KnowledgeQuery
+    entry: KnowledgeEntry,
+    query: KnowledgeQuery,
+    *,
+    generalized: bool = False,
 ) -> bool:
     """Reject measured examples whose workload semantics are not compatible."""
 
     if entry.kind == "rule":
         return True
+    if generalized and _source_matches_task_id(entry.source, query.task_id):
+        return False
     description = _tokens(query.description)
+    specific_workloads = {
+        "aes",
+        "cipher",
+        "des",
+        "fft",
+        "fir",
+        "gemm",
+        "matmul",
+        "stencil",
+        "cordic",
+        "popcount",
+    }
+    entry_semantics = set(entry.tags)
+    if not generalized:
+        entry_semantics |= _tokens(entry.source)
+    if {"aes", "cipher", "des"} & description:
+        return False
+    if {"dot", "product"} <= description or "dotproduct" in description:
+        if "dot_product" not in entry.tags and "dotproduct" not in entry_semantics:
+            return False
+    for token in specific_workloads & description:
+        if token not in entry_semantics:
+            return False
     if "dot_product" in entry.tags:
         return "dotproduct" in description or {
             "dot",
@@ -773,3 +961,19 @@ def _case_structure_compatible(
         if family_tag in entry.tags:
             return family_tag in description
     return True
+
+
+def _source_matches_task_id(source: str, task_id: str) -> bool:
+    normalized_task = _normalize_identifier(task_id)
+    if not normalized_task:
+        return False
+    normalized_source = _normalize_identifier(source)
+    if normalized_task in normalized_source:
+        return True
+    task_tokens = set(_TOKEN_RE.findall(task_id.lower()))
+    source_tokens = set(_TOKEN_RE.findall(source.lower()))
+    return bool(task_tokens and task_tokens <= source_tokens)
+
+
+def _normalize_identifier(value: str) -> str:
+    return "".join(_TOKEN_RE.findall(str(value).lower()))

@@ -13,6 +13,7 @@ from .llm import (
     OpenAICompatClient,
     OpenRouterClient,
     ScriptedClient,
+    chat_completions_url,
     create_llm,
 )
 from .scoring import Scorecard, grade
@@ -36,5 +37,6 @@ __all__ = [
     "OpenAICompatClient",
     "OpenRouterClient",
     "ScriptedClient",
+    "chat_completions_url",
     "create_llm",
 ]

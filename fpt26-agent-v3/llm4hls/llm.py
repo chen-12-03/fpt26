@@ -110,6 +110,20 @@ class TokenUsage:
             }
 
 
+def chat_completions_url(base_url: str) -> str:
+    """Return a normalized OpenAI-compatible chat-completions endpoint.
+
+    Providers differ on whether they document the API base
+    (``https://.../v1``) or the full chat endpoint.  Accept both so switching
+    between OpenRouter and another compatible gateway is an environment change.
+    """
+    resolved = base_url.strip().rstrip("/")
+    suffix = "/chat/completions"
+    if resolved.endswith(suffix):
+        return resolved
+    return f"{resolved}{suffix}"
+
+
 class ScriptedClient:
     """Deterministic offline backend: returns the next canned response."""
 
@@ -142,7 +156,7 @@ class OpenRouterClient:
                 "or fill OPENROUTER_API_KEY in llm4hls/config.py."
             )
         self.model = model or config.DEFAULT_LLM_MODEL
-        self.base_url = config.OPENROUTER_BASE_URL
+        self.base_url = chat_completions_url(config.OPENROUTER_BASE_URL)
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.token_usage = TokenUsage()
@@ -203,8 +217,8 @@ class OpenAICompatClient:
             base_url
             or os.environ.get("FPT26_LLM_BASE_URL")
             or config.OPENROUTER_BASE_URL
-        ).rstrip("/")
-        self.base_url = f"{resolved_base}/chat/completions"
+        )
+        self.base_url = chat_completions_url(resolved_base)
         self.api_key = (
             api_key
             or os.environ.get("FPT26_LLM_API_KEY")

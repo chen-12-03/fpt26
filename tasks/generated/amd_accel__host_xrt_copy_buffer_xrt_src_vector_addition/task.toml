@@ -1,0 +1,26 @@
+task_id = "amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition"
+task_type = "optimize"
+difficulty = 3
+top = "vector_add"
+kernel_file = "vector_add.cpp"
+header_files = []
+public_tb = "vector_add_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_accel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/copy_buffer_xrt"
+license = "MIT"
+top_function = "vector_add"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+source_path = "host_xrt/copy_buffer_xrt"
+source_sha256 = "d8e6dea60c790bba5d50aba3a686afd22f6dda120394d6f9890309df71e67042"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

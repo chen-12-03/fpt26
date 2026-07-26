@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Mapping
@@ -25,7 +26,11 @@ from agent.knowledge import (
 _FORBIDDEN_COMPONENTS = frozenset({"hidden", "reference", "evaluator"})
 
 
-def curate_submission_report(report_path: Path) -> list[KnowledgeEntry]:
+def curate_submission_report(
+    report_path: Path,
+    *,
+    derive_task_id_tags: bool | None = None,
+) -> list[KnowledgeEntry]:
     _require_public_submission_path(report_path)
     raw = json.loads(report_path.read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
@@ -71,7 +76,9 @@ def curate_submission_report(report_path: Path) -> list[KnowledgeEntry]:
         else {}
     )
     vitis_version = _vitis_version(toolchain)
-    semantic_tags = _semantic_tags(task_id)
+    if derive_task_id_tags is None:
+        derive_task_id_tags = not _env_flag("FPT26_QOR_RAG_GENERALIZED", False)
+    semantic_tags = _semantic_tags(task_id) if derive_task_id_tags else []
     entries: list[KnowledgeEntry] = []
     for candidate in candidates:
         if not isinstance(candidate, Mapping) or candidate.get("is_baseline"):
@@ -339,6 +346,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--report", action="append", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--replace", action="store_true")
+    parser.add_argument(
+        "--no-task-id-tags",
+        action="store_true",
+        help="Do not derive semantic workload tags from benchmark task_id text.",
+    )
     return parser.parse_args(argv)
 
 
@@ -347,7 +359,9 @@ def main(argv: list[str] | None = None) -> int:
     entries: list[KnowledgeEntry] = []
     seen: set[str] = set()
     for report in args.report:
-        for entry in curate_submission_report(report):
+        for entry in curate_submission_report(
+            report, derive_task_id_tags=not args.no_task_id_tags
+        ):
             if entry.id not in seen:
                 seen.add(entry.id)
                 entries.append(entry)
@@ -368,6 +382,13 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     return 0
+
+
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 if __name__ == "__main__":

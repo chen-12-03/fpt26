@@ -1,0 +1,187 @@
+{
+  "completion_boundary": {
+    "may_claim_qor_repair": true,
+    "may_update_execution_freeze_json": false
+  },
+  "evidence_level": "small_sample_measured",
+  "formal_ab_acceptance": {
+    "applicable": false,
+    "raw_compare_passed": false,
+    "raw_gates": {
+      "acceleration_geomean_improves_5pct": true,
+      "all_reports_present": true,
+      "correctness_preserved_100pct": true,
+      "fixed_task_count_12_to_20": false,
+      "mean_tokens_increase_at_most_10pct": true,
+      "q_hw_geomean_improves_1pct": false,
+      "scorable_count_not_lower": true,
+      "wasted_attempts_reduce_20pct": false
+    },
+    "reason": "small-sample evidence has fewer than the 12 tasks required by the formal QoR-RAG A/B gate"
+  },
+  "guardrails": {
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "max_real_api_vitis_tasks": 3
+  },
+  "purpose": "phase2f_generalized_qor_rag_small_sample_ab_measured",
+  "raw_compare": {
+    "baseline": {
+      "acceleration_geomean": 3.84,
+      "failure_reason_counts": {},
+      "mean_completion_tokens_per_task": 6457.0,
+      "mean_credits_per_task": 10.0,
+      "mean_prompt_tokens_per_task": 15359.0,
+      "mean_requests_per_task": 2.0,
+      "mean_tokens_per_task": 21816.0,
+      "median_tokens_per_task": 21816.0,
+      "missing": [],
+      "optimization_metrics_complete": true,
+      "q_hw_geomean": 0.9834,
+      "report_error_counts": {},
+      "scorable_count": 1,
+      "success_count": 1,
+      "success_rate": 1.0,
+      "task_count": 1,
+      "tasks": {
+        "machsuite__aes_aes": {
+          "acceleration": 3.84,
+          "completion_tokens": 6457.0,
+          "credits": 10.0,
+          "evaluator_report": "runs/phase2f_qor_rag_small_ab_aes1_envfix_legacy_20260725/tasks/machsuite__aes_aes/attempt_001/evaluator/machsuite__aes_aes/run_report.json",
+          "evaluator_report_error": null,
+          "evaluator_status": "completed",
+          "failure_reason": null,
+          "prompt_tokens": 15359.0,
+          "q_hw": 0.9834,
+          "requests": 2.0,
+          "score": 98.16,
+          "submission_report": "runs/phase2f_qor_rag_small_ab_aes1_envfix_legacy_20260725/tasks/machsuite__aes_aes/attempt_001/submission/machsuite__aes_aes/run_report.json",
+          "submission_report_error": null,
+          "submission_status": "completed",
+          "success": true,
+          "tokens": 21816.0,
+          "valid": true,
+          "wasted_attempts": 1
+        }
+      },
+      "wasted_attempts": 1
+    },
+    "candidate": {
+      "acceleration_geomean": 5.48,
+      "failure_reason_counts": {},
+      "mean_completion_tokens_per_task": 6473.0,
+      "mean_credits_per_task": 10.0,
+      "mean_prompt_tokens_per_task": 15338.0,
+      "mean_requests_per_task": 2.0,
+      "mean_tokens_per_task": 21811.0,
+      "median_tokens_per_task": 21811.0,
+      "missing": [],
+      "optimization_metrics_complete": true,
+      "q_hw_geomean": 0.9871,
+      "report_error_counts": {},
+      "scorable_count": 1,
+      "success_count": 1,
+      "success_rate": 1.0,
+      "task_count": 1,
+      "tasks": {
+        "machsuite__aes_aes": {
+          "acceleration": 5.48,
+          "completion_tokens": 6473.0,
+          "credits": 10.0,
+          "evaluator_report": "runs/phase2f_qor_rag_small_ab_aes1_envfix_generalized_20260725/tasks/machsuite__aes_aes/attempt_001/evaluator/machsuite__aes_aes/run_report.json",
+          "evaluator_report_error": null,
+          "evaluator_status": "completed",
+          "failure_reason": null,
+          "prompt_tokens": 15338.0,
+          "q_hw": 0.9871,
+          "requests": 2.0,
+          "score": 98.54,
+          "submission_report": "runs/phase2f_qor_rag_small_ab_aes1_envfix_generalized_20260725/tasks/machsuite__aes_aes/attempt_001/submission/machsuite__aes_aes/run_report.json",
+          "submission_report_error": null,
+          "submission_status": "completed",
+          "success": true,
+          "tokens": 21811.0,
+          "valid": true,
+          "wasted_attempts": 1
+        }
+      },
+      "wasted_attempts": 1
+    },
+    "comparison": {
+      "acceleration_geomean_relative_change": 0.427083333,
+      "baseline_correct_count": 1,
+      "correctness_preservation_rate": 1.0,
+      "correctness_preserved_count": 1,
+      "mean_credits_relative_change_monitor_only": 0.0,
+      "mean_requests_relative_change_monitor_only": 0.0,
+      "mean_tokens_relative_change": -0.00022919,
+      "q_hw_geomean_relative_change": 0.003762457,
+      "success_rate_relative_change_monitor_only": 0.0,
+      "wasted_attempts_relative_change": 0.0
+    },
+    "gates": {
+      "acceleration_geomean_improves_5pct": true,
+      "all_reports_present": true,
+      "correctness_preserved_100pct": true,
+      "fixed_task_count_12_to_20": false,
+      "mean_tokens_increase_at_most_10pct": true,
+      "q_hw_geomean_improves_1pct": false,
+      "scorable_count_not_lower": true,
+      "wasted_attempts_reduce_20pct": false
+    },
+    "passed": false,
+    "provenance": {
+      "baseline_roots": [
+        "runs/phase2f_qor_rag_small_ab_aes1_envfix_legacy_20260725"
+      ],
+      "candidate_roots": [
+        "runs/phase2f_qor_rag_small_ab_aes1_envfix_generalized_20260725"
+      ],
+      "overlay_semantics": "later roots replace earlier reports for the same task and role",
+      "report_roles": [
+        "submission",
+        "evaluator"
+      ]
+    },
+    "schema_version": 2,
+    "task_count": 1,
+    "task_list": "fpt26-agent-v3/evals/qor_rag_small_ab_aes1_envfix_tasks_20260725.txt",
+    "tasks": [
+      "machsuite__aes_aes"
+    ]
+  },
+  "run_label": "phase2f_qor_rag_small_ab_aes1_envfix",
+  "schema_version": 1,
+  "small_sample_summary": {
+    "acceleration_relative_change": 0.427083333,
+    "baseline_acceleration_geomean": 3.84,
+    "baseline_failure_reason_counts": {},
+    "baseline_mean_completion_tokens_per_task": 6457.0,
+    "baseline_mean_prompt_tokens_per_task": 15359.0,
+    "baseline_mean_requests_per_task": 2.0,
+    "baseline_mean_tokens_per_task": 21816.0,
+    "baseline_q_hw_geomean": 0.9834,
+    "baseline_report_error_counts": {},
+    "baseline_success_rate": 1.0,
+    "candidate_acceleration_geomean": 5.48,
+    "candidate_failure_reason_counts": {},
+    "candidate_mean_completion_tokens_per_task": 6473.0,
+    "candidate_mean_prompt_tokens_per_task": 15338.0,
+    "candidate_mean_requests_per_task": 2.0,
+    "candidate_mean_tokens_per_task": 21811.0,
+    "candidate_q_hw_geomean": 0.9871,
+    "candidate_report_error_counts": {},
+    "candidate_success_rate": 1.0,
+    "mean_requests_relative_change": 0.0,
+    "mean_tokens_relative_change": -0.00022919,
+    "q_hw_relative_change": 0.003762457
+  },
+  "source_plan": "fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_aes1_envfix_plan_20260725.json",
+  "status": "measured",
+  "task_count": 1,
+  "task_list": "fpt26-agent-v3/evals/qor_rag_small_ab_aes1_envfix_tasks_20260725.txt",
+  "tasks": [
+    "machsuite__aes_aes"
+  ]
+}

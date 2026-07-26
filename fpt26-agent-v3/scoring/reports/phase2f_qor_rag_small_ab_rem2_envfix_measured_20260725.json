@@ -1,0 +1,229 @@
+{
+  "completion_boundary": {
+    "may_claim_qor_repair": false,
+    "may_update_execution_freeze_json": false
+  },
+  "evidence_level": "small_sample_measured",
+  "formal_ab_acceptance": {
+    "applicable": false,
+    "raw_compare_passed": false,
+    "raw_gates": {
+      "acceleration_geomean_improves_5pct": true,
+      "all_reports_present": true,
+      "correctness_preserved_100pct": true,
+      "fixed_task_count_12_to_20": false,
+      "mean_tokens_increase_at_most_10pct": true,
+      "q_hw_geomean_improves_1pct": false,
+      "scorable_count_not_lower": true,
+      "wasted_attempts_reduce_20pct": false
+    },
+    "reason": "small-sample evidence has fewer than the 12 tasks required by the formal QoR-RAG A/B gate"
+  },
+  "guardrails": {
+    "execution_freeze_update_allowed": false,
+    "full199_allowed": false,
+    "max_real_api_vitis_tasks": 3
+  },
+  "purpose": "phase2f_generalized_qor_rag_small_sample_ab_measured",
+  "raw_compare": {
+    "baseline": {
+      "acceleration_geomean": 1.314191767,
+      "failure_reason_counts": {},
+      "mean_completion_tokens_per_task": 548.5,
+      "mean_credits_per_task": 12.5,
+      "mean_prompt_tokens_per_task": 8240.5,
+      "mean_requests_per_task": 2.0,
+      "mean_tokens_per_task": 8789.0,
+      "median_tokens_per_task": 8789.0,
+      "missing": [],
+      "optimization_metrics_complete": true,
+      "q_hw_geomean": 0.809193969,
+      "report_error_counts": {},
+      "scorable_count": 2,
+      "success_count": 2,
+      "success_rate": 1.0,
+      "task_count": 2,
+      "tasks": {
+        "machsuite__gemm_blocked": {
+          "acceleration": 1.71,
+          "completion_tokens": 598.0,
+          "credits": 10.0,
+          "evaluator_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_legacy_20260725/tasks/machsuite__gemm_blocked/attempt_001/evaluator/machsuite__gemm_blocked/run_report.json",
+          "evaluator_report_error": null,
+          "evaluator_status": "completed",
+          "failure_reason": null,
+          "prompt_tokens": 8908.0,
+          "q_hw": 0.7962,
+          "requests": 2.0,
+          "score": 79.5,
+          "submission_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_legacy_20260725/tasks/machsuite__gemm_blocked/attempt_001/submission/machsuite__gemm_blocked/run_report.json",
+          "submission_report_error": null,
+          "submission_status": "completed",
+          "success": true,
+          "tokens": 9506.0,
+          "valid": true,
+          "wasted_attempts": 0
+        },
+        "polybench__cholesky": {
+          "acceleration": 1.01,
+          "completion_tokens": 499.0,
+          "credits": 15.0,
+          "evaluator_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_legacy_20260725/tasks/polybench__cholesky/attempt_001/evaluator/polybench__cholesky/run_report.json",
+          "evaluator_report_error": null,
+          "evaluator_status": "completed",
+          "failure_reason": null,
+          "prompt_tokens": 7573.0,
+          "q_hw": 0.8224,
+          "requests": 2.0,
+          "score": 82.11,
+          "submission_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_legacy_20260725/tasks/polybench__cholesky/attempt_001/submission/polybench__cholesky/run_report.json",
+          "submission_report_error": null,
+          "submission_status": "completed",
+          "success": true,
+          "tokens": 8072.0,
+          "valid": true,
+          "wasted_attempts": 0
+        }
+      },
+      "wasted_attempts": 0
+    },
+    "candidate": {
+      "acceleration_geomean": 5.721013896,
+      "failure_reason_counts": {},
+      "mean_completion_tokens_per_task": 563.0,
+      "mean_credits_per_task": 10.0,
+      "mean_prompt_tokens_per_task": 8886.0,
+      "mean_requests_per_task": 2.0,
+      "mean_tokens_per_task": 9449.0,
+      "median_tokens_per_task": 9449.0,
+      "missing": [],
+      "optimization_metrics_complete": true,
+      "q_hw_geomean": 0.80451849,
+      "report_error_counts": {},
+      "scorable_count": 2,
+      "success_count": 2,
+      "success_rate": 1.0,
+      "task_count": 2,
+      "tasks": {
+        "machsuite__gemm_blocked": {
+          "acceleration": 32.73,
+          "completion_tokens": 716.0,
+          "credits": 10.0,
+          "evaluator_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_generalized_20260725/tasks/machsuite__gemm_blocked/attempt_001/evaluator/machsuite__gemm_blocked/run_report.json",
+          "evaluator_report_error": null,
+          "evaluator_status": "completed",
+          "failure_reason": null,
+          "prompt_tokens": 9870.0,
+          "q_hw": 0.863,
+          "requests": 2.0,
+          "score": 86.17,
+          "submission_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_generalized_20260725/tasks/machsuite__gemm_blocked/attempt_001/submission/machsuite__gemm_blocked/run_report.json",
+          "submission_report_error": null,
+          "submission_status": "completed",
+          "success": true,
+          "tokens": 10586.0,
+          "valid": true,
+          "wasted_attempts": 0
+        },
+        "polybench__cholesky": {
+          "acceleration": 1.0,
+          "completion_tokens": 410.0,
+          "credits": 10.0,
+          "evaluator_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_generalized_20260725/tasks/polybench__cholesky/attempt_001/evaluator/polybench__cholesky/run_report.json",
+          "evaluator_report_error": null,
+          "evaluator_status": "completed",
+          "failure_reason": null,
+          "prompt_tokens": 7902.0,
+          "q_hw": 0.75,
+          "requests": 2.0,
+          "score": 74.88,
+          "submission_report": "runs/phase2f_qor_rag_small_ab_rem2_envfix_generalized_20260725/tasks/polybench__cholesky/attempt_001/submission/polybench__cholesky/run_report.json",
+          "submission_report_error": null,
+          "submission_status": "completed",
+          "success": true,
+          "tokens": 8312.0,
+          "valid": true,
+          "wasted_attempts": 1
+        }
+      },
+      "wasted_attempts": 1
+    },
+    "comparison": {
+      "acceleration_geomean_relative_change": 3.353256534,
+      "baseline_correct_count": 2,
+      "correctness_preservation_rate": 1.0,
+      "correctness_preserved_count": 2,
+      "mean_credits_relative_change_monitor_only": -0.2,
+      "mean_requests_relative_change_monitor_only": 0.0,
+      "mean_tokens_relative_change": 0.075093867,
+      "q_hw_geomean_relative_change": -0.005777946,
+      "success_rate_relative_change_monitor_only": 0.0,
+      "wasted_attempts_relative_change": null
+    },
+    "gates": {
+      "acceleration_geomean_improves_5pct": true,
+      "all_reports_present": true,
+      "correctness_preserved_100pct": true,
+      "fixed_task_count_12_to_20": false,
+      "mean_tokens_increase_at_most_10pct": true,
+      "q_hw_geomean_improves_1pct": false,
+      "scorable_count_not_lower": true,
+      "wasted_attempts_reduce_20pct": false
+    },
+    "passed": false,
+    "provenance": {
+      "baseline_roots": [
+        "runs/phase2f_qor_rag_small_ab_rem2_envfix_legacy_20260725"
+      ],
+      "candidate_roots": [
+        "runs/phase2f_qor_rag_small_ab_rem2_envfix_generalized_20260725"
+      ],
+      "overlay_semantics": "later roots replace earlier reports for the same task and role",
+      "report_roles": [
+        "submission",
+        "evaluator"
+      ]
+    },
+    "schema_version": 2,
+    "task_count": 2,
+    "task_list": "fpt26-agent-v3/evals/qor_rag_small_ab_rem2_envfix_tasks_20260725.txt",
+    "tasks": [
+      "polybench__cholesky",
+      "machsuite__gemm_blocked"
+    ]
+  },
+  "run_label": "phase2f_qor_rag_small_ab_rem2_envfix",
+  "schema_version": 1,
+  "small_sample_summary": {
+    "acceleration_relative_change": 3.353256534,
+    "baseline_acceleration_geomean": 1.314191767,
+    "baseline_failure_reason_counts": {},
+    "baseline_mean_completion_tokens_per_task": 548.5,
+    "baseline_mean_prompt_tokens_per_task": 8240.5,
+    "baseline_mean_requests_per_task": 2.0,
+    "baseline_mean_tokens_per_task": 8789.0,
+    "baseline_q_hw_geomean": 0.809193969,
+    "baseline_report_error_counts": {},
+    "baseline_success_rate": 1.0,
+    "candidate_acceleration_geomean": 5.721013896,
+    "candidate_failure_reason_counts": {},
+    "candidate_mean_completion_tokens_per_task": 563.0,
+    "candidate_mean_prompt_tokens_per_task": 8886.0,
+    "candidate_mean_requests_per_task": 2.0,
+    "candidate_mean_tokens_per_task": 9449.0,
+    "candidate_q_hw_geomean": 0.80451849,
+    "candidate_report_error_counts": {},
+    "candidate_success_rate": 1.0,
+    "mean_requests_relative_change": 0.0,
+    "mean_tokens_relative_change": 0.075093867,
+    "q_hw_relative_change": -0.005777946
+  },
+  "source_plan": "fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_rem2_envfix_plan_20260725.json",
+  "status": "measured",
+  "task_count": 2,
+  "task_list": "fpt26-agent-v3/evals/qor_rag_small_ab_rem2_envfix_tasks_20260725.txt",
+  "tasks": [
+    "polybench__cholesky",
+    "machsuite__gemm_blocked"
+  ]
+}

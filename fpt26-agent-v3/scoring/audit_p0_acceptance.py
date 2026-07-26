@@ -32,6 +32,13 @@ def _json(path: Path | None) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _record_can_be_replaced(record: dict[str, Any]) -> bool:
+    return bool(
+        record.get("outcome") == "infrastructure_error"
+        or record.get("audit_errors")
+    )
+
+
 def _add_tokens(total: dict[str, int], usage: dict[str, Any]) -> None:
     for key in (
         "request_count",
@@ -102,17 +109,21 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             task_id = record.get("task_id")
             if task_id in records:
                 previous = records[task_id]
-                if previous.get("outcome") != "infrastructure_error":
+                if not _record_can_be_replaced(previous):
                     raise RuntimeError(
                         "replacement is allowed only for an earlier "
-                        f"infrastructure_error: {task_id}"
+                        f"infrastructure/audit-error record: {task_id}"
                     )
                 superseded_records.append(
                     {
                         "task_id": task_id,
                         "old_outcome": previous.get("outcome"),
+                        "old_audit_errors": previous.get("audit_errors"),
                         "old_attempt_root": previous.get("attempt_root"),
                         "replacement_outcome": record.get("outcome"),
+                        "replacement_audit_errors": record.get(
+                            "audit_errors"
+                        ),
                         "replacement_attempt_root": record.get(
                             "attempt_root"
                         ),
@@ -185,9 +196,17 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             ):
                 errors.append("evaluator_report_missing")
         else:
+            expected_grading_source = (
+                "hidden"
+                if task_dir is not None and (task_dir / "hidden").is_dir()
+                else "public_fallback"
+            )
             errors.extend(
                 validate_evaluator(
-                    evaluator, task_id, official_task=official
+                    evaluator,
+                    task_id,
+                    official_task=official,
+                    expected_grading_source=expected_grading_source,
                 )
             )
         errors = sorted(set(errors))
@@ -320,14 +339,15 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             },
         }
 
+    expected_task_count = len(expected)
     task_count = len(records)
     workflow_integrity_ok = bool(
         not coverage_errors
-        and task_count == 97
+        and task_count == expected_task_count
         and audit_error_task_count == 0
-        and api_proven_task_count == 97
-        and public_only_submission_count == 97
-        and model_compliance_task_count == 97
+        and api_proven_task_count == expected_task_count
+        and public_only_submission_count == expected_task_count
+        and model_compliance_task_count == expected_task_count
         and token_totals["failed_request_count"] == 0
         and token_totals["unreported_response_count"] == 0
     )
@@ -346,7 +366,7 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
         "retry_task_ids": retry_task_ids,
         "superseded_records": superseded_records,
         "coverage": {
-            "expected_task_count": 97,
+            "expected_task_count": expected_task_count,
             "recorded_task_count": task_count,
             "coverage_errors": coverage_errors,
             "audit_error_task_count": audit_error_task_count,
@@ -355,7 +375,9 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
         },
         "submission_isolation": {
             "public_only_submission_count": public_only_submission_count,
-            "forbidden_access_count": 97 - public_only_submission_count,
+            "forbidden_access_count": (
+                expected_task_count - public_only_submission_count
+            ),
         },
         "model_and_api": {
             "model_compliance_proven_task_count": (
@@ -366,7 +388,7 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             ),
             "tasks_with_api_requests": api_request_task_count,
             "tasks_without_api_requests_due_to_pre_llm_terminal_gate": (
-                97 - api_request_task_count
+                expected_task_count - api_request_task_count
             ),
             "token_totals": token_totals,
         },

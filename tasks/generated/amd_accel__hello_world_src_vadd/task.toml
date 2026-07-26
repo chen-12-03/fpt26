@@ -1,0 +1,26 @@
+task_id = "amd_accel__hello_world_src_vadd"
+task_type = "optimize"
+difficulty = 3
+top = "vadd"
+kernel_file = "vadd.cpp"
+header_files = []
+public_tb = "vadd_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_accel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/hello_world"
+license = "MIT"
+top_function = "vadd"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+source_path = "hello_world"
+source_sha256 = "d077acdbf8eb3a93f928fa00ab71ba9d17a28b3a532c3ed271b42474f5fadc25"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

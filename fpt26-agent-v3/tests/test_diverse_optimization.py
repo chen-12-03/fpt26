@@ -216,6 +216,8 @@ def test_diverse_search_measures_all_lanes_and_selects_highest_q_hw() -> None:
     assert result.kernel == _RESTRUCTURED
     search = result.metadata["optimization_search"]
     assert search["selector"] == "highest_measured_q_hw"
+    assert search["qor_rag_generalized"] is True
+    assert "exact-source" in search["qor_rag_policy"]
     assert search["winner"] == "source_reduction_restructure"
     assert [s["selected"] for s in search["strategies"]] == [False, True, False]
     decisions = {

@@ -1,0 +1,26 @@
+task_id = "amd_accel__performance_p2p_fpga2fpga_bandwidth_src_bandwidth"
+task_type = "optimize"
+difficulty = 3
+top = "bandwidth"
+kernel_file = "bandwidth.cpp"
+header_files = []
+public_tb = "bandwidth_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_accel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/p2p_fpga2fpga_bandwidth"
+license = "MIT"
+top_function = "bandwidth"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+source_path = "performance/p2p_fpga2fpga_bandwidth"
+source_sha256 = "9569070394050ee5ae51f47466dbcee8a3c6255d6ee23cd554e99ec04447bb5e"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

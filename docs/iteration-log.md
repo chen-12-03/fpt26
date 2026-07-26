@@ -3707,3 +3707,1179 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
   `tests/test_execution_layer_freeze.py` 当前为 **2 failed, 1 passed**，失败项为
   `run_p0_real_api_shard.py` frozen file hash 和 `agent_sources` tree hash stale；
   这正是等待 fresh full97/official revalidation 后再更新 manifest 的预期 gate。
+
+### Fresh full97 real-API pass after cleanup
+
+- 为释放空间，清理了旧 `runs/` raw 目录：旧 2026-07-19 P0 full97、Phase 1
+  full/structured raw、Phase 2A partial v2 shard、旧 QoR-RAG A/B/probe raw，以及在
+  新 v3 full97 通过后已被 supersede 的 Phase 2A v1 full97/official/A-B raw。保留本次
+  v3 full97 shard raw 和 acceptance JSON。`runs/` 目录从约 91G 降至约 9.5G，
+  文件系统可用空间约 828G。
+- 基于当前 source snapshot 执行一遍 fresh 97-task split-role real custom API +
+  Vitis 2025.2 测试，三个 shard 为：
+  `runs/phase2a_full97_20260724_v3_s0`、
+  `runs/phase2a_full97_20260724_v3_s1`、
+  `runs/phase2a_full97_20260724_v3_s2`。
+- Docker 内正式 aggregate audit 为
+  `runs/phase2a_full97_20260724_v3_acceptance_docker.json`，SHA-256
+  `f12d39c8daf8d501c543640edb74a1a5363906b695cb0a751d3edf63f0b0c284`。
+  `workflow_integrity_ok=true`、`retry_task_ids=[]`、coverage 97/97、
+  outcomes completed=77、failed=20、audit_error_task_count=0。
+- 执行源 tree SHA-256 为
+  `8f4e3e948c311fd260bbf93eec39c1be5ddc784ce744b8fd9c8d56ea491a19fc`，
+  三个 shard summary 均为 execution source stable。
+- Real API usage proven 97/97；tasks with API requests=89，pre-LLM terminal
+  gate zero-request tasks=8；request/response=`144/144`，failed requests=0，
+  unreported responses=0，tokens=`690195`。
+- Target gates：interface pass=94，frequency pass=89，resource capacity pass=97，
+  required CoSim task `residual_stream_deadlock` 通过，minimum observed frequency
+  66.028 MHz。Total credits spent=`997`，tool calls=`379`。
+- 本轮按用户要求完成一遍真实 API 测试后停止；未启动第二遍 full97。随后继续执行
+  fresh official revalidation，结果见下一节。
+
+### Fresh official real-API pass and freeze update
+
+- current snapshot 的 fresh official split-role run 位于
+  `runs/phase2a_official_fresh_20260724_v3`。start/end execution source snapshot
+  均为 files=`81`、tree SHA-256
+  `8f4e3e948c311fd260bbf93eec39c1be5ddc784ce744b8fd9c8d56ea491a19fc`；
+  start/end snapshot file SHA-256 均为
+  `1ea5e17d17927bb2e89aa7e77c290a2f51cad94eed05e53982ded886f325c015`。
+- official acceptance 为
+  `runs/phase2a_official_fresh_20260724_v3_acceptance.json`，SHA-256
+  `56e2c66d26f199acbc3f57d0e35599a161f82f6fe8813709e2475a06c4bbad40`。
+  `acceptance_ok=true`、errors=[]、task_count=3。
+- 三题结果：`projection_bugfix` score=`74.89`、request=`2`、tokens=`7818`、
+  frequency=`394.011 MHz`；`dotProduct_optimize` score=`76.50`、request=`1`、
+  tokens=`3927`、frequency=`315.457 MHz`；`residual_stream_deadlock`
+  score=`68.76`、request=`2`、tokens=`7812`、frequency=`379.651 MHz`，
+  required CoSim pass，latency max=`68`。
+- official 总计 request=`5`、prompt tokens=`17639`、completion tokens=`1918`、
+  total tokens=`19557`、credits spent=`70`、tool calls=`14`、最低频率
+  `315.457 MHz`。
+- `execution-freeze.json` 已更新到 current snapshot：execution source tree
+  `8f4e3e948c311fd260bbf93eec39c1be5ddc784ce744b8fd9c8d56ea491a19fc`，
+  97-task acceptance `f12d39c8daf8d501c543640edb74a1a5363906b695cb0a751d3edf63f0b0c284`，
+  official acceptance
+  `56e2c66d26f199acbc3f57d0e35599a161f82f6fe8813709e2475a06c4bbad40`，
+  agent source tree
+  `9f4614542a28abdd61446dedaceef49d20300be11137f94273a2d09530740246`。
+  本地 freeze check `PYTHONPATH=... pytest -q fpt26-agent-v3/tests/test_execution_layer_freeze.py`
+  为 **3 passed in 0.20s**；`git diff --check` clean。
+
+## 2026-07-25 — Public HLS corpus expansion + QoR-RAG asset expansion
+
+### Public HLS task import and smoke validation
+
+- 新增 public-only HLS 候选导入脚本：
+  `tools/import_public_hls_tasks.py`、`tools/smoke_public_hls_tasks.py`、
+  `tools/filter_public_hls_tasks.py`。
+- 公开来源：
+  - AMD Vitis-HLS-Introductory-Examples，commit
+    `aa5c160faf5d5ebf58674df8f0591f9984ebae0f`，license `Apache-2.0`。
+  - AMD Vitis_Accel_Examples，commit
+    `81187602355a7c2b666351154c5acca2074cae64`，license `MIT`。
+- 导入候选 130 个；本地 Docker + Vitis 2025.2 CSim/Synth smoke：
+  `102/130 passed`。通过任务已留在 `tasks/generated`，失败候选 28 个已移到
+  `/tmp/fpt26_failed_public_hls_tasks`，不计入新增 task。
+- 新增 validated task 数量与来源分布：
+  - `amd_intro`: 73
+  - `amd_accel`: 29
+  - 合计新增: 102
+- 当前 corpus：generated `196` + official `3` = `199` unique tasks。
+- 证据文件：
+  - `tasks/generated/public_hls_tasks_manifest.json`：130 个候选及 source URL、
+    license、commit、top function、source hash provenance。
+  - `tasks/generated/public_hls_tasks_smoke.json`：每个候选的 CSim/Synth smoke
+    phase、latency/resource 摘要。
+  - `tasks/generated/public_hls_validated_tasks_manifest.json`：102 个计入任务和
+    28 个失败候选清单。
+- 去重审计：102 个计入任务的 `task_id` 和 `source_sha256` 均唯一；top function
+  名称存在上游通用命名重名（例如 `dut`、`example`、`vadd`），但对应 source path
+  和 source hash 不同，不按同源重复计。
+- Discovery/audit 代码已更新到 expected total `199`：
+  `scoring/run_p0_real_api_shard.py`、`scoring/run_real_api_shard.py`、
+  `scoring/audit_p0_acceptance.py`、`tests/test_p0_batch_runner.py`。
+
+### QoR-RAG expansion
+
+- 读取并参考 `third_party/hls-generator/SKILL.md` 及相关 pattern 文档：
+  `hls-optimization-patterns.md`、
+  `hls-stencil-reduction-gemm-patterns.md`、
+  `hls-advanced-library-patterns.md`、
+  `hls-project-structure-patterns.md`。
+- 新增 `tools/expand_qor_rag_assets.py`，将 seed rules 扩到 `47` 条，并从已有
+  public submission run_report 与 public-HLS smoke failure 中生成 measured cases。
+- 当前 QoR-RAG 默认资产：
+  - seed rules: `47`
+  - measured cases: `106`（verified_case `18`，failure_case `88`）
+  - 覆盖 family：pipeline、unroll、array_partition、array_reshape、dataflow、
+    stream_fifo、memory_banking、loop_flatten、loop_fission、loop_fusion、
+    reduction、gemm、stencil、bitwidth、math_kernel、interface、
+    failure_triage、report_driven、loop_tripcount、inline、source_restructure。
+- Retrieval 收紧：specific workload 查询只接受语义兼容 measured cases；保持
+  canonical dotProduct/popcount/GEMM/stencil 条目优先，避免通用 measured case
+  注入无关 AES/crypto 查询。
+
+### Verification
+
+- Public HLS smoke：`102/130 passed`，通过率 `78.46%`；计入新增 task 通过率
+  `102/102`。
+- 本地测试：
+  `PYTHONPATH=... python3 -m pytest -q fpt26-agent-v3/tests/test_public_hls_tasks.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_qor_rag.py`
+  为 **37 passed, 1 skipped**。
+- Retrieval eval：
+  `python3 -m agent.qor_rag_retrieval_eval --output fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json`
+  为 `30` labeled cases、Recall@3=`0.9`、deterministic=true、
+  max prompt token upper bound=`1791`、passed=true。
+- 真实 API 小样本 A/B：
+  `runs/phase2b_single_dot_current_rag_20260725` 对 `dotProduct_optimize` 执行
+  current expanded-RAG split-role run，submission/evaluator 均 completed，
+  outcome=completed，API request=`1`。对比旧
+  `runs/phase2a_official_fresh_20260724_v3/dotProduct_optimize`：
+  score `76.50 → 76.50`、Q_HW `0.7666 → 0.7666`、credits `10 → 10`、
+  total tokens `3927 → 4234`（+7.82%）、prompt tokens `3823 → 4133`、
+  completion tokens `104 → 101`；单任务样本下 mean tokens/request 与
+  mean tokens/task 同为 `3927 → 4234`，mean credits/task `10 → 10`。报告写入
+  `fpt26-agent-v3/scoring/reports/phase2b_single_dot_current_rag_ab_20260725.json`。
+- Reference-classification legacy guard：
+  `PYTHONPATH=... python3 -m pytest -q fpt26-agent-v3/scoring/test_reference_classification.py`
+  为 **3 passed**；测试范围已限定到 legacy reference-bearing generated tasks，
+  不把新 public-only tasks 当作 PPA reference calibration 输入。
+- `tests/test_execution_layer_freeze.py` 当前失败是预期状态：source、knowledge
+  assets、task corpus 已改变，但尚未执行 fresh full199 real-API acceptance，
+  因此不更新 `execution-freeze.json` 来伪装完成。后续 full validation 需要以
+  199-task corpus 重新运行 split-role real custom API + Vitis acceptance。
+
+### Fresh full199 real-API acceptance and freeze update
+
+- 上一节的 stale freeze gap 已由 fresh 199-task split-role real custom API +
+  Vitis 2025.2 acceptance 补齐。正式 aggregate 报告为
+  `fpt26-agent-v3/scoring/reports/phase2d_full199_acceptance_with_retry1_20260725.json`，
+  SHA-256
+  `f29e21b3a00d8ff8686a8320a5f80d841a07df9e1f02cf862251a448643f7d09`。
+- `fresh_evidence_only=true`、`workflow_integrity_ok=true`、coverage
+  `199/199`、`audit_error_task_count=0`。最终 outcomes：completed=`149`、
+  failed=`50`；失败均为可审计终止类型：`anchor_invalid: starter` 36、
+  `frequency_failed` 10、`interface_failed` 4。
+- Real API/model 证据覆盖 `199/199`；tasks with API requests=`189`，pre-LLM
+  terminal gate zero-request tasks=`10`；request/response=`314/314`，failed
+  requests=`0`，unreported responses=`0`，total tokens=`1627804`。
+- Retry overlay 用 3 个 retry shard 替换首轮 `real_api_usage_incomplete` 记录；
+  overlay 后 `retry_task_ids=[]`，所有 superseded records 的 replacement
+  audit errors 为空。
+- 本轮 frozen execution source tree SHA-256 为
+  `188d074fefae3a8c7e397bca55e41eabfce3af5a894fe0281b8cfce0b5356c1a`。
+  `execution-freeze.json` 已更新为 Phase 2D：绑定 full199 acceptance、当前
+  execution source tree、QoR-RAG knowledge assets tree
+  `794e7ba60803792e75f81af008545cbdc94add6bdad19f527f7c7a8a754f4710`、
+  task corpus count=`1267`/tree
+  `4e517a406bd8336719c82aa4085d501ba566a76de22e4d3b0104ba869e7a052b`。
+- 本地收尾核验：
+  `PYTHONPATH=fpt26-agent-v3 python3 -m pytest -q fpt26-agent-v3/tests/test_execution_layer_freeze.py fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_acceptance_audit.py`
+  为 **34 passed**；pytest cache 写入 `.pytest_cache` 权限 warning 不影响测试结果。
+
+### Formal QoR-RAG A/B: current expanded assets vs legacy baseline
+
+- 为替代 dotProduct 单题小样本，使用固定 12-task QoR-RAG set 做正式 split-role
+  A/B。报告为
+  `fpt26-agent-v3/scoring/reports/phase2e_qor_rag_ab_current_vs_legacy_20260725.json`，
+  SHA-256
+  `9da40750cd91cef14616b09554632d20d720f4bf9bf46b66b494a30595a0ef14`。
+- Candidate 使用 Phase 2D full199/retry overlay 中的 current expanded-RAG 结果；
+  baseline 使用 3 个 `phase2e_qor_rag_ab_baseline_shard*_20260725` legacy-RAG
+  split-role runs。报告按 later roots replace earlier roots 的 overlay 语义匹配
+  submission/evaluator 双角色 `run_report.json`。
+- A/B 结论是 **passed=false**，不能声称 expanded QoR-RAG 质量提升。通过的 gate：
+  task count=`12`、all reports present、correctness preserved `12/12`、scorable
+  count not lower、mean tokens increase <=10%、wasted attempts reduce >=20%。
+  未通过的 gate：Q_HW geomean improve >=1%、acceleration geomean improve >=5%。
+- 指标对比：
+  - Q_HW geomean：baseline `0.823427699` → candidate `0.784930663`
+    （relative change `-4.6752%`）。
+  - Acceleration geomean：baseline `2.814188489` → candidate `1.639286518`
+    （relative change `-41.7492%`）。
+  - Mean tokens/task：baseline `9775.666667` → candidate `8107.5`
+    （relative change `-17.0645%`）。
+  - Mean credits/task：baseline `13.333333` → candidate `10.916667`
+    （monitor-only relative change `-18.1250%`）。
+  - Wasted attempts：baseline `4` → candidate `2`（relative change `-50%`）。
+- 解释边界：expanded QoR-RAG 在该 12-task formal A/B 中证明了正确性不回退且
+  更省 token/credits，但没有证明 QoR/acceleration 改善；后续若继续优化 RAG，
+  应以该报告作为反例基线，优先分析 `machsuite__aes_aes`、
+  `machsuite__gemm_blocked`、`polybench__cholesky` 等 candidate 明显低于 legacy
+  baseline 的任务，而不是继续只看 dotProduct。
+
+### Phase 2F offline hardcoding guard and triage setup
+
+- 按下一阶段约束，本轮不跑 full199，不跑大规模真实 API/Vitis，只做静态和本地
+  小闭环。
+- 新增 generalized QoR-RAG 模式：`FPT26_QOR_RAG_GENERALIZED=1`。该模式下
+  runtime retrieval 不再使用 measured case 的 exact `source`/task-id tokens 做
+  workload compatibility 或 dotProduct/popcount source boost，并禁用 legacy
+  specialist fallback；默认模式保持 Phase 2D 行为不变。
+- `agent.qor_rag_curate` 增加 `derive_task_id_tags` 参数和
+  `--no-task-id-tags` CLI。默认仍保留历史 task-id tag 派生；generalized 环境或
+  CLI flag 下不从 `task_id` 推导 dotProduct/popcount/GEMM/stencil/CORDIC tags。
+- QoR-RAG 首个 fully verified Q_HW improvement 早停改为可配置：
+  `FPT26_QOR_RAG_EARLY_STOP=0` 或显式参数可关闭。`DiverseOptimizationStage`
+  lane 内显式关闭该早停，保持 formal/competition 场景按独立 lane 评估。
+- 新增离线 triage 工具 `tools/offline_agent_triage.py`，只读取已有 aggregate
+  reports，不调用 API/Vitis，不读取 private evaluator artifacts。输出
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`。
+- 离线 triage 结论：
+  - phase2e A/B 的 QoR regression task 数为 `3`：
+    `machsuite__aes_aes`、`polybench__cholesky`、`machsuite__gemm_blocked`。
+  - 主要假设：candidate 更保守/探索不足、可能 early-stop 或 measured lane
+    不足、missed parallel architecture/strategy lane；raw submission metadata
+    仍需后续小样本或可读 artifact 进一步证明。
+  - full199 failed 仍为 `anchor_invalid: starter` 36、`frequency_failed` 10、
+    `interface_failed` 4；amd_accel anchor-invalid 的首批小样本建议为
+    `amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd`、
+    `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel`、
+    `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd`。
+- 本地验证：
+  - `PYTHONPATH=fpt26-agent-v3 python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py`
+    为 **45 passed, 1 skipped**。
+  - `PYTHONPATH=fpt26-agent-v3 python3 -m pytest -q fpt26-agent-v3/tests/test_diverse_optimization.py fpt26-agent-v3/tests/test_optimize_scoring.py fpt26-agent-v3/tests/test_candidate_noop_guard.py`
+    为 **27 passed**。
+  - Retrieval eval 仍为 `30` cases、Recall@3=`0.9`、deterministic=true、
+    max prompt token upper bound=`1791`、passed=true。
+  - `git diff --check` clean。
+- 未更新 `execution-freeze.json`：execution/RAG 行为已有变化，freeze 只能在后续
+  明确重新完成 full199 acceptance 后更新。
+
+### Phase 2F offline replay/static audit refinement
+
+- 扩展 `tools/offline_agent_triage.py`：新增 `--task-root`，离线读取
+  public `task.toml`、`description.md`、kernel/header/public TB，不调用 Vitis、
+  不调用 API、不读取 hidden/reference/evaluator artifacts。报告仍写入
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `05bbbaa66dbe28a11799dbeb0c3430c95183819cae1c1643d92f63edafb5c41b`。
+- QoR regression replay 现在对每个回归任务同时记录 default/generalized
+  `retrieve_knowledge` 结果、families、sources、prompt token upper bound、
+  source metadata 摘要，以及 exact-source measured case 计数。
+  `machsuite__gemm_blocked` 暴露出旧资产 tag 污染风险：default 会取
+  `submission.machsuite__gemm_blocked...` 同题 measured case；generalized
+  现已基于当前 `task_id` 过滤 exact-source measured case，变为 exact count `0`，
+  只保留通用 GEMM rule 和非同题 GEMM failure case。
+- 三个 Phase 2E 回归任务的离线 replay 归因：
+  - `machsuite__aes_aes`：default/generalized 均只取
+    `hlsgen.report_driven.baseline_first`；candidate acceleration 相对变化
+    `-88.6364%`，credits `10 → 6`，更像低 credit/策略 lane 不足，而非
+    exact-source RAG 硬编码。
+  - `polybench__cholesky`：default/generalized 均取 report-driven + 非同题
+    pipeline measured cases；candidate acceleration 相对变化 `-47.3684%`，
+    credits `15 → 10`，且 token 增加，优先怀疑 strategy lane/探索预算而非
+    token 过低。
+  - `machsuite__gemm_blocked`：candidate token `9352 → 4671`（`-50.0535%`）、
+    acceleration `67.01 → 1.71`（`-97.4481%`），是最明确的
+    low-token conservative behavior + missed strategy lane 样本。
+- amd_accel anchor-invalid 静态审计覆盖首批 8 个优先样本。共同证据：
+  top function 在 kernel 中存在，public TB 会调用 top，kernel 未发现 XRT/host
+  runtime markers；但 generated public TB 均缺少可观察结果检查，审计 hypothesis
+  为 starter anchor 可能没有证明输出行为。首批 1-3 个小样本仍建议：
+  `amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd`、
+  `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel`、
+  `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd`。
+- 本轮新增本地验证：
+  - `PYTHONPATH=fpt26-agent-v3 python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py`
+    为 **48 passed, 1 skipped**。
+  - `PYTHONPATH=fpt26-agent-v3 python3 -m pytest -q fpt26-agent-v3/tests/test_diverse_optimization.py fpt26-agent-v3/tests/test_optimize_scoring.py fpt26-agent-v3/tests/test_candidate_noop_guard.py`
+    为 **27 passed**。
+  - Retrieval eval 仍为 `30` cases、Recall@3=`0.9`、deterministic=true、
+    max prompt token upper bound=`1791`、passed=true。
+  - `git diff --check` clean。
+  - 不跑 full199，不更新 `execution-freeze.json`。
+
+### Phase 2F public-HLS metric-completeness gate
+
+- 继续分析 `anchor_invalid: starter` 后，定位到 public-HLS smoke/filter 的准入
+  缺口：原 smoke 只要求 CSim+Synth OK，没有要求 Vitis synth report 产出可评分的
+  latency/II。`AnchorEvidence.passes_all_required_gates` 明确要求 starter anchor
+  具备 latency 和 II，因此这类任务会在 full199 evaluator 端 fail-closed 为
+  `anchor_invalid: starter`。
+- `tools/smoke_public_hls_tasks.py` 现在记录 `latency_worst`、`interval_max`、
+  `measurable_latency_ok`、`measurable_ii_ok`、`scoreable_synth_ok`，默认只有
+  CSim+Synth+scoreable metrics 才算 `passed`；保留
+  `--allow-missing-score-metrics` 作为 legacy 复现实验开关，并增加
+  `--min-passed`。
+- `tools/filter_public_hls_tasks.py` 现在默认只保留 scoreable smoke 任务；对旧
+  smoke JSON 兼容处理：如果旧报告没有 `interval_max` 字段，只按已有
+  `latency_worst` 判定，不把字段缺失误判为 II 缺失。输出 manifest 增加
+  `scoreable_gate.metric_incomplete_*`。
+- 离线 triage 报告重新生成：
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `a5273e3bc81b48255a3fcc44fb689ac84bbfc23038cb014485d5de3ef0996e82`。
+  新增 `public_hls_metric_completeness` 结论：
+  - 当前 validated public-HLS manifest 中 metric-incomplete 任务 `27` 个：
+    `amd_accel` 18、`amd_intro` 9。
+  - 这 27 个与 full199 的 public-HLS `anchor_invalid: starter` 完全重合
+    （overlap=`27`）。这解释了 full199 的 36 个 anchor_invalid 中 27 个；
+    剩余 9 个来自 legacy generated/benchmark 任务，需要另行分析。
+  - 首批 amd_accel 静态 audit 同时显示变量边界循环缺少 `LOOP_TRIPCOUNT`，
+    hypothesis 从 “TB 无输出检查” 提升为 “starter synth 可通过但缺 latency/II”。
+- 本轮新增测试和最终本地验证：
+  `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_public_hls_filter.py`
+  为 **6 passed**。
+  `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_public_hls_filter.py`
+  为 **52 passed, 1 skipped**。
+  optimizer 局部回归
+  `test_diverse_optimization.py test_optimize_scoring.py test_candidate_noop_guard.py`
+  为 **27 passed**。Retrieval eval 仍为 `30` cases、Recall@3=`0.9`、
+  passed=true；`git diff --check` clean。后续建议先用 1-3 个小样本验证两条修复路线：
+  对 metric-incomplete public-HLS 任务补 `LOOP_TRIPCOUNT` 后是否产生 latency/II；
+  或在下一轮 full corpus 前将 metric-incomplete public-HLS 任务隔离出 scored
+  corpus。
+
+### Phase 2F tripcount patch preparation
+
+- 将 public-HLS metric-completeness 修复从“只隔离”推进到“可小样本验证”：
+  `tools/import_public_hls_tasks.py` 现在默认在导入 public kernel 时，为变量边界
+  `for` loop 前插入 report-only
+  `#pragma HLS LOOP_TRIPCOUNT min=1 max=4096`。这类 pragma 只帮助 Vitis 产出
+  latency/II 估计，不改变 C 功能语义；保留 `--no-tripcount-pragmas` 用于 legacy
+  复现实验。manifest/task provenance 记录 `tripcount_pragmas_inserted`。
+- `offline_agent_triage.py` 的 `public_hls_metric_completeness` 现在额外输出
+  `tripcount_patch_candidates` 和 `suggested_tripcount_small_sample_tasks`。
+  最新 triage 报告为
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `f1a9384b16f3443f6e7f3372f794c11a9e388483ae54a779e44d3d43782c0acf`。
+- 当前 metric-incomplete 仍为 `27` 个，和 full199 public-HLS
+  `anchor_invalid: starter` overlap=`27`。其中静态可直接尝试 tripcount patch 的
+  candidate 为 `11` 个；首批 3 个小样本建议：
+  `amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd`、
+  `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel`、
+  `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd`。
+- 新增 importer transform 单测：
+  `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_public_hls_import.py fpt26-agent-v3/tests/test_public_hls_filter.py fpt26-agent-v3/tests/test_offline_agent_triage.py`
+  为 **8 passed**。完整本地验证：
+  `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_public_hls_import.py fpt26-agent-v3/tests/test_public_hls_filter.py fpt26-agent-v3/tests/test_offline_agent_triage.py`
+  为 **54 passed, 1 skipped**；optimizer 局部回归为 **27 passed**；
+  retrieval eval 仍为 `30` cases、Recall@3=`0.9`、passed=true；
+  `git diff --check` clean。尚未跑 Vitis 小样本；下一步应只选上面 1-3 个任务验证
+  tripcount patch 是否恢复 latency/II。
+
+### Phase 2F tripcount patch Vitis small sample
+
+- 按约束只跑 3 个本地 Vitis CSim+Synth 小样本，不调用 LLM/API，不跑 full199。
+  新增 `tools/prepare_tripcount_patch_sample.py`，将 selected public-HLS tasks
+  复制到 `/tmp/fpt26_tripcount_patch_sample/tasks`，忽略 hidden/reference，只在复制件
+  kernel 中插入 tripcount pragma，并生成 smoke manifest。
+- 小样本任务：
+  `amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd`、
+  `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel`、
+  `amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd`。
+  patch manifest SHA-256 为
+  `6c49c7127d9b4449f3d0ba749944ac1b9cd4d0601182e4a19b8803063a2d3cc7`。
+- Vitis smoke report：
+  `fpt26-agent-v3/scoring/reports/phase2f_tripcount_patch_smoke_20260725.json`，
+  SHA-256
+  `8e42269229eaa19194b4b9db2f58c7127985713849ba78c68b14e400ee80499d`。
+  Summary report：
+  `fpt26-agent-v3/scoring/reports/phase2f_tripcount_patch_sample_summary_20260725.json`，
+  SHA-256
+  `6ecb32df9eb30db19ffe354bcb30468ff101bf7692cae7fb185a4fb7163e17c5`。
+- 结果：3/3 CSim pass、3/3 Synth pass，但 scoreable count=`0/3`；
+  三个样本的 `latency_worst=None`、`interval_max=None`，因此
+  `LOOP_TRIPCOUNT` alone 未恢复 top-level latency/II。Vitis top report 仍显示
+  Latency max/Interval max 为 `?`，说明该 host_xrt anchor-invalid 子类不能只靠
+  tripcount pragma 修复。
+- 结论更新：public-HLS metric-incomplete 任务下一步更应先隔离出 scored corpus，
+  或另做 bounded wrapper/modeling 1-task 实验；不要把 tripcount patch 视为已验证
+  的成功率提升。
+
+### Phase 2F metric-incomplete quarantine path
+
+- 鉴于 3-task Vitis 小样本证明 `LOOP_TRIPCOUNT` alone 不能恢复 host_xrt
+  top-level latency/II，本轮新增 opt-in quarantine 路径，而不改变默认 full199
+  discovery 语义。
+- `scoring/run_p0_real_api_shard.py` 增加：
+  - `load_excluded_task_ids(path)`：可读取 JSON list、`exclude_task_ids`，
+    或 Phase 2F triage report 中的
+    `full199_failures.public_hls_metric_completeness.metric_incomplete_task_ids`。
+  - `discover_tasks(task_root, excluded_task_ids=...)`：默认仍严格要求 199 个任务；
+    只有显式传入 exclude set 时才跳过对应 task，并校验 excluded task 必须存在。
+  - CLI `--exclude-task-ids <json>`：summary 写入 `task_quarantine`，记录 source、
+    excluded count、effective task count、原始 expected count。默认不启用。
+- 生成 quarantine 输入报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_metric_incomplete_quarantine_20260725.json`，
+  SHA-256
+  `dc925c86c3d69b95f82994fae66d08b8395e2fb58c4e094b512a415fc83356e4`。
+  报告包含 27 个 `exclude_task_ids`。基于 Phase 2D full199 静态重算：
+  baseline completed=`149/199`，success rate=`74.8744%`；若只隔离这 27 个
+  metric-incomplete public-HLS anchor-invalid 任务，剩余 completed=`149/172`，
+  static success rate=`86.6279%`，remaining failed=`23`。这是离线 quarantine
+  estimate，不是新的 acceptance。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_public_hls_import.py fpt26-agent-v3/tests/test_public_hls_filter.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_tripcount_patch_sample.py`
+    为 **57 passed, 1 skipped**。
+  - optimizer 局部回归为 **27 passed**。
+  - Retrieval eval 仍为 `30` cases、Recall@3=`0.9`、passed=true。
+  - `git diff --check` clean。
+
+### Phase 2F post-quarantine failure triage and hardcoding audit
+
+- 扩展 `tools/offline_agent_triage.py`：新增 `--quarantine-report` 和
+  `post_quarantine_failures` 输出块。该块只读取已有 Phase 2D full199 aggregate
+  report 与 Phase 2F quarantine JSON，不调用 LLM/API/Vitis，不读取
+  hidden/reference/evaluator 私有 artifact。
+- 最新离线 triage 报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `37558ea9f9c87aa06f3ffcb3fbe512590029de0e2d0e2f43c9b546896852ea62`，
+  `schema_version=2`。
+- Quarantine 后剩余失败面：
+  - quarantined metric-incomplete public-HLS tasks=`27`，且这 27 个都是 Phase 2D
+    failed task。
+  - effective task count=`172`，completed=`149`，remaining failed=`23`，
+    static success rate=`86.6279%`。这是离线估计，不是新的 acceptance。
+  - remaining reason counts：`frequency_failed=10`、
+    `anchor_invalid: starter=9`、`interface_failed=4`。
+  - family/reason 分布：`amd_accel` frequency 2；`amd_intro` interface 2；
+    `c2hlsc` frequency 1/interface 1；`chstone` frequency 4/interface 1/anchor 1；
+    `flowgnn` frequency 1；`machsuite` anchor 8；`pp4fpga` frequency 1；
+    `rosetta` frequency 1。
+- `post_quarantine_failures.remaining_failures` 现在为每个剩余失败记录 gate evidence：
+  submission/evaluator stop reason、interface reason/stage、frequency
+  candidate clock/frequency/minimum、resource usage/capacity、final hardware
+  summary、token usage、anchor source/valid 与 hidden/public fallback。
+- 自动建议的下一批 1-3 个小样本：
+  `c2hlsc__des`（`markdown_fence_in_candidate`，通用候选提取/清洗问题）、
+  `pp4fpga__parallel_merge_sort`（真实 100 MHz frequency miss，约 94.28 MHz）、
+  `amd_accel__performance_host_global_bandwidth_src_kernel`
+  （`candidate_clock_invalid` / zero clock cluster）。
+- 硬编码审计结论：
+  - generalized QoR-RAG runtime 已关闭 exact-source/task-id measured-case boost，
+    并拒绝 source 匹配当前 task 的 measured cases；`qor_rag_curate` 也可关闭
+    task-id 派生 tags。
+  - 仍存在的 workload 字符串（dot/popcount/GEMM/stencil/CORDIC/AES 等）是
+    family-level 结构分类，不是具体 task 的答案分支；风险为低到中，需继续用
+    generalized mode 作为 formal lane 默认。
+  - 非 generalized legacy specialist fallback 仍保留 Phase 2D 行为，属于兼容路径；
+    若后续正式竞赛/泛化 lane 不需要历史行为，应默认启用
+    `FPT26_QOR_RAG_GENERALIZED=1`。
+  - `tools/prepare_tripcount_patch_sample.py` 的 3 个默认 task 是实验小样本默认值，
+    不在 agent runtime 决策路径中；不构成 agent 硬编码，但报告中应注明它只用于
+    Phase 2F 小样本复现实验。
+- 小步优化：`agent.candidate.validator.extract_code()` 扩展 fenced-code 提取正则，
+  支持大小写语言标签、CRLF、`cc/cxx` 标签和 opening fence 后同一行源码。后续
+  `InterfaceValidator` 仍会拒绝候选源码内部残留的 markdown fence，因此该改动只
+  清理 LLM response 包装，不放松源码 gate。
+- 本轮新增验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py`
+    为 **72 passed, 1 skipped**。
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_offline_agent_triage.py`
+    为 **24 passed**。
+  - Retrieval eval：
+    `PYTHONPATH=fpt26-agent-v3:. python3 -m agent.qor_rag_retrieval_eval --output fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json`
+    为 `30` cases、Recall@3=`0.9`、deterministic=true、
+    max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/candidate/validator.py tools/offline_agent_triage.py`
+    通过。
+  - `git diff --check` clean。
+- 仍未跑 full199，未更新 `execution-freeze.json`。
+
+### Phase 2F QoR-RAG crypto lookup coverage
+
+- 针对 Phase 2E formal A/B 中 `machsuite__aes_aes` 的 QoR regression，离线 replay
+  显示 default/generalized 之前都只检索到 generic
+  `hlsgen.report_driven.baseline_first`，没有任何 byte-oriented crypto / S-box /
+  substitution 类通用规则。这是 expanded-RAG 的知识覆盖空洞，不是 exact-source
+  measured-case 硬编码。
+- 新增 family-level seed rule：
+  `hlsgen.crypto.lookup_round_guard`，family=`crypto_lookup`。该规则面向
+  AES/DES/cipher/encryption/S-box/byte substitution/XOR/Galois-field 等通用源码或
+  description 信号，建议一次只优化一个 measured round/helper：pipeline 主导
+  bounded loop，或仅 partition 小型 state/key/lookup-like array；明确禁止全轮
+  speculative unroll、未验证替换 S-box 语义、或改变 key schedule/top buffers。
+- `agent.knowledge` 新增 `crypto_lookup` family signal 和 explicit-architecture
+  boost，完全基于 description/source metadata/diagnostics tokens，不读取或匹配
+  task_id/source path。generalized mode 下仍拒绝 exact-source measured cases。
+- Retrieval eval 增加 `crypto-lookup-01` label。最新结果：
+  `31` cases、hits@3=`28`、Recall@3=`0.903226`、deterministic=true、
+  max prompt token upper bound=`1791`、passed=true。报告
+  `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+  `3d4c852b9a1db796863296f42b112f4a47d3008799e477d97be19926e83043f0`。
+- 重新生成离线 triage 报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `9cdaa126f1abd0030f280e06e12c858c81e147b6c1e47b3fc5c4bf8577efea31`。
+  `machsuite__aes_aes` replay 现在 default/generalized 均检索
+  `hlsgen.crypto.lookup_round_guard`，exact-source measured case count=`0`。
+- 新增单测固定该行为：
+  `test_crypto_lookup_architecture_outranks_generic_baseline_rule`。本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py`
+    为 **73 passed, 1 skipped**。
+  - Retrieval eval 如上 passed。
+- 边界：这只是离线检索修复，尚未跑真实 API/Vitis A/B；不能声称 Phase 2E QoR
+  regression 已经修复。下一步若要验证，只应选 `machsuite__aes_aes` 做 1-task
+  generalized-RAG small A/B，并写入 scoring/reports。
+
+### Phase 2F QoR-RAG linear-factorization coverage
+
+- 继续处理 Phase 2E formal A/B 的 QoR regression。`polybench__cholesky` 离线
+  replay 之前 default/generalized 都以 generic `hlsgen.report_driven.baseline_first`
+  为 top rule，后面跟随非同题 pipeline measured cases；没有 Cholesky/LU/
+  triangular factorization 这类通用结构规则。该缺口会让 prompt 缺少“保留三角
+  依赖顺序、一次只优化一个 inner update/accumulation loop”的约束。
+- 新增 family-level seed rule：
+  `hlsgen.linear_algebra.factorization_dependency_guard`，
+  family=`linear_algebra_factorization`。该规则基于
+  Cholesky/LU/triangular/factorization/decomposition 等通用结构信号，建议保留
+  row/column/diagonal 依赖顺序，只对 measured inner accumulation/update loop 做
+  pipeline 或小维度 partition；明确禁止跨三角依赖 flatten/interchange、全矩阵
+  complete partition、以及未经任务契约允许的 aggressive floating-point reorder。
+- `agent.knowledge` 新增 `linear_algebra_factorization` family signal 和
+  explicit-architecture boost。初版曾把 `factor` 也作为触发词，retrieval eval
+  暴露它会误匹配普通 `UNROLL factor` 查询；已移除该过泛 token，只保留
+  `factorization/decomposition/triangular/cholesky/lu/solve` 等结构词。
+- Retrieval eval 增加 `linear-factorization-01` label。最新结果：
+  `32` cases、hits@3=`29`、Recall@3=`0.90625`、deterministic=true、
+  max prompt token upper bound=`1791`、passed=true。报告
+  `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+  `aeae2dc652005ce818a0fe81be22a7af0f6095d72be0d253cb25f772748f2410`。
+- 重新生成离线 triage 报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `9715d21a9e89b1ca999fe80f482e874f0b78a50ebc92a8baa3e25f799aaf098b`。
+  `polybench__cholesky` replay 现在 default/generalized 均以
+  `hlsgen.linear_algebra.factorization_dependency_guard` 为 top-1，
+  exact-source measured case count=`0`。
+- 新增单测固定该行为：
+  `test_linear_factorization_architecture_outranks_generic_baseline_rule`。本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py`
+    为 **74 passed, 1 skipped**。
+  - Retrieval eval 如上 passed。
+- 边界：这仍是离线检索修复，不能声称 `polybench__cholesky` QoR regression 已在
+  真实 API/Vitis 中恢复。下一步若继续验证，应只跑 1-task generalized-RAG small
+  A/B，并写 report；不跑 full199，不更新 `execution-freeze.json`。
+
+### Phase 2F QoR-RAG GEMM generalized prompt refinement
+
+- 继续处理 Phase 2E formal A/B 的第三个 QoR regression：
+  `machsuite__gemm_blocked`。离线 replay 显示 default 模式会检索同题
+  `submission.machsuite__gemm_blocked...` measured success case，而 generalized
+  mode 正确移除该 exact-source measured case，只保留
+  `hlsgen.gemm.tiled_reuse` 和非同题 GEMM failure case。该行为符合反硬编码目标，
+  但也意味着 generalized prompt 失去了“保留 blocked/local reuse 架构并谨慎做
+  tile banking”的正向经验。
+- 不改变 retrieval 的 one-rule/one-success/one-failure 多样性策略，也不重新引入
+  exact-source measured case。本轮只增强已命中的通用 seed rule
+  `hlsgen.gemm.tiled_reuse`：
+  - action 现在明确要求 preserve existing blocked/tiled GEMM architecture and
+    local reuse。
+  - 若已有 local tiles，只保持 tile shape，并只尝试一个 small loop-local
+    `UNROLL factor=2`。
+  - 只有当 local tile dimension feeds concurrent K/lane reads 且有证据时，才做
+    minimum banking。
+  - 明确禁止 scalar fallback、复制 template interface/fixed tile size、移除已有
+    blocked/local-buffer reuse。
+- 新增单测：
+  `test_gemm_tiled_reuse_rule_preserves_blocked_local_architecture`，固定
+  generalized GEMM query 的 top rule 仍为 `hlsgen.gemm.tiled_reuse`，且 action
+  包含 preserve blocked/tiled architecture、minimum banking、scalar fallback
+  guard。
+- 最新验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py`
+    为 **75 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。报告
+    `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+    `0de90e61c827f437cfb2208dc132bb9b7e81ac12124d4f93936fcdc42ab19e10`。
+  - 重新生成离线 triage：
+    `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+    SHA-256
+    `4e4b4af3a5f89bf461224e735c03a1f5145f70281e725db1be272075c8dcc4f8`。
+    `machsuite__gemm_blocked` generalized replay 仍为 exact-source measured case
+    count=`0`，retrieved ids=`hlsgen.gemm.tiled_reuse` 和
+    `submission.polybench__gemm...negative`，prompt token upper bound=`1351`。
+- 边界：这是 prompt-level generalized seed refinement，不是新的 measured QoR
+  result。若要证明 `machsuite__gemm_blocked` regression 修复，需要 1-task
+  generalized-RAG small A/B，并写 report；本轮不跑真实 API/Vitis、不跑 full199、
+  不更新 `execution-freeze.json`。
+
+### Phase 2F objective-status audit
+
+- 为避免把离线修复误报为真实 QoR 修复，`tools/offline_agent_triage.py` 新增
+  `phase2f_objective_status` 输出块。该块只汇总已有 A/B、retrieval replay 和
+  post-quarantine 结果，不调用 API/Vitis，不读取 hidden/reference/evaluator
+  私有 artifact。
+- 最新离线 triage 报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_offline_agent_triage_20260725.json`，
+  SHA-256
+  `edc4d1c202cb3e5c50feaabd74b1e4757afe1a44a49e8620c344177c9451dd4e`。
+- `phase2f_objective_status.qor_rag_generalized_offline` 结论：
+  - priority task count=`3`。
+  - exact-source clean count=`3`。
+  - offline prompt coverage ready count=`3`。
+  - `machsuite__aes_aes` generalized top rule：
+    `hlsgen.crypto.lookup_round_guard`。
+  - `polybench__cholesky` generalized top rule：
+    `hlsgen.linear_algebra.factorization_dependency_guard`。
+  - `machsuite__gemm_blocked` generalized top rule：
+    `hlsgen.gemm.tiled_reuse`。
+  - `measured_qor_repair_proven=false`。三者都仍需要 1-task generalized-RAG
+    real API/Vitis A/B，才能声明 QoR recovery。
+- `phase2f_objective_status.failed_task_success_rate_offline` 结论：
+  quarantine 后 offline success rate=`86.6279%`，remaining failures=`23`；
+  建议 failure small-sample tasks 为 `c2hlsc__des`、
+  `pp4fpga__parallel_merge_sort`、
+  `amd_accel__performance_host_global_bandwidth_src_kernel`。
+  `measured_success_rate_repair_proven=false`，因为这仍是 Phase 2D full199 的静态
+  重算，不是 fresh acceptance。
+- completion block 明确 `objective_complete=false`，缺失证据为：
+  expanded QoR-RAG 只有 offline prompt coverage，没有 fresh measured small A/B；
+  quarantine success-rate 只是 offline estimate；`execution-freeze.json` 必须等
+  explicit fresh full199 acceptance 后才可更新。
+- 新增单测：
+  `test_phase2f_objective_status_tracks_offline_ready_and_open_evidence`。本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py`
+    为 **76 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。报告
+    `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+    `0de90e61c827f437cfb2208dc132bb9b7e81ac12124d4f93936fcdc42ab19e10`。
+  - `git diff --check` clean。
+- 边界：本节是 completion audit，不是完成声明；仍未跑 full199、未跑真实
+  API/Vitis small A/B、未更新 `execution-freeze.json`。
+
+### Phase 2F QoR-RAG small A/B plan artifact
+
+- 为下一步 measured 证据收集新增计划生成器
+  `tools/prepare_qor_rag_small_ab_plan.py`。该脚本只读取已有
+  `phase2f_offline_agent_triage_20260725.json`，不调用 API/Vitis，不读取
+  hidden/reference/evaluator 私有 artifact，也不会更新 `execution-freeze.json`。
+- 生成的计划报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_plan_20260725.json`，
+  SHA-256
+  `b5a072dec5b8128cab772a7296482a5dd5d22cb0c8c278755a9986f225dc86e0`。
+  报告状态明确为 `not_executed`，证据等级为 `execution_plan_only`。
+- 生成的任务列表：
+  `fpt26-agent-v3/evals/qor_rag_small_ab_priority_tasks_latest.txt`，SHA-256
+  `72279899a6f6219ea0c5276f04894a55296dc3192ab70b53e2fee4a9627ad5bd`。
+  计划只包含 3 个 Phase 2E QoR regression priority tasks：
+  `machsuite__aes_aes`、`polybench__cholesky`、
+  `machsuite__gemm_blocked`。
+- 计划内置两条 lane：
+  legacy baseline 使用 `FPT26_QOR_RAG_GENERALIZED=0`；
+  generalized candidate 使用 `FPT26_QOR_RAG_GENERALIZED=1`；两者都设置
+  `FPT26_QOR_RAG_EARLY_STOP=0`，通过 `run_p0_real_api_shard.py --task-id ...`
+  只跑这 3 个任务，并用 `agent.qor_rag_ab` 写出 measured small-sample report。
+- 计划 guardrails 明确：
+  不跑 full199；不从 small sample 更新 `execution-freeze.json`；每轮真实
+  API/Vitis 限制在 1-3 题；measured 输出必须写入
+  `fpt26-agent-v3/scoring/reports/`，并标记为 small-sample evidence。
+- 新增单测：
+  `fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py`，覆盖计划状态不是执行证据、
+  任务数最多 3、legacy/generalized lane 的 env 和命令可区分。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py`
+    为 **79 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。报告
+    `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+    `0de90e61c827f437cfb2208dc132bb9b7e81ac12124d4f93936fcdc42ab19e10`。
+  - `git diff --check` clean。
+- 边界：这仍不是 measured QoR 修复证据；它只是把下一次 1-3 题真实 A/B
+  做成可执行、可审计且不会误报为 full199 acceptance 的计划。
+
+### Phase 2F static hardcoding audit
+
+- 新增可重复静态审计脚本 `tools/audit_agent_hardcoding.py`。该脚本扫描
+  `fpt26-agent-v3/agent/**/*.py`、`fpt26-agent-v3/scoring/**/*.py`、`tools/**/*.py`
+  和 `fpt26-agent-v3/tests/**/*.py`，区分 agent runtime、scoring runtime、
+  offline tools、tests、documentation 中的具体 task-id literals 与 workload
+  family literals；不调用 API/Vitis，不读取 hidden/reference/evaluator 私有
+  artifact。
+- 生成审计报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_agent_hardcoding_audit_20260725.json`，
+  SHA-256
+  `bbbf8abb6a90861324b11f6391bf038a9f30144bf1234476019b14f2bea1e7ba`。
+- 审计结论：
+  - `high_risk_task_answer_hardcoding_found=false`。
+  - `generalized_runtime_ready=true`。
+  - 可执行 agent runtime 中 concrete task-id literal count=`0`。
+  - agent runtime 中 workload family literal count=`92`，主要来自
+    `agent/knowledge.py` 的 family-level lexicon 和
+    `agent/agents/optimization/controller.py` 的 legacy specialist compatibility
+    path。
+- 风险分布：low=`3`、medium=`2`、medium_low=`1`。两个 medium 项为：
+  - `legacy_specialist_fallback_compatibility_path`：generalized mode 关闭时，
+    legacy fallback 会按 description keyword 偏向 CORDIC/reduction/popcount
+    specialist；它不是具体 task-id answer branch，但会影响 retrieval policy。
+    本轮已将 `generalized_qor_rag` 做成 optimization loop 显式参数，并让
+    `DiverseOptimizationStage` 强制传入 `generalized_qor_rag=True`，同时在
+    `optimization_search` metadata 中记录 `qor_rag_generalized=true` 和 policy
+    说明。这样 competition-like independent strategy lanes 不再依赖外部环境变量
+    来规避 legacy specialist fallback 或 exact-source measured-case boost。
+  - `task_id_tag_derivation_in_curator`：`qor_rag_curate.py` 默认可从 task_id 派生
+    dotProduct/popcount/GEMM/stencil/CORDIC tags；这是离线资产生成路径，不是
+    runtime retrieval，但后续 generalized 资产 promotion 应使用
+    `--no-task-id-tags`。
+- low/medium_low 项说明：
+  - generalized retrieval 已在 `agent/knowledge.py` 中拒绝 source 匹配当前
+    task_id 的 measured case，且 exact dotProduct/popcount measured boost 被
+    `not generalized` gate 包住。
+  - `gemm/stencil/aes/cholesky/cordic` 等 runtime literals 属于 family-level
+    source metadata/description/diagnostics lexicon，不是具体 task-id 分支。
+  - tools/tests/historical analysis 中的固定 task ids 是小样本计划、triage 默认值
+    或测试 fixture，不在 `agent.main` runtime 决策路径中。
+- 新增/更新单测：
+  `fpt26-agent-v3/tests/test_agent_hardcoding_audit.py` 覆盖 runtime/tool/test 分类、
+  `amd_accel__...` task-id 识别，以及 task-id 内部词不被误当作独立 workload
+  literal；`fpt26-agent-v3/tests/test_qor_rag.py` 覆盖显式
+  `generalized_qor_rag=True` 可覆盖环境变量；`fpt26-agent-v3/tests/test_diverse_optimization.py`
+  覆盖 diverse strategy competition metadata 标记 generalized policy。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py`
+    为 **88 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。报告
+    `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+    `0de90e61c827f437cfb2208dc132bb9b7e81ac12124d4f93936fcdc42ab19e10`。
+  - `git diff --check` clean。
+- 边界：这是静态审计，不是 measured QoR 修复，也不是 full199 acceptance。下一步
+  仍应按 small A/B plan 只跑 1-3 个 QoR regression tasks，并保持不更新
+  `execution-freeze.json`。
+
+### Phase 2F QoR-RAG A/B metric schema enrichment
+
+- 增强 `agent.qor_rag_ab` 的离线 A/B aggregate schema。原报告已覆盖
+  correctness preservation、Q_HW geomean、acceleration geomean、mean tokens、
+  mean credits 和 wasted attempts；本轮新增 monitor-only 运行效果字段：
+  - lane 级：`success_count`、`success_rate`、`failure_reason_counts`、
+    `mean_requests_per_task`。
+  - task 级：`submission_status`、`evaluator_status`、`success`、
+    `failure_reason`、`score`、`requests`。
+  - comparison 级：`mean_requests_relative_change_monitor_only` 和
+    `success_rate_relative_change_monitor_only`。
+- Gate 语义未改变：`passed` 仍由原 correctness/Q_HW/acceleration/token/waste gates
+  决定；新增字段只用于满足后续 small-sample measured A/B 的
+  success/request/failure-reason 审计要求。
+- 尝试用当前本地 `runs/phase2e_*` 和 `runs/phase2d_*` raw roots 重新生成 enriched
+  Phase2E aggregate 时，发现当前工作区 raw roots 不能可靠发现对应
+  split-role `run_report.json`，生成结果全为 missing。该坏 sidecar 已删除，避免
+  误当成证据；现有
+  `phase2e_qor_rag_ab_current_vs_legacy_20260725.json` 保持作为历史 aggregate
+  证据。后续真实 1-3 task small A/B 运行完成后，应直接用增强后的
+  `agent.qor_rag_ab` 从新 raw roots 生成 measured report。
+- 新增/更新单测：
+  `test_ab_gate_computes_fixed_set_acceptance_metrics` 覆盖 request 均值和 success
+  字段；`test_ab_reports_failure_reasons_and_success_rate` 覆盖 failure reason 聚合
+  与 success rate。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py`
+    为 **89 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。报告
+    `fpt26-agent-v3/evals/qor_rag_retrieval_eval_latest.json` SHA-256
+    `0de90e61c827f437cfb2208dc132bb9b7e81ac12124d4f93936fcdc42ab19e10`。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py` 通过。
+  - `git diff --check` clean。
+- 边界：这是报告能力增强，不是新的 measured A/B 证据；没有跑真实 API/Vitis，
+  没有跑 full199，也没有更新 `execution-freeze.json`。
+
+### Phase 2F QoR-RAG A/B report-error audit hardening
+
+- 继续收尾 `agent.qor_rag_ab` 的 offline A/B report schema，修复一个审计语义缺口：
+  当 split-role raw root 中的 `run_report.json` 因权限或 JSON 格式错误不可读时，
+  以前可能被吞掉并表现为普通 missing evidence，甚至在 evaluator report valid
+  时仍把该 task 计入 success。
+- `TaskRunPair` 现在保留 `submission_error` / `evaluator_error`；`_discover_runs`
+  对 `OSError` 和 `json.JSONDecodeError` 做 task/role 路径推断并记录错误类型。
+  `_aggregate` 输出 lane 级 `report_error_counts`，task 级
+  `submission_report_error` / `evaluator_report_error`。
+- A/B `success` 现在严格表示 submission 和 evaluator 两个 report 都可读、无
+  report error，且 evaluator scoring valid；如果 submission 不可读但 evaluator
+  valid，该 task 仍保留 evaluator 的 `valid`/QoR 字段用于审计，但不会计入
+  `success_count`，failure reason 为
+  `submission_report_unreadable_or_invalid`。
+- 新增单测 `test_ab_reports_invalid_run_report_as_audit_error`，覆盖 invalid JSON
+  run_report 被归类为 audit error，而不是普通 missing report。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py`
+    为 **42 passed**。
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py`
+    为 **90 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py` 通过。
+  - `git diff --check` clean。
+- 边界：本轮不跑真实 API/Vitis，不跑 full199，不更新
+  `execution-freeze.json`；measured small A/B 证据仍需按
+  `phase2f_qor_rag_small_ab_plan_20260725.json` 执行 1-3 个 priority task 后再声明。
+
+### Phase 2F QoR-RAG small A/B measured-report finalizer
+
+- 为下一次 1-3 题真实 API/Vitis small A/B 增加执行后收口工具
+  `tools/finalize_qor_rag_small_ab.py`。该工具不运行 Vitis、不调用 LLM、不更新
+  freeze，只读取已完成的 legacy/generalized split-role raw roots，并调用
+  `agent.qor_rag_ab` 生成 wrapped measured report。
+- measured wrapper 明确区分 small-sample evidence 与 formal A/B acceptance：
+  1-3 题报告会标记 `evidence_level=small_sample_measured`，同时
+  `formal_ab_acceptance.applicable=false`，因为 formal QoR-RAG A/B gate 要求
+  12-20 个固定任务。这样后续不会把 3 题小样本误报成 formal pass。
+- wrapper 增加 guardrails：
+  `full199_allowed=false`、`execution_freeze_update_allowed=false`、
+  `max_real_api_vitis_tasks=3`；若 plan task list 与实际 task list 不一致，或 lane
+  root 不存在，会 fail fast。
+- `agent.qor_rag_ab` 的 monitor-only token schema 继续补齐：
+  task 级新增 `prompt_tokens`、`completion_tokens`；lane 级新增
+  `mean_prompt_tokens_per_task`、`mean_completion_tokens_per_task`。已有
+  total token、request、success、failure reason 和 report error 字段保持不变。
+- `phase2f_qor_rag_small_ab_plan_20260725.json` 已重新生成：comparison command
+  现在指向 `tools/finalize_qor_rag_small_ab.py`，raw compare sidecar 单独写到
+  `phase2f_qor_rag_small_ab_raw_compare_20260725.json`，避免覆盖 measured wrapper
+  report。
+- 新增/更新单测：
+  - `test_finalize_small_ab_marks_measured_without_formal_acceptance`
+  - `test_finalize_small_ab_rejects_task_list_mismatch`
+  - `test_ab_gate_computes_fixed_set_acceptance_metrics` 覆盖 prompt/completion
+    token 均值和 task-level token 字段。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py`
+    为 **92 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py tools/finalize_qor_rag_small_ab.py tools/prepare_qor_rag_small_ab_plan.py`
+    通过。
+  - `git diff --check` clean。
+- 边界：本轮仍未执行真实 API/Vitis small A/B；新增的是 measured report 的安全
+  收口路径。QoR recovery 仍需按 plan 实际运行 1-3 个 priority task 后再判断。
+
+### Phase 2F current evidence summary artifact
+
+- 新增 `tools/summarize_phase2f_evidence.py`，将当前 Phase 2F 可用证据汇总为
+  一个只读 JSON summary。该工具只读取已有 reports/evals，不调用 API/Vitis，
+  不读取 hidden/reference/evaluator 私有 artifact，不更新 execution freeze。
+- 生成报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_current_evidence_summary_20260725.json`。
+  报告状态为 `offline_summary_only`，constraints 明确
+  `api_or_vitis_run=false`、`full199_run=false`、
+  `execution_freeze_updated=false`。
+- 汇总的 full199 Phase2D 指标：
+  - task count=`199`，completed=`149`，failed=`50`，success rate=`0.748744`。
+  - total requests=`314`，total tokens=`1627804`。
+  - mean requests/task=`1.577889`，mean tokens/task=`8179.919598`。
+  - API-task subset mean requests=`1.661376`，mean tokens=`8612.719577`。
+  - valid task mean score=`75.894094`，mean Q_HW=`0.760053`。
+  - failure reason counts：`anchor_invalid: starter` 36、`frequency_failed` 10、
+    `interface_failed` 4。
+- 汇总的 formal QoR-RAG A/B 指标：
+  - 12-task formal A/B `passed=false`。
+  - baseline Q_HW geomean=`0.823427699`，candidate=`0.784930663`，
+    relative change=`-0.046752175`。
+  - baseline acceleration geomean=`2.814188489`，candidate=`1.639286518`，
+    relative change=`-0.417492281`。
+  - mean tokens/task `9775.666667 → 8107.5`；failed gates 为
+    `acceleration_geomean_improves_5pct` 和 `q_hw_geomean_improves_1pct`。
+- 汇总的 hardcoding audit：
+  - `high_risk_task_answer_hardcoding_found=false`。
+  - `generalized_runtime_ready=true`。
+  - agent runtime task-id literal count=`0`，workload literal count=`92`。
+  - risk counts：low=`3`、medium=`2`、medium_low=`1`。
+- 汇总的 small sample/open evidence：
+  - single-dot small A/B：success rate=`1.0`，score=`76.5`，Q_HW=`0.7666`，
+    requests=`1`，tokens=`4234`。
+  - public-HLS 12-task sample：completed=`9`/`12`，success rate=`0.75`，
+    mean requests/task=`1.666667`，mean tokens/task=`10580.916667`。
+  - retrieval eval：32 cases，hits@3=`29`，Recall@3=`0.90625`，passed=true。
+  - small A/B plan remains `not_executed` for
+    `machsuite__aes_aes`、`polybench__cholesky`、
+    `machsuite__gemm_blocked`。
+- 新增单测 `test_phase2f_summary_reports_average_tokens_success_and_open_evidence`，
+  覆盖 full199 平均 token/request/success/score/Q_HW、formal A/B failed gates、
+  hardcoding summary、small A/B plan 和 public sample success rate。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py fpt26-agent-v3/tests/test_phase2f_evidence_summary.py`
+    为 **93 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py tools/finalize_qor_rag_small_ab.py tools/prepare_qor_rag_small_ab_plan.py tools/summarize_phase2f_evidence.py`
+    通过。
+  - `git diff --check` clean。
+- 边界：这是 evidence reporting hardening，不是 measured QoR repair；仍未执行
+  1-3 题真实 API/Vitis small A/B，不能声明 objective complete，也不能更新
+  `execution-freeze.json`。
+
+### Phase 2F failed-task small-sample plan artifact
+
+- 为 failed-task success-rate 方向新增非执行计划工具
+  `tools/prepare_failed_task_small_sample_plan.py`。该工具只读取
+  `phase2f_offline_agent_triage_20260725.json`，不调用 API/Vitis，不读取
+  hidden/reference/evaluator 私有 artifact，不更新 execution freeze。
+- 生成计划报告：
+  `fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_plan_20260725.json`。
+  报告状态为 `not_executed`，`evidence_level=execution_plan_only`。
+- 生成任务列表：
+  `fpt26-agent-v3/evals/failed_task_small_sample_priority_tasks_latest.txt`。
+  计划选择 3 个 remaining-failure representative tasks：
+  - `c2hlsc__des`：prior reason=`interface_failed`，triage class
+    `interface_contract_or_wrapper`，prior total tokens=`30278`。
+  - `pp4fpga__parallel_merge_sort`：prior reason=`frequency_failed`，
+    prior frequency=`94.277364 MHz`。
+  - `amd_accel__performance_host_global_bandwidth_src_kernel`：prior
+    reason=`frequency_failed`，prior candidate clock invalid / frequency null。
+- 计划 command 固定为 3-task current-agent recheck：
+  `python3 -m scoring.run_p0_real_api_shard --task-root tasks --output-root runs/phase2f_failed_task_small_sample_current_20260725 --shard-index 0 --shard-count 1 --task-id ...`。
+  运行后 audit command 固定为
+  `tools/audit_public_hls_sample.py --run-root runs/phase2f_failed_task_small_sample_current_20260725 --output fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_measured_20260725.json`。
+- Guardrails 与 QoR small A/B plan 对齐：
+  `max_real_api_vitis_tasks=3`、`full199_allowed=false`、
+  `execution_freeze_update_allowed=false`、`measured_report_required=true`。
+- `tools/summarize_phase2f_evidence.py` 已接入该 plan：
+  `phase2f_current_evidence_summary_20260725.json` 现在包含
+  `failed_task_small_sample_plan`，列出 selected task ids、failure reasons、
+  post-quarantine success rate estimate=`0.8662790697674418`、remaining failures=`23`、
+  run/audit commands，以及 freeze/full199 guardrails。
+- 新增单测：
+  `fpt26-agent-v3/tests/test_failed_task_small_sample_plan.py`，覆盖 plan 为
+  non-executed、任务数 capped 1-3、run/audit command、prior failure reason/token
+  字段和大样本拒绝。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py fpt26-agent-v3/tests/test_phase2f_evidence_summary.py fpt26-agent-v3/tests/test_failed_task_small_sample_plan.py`
+    为 **95 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py tools/finalize_qor_rag_small_ab.py tools/prepare_qor_rag_small_ab_plan.py tools/summarize_phase2f_evidence.py tools/prepare_failed_task_small_sample_plan.py`
+    通过。
+  - `git diff --check` clean。
+- 边界：这是 failed-task measured sample 的计划和审计路径，不是 measured
+  success-rate repair。本轮没有跑真实 API/Vitis，没有跑 full199，没有更新
+  `execution-freeze.json`。
+
+### Phase 2F failed-task measured-report finalizer
+
+- 为 failed-task 1-3 题小样本新增执行后收口工具
+  `tools/finalize_failed_task_small_sample.py`。该工具不运行 Vitis、不调用 LLM、
+  不更新 freeze；它只审计已完成的 split-role run root，并把
+  `audit_public_hls_sample.audit()` 的 raw audit 包装为 small-sample measured
+  evidence。
+- finalizer 会校验：
+  - plan selected task count 必须在 1-3。
+  - plan 必须显式 `full199_allowed=false`、
+    `execution_freeze_update_allowed=false`、`max_real_api_vitis_tasks=3`。
+  - run root 必须存在，且 raw audit 的 task order 必须与 plan selected tasks
+    完全一致。
+- measured wrapper 输出：
+  - `evidence_level=small_sample_measured` 或
+    `small_sample_audit_incomplete`。
+  - `acceptance_boundary.is_full199_acceptance=false`、
+    `may_update_execution_freeze_json=false`、
+    `may_claim_global_success_rate_repair=false`。
+  - small-sample summary：task count、completed/failed、success rate、
+    outcome/failure reason counts、total/mean requests、total/mean tokens、
+    prompt/completion tokens、mean score for completed tasks、audit error count。
+- `phase2f_failed_task_small_sample_plan_20260725.json` 已重新生成：
+  audit command 现在指向
+  `tools/finalize_failed_task_small_sample.py`；raw audit sidecar 单独写入
+  `phase2f_failed_task_small_sample_raw_audit_20260725.json`。
+- `phase2f_current_evidence_summary_20260725.json` 已刷新，recommended next
+  actions 现在要求用 `tools/finalize_failed_task_small_sample.py` 收口 failed-task
+  sample，再讨论 success-rate repair。
+- 新增/更新单测：
+  - `test_finalize_failed_task_small_sample_wraps_measured_audit`
+  - `test_finalize_failed_task_small_sample_rejects_task_mismatch`
+  - `test_failed_task_small_sample_plan_is_non_executed_and_capped`
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py fpt26-agent-v3/tests/test_phase2f_evidence_summary.py fpt26-agent-v3/tests/test_failed_task_small_sample_plan.py`
+    为 **97 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py tools/finalize_qor_rag_small_ab.py tools/prepare_qor_rag_small_ab_plan.py tools/summarize_phase2f_evidence.py tools/prepare_failed_task_small_sample_plan.py tools/finalize_failed_task_small_sample.py`
+    通过。
+  - `git diff --check` clean。
+- 边界：这是 failed-task measured report 的安全收口路径，不是 measured repair
+  本身。本轮没有跑真实 API/Vitis，没有跑 full199，没有更新
+  `execution-freeze.json`。
+
+### Phase 2F measured small-sample summary integration
+
+- `tools/summarize_phase2f_evidence.py` 现在支持自动读取后续 small-sample measured
+  reports：
+  - QoR-RAG measured wrapper：
+    `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_measured_20260725.json`
+  - failed-task measured wrapper：
+    `fpt26-agent-v3/scoring/reports/phase2f_failed_task_small_sample_measured_20260725.json`
+- 如果 measured wrapper 尚不存在，summary 中 `measured_small_samples={}`，保持
+  当前 planned/offline 状态；如果后续真实 1-3 题 run 完成并由 finalizer 写入
+  wrapper，summary 会自动纳入：
+  - QoR small A/B：candidate success rate、mean tokens/request、Q_HW geomean、
+    Q_HW/acceleration relative change、是否可 claim QoR repair、freeze guard。
+  - failed-task sample：success rate、completed/failed、failure reason counts、
+    mean tokens/request、completed-task mean score、是否可 claim global
+    success-rate repair、freeze guard。
+- 重新生成
+  `fpt26-agent-v3/scoring/reports/phase2f_current_evidence_summary_20260725.json`。
+  当前 measured reports 尚不存在，因此 `measured_small_samples` 为空；这明确表示
+  仍缺 fresh measured small-sample evidence。
+- 更新单测
+  `test_phase2f_summary_reports_average_tokens_success_and_open_evidence`，覆盖
+  QoR measured wrapper 与 failed-task measured wrapper 被 summary 正确吸收，
+  且 small-sample wrapper 不允许更新 `execution-freeze.json`。
+- 本轮验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag.py fpt26-agent-v3/tests/test_p0_batch_runner.py fpt26-agent-v3/tests/test_offline_agent_triage.py fpt26-agent-v3/tests/test_p0_candidate_validation.py fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_agent_hardcoding_audit.py fpt26-agent-v3/tests/test_diverse_optimization.py fpt26-agent-v3/tests/test_phase2f_evidence_summary.py fpt26-agent-v3/tests/test_failed_task_small_sample_plan.py`
+    为 **97 passed, 1 skipped**。
+  - Retrieval eval：`32` cases、hits@3=`29`、Recall@3=`0.90625`、
+    deterministic=true、max prompt token upper bound=`1791`、passed=true。
+  - `python3 -m py_compile fpt26-agent-v3/agent/qor_rag_ab.py tools/finalize_qor_rag_small_ab.py tools/prepare_qor_rag_small_ab_plan.py tools/summarize_phase2f_evidence.py tools/prepare_failed_task_small_sample_plan.py tools/finalize_failed_task_small_sample.py`
+    通过。
+  - `git diff --check` clean。
+- 边界：本轮仍未运行真实 API/Vitis small samples；这是 summary 对 measured
+  outputs 的自动接线，不是 measured QoR/success-rate repair。
+
+### Phase 2F AES-only QoR small A/B preflight attempt
+
+- `tools/prepare_qor_rag_small_ab_plan.py` 已支持 `--run-label`，用于为后续
+  1-task 小样本建立独立 run roots 和 measured/raw report 名称，避免覆盖 canonical
+  3-task QoR small A/B plan。
+- 已重新生成 canonical 3-task plan：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_plan_20260725.json`。
+  任务仍为 `machsuite__aes_aes`、`polybench__cholesky`、
+  `machsuite__gemm_blocked`，状态仍为 `not_executed`。
+- 已生成 AES-only 1-task plan：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_aes1_plan_20260725.json`，
+  task list 为
+  `fpt26-agent-v3/evals/qor_rag_small_ab_aes1_tasks_20260725.txt`。
+  legacy root 为 `runs/phase2f_qor_rag_small_ab_aes1_legacy_20260725`，
+  generalized root 为
+  `runs/phase2f_qor_rag_small_ab_aes1_generalized_20260725`。
+- 尝试运行 AES-only legacy baseline lane，未跑 full199，未更新
+  `execution-freeze.json`。该 lane 在 task preflight 阶段失败：
+  `TaskPreflightError: configured Vitis environment did not produce a valid version banner`。
+  没有进入 evaluator，也没有生成可用 API token/request 计量，因此 candidate lane
+  未继续启动。
+- 失败诊断：本机 `/tools/Xilinx/2025.2/Vitis/bin/rdiArgs.sh` 强制
+  `LC_ALL=en_US.UTF-8`，但当前环境缺该 locale，`vitis-run --version` 以 rc=134
+  abort，stderr 包含 `locale::facet::_S_create_c_locale name not valid`。
+- 新增 preflight attempt report：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_aes1_preflight_attempt_20260725.json`。
+  该 report 标注 `evidence_level=environment_preflight_only`、
+  `success_rate=0.0`、mean tokens/request 均为 `null`、
+  `may_claim_qor_repair=false`、`may_update_execution_freeze_json=false`。
+- `tools/summarize_phase2f_evidence.py` 新增：
+  - `--extra-qor-small-ab-measured`，用于接入独立 1-task measured reports。
+  - `--small-sample-attempt-report`，用于接入 preflight/incomplete attempts，
+    与 measured evidence 分开展示。
+  - summary constraints 中新增 `summary_generation_api_or_vitis_run=false` 和
+    `small_sample_attempts_included=true`。
+- `phase2f_current_evidence_summary_20260725.json` 已刷新：
+  `measured_small_samples` 仍为空；`small_sample_attempts` 包含 AES legacy
+  baseline preflight failure。这表示当前仍缺 fresh measured QoR A/B 证据。
+- 本轮 targeted 验证：
+  - `PYTHONPATH=fpt26-agent-v3:. python3 -m pytest -q fpt26-agent-v3/tests/test_qor_rag_small_ab_plan.py fpt26-agent-v3/tests/test_phase2f_evidence_summary.py`
+    为 **6 passed**。
+  - `python3 -m py_compile tools/prepare_qor_rag_small_ab_plan.py tools/finalize_qor_rag_small_ab.py tools/summarize_phase2f_evidence.py`
+    通过。
+- 边界：AES-only measured A/B 尚未完成；当前 blocker 是 host Vitis locale/banner
+  preflight，不是 generalized RAG 的 measured QoR 结论。
+
+### Phase 2F AES-only measured QoR A/B after Vitis env fix
+
+- 解除本机 Vitis preflight/runtime blocker：
+  - 用 `localedef --no-archive --prefix=/tmp/fpt26_locale_dirs -i en_US -f UTF-8 en_US.UTF-8`
+    生成目录式 `en_US.UTF-8` locale。
+  - 在 Vitis subprocess env allowlist 中加入 `LOCPATH`，保持 secret-shaped env
+    stripping 不变。
+  - 用 Vitis 自带 QEMU sysroot 的
+    `/tools/Xilinx/2025.2/data/emulation/qemu/comp/qemu/sysroots/x86_64-petalinux-linux/lib/libtinfo.so.5`
+    配合 `/tools/Xilinx/2025.2/Vitis/lib/lnx64.o/Ubuntu/22` 解决
+    `libtinfo.so.5` runtime dependency。
+  - 纯 Vitis smoke：
+    `vitis-run --mode hls --tcl run_hls.tcl` 成功执行到
+    `CSim file generation done with 0 errors`。
+- 新增安全单测覆盖 `LOCPATH` 透传：
+  `fpt26-agent-v3/tests/test_security_redaction.py` 保留 `LOCPATH` / `LC_ALL`，
+  同时继续剥离 `FPT26_LLM_API_KEY`。
+- 新增 AES envfix 独立 plan：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_aes1_envfix_plan_20260725.json`，
+  task list：
+  `fpt26-agent-v3/evals/qor_rag_small_ab_aes1_envfix_tasks_20260725.txt`。
+- 运行了 1-task AES-only QoR small A/B，未跑 full199，未更新
+  `execution-freeze.json`：
+  - legacy root:
+    `runs/phase2f_qor_rag_small_ab_aes1_envfix_legacy_20260725`
+  - generalized root:
+    `runs/phase2f_qor_rag_small_ab_aes1_envfix_generalized_20260725`
+- legacy baseline measured result：
+  - outcome=`completed`，submission rc=0，evaluator rc=0。
+  - score=`98.16`，Q_HW=`0.9834`，acceleration=`3.84`。
+  - submission API requests=`2`，prompt tokens=`15359`，completion tokens=`6457`，
+    total tokens=`21816`。
+  - credits spent=`10`，frequency=`205.888408 MHz`，latency worst=`174` cycles，
+    LUT=`29801`，FF=`9549`。
+- generalized candidate measured result：
+  - outcome=`completed`，submission rc=0，evaluator rc=0。
+  - score=`98.54`，Q_HW=`0.9871`，acceleration=`5.48`。
+  - submission API requests=`2`，prompt tokens=`15338`，completion tokens=`6473`，
+    total tokens=`21811`。
+  - credits spent=`10`，frequency=`205.888408 MHz`，latency worst=`122` cycles，
+    LUT=`30012`，FF=`10638`。
+- Finalized small-sample measured report：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_aes1_envfix_measured_20260725.json`。
+  Summary:
+  - candidate success rate=`1.0`。
+  - candidate mean tokens/task=`21811.0`，mean requests/task=`2.0`。
+  - Q_HW relative change=`+0.003762457`。
+  - acceleration relative change=`+0.427083333`。
+  - mean token relative change=`-0.00022919`。
+  - `may_claim_qor_repair=true` for this small AES sample only。
+  - `may_update_execution_freeze_json=false`。
+  - formal A/B gate still `applicable=false` because task count is 1, not 12-20。
+- `phase2f_current_evidence_summary_20260725.json` 已刷新：
+  - `measured_small_samples.qor_rag_small_ab` 包含 AES envfix measured report。
+  - `current_blocking_missing_evidence` 显示 QoR-RAG measured small A/B 当前覆盖
+    `1/3` planned priority tasks；remaining 为 `polybench__cholesky` 和
+    `machsuite__gemm_blocked`。
+  - failed-task measured small sample 仍缺。
+- 边界：这是 1-task fresh measured evidence，支持 generalized RAG 在 AES 上没有退化、
+  且 QoR/acceleration 有小样本改善；它不能替代 3-task small A/B，也不能替代
+  formal 12-task QoR A/B 或 full199 acceptance。
+
+### Phase 2F Cholesky/GEMM measured QoR small A/B after Vitis env fix
+
+- `tools/prepare_qor_rag_small_ab_plan.py` 已支持显式 `--task-id` 选择，
+  用于在不重跑 AES 的情况下生成剩余 QoR priority task 的小样本计划。
+  新增测试覆盖 Cholesky/GEMM 显式选择、AES 排除，以及 unavailable task 报错。
+- 新增 rem2 envfix plan：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_rem2_envfix_plan_20260725.json`。
+  task list：
+  `fpt26-agent-v3/evals/qor_rag_small_ab_rem2_envfix_tasks_20260725.txt`。
+  任务仅为 `polybench__cholesky` 和 `machsuite__gemm_blocked`。
+- 运行了 2-task QoR small A/B，未跑 full199，未更新
+  `execution-freeze.json`：
+  - legacy root:
+    `runs/phase2f_qor_rag_small_ab_rem2_envfix_legacy_20260725`
+  - generalized root:
+    `runs/phase2f_qor_rag_small_ab_rem2_envfix_generalized_20260725`
+- rem2 measured report：
+  `fpt26-agent-v3/scoring/reports/phase2f_qor_rag_small_ab_rem2_envfix_measured_20260725.json`。
+  Summary:
+  - baseline success rate=`1.0`，candidate success rate=`1.0`。
+  - baseline mean tokens/task=`8789.0`，candidate mean tokens/task=`9449.0`
+    (`+7.5093867%`)。
+  - baseline mean requests/task=`2.0`，candidate mean requests/task=`2.0`。
+  - baseline Q_HW geomean=`0.809193969`，candidate Q_HW geomean=`0.80451849`
+    (`-0.5777946%`)。
+  - baseline acceleration geomean=`1.314191767`，candidate acceleration
+    geomean=`5.721013896` (`+335.3256534%`)。
+  - candidate wasted attempts=`1`，baseline wasted attempts=`0`。
+  - `may_claim_qor_repair=false`，`may_update_execution_freeze_json=false`。
+- Per-task signal:
+  - `machsuite__gemm_blocked`: generalized improves Q_HW `0.7962 -> 0.863`
+    and acceleration `1.71 -> 32.73` with requests still `2`。
+  - `polybench__cholesky`: generalized regresses Q_HW `0.8224 -> 0.75`
+    and acceleration `1.01 -> 1.0`，with `wasted_attempts=1`。
+- `phase2f_current_evidence_summary_20260725.json` 已刷新：
+  - QoR fresh measured small samples now cover AES, Cholesky, and GEMM
+    priority tasks。
+  - `current_blocking_missing_evidence` 仍包含 failed-task measured small
+    sample 缺失，以及 freeze 必须等待 fresh full199 acceptance。
+  - recommended next actions 改为定位 measured QoR residual regression、
+    运行 failed-task 1-3 task sample、保持 freeze 不变。
+- 边界：rem2 是 2-task small-sample evidence，不是 formal A/B；GEMM 改善明显，
+  但 Cholesky 仍退化，所以 generalized QoR repair 还不能声称完成。

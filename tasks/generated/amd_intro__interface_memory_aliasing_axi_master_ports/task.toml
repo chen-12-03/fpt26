@@ -1,0 +1,26 @@
+task_id = "amd_intro__interface_memory_aliasing_axi_master_ports"
+task_type = "optimize"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["test.h"]
+public_tb = "dut_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports"
+license = "Apache-2.0"
+top_function = "dut"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Interface/Memory/aliasing_axi_master_ports"
+source_sha256 = "6f0c679782ea48c0fc4154658fcb65c69f0d6c910ea40710d986f01c52789f0f"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

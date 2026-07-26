@@ -1,0 +1,112 @@
+{
+  "conclusion": {
+    "finding": "All 3 patched host_xrt samples pass CSim and Synth but still lack top-level latency/interval metrics; LOOP_TRIPCOUNT alone is insufficient for this anchor-invalid class.",
+    "next_options": [
+      "quarantine metric-incomplete public-HLS tasks from scored corpus",
+      "try bounded wrapper/modeling changes on a separate 1-task experiment",
+      "analyze remaining non-public-HLS anchor_invalid tasks separately"
+    ],
+    "tripcount_patch_restores_scoreable_metrics_on_this_sample": false
+  },
+  "constraints": {
+    "completion_tokens": 0,
+    "full199_run": false,
+    "llm_api_used": false,
+    "prompt_tokens": 0,
+    "real_api_request_count": 0,
+    "total_tokens": 0
+  },
+  "inputs": {
+    "sample_manifest": "/tmp/fpt26_tripcount_patch_sample/manifest.json",
+    "sample_manifest_sha256": "6c49c7127d9b4449f3d0ba749944ac1b9cd4d0601182e4a19b8803063a2d3cc7",
+    "smoke_report": "fpt26-agent-v3/scoring/reports/phase2f_tripcount_patch_smoke_20260725.json",
+    "smoke_report_sha256": "8e42269229eaa19194b4b9db2f58c7127985713849ba78c68b14e400ee80499d"
+  },
+  "purpose": "phase2f_tripcount_patch_small_vitis_sample",
+  "sample_preparation": {
+    "out_root": "/tmp/fpt26_tripcount_patch_sample/tasks",
+    "records": [
+      {
+        "original_kernel_sha256": "85e362824422e495aa8634d6a76f5e3490e6563dcea4ba279f8514f51e25557b",
+        "patched_kernel_sha256": "3a766aff303b36be16d444798ccad81b8e0cb0edf243039c47b998f3ae774fb1",
+        "source": "amd_accel",
+        "source_path": "host_xrt/host_memory_copy_buffer_xrt",
+        "source_sha256": "4412f80e3bd145e7ab5fc92330edda34ec80123d16b19addd5d14c2ef1e9efc7",
+        "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "top_function": "krnl_vadd",
+        "tripcount_max": 4096,
+        "tripcount_pragmas_inserted": 3
+      },
+      {
+        "original_kernel_sha256": "cab59cb8754bf5eff21b15a65aa21fa0627b61f6b49a7f0886a1c67652139ef7",
+        "patched_kernel_sha256": "773c90f824390135e697a171648fd31ffef1e04e7b91142abb76518f1a2639f3",
+        "source": "amd_accel",
+        "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+        "source_sha256": "107318f10b31cff58cebce460745db3b57496f0b1f2cdf40378c9c381d0e390e",
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "top_function": "copy_kernel",
+        "tripcount_max": 4096,
+        "tripcount_pragmas_inserted": 2
+      },
+      {
+        "original_kernel_sha256": "85e362824422e495aa8634d6a76f5e3490e6563dcea4ba279f8514f51e25557b",
+        "patched_kernel_sha256": "3a766aff303b36be16d444798ccad81b8e0cb0edf243039c47b998f3ae774fb1",
+        "source": "amd_accel",
+        "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+        "source_sha256": "88a16301fe08ff5e2edfdff15a8762e7508af0694004bf2c41267d386205bb97",
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+        "top_function": "krnl_vadd",
+        "tripcount_max": 4096,
+        "tripcount_pragmas_inserted": 3
+      }
+    ],
+    "task_count": 3
+  },
+  "schema_version": 1,
+  "vitis_smoke": {
+    "failed_count": 3,
+    "metric_incomplete_task_ids": [
+      "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+    ],
+    "passed_count": 0,
+    "records": [
+      {
+        "clock_period_ns": 2.867,
+        "csim_ok": true,
+        "failure_reason": "latency_or_interval_still_missing",
+        "interval_max": null,
+        "latency_worst": null,
+        "scoreable_synth_ok": false,
+        "synth_ok": true,
+        "task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+        "work_dir": "/tmp/fpt26_tripcount_patch_sample/work/amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd"
+      },
+      {
+        "clock_period_ns": 3.65,
+        "csim_ok": true,
+        "failure_reason": "latency_or_interval_still_missing",
+        "interval_max": null,
+        "latency_worst": null,
+        "scoreable_synth_ok": false,
+        "synth_ok": true,
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+        "work_dir": "/tmp/fpt26_tripcount_patch_sample/work/amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel"
+      },
+      {
+        "clock_period_ns": 2.867,
+        "csim_ok": true,
+        "failure_reason": "latency_or_interval_still_missing",
+        "interval_max": null,
+        "latency_worst": null,
+        "scoreable_synth_ok": false,
+        "synth_ok": true,
+        "task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd",
+        "work_dir": "/tmp/fpt26_tripcount_patch_sample/work/amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_krnl_vadd"
+      }
+    ],
+    "scoreable_count": 0,
+    "task_count": 3
+  }
+}

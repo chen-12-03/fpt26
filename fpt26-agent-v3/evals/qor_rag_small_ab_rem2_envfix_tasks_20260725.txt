@@ -1,0 +1,2 @@
+polybench__cholesky
+machsuite__gemm_blocked

@@ -1,0 +1,26 @@
+task_id = "amd_intro__modeling_using_arbitrary_precision_arith"
+task_type = "optimize"
+difficulty = 3
+top = "cpp_ap_int_arith"
+kernel_file = "cpp_ap_int_arith.cpp"
+header_files = ["cpp_ap_int_arith.h"]
+public_tb = "cpp_ap_int_arith_tb.cpp"
+budget = 60
+initial_condition = "Public AMD HLS example kernel. Preserve behavior while improving QoR with report-driven Vitis HLS pragmas."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_intro"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_arbitrary_precision_arith"
+license = "Apache-2.0"
+top_function = "cpp_ap_int_arith"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+source_path = "Modeling/using_arbitrary_precision_arith"
+source_sha256 = "b2b29ea492e2b848036131d88e0ce8bc37f9e0144e1bdae032a8f9b8a6fb6b63"
+public_only = true
+hidden_imported = false
+reference_imported = false
+generated_testbench = false

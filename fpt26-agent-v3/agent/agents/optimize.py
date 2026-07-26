@@ -54,6 +54,8 @@ class OptimizeAgent:
         search_strategy: dict[str, Any] | None = None,
         shared_candidate_fingerprints: set[str] | None = None,
         stop_after_first_measured: bool = False,
+        early_stop_on_qhw_improvement: bool | None = None,
+        generalized_qor_rag: bool | None = None,
     ) -> None:
         self.llm = llm
         self.max_rounds = max_rounds
@@ -61,6 +63,8 @@ class OptimizeAgent:
         self.search_strategy = search_strategy
         self.shared_candidate_fingerprints = shared_candidate_fingerprints
         self.stop_after_first_measured = stop_after_first_measured
+        self.early_stop_on_qhw_improvement = early_stop_on_qhw_improvement
+        self.generalized_qor_rag = generalized_qor_rag
         self.max_stag = 3
 
     def run(self, state: RunState) -> RunState:
@@ -71,5 +75,7 @@ class OptimizeAgent:
             search_strategy=self.search_strategy,
             shared_candidate_fingerprints=self.shared_candidate_fingerprints,
             stop_after_first_measured=self.stop_after_first_measured,
+            early_stop_on_qhw_improvement=self.early_stop_on_qhw_improvement,
+            generalized_qor_rag=self.generalized_qor_rag,
             max_stag=self.max_stag,
         )

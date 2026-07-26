@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from scoring.audit_p0_acceptance import _add_tokens, _json, _path
+from scoring.audit_p0_acceptance import (
+    _add_tokens,
+    _json,
+    _path,
+    _record_can_be_replaced,
+)
 
 
 def test_token_aggregation_uses_only_integer_evidence() -> None:
@@ -36,4 +41,14 @@ def test_missing_json_is_explicit_none(tmp_path) -> None:
     assert _json(tmp_path / "missing.json") is None
     assert _path(str(Path("/workspace/result.json"))) == Path(
         "/workspace/result.json"
+    )
+
+
+def test_only_failed_evidence_records_can_be_replaced() -> None:
+    assert _record_can_be_replaced({"outcome": "infrastructure_error"})
+    assert _record_can_be_replaced(
+        {"outcome": "completed", "audit_errors": ["real_api_usage_incomplete"]}
+    )
+    assert not _record_can_be_replaced(
+        {"outcome": "completed", "audit_errors": []}
     )

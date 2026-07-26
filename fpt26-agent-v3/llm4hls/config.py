@@ -62,7 +62,7 @@ OPENROUTER_API_KEY = os.environ.get(
     "OPENROUTER_API_KEY", ""
 )  # <-- fill in your token here
 OPENROUTER_BASE_URL = os.environ.get(
-    "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1/chat/completions"
+    "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
 )
 # Default to an open-weight coder model; override with LLM4HLS_MODEL.
 DEFAULT_LLM_MODEL = os.environ.get("LLM4HLS_MODEL", "qwen/qwen-2.5-coder-32b-instruct")

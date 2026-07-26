@@ -227,6 +227,70 @@ def _csim_failure_feedback(result: Any, best: str, candidate: str) -> dict[str, 
     }
 
 
+def _interface_gate_feedback(
+    validation: dict[str, Any],
+    *,
+    top_function: str,
+) -> dict[str, Any]:
+    """Build bounded no-tool feedback after interface validation rejects code."""
+    reason = str(validation.get("reason", "interface validation failed") or "")
+    diagnostics = validation.get("source_diagnostics")
+    if not isinstance(diagnostics, dict):
+        diagnostics = {}
+    bounded_diagnostics = {
+        key: diagnostics.get(key)
+        for key in (
+            "source_sha256",
+            "char_count",
+            "line_count",
+            "markdown_fence_count",
+            "first_markdown_fence_offset",
+            "last_markdown_fence_offset",
+            "starts_with_markdown_fence",
+            "ends_with_markdown_fence",
+            "has_top_function_token",
+        )
+        if key in diagnostics
+    }
+    required = (
+        "No candidate tools were run because the previous source failed the "
+        "interface/source-shape gate. Return one complete C/C++ translation "
+        "unit inside a cpp fence: preserve all required includes, include the "
+        f"exact top function `{top_function}`, keep its signature unchanged, "
+        "and ensure all braces and parentheses are balanced."
+    )
+    if reason == "top_function_missing":
+        required += (
+            " The previous candidate did not contain the required top function; "
+            "do not return only helper functions or a partial rewrite."
+        )
+    elif reason == "unbalanced_cpp_delimiters":
+        required += (
+            " The previous candidate had unbalanced delimiters, which often means "
+            "the response was partial or truncated; regenerate the full source "
+            "from the first include through the final closing brace."
+        )
+        if bounded_diagnostics.get("has_top_function_token") is False:
+            required += (
+                " It also lacked the required top-function token, so the next "
+                "candidate must include the complete top-level wrapper."
+            )
+    elif reason == "markdown_fence_in_candidate":
+        required += (
+            " The extracted candidate still contained markdown fences; put fences "
+            "only around the whole response, never inside the source text."
+        )
+
+    return {
+        "status": "REJECTED_BY_INTERFACE_GATE",
+        "reason": reason,
+        "top_function": top_function,
+        "no_candidate_tools_run": True,
+        "source_diagnostics": bounded_diagnostics,
+        "required_next_action": required,
+    }
+
+
 def _rejection_feedback(
     card: Any, report: Any, candidate: str, best_q_hw: float | None = None,
 ) -> dict[str, Any]:
