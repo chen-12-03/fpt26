@@ -132,4 +132,6 @@ class RunState:
 
     def log(self, msg: str) -> None:
         if self.config.verbose:
-            print(f"  [{self.config.mode}] {msg}", flush=True)
+            from agent.console_ui import progress
+
+            progress(self.config.mode, msg)

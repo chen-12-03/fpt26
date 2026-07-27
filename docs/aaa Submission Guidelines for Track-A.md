@@ -68,3 +68,11 @@ https://anonymous.4open.science/r/fpt26-harness
 8. 提交作品应能够在 `Docker` 环境中构建并运行。建议随提交材料附带 `Dockerfile`；下面提供了一个参考示例： [https://anonymous.4open.science/r/fpt26-harness](https://anonymous.4open.science/r/fpt26-harness) 
 9. 为了便于复现，源代码、测试平台（`testbenches`）以及其他有帮助的补充材料都应一并提交用于最终评测（例如 `.zip` 文件）。 
 10. 演示视频（最长 `5` 分钟）：必须清楚展示项目如何在目标平台上运行，并附有明确说明。 
+
+Submission Requirement  提交要求
+Project Description: Participants are required to submit a technical paper electronically in PDF format, following the IEEE conference double-column format. The main content should not exceed two pages, with optional unlimited appendices as additional materials.
+项目说明：参与者需要以 PDF 格式电子提交技术论文，并按照 IEEE 会议的双栏排版格式进行编写。论文正文长度不得超过两页，可以附加不限数量的附录作为补充材料。
+Demonstration Video (max 5 min): must show project running on target platform with clear explanation.
+演示视频（时长最多 5 分钟）：必须展示该项目在目标平台上的运行情况，并附带清晰的说明。
+For recommended submission guidelines for Track A and Track B, please visit https://github.com/FPT26/Design-Competition-Submission-Guidelines.
+关于 A 轨道和 B 轨道的提交指南，请访问 https://github.com/FPT26/Design-Competition-Submission-Guidelines。

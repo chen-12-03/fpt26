@@ -36,4 +36,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                    default=DEFAULT_SCORING_PROFILE,
                    help="Hardware trade-off profile: balanced, extreme_speed, extreme_speed_capped")
     p.add_argument("--quiet", action="store_true", help="Suppress step-by-step log output")
+    p.add_argument(
+        "--color",
+        choices=["auto", "always", "never"],
+        default="auto",
+        help="ANSI color policy; use 'always' when piping a live demo through tee",
+    )
     return p.parse_args(argv)

@@ -23,6 +23,7 @@ from agent.model_compliance import model_compliance_evidence
 from agent.task_io import TaskPreflightError, load_public_task
 from agent.testbench import normalize_task_testbench_data
 from scoring.profiles import DEFAULT_SCORING_PROFILE
+from agent.console_ui import artifact, configure as configure_console, error, run_header
 
 
 def _safe_error_message(exc: BaseException) -> str:
@@ -47,10 +48,10 @@ def _env_int(name: str, default: int) -> int:
 def _run_evaluator(args, task_dir, output_root):
     """Run the evaluator pipeline."""
     if args.final_kernel is None:
-        print("error: --final-kernel is required for --run-role evaluator", file=sys.stderr)
+        error("--final-kernel is required for --run-role evaluator")
         return 2
     if args.submission_evidence is None:
-        print("error: --submission-evidence is required for formal evaluator mode", file=sys.stderr)
+        error("--submission-evidence is required for formal evaluator mode")
         return 2
     try:
         from agent.evaluator import evaluate_final_kernel
@@ -59,7 +60,7 @@ def _run_evaluator(args, task_dir, output_root):
 
         ep = args.submission_evidence.resolve()
         if not ep.is_file():
-            print(f"error: submission evidence not found: {ep}", file=sys.stderr)
+            error(f"submission evidence not found: {ep}")
             return 2
         import json as _json
         submission_evidence = SubmissionEvidence.from_dict(_json.loads(ep.read_text(encoding="utf-8")))
@@ -69,13 +70,14 @@ def _run_evaluator(args, task_dir, output_root):
             output_root=output_root, scoring_profile=args.scoring_profile,
             verbose=not args.quiet, submission_evidence=submission_evidence,
         )
-        print(f"Evaluator report written to {write_run_report(final_state)}")
+        report_path = write_run_report(final_state)
         print_evaluation(final_state)
+        artifact("Evaluator report", report_path)
         return _exit_code(final_state.status)
     except Exception as exc:
         rp = _bootstrap_failure(output_root=output_root, task_id=task_dir.name, run_role="evaluator",
                                 status="infrastructure_error", stop_reason="evaluator_exception", exc=exc)
-        print(f"error: evaluator failed: {type(exc).__name__}: {_safe_error_message(exc)}; report={rp}", file=sys.stderr)
+        error(f"evaluator failed: {type(exc).__name__}: {_safe_error_message(exc)}; report={rp}")
         return 6
 
 
@@ -94,7 +96,7 @@ def _run_submission(args, task_dir, output_root):
     except (TaskPreflightError, Exception) as exc:
         rp = _bootstrap_failure(output_root=output_root, task_id=task_dir.name, run_role="submission",
                                 status="failed", stop_reason="task_preflight_failed", exc=exc)
-        print(f"error: task preflight failed: {_safe_error_message(exc)}; report={rp}", file=sys.stderr)
+        error(f"task preflight failed: {_safe_error_message(exc)}; report={rp}")
         return 4
 
     # Budget
@@ -102,9 +104,18 @@ def _run_submission(args, task_dir, output_root):
         err = TaskPreflightError(f"budget override {args.budget} invalid (must be 1..{task.budget})")
         rp = _bootstrap_failure(output_root=output_root, task_id=task.id, run_role="submission",
                                 status="failed", stop_reason="budget_override_invalid", exc=err)
-        print(f"error: {_safe_error_message(err)}; report={rp}", file=sys.stderr)
+        error(f"{_safe_error_message(err)}; report={rp}")
         return 4
     total_budget = args.budget if args.budget is not None else task.budget
+
+    run_header(
+        task_id=task.id,
+        task_type=task.type,
+        mode=args.mode,
+        backend=args.backend,
+        budget=total_budget,
+        output_root=str(Path(output_root) / task.id),
+    )
 
     server = ToolServer(task, Budget(total=total_budget), Path(output_root) / task.id / "agent")
 
@@ -116,7 +127,7 @@ def _run_submission(args, task_dir, output_root):
         except RuntimeError as exc:
             rp = _bootstrap_failure(output_root=output_root, task_id=task.id, run_role="submission",
                                     status="infrastructure_error", stop_reason="llm_init_failed", exc=exc)
-            print(f"error: {_safe_error_message(exc)}; report={rp}", file=sys.stderr)
+            error(f"{_safe_error_message(exc)}; report={rp}")
             return 6
 
     # Config + Pipeline
@@ -142,28 +153,27 @@ def _run_submission(args, task_dir, output_root):
     )
 
     # Report + evidence
-    print(f"Run report written to {write_run_report(final_state)}")
-    print_evaluation(final_state)
+    report_path = write_run_report(final_state)
     ev = SubmissionEvidence.from_run_state(final_state, run_id=f"{task.id}_{final_state.status}")
     ep = Path(output_root) / task.id / "submission_evidence.json"
     ep.parent.mkdir(parents=True, exist_ok=True)
     ep.write_text(_json.dumps(ev.to_dict(), indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Submission evidence written to {ep}")
-
-    print(f"\n=== Agent run complete: {final_state.status} ===")
-    for entry in server.transcript:
-        print(f"  #{entry.n:<2} {entry.detail}   [spent {entry.spent}/{total_budget}]")
-    print(f"  {server.budget.summary()}\n")
+    print_evaluation(final_state)
+    artifact("Final kernel", Path(output_root) / task.id / f"final_{task.kernel_name}")
+    artifact("Run report", report_path)
+    artifact("Evidence", ep)
+    print()
     return _exit_code(final_state.status)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    configure_console(args.color)
 
     # 1. Resolve task and output role ----------------------------------------
     task_dir = args.task.resolve()
     if not task_dir.is_dir():
-        print(f"error: task directory not found: {task_dir}", file=sys.stderr)
+        error(f"task directory not found: {task_dir}")
         return 2
     output_root = str(args.output_root or os.environ.get("FPT26_RUN_OUTPUT_ROOT", "runs"))
 

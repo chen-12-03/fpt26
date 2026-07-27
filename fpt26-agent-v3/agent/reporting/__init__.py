@@ -39,3 +39,7 @@ from agent.reporting.console import (  # noqa: F401
     print_comparison_table,
     print_scorecard,
 )
+
+# CLI-oriented compact renderer.  Imported last to replace the legacy fixed-width
+# report while keeping the legacy report writer and metric helpers intact.
+from agent.reporting.pretty import print_evaluation, print_transcript  # noqa: F401, E402
