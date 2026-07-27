@@ -191,6 +191,25 @@ def test_repair_context_is_bounded_unicode_safe_and_preserves_basename() -> None
     assert len(evidence["key_lines"]) <= 12
 
 
+def test_linker_hint_prioritizes_undefined_symbol_and_retains_extern_advice() -> None:
+    normalized = LogNormalizer(max_key_lines=4).normalize(
+        "csim",
+        "compile_error",
+        """
+WARNING: project format is deprecated
+ld.lld: error: undefined symbol: test_kernel
+>>> referenced by test_kernel_tb.cpp:15
+>>> did you mean to declare test_kernel(int*) as extern "C"?
+clang++: error: linker command failed with exit code 1
+""",
+    )
+
+    assert "undefined symbol: test_kernel" in normalized.error_summary
+    assert any("did you mean" in line for line in normalized.key_lines)
+    assert any('extern "C"' in line for line in normalized.key_lines)
+    assert normalized.key_lines[0] != "WARNING: project format is deprecated"
+
+
 def test_optimization_failure_is_serializable_bounded_and_aggregated() -> None:
     result = SimpleNamespace(
         kind="synth",

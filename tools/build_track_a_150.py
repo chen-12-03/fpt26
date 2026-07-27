@@ -129,7 +129,7 @@ def _allocate_families(records: list[dict[str, Any]]) -> dict[str, list[dict[str
 
 
 def _code_generation_stub(reference: str, top: str) -> str:
-    """Keep only includes and the top signature, never the implementation."""
+    """Keep includes and the exact top declaration, including C/C++ linkage."""
 
     clean = re.sub(r"//[^\n]*|/\*.*?\*/", " ", reference, flags=re.DOTALL)
     match = re.search(rf"\b{re.escape(top)}\s*\(", clean)
@@ -152,6 +152,10 @@ def _code_generation_stub(reference: str, top: str) -> str:
     while start > 0 and clean[start - 1] not in ";{}":
         start -= 1
     signature = clean[start : close_paren + 1].strip()
+    if not re.match(r'^extern\s*"[^"]+"\s+', signature):
+        linkage = _enclosing_language_linkage(clean, match.start())
+        if linkage is not None:
+            signature = f'extern "{linkage}" {signature}'
     includes = "\n".join(
         line for line in reference.splitlines() if line.lstrip().startswith("#include")
     )
@@ -163,6 +167,27 @@ def _code_generation_stub(reference: str, top: str) -> str:
         + "#error TRACK_A_CODE_GENERATION_REQUIRED\n"
         + "}\n"
     )
+
+
+def _enclosing_language_linkage(source: str, position: int) -> str | None:
+    """Return the innermost ``extern "..." {}`` linkage enclosing *position*."""
+
+    enclosing: list[tuple[int, str]] = []
+    for match in re.finditer(r'\bextern\s*"([^"]+)"\s*\{', source):
+        opening = source.find("{", match.start(), match.end())
+        depth = 0
+        closing = None
+        for index in range(opening, len(source)):
+            if source[index] == "{":
+                depth += 1
+            elif source[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    closing = index
+                    break
+        if closing is not None and opening < position < closing:
+            enclosing.append((opening, match.group(1)))
+    return max(enclosing, default=(0, None), key=lambda item: item[0])[1]
 
 
 def _inject_early_return(source: str, top: str, variant: int) -> tuple[str, str]:

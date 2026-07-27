@@ -36,6 +36,12 @@ def test_prompt_omits_non_code_task_attachments() -> None:
         },
         kernel_name="top.cpp",
         requires_cosim=False,
+        public_tb_name="top_tb.cpp",
+        public_tb_code=(
+            '#include "top.h"\n'
+            'extern "C" void top(int *out);\n'
+            "int main() { int value = 0; top(&value); return value; }\n"
+        ),
     )
 
     prompt = build_prompt(task, "void top(int *out) { *out = SCALE; }")
@@ -49,3 +55,33 @@ def test_prompt_omits_non_code_task_attachments() -> None:
         "check.data",
         "input.data",
     ]
+    assert payload["public_top_declarations"] == [
+        'extern "C" void top(int *out);'
+    ]
+    assert "int main()" not in prompt
+    assert "language linkage" in payload["instruction"]
+
+
+def test_prompt_falls_back_to_bounded_public_testbench_excerpt() -> None:
+    task = SimpleNamespace(
+        id="public_tb_fallback",
+        description="Implement the kernel.",
+        top="top",
+        headers={"top.h": "void top(int *out);"},
+        kernel_name="top.cpp",
+        requires_cosim=False,
+        public_tb_name="top_tb.cpp",
+        public_tb_code=(
+            '#include "top.h"\n'
+            "int main() { int value = 0; top(&value); return value; }\n"
+        ),
+    )
+
+    payload = json.loads(
+        build_prompt(task, "void top(int *out) { *out = 1; }")
+    )
+
+    assert "public_top_declarations" not in payload
+    assert payload["public_testbench_excerpt"].startswith("// top_tb.cpp")
+    assert "top(&value)" in payload["public_testbench_excerpt"]
+    assert payload["public_testbench_excerpt_truncated"] is False

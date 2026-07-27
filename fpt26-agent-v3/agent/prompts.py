@@ -11,7 +11,7 @@ from agent.security.redaction import redact_sensitive_text
 _SYS = """You are an expert AMD-Xilinx Vitis HLS engineer optimizing C/C++ kernels for an Alveo U55C (xcu55c-fsvh2892-2L-e, 200 MHz, Vitis 2025.2).
 
 Output ONLY the full kernel source inside a ```cpp fenced block.
-Do NOT modify the top function signature, headers, or testbenches.
+Do NOT modify the top function signature, language linkage, headers, or testbenches.
 
 ## Decision Rules (determined by tool results only)
 - If csim FAILS: diagnose the functional bug from the error log. Fix ONLY the bug. Do NOT add pragmas. Common bugs: wrong branch formula, missing term in sum, wrong variable name, off-by-one.
@@ -91,6 +91,59 @@ def _prompt_header_context(headers: dict[str, str]) -> tuple[str, list[str]]:
     return "\n".join(code_headers), omitted
 
 
+def _public_top_declarations(task: Any) -> list[str]:
+    """Extract bounded public testbench prototypes for the configured top."""
+
+    code = getattr(task, "public_tb_code", "") or ""
+    top = str(getattr(task, "top", "") or "")
+    if not code or not top:
+        return []
+    clean = re.sub(r"//[^\n]*|/\*.*?\*/", " ", str(code), flags=re.DOTALL)
+    clean = re.sub(r"^\s*#.*$", " ", clean, flags=re.MULTILINE)
+    declarations: list[str] = []
+    for match in re.finditer(rf"\b{re.escape(top)}\s*\(", clean):
+        opening = clean.find("(", match.start())
+        closing = _matching_parenthesis(clean, opening)
+        if closing is None:
+            continue
+        suffix = clean[closing + 1 :]
+        terminator = re.match(r"\s*([;{])", suffix)
+        if terminator is None or terminator.group(1) != ";":
+            continue
+        start = max(
+            clean.rfind(";", 0, match.start()),
+            clean.rfind("{", 0, match.start()),
+            clean.rfind("}", 0, match.start()),
+        ) + 1
+        declaration = clean[start : closing + 1].strip()
+        prefix = declaration[: declaration.rfind(top)].strip()
+        if (
+            not prefix
+            or "=" in prefix
+            or "(" in prefix
+            or re.search(r"\b(?:return|if|for|while|switch)\b", prefix)
+        ):
+            continue
+        declaration = re.sub(r"\s+", " ", declaration) + ";"
+        if declaration not in declarations:
+            declarations.append(declaration)
+        if len(declarations) >= 4:
+            break
+    return declarations
+
+
+def _matching_parenthesis(text: str, opening: int) -> int | None:
+    depth = 0
+    for index in range(opening, len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
+
+
 def build_prompt(
     task: Task,
     current_kernel: str,
@@ -129,6 +182,18 @@ def build_prompt(
         "current_best_latency": f"{best_latency} cycles" if best_latency is not None else "unknown",
         "attempt": attempt_number,
     }
+    public_declarations = _public_top_declarations(task)
+    if public_declarations:
+        payload["public_top_declarations"] = public_declarations
+    else:
+        public_tb = str(getattr(task, "public_tb_code", "") or "")
+        if public_tb:
+            excerpt = _bounded_prompt_text(public_tb, 6_000)
+            payload["public_testbench_excerpt"] = (
+                f"// {getattr(task, 'public_tb_name', 'public_testbench')}\n"
+                f"{excerpt}"
+            )
+            payload["public_testbench_excerpt_truncated"] = len(public_tb) > 6_000
 
     if omitted_attachments:
         payload["omitted_non_code_attachments"] = sorted(omitted_attachments)
@@ -200,7 +265,8 @@ def build_prompt(
         "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; never "
         "increase a factor when measured resource growth outweighed speedup. If there is no report-supported "
         "resource-neutral alternative, return editable_kernel unchanged.\n"
-        "Return the FULL kernel source code. Keep the top function signature UNCHANGED."
+        "Return the FULL kernel source code. Keep the top function signature and "
+        "language linkage (including any extern \"C\") UNCHANGED."
     )
     return json.dumps(payload, indent=2, ensure_ascii=False)
 

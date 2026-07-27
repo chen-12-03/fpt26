@@ -50,6 +50,7 @@ class InterfaceGateEvidence:
     reason: str | None = None
     fingerprint: str | None = None
     canonical_signature: str | None = None
+    language_linkage: str | None = None
     required_includes_present: bool | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -58,6 +59,7 @@ class InterfaceGateEvidence:
             "reason": self.reason,
             "fingerprint": self.fingerprint,
             "canonical_signature": self.canonical_signature,
+            "language_linkage": self.language_linkage,
             "required_includes_present": self.required_includes_present,
         }
 

@@ -102,6 +102,7 @@ class InterfaceContract:
     """The immutable public source contract extracted from starter code."""
     top: str
     canonical_signature: str
+    language_linkage: str | None
     required_includes: tuple[str, ...]
     fingerprint: str
 
@@ -109,6 +110,7 @@ class InterfaceContract:
         return {
             "top": self.top,
             "canonical_signature": self.canonical_signature,
+            "language_linkage": self.language_linkage,
             "required_includes": list(self.required_includes),
             "fingerprint": self.fingerprint,
         }
@@ -122,6 +124,7 @@ class CandidateValidation:
     fingerprint: str | None
     canonical_signature: str | None
     required_includes_present: bool
+    language_linkage: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -129,6 +132,7 @@ class CandidateValidation:
             "reason": self.reason,
             "fingerprint": self.fingerprint,
             "canonical_signature": self.canonical_signature,
+            "language_linkage": self.language_linkage,
             "required_includes_present": self.required_includes_present,
         }
 
@@ -180,8 +184,11 @@ def _strip_comments(text: str) -> str:
     return _COMMENT_RE.sub(" ", text)
 
 
-def _extract_signature(code: str, top: str) -> str | None:
-    """Return the lexical top-function declaration through its closing ``)``."""
+def _extract_signature_and_linkage(
+    code: str, top: str
+) -> tuple[str, str | None] | None:
+    """Return the top declaration and its enclosing language linkage."""
+
     clean = _strip_comments(code)
     clean = re.sub(r"^\s*#.*$", " ", clean, flags=re.MULTILINE)
     for match in re.finditer(rf"\b{re.escape(top)}\s*\(", clean):
@@ -197,9 +204,36 @@ def _extract_signature(code: str, top: str) -> str | None:
         while start > 0 and clean[start - 1] not in ";{}":
             start -= 1
         signature = clean[start:close_paren + 1].strip()
+        direct_linkage = re.match(
+            r'^extern\s*"([^"]+)"\s+(.*)$', signature, flags=re.DOTALL
+        )
+        if direct_linkage is not None:
+            signature = direct_linkage.group(2).strip()
+            linkage = direct_linkage.group(1)
+        else:
+            linkage = _enclosing_language_linkage(clean, match.start())
         if signature and _IDENT_RE.search(signature):
-            return signature
+            return signature, linkage
     return None
+
+
+def _extract_signature(code: str, top: str) -> str | None:
+    """Return the lexical top-function declaration through its closing ``)``."""
+
+    result = _extract_signature_and_linkage(code, top)
+    return result[0] if result is not None else None
+
+
+def _enclosing_language_linkage(source: str, position: int) -> str | None:
+    """Return the innermost ``extern "..." {}`` linkage enclosing *position*."""
+
+    enclosing: list[tuple[int, str]] = []
+    for match in re.finditer(r'\bextern\s*"([^"]+)"\s*\{', source):
+        opening = source.find("{", match.start(), match.end())
+        closing = _matching_delimiter(source, opening, "{", "}")
+        if closing is not None and opening < position < closing:
+            enclosing.append((opening, match.group(1)))
+    return max(enclosing, default=(0, None), key=lambda item: item[0])[1]
 
 
 def _canonical_signature(signature: str) -> str:
@@ -211,9 +245,19 @@ def _canonical_signature(signature: str) -> str:
 
 
 def _interface_fingerprint(
-    top: str, canonical_signature: str, includes: tuple[str, ...]
+    top: str,
+    canonical_signature: str,
+    includes: tuple[str, ...],
+    language_linkage: str | None = None,
 ) -> str:
-    payload = "\n".join((top, canonical_signature, *sorted(includes)))
+    payload = "\n".join(
+        (
+            top,
+            canonical_signature,
+            f'linkage={language_linkage or "C++"}',
+            *sorted(includes),
+        )
+    )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -336,17 +380,21 @@ class InterfaceValidator:
     @classmethod
     def from_source(cls, top: str, starter_code: str) -> "InterfaceValidator":
         """Build a contract from the immutable public starter source."""
-        signature = _extract_signature(starter_code, top)
-        if signature is None:
+        declaration = _extract_signature_and_linkage(starter_code, top)
+        if declaration is None:
             raise ValueError(f"top function {top!r} not found in starter kernel")
+        signature, linkage = declaration
         canonical = _canonical_signature(signature)
         includes = tuple(sorted(set(_INCLUDE_RE.findall(starter_code))))
         return cls(
             InterfaceContract(
                 top=top,
                 canonical_signature=canonical,
+                language_linkage=linkage,
                 required_includes=includes,
-                fingerprint=_interface_fingerprint(top, canonical, includes),
+                fingerprint=_interface_fingerprint(
+                    top, canonical, includes, linkage
+                ),
             )
         )
 
@@ -361,18 +409,33 @@ class InterfaceValidator:
         if not _balanced(code, "{", "}") or not _balanced(code, "(", ")"):
             return CandidateValidation(False, "unbalanced_cpp_delimiters", None, None, False)
 
-        signature = _extract_signature(code, self.contract.top)
-        if signature is None:
+        declaration = _extract_signature_and_linkage(code, self.contract.top)
+        if declaration is None:
             return CandidateValidation(False, "top_function_missing", None, None, False)
+        signature, linkage = declaration
         canonical = _canonical_signature(signature)
         if canonical != self.contract.canonical_signature:
             return CandidateValidation(
                 False, "top_interface_changed",
                 _interface_fingerprint(
                     self.contract.top, canonical,
-                    tuple(sorted(set(_INCLUDE_RE.findall(code)))),
+                    tuple(sorted(set(_INCLUDE_RE.findall(code)))), linkage,
                 ),
-                canonical, False,
+                canonical, False, linkage,
+            )
+        if linkage != self.contract.language_linkage:
+            return CandidateValidation(
+                False,
+                "top_linkage_changed",
+                _interface_fingerprint(
+                    self.contract.top,
+                    canonical,
+                    tuple(sorted(set(_INCLUDE_RE.findall(code)))),
+                    linkage,
+                ),
+                canonical,
+                False,
+                linkage,
             )
 
         includes = tuple(sorted(set(_INCLUDE_RE.findall(code))))
@@ -380,12 +443,18 @@ class InterfaceValidator:
         if not includes_ok:
             return CandidateValidation(
                 False, "required_include_removed",
-                _interface_fingerprint(self.contract.top, canonical, includes),
-                canonical, False,
+                _interface_fingerprint(
+                    self.contract.top, canonical, includes, linkage
+                ),
+                canonical, False, linkage,
             )
 
-        fingerprint = _interface_fingerprint(self.contract.top, canonical, includes)
-        return CandidateValidation(True, "passed", fingerprint, canonical, True)
+        fingerprint = _interface_fingerprint(
+            self.contract.top, canonical, includes, linkage
+        )
+        return CandidateValidation(
+            True, "passed", fingerprint, canonical, True, linkage
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -464,6 +533,7 @@ class CandidateValidator:
             ok=result.ok, reason=result.reason,
             fingerprint=result.fingerprint,
             canonical_signature=result.canonical_signature,
+            language_linkage=result.language_linkage,
             required_includes_present=result.required_includes_present,
         )
         if not result.ok:
@@ -586,6 +656,7 @@ class CandidateValidator:
             ok=result.ok, reason=result.reason,
             fingerprint=result.fingerprint,
             canonical_signature=result.canonical_signature,
+            language_linkage=result.language_linkage,
             required_includes_present=result.required_includes_present,
         )
 

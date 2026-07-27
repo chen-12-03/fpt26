@@ -77,6 +77,7 @@ def _evaluate_anchor_source(
         ok=result.ok, reason=result.reason,
         fingerprint=result.fingerprint,
         canonical_signature=result.canonical_signature,
+        language_linkage=result.language_linkage,
         required_includes_present=result.required_includes_present,
     )
     if not result.ok:

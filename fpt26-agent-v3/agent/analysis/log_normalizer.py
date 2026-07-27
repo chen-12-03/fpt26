@@ -10,10 +10,16 @@ ANSI_RE = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 PATH_RE = re.compile(r"(?<!\w)(?:/[A-Za-z0-9_.:-]+)+")
 KEYWORD_RE = re.compile(
     r"\b(error|fatal|failed|failure|fail|mismatch|deadlock|timeout|timed out|"
-    r"undefined|not found|cannot|warning|violation|segmentation|stream|dataflow|fifo)\b",
+    r"undefined|symbol|extern|did you mean|not found|cannot|warning|violation|"
+    r"segmentation|stream|dataflow|fifo|linker)\b",
     re.IGNORECASE,
 )
 WARNING_RE = re.compile(r"\b(warning|warn)\b", re.IGNORECASE)
+HIGH_SIGNAL_RE = re.compile(
+    r"\b(error|fatal|undefined|symbol|extern|did you mean|not found|cannot|"
+    r"mismatch|deadlock|timeout|timed out|segmentation|linker)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -62,7 +68,7 @@ class LogNormalizer:
             phase: Tool phase (pass/compile_error/runtime_fail/...).
             log_text: Raw log output from the tool run.
         """
-        key_lines: list[str] = []
+        key_candidates: list[tuple[int, str]] = []
         warnings: list[str] = []
         seen: set[str] = set()
         truncated = False
@@ -81,10 +87,17 @@ class LogNormalizer:
             elif WARNING_RE.search(normalized):
                 truncated = True
             if KEYWORD_RE.search(normalized):
-                if len(key_lines) < self.max_key_lines:
-                    key_lines.append(normalized)
-                else:
-                    truncated = True
+                key_candidates.append((len(key_candidates), normalized))
+
+        key_candidates.sort(
+            key=lambda item: (
+                0 if HIGH_SIGNAL_RE.search(item[1]) else 1,
+                item[0],
+            )
+        )
+        key_lines = [line for _, line in key_candidates[: self.max_key_lines]]
+        if len(key_candidates) > self.max_key_lines:
+            truncated = True
 
         error_summary = self._summary(key_lines, phase)
         return NormalizedLog(

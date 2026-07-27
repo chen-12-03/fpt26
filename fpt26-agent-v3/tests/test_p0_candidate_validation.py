@@ -24,7 +24,7 @@ void kernel(const int input[4], int *output, int &status) {
 """
 
 
-def _task() -> Task:
+def _task(kernel_code: str = _STARTER) -> Task:
     return Task(
         dir=None,
         id="validator",
@@ -38,7 +38,7 @@ def _task() -> Task:
         initial_condition="",
         description="",
         kernel_name="kernel.cpp",
-        kernel_code=_STARTER,
+        kernel_code=kernel_code,
         headers={"kernel.h": "void kernel(const int input[4], int *output, int &status);\n"},
         public_tb_name="kernel_tb.cpp",
         public_tb_code="int main() { return 0; }\n",
@@ -50,6 +50,43 @@ def test_candidate_body_change_preserves_interface() -> None:
     result = validator.validate(_STARTER.replace("status = 1", "status = 2"))
     assert result.ok
     assert result.fingerprint == validator.contract.fingerprint
+
+
+def test_candidate_must_preserve_direct_c_language_linkage() -> None:
+    starter = _STARTER.replace(
+        "void kernel(", 'extern "C" void kernel('
+    )
+    validator = CandidateValidator.from_task(_task(starter))
+
+    assert validator.contract.language_linkage == "C"
+    assert validator.validate(starter).ok
+    result = validator.validate(starter.replace('extern "C" ', ""))
+    assert not result.ok
+    assert result.reason == "top_linkage_changed"
+    assert result.language_linkage is None
+
+
+def test_candidate_accepts_equivalent_c_linkage_block() -> None:
+    direct = _STARTER.replace(
+        "void kernel(", 'extern "C" void kernel('
+    )
+    block = _STARTER.replace(
+        "void kernel(", 'extern "C" {\nvoid kernel('
+    ).rstrip() + "\n}\n"
+    validator = CandidateValidator.from_task(_task(direct))
+
+    result = validator.validate(block)
+    assert result.ok
+    assert result.language_linkage == "C"
+    assert result.fingerprint == validator.contract.fingerprint
+
+
+def test_candidate_cannot_add_c_linkage_to_cpp_contract() -> None:
+    result = CandidateValidator.from_task(_task()).validate(
+        _STARTER.replace("void kernel(", 'extern "C" void kernel(')
+    )
+    assert not result.ok
+    assert result.reason == "top_linkage_changed"
 
 
 @pytest.mark.parametrize(
