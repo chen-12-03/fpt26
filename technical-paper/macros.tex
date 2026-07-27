@@ -1,0 +1,38 @@
+\newcommand{\VCL}{\textsc{VCL}}
+\newcommand{\QHW}{\ensuremath{Q_{\mathrm{HW}}}}
+\newcommand{\CSim}{\textsc{CSim}}
+\newcommand{\Synth}{\textsc{Synth}}
+\newcommand{\CoSim}{\textsc{CoSim}}
+
+\newcommand{\figureplaceholderwide}[3]{%
+  \begin{figure*}[t]
+    \centering
+    \fbox{\parbox[c][0.90in][c]{0.94\textwidth}{%
+      \centering\textit{TODO-FIGURE: #1}}}
+    \caption{#2}
+    \label{#3}
+  \end{figure*}%
+}
+
+\newcommand{\tableplaceholderwide}[3]{%
+  \begin{table*}[t]
+    \caption{#2}
+    \label{#3}
+    \centering
+    \fbox{\parbox{0.94\textwidth}{\centering\textit{TODO-TABLE: #1}}}
+  \end{table*}%
+}
+
+\newcommand{\tableplaceholdercolumn}[3]{%
+  \begin{table}[t]
+    \caption{#2}
+    \label{#3}
+    \centering
+    \fbox{\parbox[c][0.35in][c]{0.92\columnwidth}{%
+      \centering\textit{TODO-TABLE: #1}}}
+  \end{table}%
+}
+
+\newcommand{\takeaway}[1]{%
+  \par\smallskip\noindent\textbf{Takeaway.} #1\par
+}

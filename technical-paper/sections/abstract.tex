@@ -1,0 +1,10 @@
+High-level synthesis (HLS) agents must repair and optimize unfamiliar kernels
+within limited large language model (LLM) and tool budgets. We introduce the
+Verified-Candidate Loop (\VCL), which grants candidate-promotion authority to
+an ordered validation chain. The agent ranks gate-valid candidates with a
+quality-of-results (QoR) score that combines effective latency and
+worst-resource growth. QoR-guided retrieval-augmented generation (QoR-RAG)
+retrieves compatible rules, successes, and measured failures. Failure
+Reflection converts key diagnostics and source changes into the next
+constraint without another LLM request. The agent records every gate, tool
+call, and token for reproducible evaluation.

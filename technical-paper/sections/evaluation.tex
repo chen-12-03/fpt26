@@ -1,0 +1,31 @@
+\section{Evaluation Maps Each Claim to Evidence}
+\label{sec:evaluation}
+
+\subsection{VCL Preserves Required Validity}
+
+This test audits every proposed candidate, its gate vector, the corresponding
+promotion decision, and the final verified fallback. It lists hidden
+acceptance separately when the evaluator returns it.
+\takeaway{Insert the measured rate at which the VCL blocks gate-invalid
+promotions.}
+
+\subsection{\QHW{} Selects Hardware Gains}
+
+This test compares the frozen anchor with accepted and rejected candidates. It
+reports latency, $II$, clock, all five resources, and \QHW{}.
+\takeaway{Insert one measured case where \QHW{} accepts or rejects a nominal
+cycle gain.}
+
+\subsection{Evidence Reuse Reduces Repetition}
+
+This test compares the full agent with variants that remove QoR-RAG, measured
+failure cases, or Failure Reflection. It reports success, repeated failures,
+LLM tokens, tool calls, credits, and wall time.
+\takeaway{Insert the measured change in repeated failures and budget use.}
+
+All runs use Docker, Vitis 2025.2, and the Alveo U55C target.
+\tableplaceholdercolumn
+  {Insert three row groups: validation, QoR decisions, and evidence-reuse
+   ablations.}
+  {Claim-aligned results under the same tasks and budgets.}
+  {tab:results}

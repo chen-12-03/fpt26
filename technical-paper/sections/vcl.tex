@@ -1,0 +1,38 @@
+\section{The VCL Preserves the Verified Fallback}
+
+The \VCL{} separates proposal, validation, and promotion. Task preflight
+records the editable kernel, public tests, exact top-function signature, target
+part, and budgets. The LLM proposes one complete source candidate. The
+validation chain starts with an interface gate that checks required includes,
+the signature, balanced source structure, and forbidden dependencies.
+
+The remaining gates run C simulation (\CSim), HLS synthesis (\Synth), the
+100 MHz frequency check, the U55C capacity check, and required C/RTL
+co-simulation (\CoSim). The metric-completeness gate requires latency, clock,
+and all five resource counts. Let each applicable gate $G_i\in\{0,1\}$; an
+inapplicable \CoSim{} gate equals one. The candidate validity is
+\begin{equation}
+V(c)=G_{\mathrm{int}}G_{\mathrm{csim}}G_{\mathrm{syn}}
+  G_{\mathrm{freq}}G_{\mathrm{cap}}G_{\mathrm{cosim}}G_{\mathrm{metric}}.
+\label{eq:validity}
+\end{equation}
+Let $b$ denote the verified fallback. The promotion rule is
+\begin{equation}
+P(c)=V(c)\land[\QHW(c)>\QHW(b)].
+\label{eq:promotion}
+\end{equation}
+Functional and synthesis failures enter the repair path. A \CoSim{} failure
+enters the structural path, whose prompt targets interleaved producer writes,
+bounded stream depths, and producer-consumer rate balance. Before candidate
+tools run, budget admission requires enough credits for \CSim, \Synth, and
+required \CoSim. A failed gate or budget denial retains $b$, the latest kernel
+that passed every available required gate. Hidden acceptance remains an
+external evaluator check.
+
+\noindent Figure~\ref{fig:vcl} maps the promotion boundary and feedback path.
+\figureplaceholderwide
+  {Insert the VCL architecture diagram specified in the figure design brief.}
+  {The \VCL{} grants promotion authority to the validation chain and
+   the hardware-quality rule.
+   Failed or unaffordable candidates cannot replace the verified fallback.}
+  {fig:vcl}

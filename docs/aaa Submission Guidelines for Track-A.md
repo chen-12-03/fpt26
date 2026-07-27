@@ -46,17 +46,47 @@ Submitted entries will be evaluated based on the following primary dimensions: c
 提交的参赛作品将依据以下主要标准进行评估：正确性、PPA 指标以及问题的难度。
 
 Submission Guidelines for Track-A
+
 1. FPGA platform is targeted at the Alveo U55C for Co-simulation
 2. Software version is targeted at Vitis 2025.2
 3. Please pass csim, cosim and synth, and provide experimental report
 4. HLS generated hardware with at least 100Mhz
 5. Token consumption is an important factor for final evaluation
-6. Only open-source LLM is permitted in this competition
+6. Teams are recommended to evaluate their HLS agents using the following three models and report the experimental results. In addition to the recommended models, teams are encouraged to evaluate and compare their HLS agents using other publicly available open-weight foundation models or fine-tuned variants, and include the results in the technical report.
+DeepSeek V4 Pro
+Model: deepseek-ai/DeepSeek-V4-Pro
+Architecture: Mixture of Experts (MoE)
+Total Parameters: 1.6T
+Active Parameters: 49B per token
+Context Length: 1,000,000 tokens
+Quantization: FP8 (Official Weights)
+Link: https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro 
+
+Qwen3.5 122B A10B
+Model: cyankiwi/Qwen3.5-122B-A10B-AWQ-4bit
+Architecture: Mixture of Experts (MoE)
+Total Parameters: 122B
+Active Parameters: 10B per token
+Quantization: AWQ-4bit
+Context Length: 262,144 tokens
+Link: https://huggingface.co/cyankiwi/Qwen3.5-122B-A10B-AWQ-4bit 
+
+Qwen3.6 27B
+Model: Qwen/Qwen3.6-27B-FP8
+Architecture: Dense
+Total Parameters: 27B
+Active Parameters: 27B per token
+Quantization: FP8
+Context Length: 262,144 tokens
+Link: https://huggingface.co/Qwen/Qwen3.6-27B-FP8
+
 7. Hidden test benchmarks exist for final evaluation
 8. Submissions are expected to be built and run within a Docker environment. A Dockerfile is recommended to be included with the submission; a reference example is provided below:
 https://anonymous.4open.science/r/fpt26-harness
 9. Source codes, testbenches and other supplementary materials that will be helpful for the reproduction, should be submitted for final evaluation (e.g., .Zip file)
 10. Demonstration Video (max 5 min): must show project running on target platform with clear explanation
+
+
 
 翻译：1. FPGA 平台目标为 `Alveo U55C`，用于协同仿真（`Co-simulation`）。 
 2. 软件版本目标为 `Vitis 2025.2`。 

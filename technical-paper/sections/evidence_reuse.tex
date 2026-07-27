@@ -1,0 +1,31 @@
+\section{Evidence Reuse Focuses Each Iteration}
+
+\subsection{QoR-RAG Retrieves Compatible Actions}
+
+QoR-RAG builds a query from source metadata, baseline QoR, synthesis
+diagnostics, resource headroom, rejection history, and the task description.
+Its deterministic ranker weights token overlap by $3,2,4,2,3,1$ in that order.
+Keyword indicators map the query to reduction, memory-port, dataflow, stream,
+and factorization families. Each query returns at most one curated rule, one
+verified success, and one measured failure. Measured cases must match the
+target part and Vitis version. Workload guards compare the task description
+with family tags such as AES, GEMM, stencil, and dot product. Provenance checks
+reject paths that contain hidden, reference, or evaluator components. A
+1,800-token cap bounds the retrieved context.
+
+\subsection{Failure Reflection Converts Errors into Constraints}
+
+Failure Reflection extracts the evidence that the next iteration needs. It
+removes ANSI control text, redacts paths and secrets, deduplicates lines, and
+selects bounded diagnostics that contain compiler, mismatch, timing, stream,
+deadlock, or timeout signals. The resulting record contains the failure class,
+candidate diff, implicated pragmas, loops, arrays, and the next constraint. A
+normalized signature counts repeated failure patterns. The next prompt and
+QoR-RAG query both consume this record, so Failure Reflection uses zero extra
+LLM requests.
+
+A candidate fingerprint removes comments, normalizes whitespace, and removes
+optional braces around a single-statement \texttt{for} loop. The controller
+uses this fingerprint to reject unchanged or repeated candidates before tool
+execution. It stops on budget exhaustion, duplicate candidates, or search
+stagnation.

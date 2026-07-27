@@ -65,3 +65,6 @@ temp/
 *.tmp
 *.swp
 *~
+
+# Local paper strategy notes (paper-writing skill)
+technical-paper/project_context.md

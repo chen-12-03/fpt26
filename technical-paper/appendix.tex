@@ -1,0 +1,43 @@
+\appendices
+
+\section{Implementation Contract}
+
+The submission pipeline stores the candidate, gate results, best synthesis
+evidence, verified fallback, accounting, and terminal status in one run state.
+Every repair and optimization path uses the same validation chain and
+promotion rule. The output writer saves the latest kernel that passed every
+available required gate; failed and interrupted paths return the verified
+fallback.
+
+\section{Experimental Configuration}
+
+\tableplaceholderwide
+  {Insert the final container, source revision, open-source model, inference
+   settings, task budgets, and benchmark configuration.}
+  {Reproduction configuration for the final experiment set.}
+  {tab:configuration}
+
+\section{Per-Task Evidence}
+
+\tableplaceholderwide
+  {Insert per-task gates, latency, II, clock, resources, \QHW{}, status, and
+   evidence identifiers.}
+  {Per-task correctness and hardware evidence.}
+  {tab:per-task}
+
+\section{Token and Tool Accounting}
+
+\tableplaceholderwide
+  {Insert per-stage prompt/completion tokens, LLM requests, tool calls,
+   credits, and wall time.}
+  {Per-stage model and tool accounting.}
+  {tab:accounting}
+
+\section{Reproduction Procedure}
+
+Evaluators build the supplied Docker image, configure the open-source model
+endpoint through environment variables, and mount the task and output
+directories. The command-line entry point writes the final kernel, structured
+run report, and submission evidence under the selected output root. The Vitis
+child environment excludes credentials, and report writers redact sensitive
+text.
