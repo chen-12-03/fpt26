@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__15__amd_intro__interface_streaming_using_axi_stream_with_side_channel_data"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "734aadcb943b4e3ce8245cf4ae320f4d37505e0d0abe65893f992cf9c36685f1"
+source_task_id = "amd_intro__interface_streaming_using_axi_stream_with_side_channel_data"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/using_axi_stream_with_side_channel_data"
+source_path = "Interface/Streaming/using_axi_stream_with_side_channel_data"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "4997777c5791f0f658abdd14bdc7f903af01c3e4545e6ea31b0a355e831d1c35"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

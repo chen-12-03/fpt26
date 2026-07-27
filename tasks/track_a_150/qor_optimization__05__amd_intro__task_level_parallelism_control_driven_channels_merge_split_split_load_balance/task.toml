@@ -1,0 +1,26 @@
+task_id = "qor_optimization__05__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "matmul_partition"
+kernel_file = "matmul_partition.cpp"
+header_files = ["matmul_partition.h"]
+public_tb = "matmul_partition_tb.cpp"
+hidden_tb = "matmul_partition_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:2"
+kernel_family_id = "7da37cb247a95fe513b78ab69a15480dab660f5f6ae912dd267960001b9cf0be"
+source_task_id = "qor_optimization__17__amd_intro__array_array_partition_block_cyclic"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic"
+source_path = "Array/array_partition_block_cyclic"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "f8262f4eb659b8889061fd7d71dbd9ca1c2431df1ecda24987fb37646d477bb4"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

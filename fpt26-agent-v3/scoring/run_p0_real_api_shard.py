@@ -9,6 +9,7 @@ never reused.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import subprocess
@@ -35,15 +36,21 @@ def discover_tasks(
     *,
     excluded_task_ids: set[str] | None = None,
 ) -> list[Path]:
-    manifests = sorted((task_root / "generated").glob("*/task.toml"))
-    manifests += sorted((task_root / "official").glob("*/task.toml"))
+    direct_manifests = sorted(task_root.glob("*/task.toml"))
+    if direct_manifests:
+        manifests = direct_manifests
+        expected_count = 150 if task_root.name == "track_a_150" else len(manifests)
+    else:
+        manifests = sorted((task_root / "generated").glob("*/task.toml"))
+        manifests += sorted((task_root / "official").glob("*/task.toml"))
+        expected_count = EXPECTED_TASK_COUNT
     tasks = [manifest.parent.resolve() for manifest in manifests]
     if (
-        len(tasks) != EXPECTED_TASK_COUNT
-        or len({task.name for task in tasks}) != EXPECTED_TASK_COUNT
+        len(tasks) != expected_count
+        or len({task.name for task in tasks}) != expected_count
     ):
         raise RuntimeError(
-            f"expected {EXPECTED_TASK_COUNT} unique tasks, found {len(tasks)}"
+            f"expected {expected_count} unique tasks, found {len(tasks)}"
         )
     if excluded_task_ids:
         available = {task.name for task in tasks}
@@ -492,6 +499,7 @@ def run_shard(
     summary_path = output_root / "shard_summary.json"
     source_start = execution_source_snapshot()
     records: list[dict[str, Any]] = []
+    shard_started = time.monotonic()
     if output_root.exists():
         if not resume or not summary_path.is_file():
             raise RuntimeError(f"refusing to reuse output root: {output_root}")
@@ -509,8 +517,43 @@ def run_shard(
         records = list(previous.get("records") or [])
     else:
         output_root.mkdir(parents=True)
+        _write_summary(
+            summary_path,
+            _summary(
+                shard_index=shard_index,
+                shard_count=shard_count,
+                selected_count=len(selected),
+                started=shard_started,
+                records=[],
+                source_start=source_start,
+                source_current=source_start,
+                quarantine=quarantine,
+            ),
+        )
+    selected_ids = {task.name for task in selected}
+    committed = {record["task_id"] for record in records}
+    for checkpoint in sorted(
+        (output_root / "tasks").glob("*/checkpoint.json")
+    ):
+        record = json.loads(checkpoint.read_text(encoding="utf-8"))
+        task_id = str(record.get("task_id") or "")
+        if task_id in selected_ids and task_id not in committed:
+            records.append(record)
+            committed.add(task_id)
     done = {record["task_id"] for record in records}
-    shard_started = time.monotonic()
+    _write_summary(
+        summary_path,
+        _summary(
+            shard_index=shard_index,
+            shard_count=shard_count,
+            selected_count=len(selected),
+            started=shard_started,
+            records=records,
+            source_start=source_start,
+            source_current=source_start,
+            quarantine=quarantine,
+        ),
+    )
 
     for ordinal, task_dir in enumerate(selected, start=1):
         if (
@@ -614,7 +657,24 @@ def run_shard(
         usage = ((submission or {}).get("llm") or {}).get(
             "token_usage"
         ) or {}
+        llm_record = (submission or {}).get("llm") or {}
         budget = (submission or {}).get("budget") or {}
+        submission_trace = (submission or {}).get("execution_trace") or {}
+        transcript = submission_trace.get("transcript") or []
+        calls_by_tool = Counter(
+            str(item.get("kind") or "unknown") for item in transcript
+        )
+        failed_calls_by_tool = Counter(
+            str(item.get("kind") or "unknown")
+            for item in (submission_trace.get("metered_results") or [])
+            if item.get("ok") is not True
+        )
+        evaluator_grading = (
+            ((evaluator or {}).get("execution_trace") or {}).get(
+                "grading_results"
+            )
+            or []
+        )
         frequency = (
             ((submission or {}).get("gates") or {}).get(
                 "frequency_100mhz"
@@ -651,10 +711,19 @@ def run_shard(
                     else None
                 ),
                 "api": usage,
+                "llm_client": llm_record.get("client"),
+                "model": llm_record.get("model"),
+                "model_compliance": (submission or {}).get(
+                    "model_compliance"
+                ),
                 "budget": budget,
                 "frequency_mhz": frequency.get("frequency_mhz"),
                 "credits_spent": budget.get("spent"),
                 "tool_calls": (submission or {}).get("tool_call_count"),
+                "calls_by_tool": dict(sorted(calls_by_tool.items())),
+                "failed_calls_by_tool": dict(
+                    sorted(failed_calls_by_tool.items())
+                ),
             },
             "evaluator": {
                 "command": evaluator_command,
@@ -675,8 +744,21 @@ def run_shard(
                 "score": (
                     (evaluator or {}).get("scoring") or {}
                 ).get("score"),
+                "grading_tool_call_count": len(evaluator_grading),
+                "grading_calls_by_stage": dict(
+                    sorted(
+                        Counter(
+                            str(item.get("stage") or "unknown")
+                            for item in evaluator_grading
+                        ).items()
+                    )
+                ),
             },
         }
+        _write_summary(
+            output_root / "tasks" / task_id / "checkpoint.json",
+            record,
+        )
         records.append(record)
         source_current = execution_source_snapshot()
         _write_summary(

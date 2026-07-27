@@ -1,0 +1,26 @@
+task_id = "qor_optimization__16__amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "stable_pointer"
+kernel_file = "stable_pointer.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "stable_pointer_tb.cpp"
+hidden_tb = "stable_pointer_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:3"
+kernel_family_id = "b5515be5bb9c2cf11a999677720d4b41c7b852126ebb614d9bdff09e3425b2c1"
+source_task_id = "amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_maxi_in_tasks"
+source_path = "Task_level_Parallelism/Data_driven/using_maxi_in_tasks"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "dde19d0def72fdbf7709a0b523226808a540c12895b32188ad885e83d40b3257"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

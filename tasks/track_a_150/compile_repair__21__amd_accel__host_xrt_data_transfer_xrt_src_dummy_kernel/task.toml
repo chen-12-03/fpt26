@@ -1,0 +1,26 @@
+task_id = "compile_repair__21__amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "dummy_kernel"
+kernel_file = "dummy_kernel.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "dummy_kernel_tb.cpp"
+hidden_tb = "dummy_kernel_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "preprocessor_compile_error"
+kernel_family_id = "8024c23cc25a78833f61ed590fc59c1785bab418cc6bf4b42e9404c78801425d"
+source_task_id = "amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/data_transfer_xrt"
+source_path = "host_xrt/data_transfer_xrt"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+license = "MIT"
+source_sha256 = "bb157e60ea2e42c12cccc2003b84114c4b9a939b5092cfcf44b61488142638b6"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

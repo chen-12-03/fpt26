@@ -1,0 +1,26 @@
+task_id = "qor_optimization__15__amd_intro__task_level_parallelism_data_driven_unique_task_regions"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "diamond"
+kernel_file = "diamond.cpp"
+header_files = ["diamond.h"]
+public_tb = "diamond_tb.cpp"
+hidden_tb = "diamond_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:5"
+kernel_family_id = "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d"
+source_task_id = "qor_optimization__18__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos"
+source_path = "Task_level_Parallelism/Control_driven/Channels/simple_fifos"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

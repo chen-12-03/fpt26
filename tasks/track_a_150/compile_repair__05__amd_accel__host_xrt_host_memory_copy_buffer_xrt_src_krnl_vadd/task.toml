@@ -1,0 +1,26 @@
+task_id = "compile_repair__05__amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "krnl_vadd"
+kernel_file = "krnl_vadd.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "krnl_vadd_tb.cpp"
+hidden_tb = "krnl_vadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "preprocessor_compile_error"
+kernel_family_id = "2364c72a92c8cde7d8efc10cd92ee9a62e0f9e9f3d2b59a97561c03f8024abf3"
+source_task_id = "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/host_memory_copy_buffer_xrt"
+source_path = "host_xrt/host_memory_copy_buffer_xrt"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+license = "MIT"
+source_sha256 = "85e362824422e495aa8634d6a76f5e3490e6563dcea4ba279f8514f51e25557b"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

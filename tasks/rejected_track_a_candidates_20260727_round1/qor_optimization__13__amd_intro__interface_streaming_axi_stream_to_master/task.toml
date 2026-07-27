@@ -1,0 +1,26 @@
+task_id = "qor_optimization__13__amd_intro__interface_streaming_axi_stream_to_master"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:3"
+kernel_family_id = "51721b07a8b20cdebc476c28ac28ea940fc5117704d432c511b0c076db4b78b6"
+source_task_id = "amd_intro__interface_streaming_axi_stream_to_master"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axi_stream_to_master"
+source_path = "Interface/Streaming/axi_stream_to_master"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "0c1273bca2b53208be6e16e1422245a95beff2999e85b8912434d98d26a4c275"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

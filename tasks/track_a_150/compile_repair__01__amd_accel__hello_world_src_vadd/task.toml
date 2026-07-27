@@ -1,0 +1,26 @@
+task_id = "compile_repair__01__amd_accel__hello_world_src_vadd"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "vadd"
+kernel_file = "vadd.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "vadd_tb.cpp"
+hidden_tb = "vadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "preprocessor_compile_error"
+kernel_family_id = "bf3118b1ec804858bc98afce751ab4386b0a991b044de7b80bf5f9a795e78fdf"
+source_task_id = "amd_accel__hello_world_src_vadd"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/hello_world"
+source_path = "hello_world"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+license = "MIT"
+source_sha256 = "434b4e7c8c48cff646537e4c7f68d37b77e81fcb1c7e996f1f4ed16e598983ee"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

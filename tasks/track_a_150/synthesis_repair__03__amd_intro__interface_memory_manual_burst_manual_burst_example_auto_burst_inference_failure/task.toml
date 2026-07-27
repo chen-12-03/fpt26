@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__03__amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "krnl_transfer"
+kernel_file = "krnl_transfer.cpp"
+header_files = ["example.h"]
+public_tb = "krnl_transfer_tb.cpp"
+hidden_tb = "krnl_transfer_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "981a22928e9d49ec4cc1866dd1d7f92d66a759f8721e65433f77033638efe694"
+source_task_id = "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure"
+source_path = "Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "f263ee576a9433d949e39cb1a22abbdf09205e6ea5265589addc7d84801cd014"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

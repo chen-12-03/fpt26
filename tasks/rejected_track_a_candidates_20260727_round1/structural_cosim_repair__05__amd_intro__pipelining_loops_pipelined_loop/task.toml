@@ -1,0 +1,26 @@
+task_id = "structural_cosim_repair__05__amd_intro__pipelining_loops_pipelined_loop"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "loop_pipeline"
+kernel_file = "loop_pipeline.cpp"
+header_files = ["loop_pipeline.h"]
+public_tb = "loop_pipeline_tb.cpp"
+hidden_tb = "loop_pipeline_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_top_early_return:return {};:variant=0"
+kernel_family_id = "73f13145e88e3ed0d7470a28e23f4f8c50d2afdc9140d3c898505c02435d9ac2"
+source_task_id = "amd_intro__pipelining_loops_pipelined_loop"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/pipelined_loop"
+source_path = "Pipelining/Loops/pipelined_loop"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "a12b4ae0fd29543915729065db31613173aad76bb0eeb6eb5ab512e4dfc45f0e"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

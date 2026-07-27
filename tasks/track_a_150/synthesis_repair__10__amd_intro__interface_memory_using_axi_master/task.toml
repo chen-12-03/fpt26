@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__10__amd_intro__interface_memory_using_axi_master"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "b35623de9f1eab1717d17b6e0bf0162b07f0531eb2ab4a6c3cccf6b0a50ae698"
+source_task_id = "amd_intro__interface_memory_using_axi_master"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/using_axi_master"
+source_path = "Interface/Memory/using_axi_master"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "5b1cc9aba94902e437da3416806db8742a04f1c65a82e7b4fe032c3ca08754af"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

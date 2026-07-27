@@ -1,0 +1,26 @@
+task_id = "functional_repair__15__amd_intro__modeling_using_arbitrary_precision_casting"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "arbitrary_precision_casting"
+kernel_file = "arbitrary_precision_casting.cpp"
+header_files = ["arbitrary_precision_casting.h"]
+public_tb = "arbitrary_precision_casting_tb.cpp"
+hidden_tb = "arbitrary_precision_casting_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return {};:variant=0"
+kernel_family_id = "979a8556838cc7d152d0dd0128db3acc7f3c361d0f4163777b59af0de8696e39"
+source_task_id = "amd_intro__modeling_using_arbitrary_precision_casting"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_arbitrary_precision_casting"
+source_path = "Modeling/using_arbitrary_precision_casting"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "58400a637c6f1b9f1f2b144e68553137a57b0c7cb771d7efbf1d3eeb565d0faf"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

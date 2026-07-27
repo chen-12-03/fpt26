@@ -1,0 +1,26 @@
+task_id = "functional_repair__03__amd_intro__misc_malloc_removed"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "malloc_removed"
+kernel_file = "malloc_removed.cpp"
+header_files = ["malloc_removed.h"]
+public_tb = "malloc_removed_tb.cpp"
+hidden_tb = "malloc_removed_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return {};:variant=0"
+kernel_family_id = "eaef9484c01da32d2e661a73c66bb16f5d028d49da5b5848882e1c1d677fef9e"
+source_task_id = "amd_intro__misc_malloc_removed"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/malloc_removed"
+source_path = "Misc/malloc_removed"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "77a918224fbae77d7e04ec4d960aed697f8a76e66865967bbb8de6a773144b11"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

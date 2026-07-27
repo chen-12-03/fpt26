@@ -1,0 +1,26 @@
+task_id = "qor_optimization__22__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["test.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:3"
+kernel_family_id = "fdb6bbf4717bd5fec5b8c57686c532c07f63aec3a019988cdbf80ce1f63b922f"
+source_task_id = "amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/merge_split/split_load_balance"
+source_path = "Task_level_Parallelism/Control_driven/Channels/merge_split/split_load_balance"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "4b2ecb194124c04daaeb0da14a86d0266a9c0f5689f6d52eb5929f5abefb71b9"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

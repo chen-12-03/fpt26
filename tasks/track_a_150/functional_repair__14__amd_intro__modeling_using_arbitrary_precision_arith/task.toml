@@ -1,0 +1,26 @@
+task_id = "functional_repair__14__amd_intro__modeling_using_arbitrary_precision_arith"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "cpp_ap_int_arith"
+kernel_file = "cpp_ap_int_arith.cpp"
+header_files = ["cpp_ap_int_arith.h"]
+public_tb = "cpp_ap_int_arith_tb.cpp"
+hidden_tb = "cpp_ap_int_arith_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return;:variant=0"
+kernel_family_id = "ecfa2c2cafe0770a63a83bbdb98816ddbfc12d58393f974010e1013c2ec0aab2"
+source_task_id = "amd_intro__modeling_using_arbitrary_precision_arith"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_arbitrary_precision_arith"
+source_path = "Modeling/using_arbitrary_precision_arith"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "ad2e8d6fb768c9826ff2dba6150b96a3d4b48d0b6149dba04308c744371ab4af"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

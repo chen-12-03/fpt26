@@ -1,0 +1,26 @@
+task_id = "code_generation__14__amd_intro__dsp_fir_decimator"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 3
+top = "fir_top"
+kernel_file = "fir_top.cpp"
+header_files = ["fir_top.h"]
+public_tb = "fir_top_tb.cpp"
+hidden_tb = "fir_top_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "signature_only_generation_stub"
+kernel_family_id = "f5450c86c4f7be10ca0cff4c9572c8363344acc03c62867ec0e9234b87a4bb8a"
+source_task_id = "amd_intro__dsp_fir_decimator"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/DSP/fir/decimator"
+source_path = "DSP/fir/decimator"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "1196cc3705a2e514ca55e48ad7b2e01d358477724aa267c43d884c0bde898da8"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

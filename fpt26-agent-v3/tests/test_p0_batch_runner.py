@@ -57,6 +57,20 @@ def test_discovery_can_explicitly_quarantine_metric_incomplete_tasks(
     assert not ({task.name for task in tasks} & excluded)
 
 
+def test_discovery_supports_direct_track_a_150_corpus(tmp_path: Path) -> None:
+    task_root = tmp_path / "track_a_150"
+    task_root.mkdir()
+    for index in range(150):
+        task_dir = task_root / f"track_a_task_{index:03d}"
+        task_dir.mkdir()
+        (task_dir / "task.toml").write_text("task_id = \"x\"\n")
+
+    tasks = discover_tasks(task_root)
+
+    assert len(tasks) == 150
+    assert len({task.name for task in tasks}) == 150
+
+
 def test_exclusion_loader_accepts_offline_triage_report(tmp_path: Path) -> None:
     path = tmp_path / "triage.json"
     path.write_text(

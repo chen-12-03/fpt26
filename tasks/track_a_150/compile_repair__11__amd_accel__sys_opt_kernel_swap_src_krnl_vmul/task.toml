@@ -1,0 +1,26 @@
+task_id = "compile_repair__11__amd_accel__sys_opt_kernel_swap_src_krnl_vmul"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "krnl_vmul"
+kernel_file = "krnl_vmul.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "krnl_vmul_tb.cpp"
+hidden_tb = "krnl_vmul_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "preprocessor_compile_error"
+kernel_family_id = "0fe60fe9dd7a26c88324e5b798f55f61c710335d0589a9e4bcc00b22b5ae38ec"
+source_task_id = "amd_accel__sys_opt_kernel_swap_src_krnl_vmul"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/kernel_swap"
+source_path = "sys_opt/kernel_swap"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+license = "MIT"
+source_sha256 = "50b5ea63e363ff000944ff02c89887fb42d7559e4e50dda783b3b3d1a75d88dc"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

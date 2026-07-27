@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__06__amd_intro__interface_memory_max_widen_port_width"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "d73b4d3ea9989e84dd4ce9124b223cfa42e1615274f0c7fd69391f21e299d35d"
+source_task_id = "amd_intro__interface_memory_max_widen_port_width"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/max_widen_port_width"
+source_path = "Interface/Memory/max_widen_port_width"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "e2689b66cb53647c821ffe1c2dbfb13acc8240cef28dca2f4ef6a63033c03030"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__02__amd_intro__interface_memory_lmem_2rw"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "vadd"
+kernel_file = "vadd.cpp"
+header_files = ["vadd.h"]
+public_tb = "vadd_tb.cpp"
+hidden_tb = "vadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "906844b8d9113321c9013d085737ed1bdd5e5db28c637866784591912f63748d"
+source_task_id = "amd_intro__interface_memory_lmem_2rw"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/lmem_2rw"
+source_path = "Interface/Memory/lmem_2rw"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "a16c1b43bd6da1d9426ce6ed5e99ef32f92c8c2a657c3878c860401751a422de"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,3034 @@
+{
+  "category_counts": {
+    "code_generation": 25,
+    "compile_repair": 25,
+    "functional_repair": 25,
+    "qor_optimization": 25,
+    "structural_cosim_repair": 25,
+    "synthesis_repair": 25
+  },
+  "cross_category_kernel_overlap_count": 0,
+  "purpose": "track_a_150_candidate_corpus",
+  "schema_version": 1,
+  "source_policy": {
+    "allowed_sources": [
+      {
+        "license": "Apache-2.0",
+        "repository": "Xilinx/Vitis-HLS-Introductory-Examples"
+      },
+      {
+        "license": "MIT",
+        "repository": "Xilinx/Vitis_Accel_Examples"
+      }
+    ],
+    "fixed_commit_required": true
+  },
+  "task_count": 150,
+  "tasks": [
+    {
+      "baseline_sha256": "e2610b50dd95c03e997e050f49a3c253c164c0ae544e5b4e35730468a3973da4",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "16c2a0477b0bd0409a1b8c49119c39bec786252e95195d9b060cb8296e4b8eff",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "aa94dc8e4aa64a0ea17765ab998791fbbc8de3bbd9ac06af88c6f782cd0a195a",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__01__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "task_id": "code_generation__01__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "task_toml_sha256": "b3a3fbe284a6be4bb98720225c855a080174014042cb286dcd8f34a96a5ec4c2"
+    },
+    {
+      "baseline_sha256": "34df8e3688cec7ac0c9fc0bd094d470577f8c26b2f096fa324d7de5e2b5d344b",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "5eff1ea6278731a27ac92b373040fb48e0ce50cfff16717f82e94b0bc7e24886",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "225073b6f05192e080fea4902a02e6168ccf6ba097f088ecadfa29c569703d9d",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__02__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "task_id": "code_generation__02__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "task_toml_sha256": "ce4ad3cd6f612a4b47ab14db7dd372ecd1d49a0ce7a52dbf5da5947edc7d4925"
+    },
+    {
+      "baseline_sha256": "234fb5de6dd69db9981789cd1525e4c669a1bfb6a7d105b6d1c13c1955936db1",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "d2ba8fe29043fef281674a8aaedfc4e153c7dde0ff9990c458f2f2c7183f8097",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "c09b31c8b8432cca5c56c79173e50caab518af44a6cfce94598de85dbdbd1ad3",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__03__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "task_id": "code_generation__03__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "task_toml_sha256": "4edfb3e1d62766a79bac3700ca5b9e04790fcdb67256bef19a5ce969fbbbc229"
+    },
+    {
+      "baseline_sha256": "f02c303af4b54b6436871e16f4c9b2f63a743501451cb48b2f49941503a6617c",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "b2f75e2d74b6b50d5941bc2268dfdd35b073cb164b097c503aa04d33faac36ae",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "0ea1ca4dd23da369887993b739ba98b2b70e5f586786d8827e7abbb44bb9056f",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__04__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "task_id": "code_generation__04__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "task_toml_sha256": "2423f8a881a493604b5450b0f391e654f0c2ecb52ad3759a7ee8d0a63718dba8"
+    },
+    {
+      "baseline_sha256": "07c48a1f2cda13753894f849986f7d68cbf481d1c03edcfa0a63cd89ea2f6c14",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "ba32c3b13ec6153be602d66f8aad93f6e57553ef268f17a06fc10f85766ce814",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "18647d89acb2c2ec198cde653d41a43e296d882913b12df5634b863dcced0d57",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__05__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "task_id": "code_generation__05__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "task_toml_sha256": "9a003da022ec73f78f95bdc946a942f34030604d98ce178af2d04bb81fa592cb"
+    },
+    {
+      "baseline_sha256": "805ba3d40542138f38ead178ca59ce45c292acafd41735c765c6bc0b2770f56e",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "4b560ed54fa34f3203da9e7575715968f8e25f50cea2c2b8830716d134d7284c",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "4edc5803d9fff96ad64522293ac35900108465ced8927875a9131f7d8b7dec85",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__06__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "task_id": "code_generation__06__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "task_toml_sha256": "4937a8c553842d608f4d8697aff8f7e788488afcbb5231f7168eaf709565c710"
+    },
+    {
+      "baseline_sha256": "a94f520af951293c4362fe4b2bf87d757d95f9357c2b9192b966587ffb1fa126",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "49d33ccfb74f48330771235012d8e4398b3892b3e320d6879a492165153b91c8",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "2ed57be627bb9c318734661c0ed0f75bf18eff3a67744b51d2eb9111e93eafd5",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__07__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "task_id": "code_generation__07__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "task_toml_sha256": "39ffee84dfcb0dfb712be01f0fa48f9f601fcabc53da1a73d7d090ff0b01d3c0"
+    },
+    {
+      "baseline_sha256": "66662c4c6038dfe52596173616516b6078ed1cc8b8eae9cc673e2abcd808f42d",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "39b84ab21a345b0f0c7ae59efcd64950c553e0450b2852528abce4743eabbaf9",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "e6a987bc1378d2eaf81bfd0ad547bb8564e46537a423f2438e290501519365c3",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__08__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "task_id": "code_generation__08__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "task_toml_sha256": "e7255ed154555b8f96d2ece23d7f7c9420388d7299e052c00e7789989233b6d4"
+    },
+    {
+      "baseline_sha256": "3cd5ff08c7f250ffe978a87742eaa596602adabc8516aa1226581966c88cd330",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "0e8ce3440cf061020e1bee309abd100606858bdc3e7f470e04018bc9eb650234",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "77a9602be499122d33ec98ee9d41fc44d8fbcda4a60c2d5ca3078ac9f116befa",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__09__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+      "task_id": "code_generation__09__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_3",
+      "task_toml_sha256": "d6fb44e992f38af218dd9877a1da2bcad9e8095f6dcecaf4059beba394f784da"
+    },
+    {
+      "baseline_sha256": "d4a2adb39067e2c5795ae7def3ea12a1c89b09533a964cf3439c88ae9219355a",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "fccb7851c907010da305845eea36de727e680f46ac537d0f08b5435233ef75b3",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "b61944ac9c4172e2f72b77ce1905c8624df074c7f21d577355502895a5535c12",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__10__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+      "task_id": "code_generation__10__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_4",
+      "task_toml_sha256": "d21cc456d4d8a4e5ba1aaa35d5419dd7dae7aedbac69bb2d3de65b85fada10d4"
+    },
+    {
+      "baseline_sha256": "af1be7b5a829e24f4f2fc0e99ece087dde1063c6260ca582a26148a19de0ec91",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "ed2ff6c9d15d9dc14c5ad1813c16153de3a4b260439124150d6e8551b4e23ab0",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "e4b3b7bc272cc5e8c196c2be6a4b9acc5a467d83731f4b7bea8118e934c19830",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__11__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+      "task_id": "code_generation__11__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_5",
+      "task_toml_sha256": "a27ed442c99cd1f77589e4a01ebd6d078922d8b45ac2dd81e8892b4b43c3869e"
+    },
+    {
+      "baseline_sha256": "e09603a72137c84bd2c01f35a6f1f842ccc13f1774bdf2071a2916c3ae4da85b",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "7f2c946b7433d84a4ea0b8ba276c9c1a26798e75b6df8b36e42cd9f4e5f56ff2",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "3d039c6e5342f5eac4de394cbf90b6c6d16993899b10d9245a1a109b768019de",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__12__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+      "task_id": "code_generation__12__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+      "task_toml_sha256": "fc256bd6464bc0b8466c86ec56e8d40a5ce5bd288b81e0f28f82c149a6325f68"
+    },
+    {
+      "baseline_sha256": "d34b25f98ca9b8029899c7be2b19874f5da973d8817f6e843654742e6ee7f6a1",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "multi_krnl.h"
+      ],
+      "kernel_family_id": "44756b11818004eb64cde5b28821072166687b2b2d77d3115c93b998954f8720",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "sys_opt/multiple_process",
+      "source_sha256": "8dbec1b2c7b4beaae6135eac1fe11d2df3c1e4d9ae29c6349def88156bb6a25c",
+      "source_task_id": "amd_accel__sys_opt_multiple_process_src_krnl_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/multiple_process",
+      "task_dir": "tasks/track_a_150/code_generation__13__amd_accel__sys_opt_multiple_process_src_krnl_vadd",
+      "task_id": "code_generation__13__amd_accel__sys_opt_multiple_process_src_krnl_vadd",
+      "task_toml_sha256": "40896fc309242d7a7f9cea1bd4ad3f30cf76ce821e2137a0ca281c358aed4b25"
+    },
+    {
+      "baseline_sha256": "6b642a143adbebb0ada76ea85bd4805144da031f43751492a69e346e6660156b",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "fir_top.h"
+      ],
+      "kernel_family_id": "f5450c86c4f7be10ca0cff4c9572c8363344acc03c62867ec0e9234b87a4bb8a",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "DSP/fir/decimator",
+      "source_sha256": "1196cc3705a2e514ca55e48ad7b2e01d358477724aa267c43d884c0bde898da8",
+      "source_task_id": "amd_intro__dsp_fir_decimator",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/DSP/fir/decimator",
+      "task_dir": "tasks/track_a_150/code_generation__14__amd_intro__dsp_fir_decimator",
+      "task_id": "code_generation__14__amd_intro__dsp_fir_decimator",
+      "task_toml_sha256": "e61659ad6f0132ad1b44307a8b987ccffb9e6eed5b6aeb7eb5429a28e13438b7"
+    },
+    {
+      "baseline_sha256": "4ba65a34e04712aa56dab851133e58aefa9d1e4d9b9679a5d5e1a2100a9a2ec6",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "abb151252b4dd1396147e4b640de87bd71f9c6b8f2f333aa8ecdfb49548d250a",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Aggregation_Disaggregation/aggregation_of_m_axi_ports",
+      "source_sha256": "a5a65699cbcd5eac7f0b8c499461e49f7ec63e67a76c2459e1acc9634f87929e",
+      "source_task_id": "amd_intro__interface_aggregation_disaggregation_aggregation_of_m_axi_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/aggregation_of_m_axi_ports",
+      "task_dir": "tasks/track_a_150/code_generation__15__amd_intro__interface_aggregation_disaggregation_aggregation_of_m_axi_ports",
+      "task_id": "code_generation__15__amd_intro__interface_aggregation_disaggregation_aggregation_of_m_axi_ports",
+      "task_toml_sha256": "1c96e2020a5120db63e00743b22cfd65b6df8a5422b5610e28150774bdf2c7b4"
+    },
+    {
+      "baseline_sha256": "81f58d8156a2da74f82a2f8bead15bbf6914ed7047b0d5b4c6c6388021e893ab",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "0344558e0bc9313651dc3fd600d6a5c8705846502c9273417847834a909b78de",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Aggregation_Disaggregation/aggregation_of_nested_structs",
+      "source_sha256": "6dd6ab56df0c7cfcfac117828fbb70e90fb714d64e92f344d91b0b8fda546e81",
+      "source_task_id": "amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/aggregation_of_nested_structs",
+      "task_dir": "tasks/track_a_150/code_generation__16__amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs",
+      "task_id": "code_generation__16__amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs",
+      "task_toml_sha256": "89df0fa6fbf9faac6b0dc32ed733fe8f0dd4338da749215c0da98133511adedf"
+    },
+    {
+      "baseline_sha256": "254cf2f779dd4850263c3bae537eb38a550d6eed01f83e149b45e9f564de04d8",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "3fdecc31ebf69ab95b3910b277d9ee0562379cda2980bace2bf0b5efae4f454c",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Aggregation_Disaggregation/aggregation_of_struct",
+      "source_sha256": "f52d0516e1a0cc5b9cc6472cbadf009aeddcfa6b35a409f27dce41403e69d007",
+      "source_task_id": "amd_intro__interface_aggregation_disaggregation_aggregation_of_struct",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/aggregation_of_struct",
+      "task_dir": "tasks/track_a_150/code_generation__17__amd_intro__interface_aggregation_disaggregation_aggregation_of_struct",
+      "task_id": "code_generation__17__amd_intro__interface_aggregation_disaggregation_aggregation_of_struct",
+      "task_toml_sha256": "ef5609adda4b4712d4379846ba6c844e8d856862749acf6f25e35169b585b157"
+    },
+    {
+      "baseline_sha256": "e2610b50dd95c03e997e050f49a3c253c164c0ae544e5b4e35730468a3973da4",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "16c2a0477b0bd0409a1b8c49119c39bec786252e95195d9b060cb8296e4b8eff",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "aa94dc8e4aa64a0ea17765ab998791fbbc8de3bbd9ac06af88c6f782cd0a195a",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__18__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "task_id": "code_generation__18__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1",
+      "task_toml_sha256": "4fdded30eaf628e370bbe7636057e20763906ec32f6ac43ee9af4216a16dfc5b"
+    },
+    {
+      "baseline_sha256": "34df8e3688cec7ac0c9fc0bd094d470577f8c26b2f096fa324d7de5e2b5d344b",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "5eff1ea6278731a27ac92b373040fb48e0ce50cfff16717f82e94b0bc7e24886",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "225073b6f05192e080fea4902a02e6168ccf6ba097f088ecadfa29c569703d9d",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__19__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "task_id": "code_generation__19__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2",
+      "task_toml_sha256": "d7415be69ab8436798897a28d3f400662ba3f0b2331b6790e92726df08d1b57e"
+    },
+    {
+      "baseline_sha256": "234fb5de6dd69db9981789cd1525e4c669a1bfb6a7d105b6d1c13c1955936db1",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "d2ba8fe29043fef281674a8aaedfc4e153c7dde0ff9990c458f2f2c7183f8097",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "c09b31c8b8432cca5c56c79173e50caab518af44a6cfce94598de85dbdbd1ad3",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__20__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "task_id": "code_generation__20__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_3",
+      "task_toml_sha256": "24761f93fec20df4177afcca6e2c89de33e0ff5b45093fded297f1d18661a95c"
+    },
+    {
+      "baseline_sha256": "f02c303af4b54b6436871e16f4c9b2f63a743501451cb48b2f49941503a6617c",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "b2f75e2d74b6b50d5941bc2268dfdd35b073cb164b097c503aa04d33faac36ae",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "0ea1ca4dd23da369887993b739ba98b2b70e5f586786d8827e7abbb44bb9056f",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__21__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "task_id": "code_generation__21__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_4",
+      "task_toml_sha256": "d0e1b53bf3bb35445ab1aaab7878361b25456cb1b5025f2d3f652248bfa45f3f"
+    },
+    {
+      "baseline_sha256": "07c48a1f2cda13753894f849986f7d68cbf481d1c03edcfa0a63cd89ea2f6c14",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "ba32c3b13ec6153be602d66f8aad93f6e57553ef268f17a06fc10f85766ce814",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "18647d89acb2c2ec198cde653d41a43e296d882913b12df5634b863dcced0d57",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__22__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "task_id": "code_generation__22__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_5",
+      "task_toml_sha256": "fd7d5bba047cbb6624ccccc038859da9c84a0de7d5075cb23bfe7b2068839ce3"
+    },
+    {
+      "baseline_sha256": "805ba3d40542138f38ead178ca59ce45c292acafd41735c765c6bc0b2770f56e",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "4b560ed54fa34f3203da9e7575715968f8e25f50cea2c2b8830716d134d7284c",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "4edc5803d9fff96ad64522293ac35900108465ced8927875a9131f7d8b7dec85",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__23__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "task_id": "code_generation__23__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_6",
+      "task_toml_sha256": "28db6420875807a4050960587a6c485fbdacb4ec7e97e550c9d18dbb0c11c637"
+    },
+    {
+      "baseline_sha256": "a94f520af951293c4362fe4b2bf87d757d95f9357c2b9192b966587ffb1fa126",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "49d33ccfb74f48330771235012d8e4398b3892b3e320d6879a492165153b91c8",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "2ed57be627bb9c318734661c0ed0f75bf18eff3a67744b51d2eb9111e93eafd5",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__24__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "task_id": "code_generation__24__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_1",
+      "task_toml_sha256": "c64416b0c7a863c13a738963c29f7de254b48c595e42d0af86ecfd600ed256f6"
+    },
+    {
+      "baseline_sha256": "66662c4c6038dfe52596173616516b6078ed1cc8b8eae9cc673e2abcd808f42d",
+      "category": "code_generation",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "signature_only_generation_stub",
+      "header_files": [
+        "test_kernel_common.hpp"
+      ],
+      "kernel_family_id": "39b84ab21a345b0f0c7ae59efcd64950c553e0450b2852528abce4743eabbaf9",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "performance/axi_burst_performance",
+      "source_sha256": "e6a987bc1378d2eaf81bfd0ad547bb8564e46537a423f2438e290501519365c3",
+      "source_task_id": "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance",
+      "task_dir": "tasks/track_a_150/code_generation__25__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "task_id": "code_generation__25__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_2",
+      "task_toml_sha256": "4c8481cf247c7db4d68e3fe3ed6ecd0e45434bbf07930b143a3bdef385e571ef"
+    },
+    {
+      "baseline_sha256": "ee0ac7fe5e70bd3f7deaf5355d70779690746a3e97873b72ef4a3c6909175cc6",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "bf3118b1ec804858bc98afce751ab4386b0a991b044de7b80bf5f9a795e78fdf",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "hello_world",
+      "source_sha256": "434b4e7c8c48cff646537e4c7f68d37b77e81fcb1c7e996f1f4ed16e598983ee",
+      "source_task_id": "amd_accel__hello_world_src_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/hello_world",
+      "task_dir": "tasks/track_a_150/compile_repair__01__amd_accel__hello_world_src_vadd",
+      "task_id": "compile_repair__01__amd_accel__hello_world_src_vadd",
+      "task_toml_sha256": "a3f956faeb235cd39e95672f59169954068576ee5beb2c5743bf36d594d099c0"
+    },
+    {
+      "baseline_sha256": "d72cc3b0dc3fe22ab301bfde9e65ee21d9eb1be98beb0a980bb6c6c8117bd4d6",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "8b41da51f092c17d3354720f4b14eb110add9d1b3770073066d223a0c39630df",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/asynchronous_xrt",
+      "source_sha256": "5e1131e4d57d5bef0a80aa5a8bfbd4187fcfcd71dd13789e56419b2d76ce7d34",
+      "source_task_id": "amd_accel__host_xrt_asynchronous_xrt_src_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/asynchronous_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__02__amd_accel__host_xrt_asynchronous_xrt_src_vadd",
+      "task_id": "compile_repair__02__amd_accel__host_xrt_asynchronous_xrt_src_vadd",
+      "task_toml_sha256": "385607456e45e4d0574a52d7fc02e5c43522adb8d098b2a9d66899b320f5935d"
+    },
+    {
+      "baseline_sha256": "44aabc345b0499b41fe72901008f8ea617dd24ea652e4cec3d344678448dadcb",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "483fb44ba750aa543d5054e0dc91dd8546bb698276e1ad7017c477c24e901287",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/copy_buffer_xrt",
+      "source_sha256": "87d753c2d172062d806843559b27c5ec553e5f3b2c84346781fd27e0a888b4d1",
+      "source_task_id": "amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/copy_buffer_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__03__amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition",
+      "task_id": "compile_repair__03__amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition",
+      "task_toml_sha256": "14d36c55c3f778e583180a3c640518f3eecb535f5d0a28080e51f289440beeac"
+    },
+    {
+      "baseline_sha256": "6ce720650fdef0740bd5d49caf86519b6d746e04c2c4606b4ada7fb9881c35b1",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "8024c23cc25a78833f61ed590fc59c1785bab418cc6bf4b42e9404c78801425d",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/data_transfer_xrt",
+      "source_sha256": "bb157e60ea2e42c12cccc2003b84114c4b9a939b5092cfcf44b61488142638b6",
+      "source_task_id": "amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/data_transfer_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__04__amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel",
+      "task_id": "compile_repair__04__amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel",
+      "task_toml_sha256": "0a345757d9116a362adb9882a7e050ae979d8547edb976fb24d93300cbf119e0"
+    },
+    {
+      "baseline_sha256": "5ce97c6740b2eda714f65f6072524f21a67800c66383761046292807c42448f1",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "2364c72a92c8cde7d8efc10cd92ee9a62e0f9e9f3d2b59a97561c03f8024abf3",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/host_memory_copy_buffer_xrt",
+      "source_sha256": "85e362824422e495aa8634d6a76f5e3490e6563dcea4ba279f8514f51e25557b",
+      "source_task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/host_memory_copy_buffer_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__05__amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "task_id": "compile_repair__05__amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "task_toml_sha256": "c11191cfd11e51c02abbcd4136b0a31c202b5a3e76e5f9ddaeaebba556a50d1b"
+    },
+    {
+      "baseline_sha256": "446ad7e379f4a81af5598740cd20d4ffd127184b262a438a36935ccb92c5ca8e",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "7927300ffed9f4893364edd6c0aa0d638d7a89d6fc18a4b45af7cc4cc55a22bf",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+      "source_sha256": "cab59cb8754bf5eff21b15a65aa21fa0627b61f6b49a7f0886a1c67652139ef7",
+      "source_task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/host_memory_copy_kernel_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__06__amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "task_id": "compile_repair__06__amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "task_toml_sha256": "dca9be48766bd66dd8e28db506c3836031023e29cf1969bb0205538218c98380"
+    },
+    {
+      "baseline_sha256": "f1953237b7306d77ae986df64524cc469645e808ae002eb10571c609be68a54a",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "2523af81ae36e8c17bd5aa74c1e4051463986cf8ebf269507b9b56811aae068a",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/p2p_fpga2fpga_xrt",
+      "source_sha256": "633da7a0ce2f706622b72469f66e41c2c1f7a6d31362ff4918b8e412354a1278",
+      "source_task_id": "amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/p2p_fpga2fpga_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__07__amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment",
+      "task_id": "compile_repair__07__amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment",
+      "task_toml_sha256": "f03051bb226dfee70838e60497bfcddbbe60d953d6ec2dc56b6306d5010cc1e4"
+    },
+    {
+      "baseline_sha256": "fbd04f41f379ce84b3eccec43cb1b2657b2f8162d92cd3e9d8284680a4b410ed",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "153fbf47c140f9736a536c49281be9f018d62d170b6e5b43b9c1d2c4168f73d4",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/p2p_simple_xrt",
+      "source_sha256": "9f38723aec289583b5e6d1e62e6c909738d6871487230d806e0f83da5810cbd9",
+      "source_task_id": "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/p2p_simple_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__08__amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "task_id": "compile_repair__08__amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "task_toml_sha256": "9ea51f77e3dee98006c25968d625ec521747fcbdee578375c06e3efea2a8b965"
+    },
+    {
+      "baseline_sha256": "ee0ac7fe5e70bd3f7deaf5355d70779690746a3e97873b72ef4a3c6909175cc6",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "bf3118b1ec804858bc98afce751ab4386b0a991b044de7b80bf5f9a795e78fdf",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "hello_world",
+      "source_sha256": "434b4e7c8c48cff646537e4c7f68d37b77e81fcb1c7e996f1f4ed16e598983ee",
+      "source_task_id": "compile_repair__01__amd_accel__hello_world_src_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/hello_world",
+      "task_dir": "tasks/track_a_150/compile_repair__09__amd_accel__performance_host_global_bandwidth_src_kernel",
+      "task_id": "compile_repair__09__amd_accel__performance_host_global_bandwidth_src_kernel",
+      "task_toml_sha256": "32287a6d6837f5f0401400ca1d55f26d2bb43f054e518a1c405aea3ca89c1b29"
+    },
+    {
+      "baseline_sha256": "2a3676890dff39b18e49d804716f5aec4133b2a89a793afa5803bf09c60a4e81",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "62909785ace1ea235c8f2109bceaf9910342b3c33ad4eadf600110e2a5034016",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "sys_opt/kernel_swap",
+      "source_sha256": "151dcef39dacf584d4e41250104b71780ddc94c4d2a0f820e91e821839b89ff5",
+      "source_task_id": "amd_accel__sys_opt_kernel_swap_src_krnl_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/kernel_swap",
+      "task_dir": "tasks/track_a_150/compile_repair__10__amd_accel__sys_opt_kernel_swap_src_krnl_vadd",
+      "task_id": "compile_repair__10__amd_accel__sys_opt_kernel_swap_src_krnl_vadd",
+      "task_toml_sha256": "e51f101d16e690ddd43bdde86179199bda489a973dd6ee2b8def7dddfcdaf3ba"
+    },
+    {
+      "baseline_sha256": "d043fc0a6be139ea732052a02fbd494fca78643549edd3daa08382f8332ff549",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "0fe60fe9dd7a26c88324e5b798f55f61c710335d0589a9e4bcc00b22b5ae38ec",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "sys_opt/kernel_swap",
+      "source_sha256": "50b5ea63e363ff000944ff02c89887fb42d7559e4e50dda783b3b3d1a75d88dc",
+      "source_task_id": "amd_accel__sys_opt_kernel_swap_src_krnl_vmul",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/kernel_swap",
+      "task_dir": "tasks/track_a_150/compile_repair__11__amd_accel__sys_opt_kernel_swap_src_krnl_vmul",
+      "task_id": "compile_repair__11__amd_accel__sys_opt_kernel_swap_src_krnl_vmul",
+      "task_toml_sha256": "72e3845c3e96f9189788b52454747cad7f62578c8314025fcd90ac15e320cad7"
+    },
+    {
+      "baseline_sha256": "04f48d018898abf30dce1dbf260f65940a39e7e128bacbdbb5fba8303735bf7e",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "2602f6e36698c576fc45e2bc18a58fea3e2d644d8b2d5f215efd738e072327fb",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "sys_opt/multiple_devices",
+      "source_sha256": "39ad3aa87910ba05cefeb7627bc4f9d66ab0077d2344a5878bc6f2572c382e31",
+      "source_task_id": "amd_accel__sys_opt_multiple_devices_src_vector_addition",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/sys_opt/multiple_devices",
+      "task_dir": "tasks/track_a_150/compile_repair__12__amd_accel__sys_opt_multiple_devices_src_vector_addition",
+      "task_id": "compile_repair__12__amd_accel__sys_opt_multiple_devices_src_vector_addition",
+      "task_toml_sha256": "4694c968c6000062b41f0877551292bbe08874758f3adefc3402137b1973e4b9"
+    },
+    {
+      "baseline_sha256": "0d3a3ad3a6f3865f8871894c5c0cb20577101fa225f11db3acb7f620299d6145",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "86930fdcf7ab3d18fcf3c77424d91fd42aecd7e2f6bd383adba0004b0dea575d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Aggregation_Disaggregation/auto_disaggregation_of_struct",
+      "source_sha256": "67859a1e372a708bb0102ca2d0ce3a6a9cc488c1183af740a0e04a3b59bc5ff6",
+      "source_task_id": "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/auto_disaggregation_of_struct",
+      "task_dir": "tasks/track_a_150/compile_repair__13__amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+      "task_id": "compile_repair__13__amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct",
+      "task_toml_sha256": "77fb114d2e247058cf50709e734690f3397b8c141040aff06f1cc122156b2a2b"
+    },
+    {
+      "baseline_sha256": "c4e886b9702b3a6f665bca627d5faea79870af5b681bf0a61a153cabc07d2ea0",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "839b69ead0986b8d6d588a4981e6e7dcbdc90bc715ea4633e134019fcd6051e0",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Aggregation_Disaggregation/disaggregation_of_axis_port",
+      "source_sha256": "242231b9691f359f2b0d14080fff8433f3e9c4a9d03a3bbd1f131bd6363f13a5",
+      "source_task_id": "amd_intro__interface_aggregation_disaggregation_disaggregation_of_axis_port",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/disaggregation_of_axis_port",
+      "task_dir": "tasks/track_a_150/compile_repair__14__amd_intro__interface_aggregation_disaggregation_disaggregation_of_axis_port",
+      "task_id": "compile_repair__14__amd_intro__interface_aggregation_disaggregation_disaggregation_of_axis_port",
+      "task_toml_sha256": "421bdbcbcccc1903d6ea205abcf2121be23fcfb2972217c4abe9f23997cb2b57"
+    },
+    {
+      "baseline_sha256": "11153452b29fb907a60994a63ab81d9c067b61db8f66d14b00643082302840e1",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "ce18cd2aaf40ce072e5ce836308a96235a850fce43650d3e6e740478d0fa8b2b",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Aggregation_Disaggregation/struct_ii_issue",
+      "source_sha256": "eae88f88a187f6d7fa0b565bf992bb93981969b1db8f5a18392c423864dbd705",
+      "source_task_id": "amd_intro__interface_aggregation_disaggregation_struct_ii_issue",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/struct_ii_issue",
+      "task_dir": "tasks/track_a_150/compile_repair__15__amd_intro__interface_aggregation_disaggregation_struct_ii_issue",
+      "task_id": "compile_repair__15__amd_intro__interface_aggregation_disaggregation_struct_ii_issue",
+      "task_toml_sha256": "567d06e5ba9423d4c952f110c33e4855c88871f23cccf6510d4d2515556eef8d"
+    },
+    {
+      "baseline_sha256": "99b96ae984fa89667cd5b463104d51f3d40c77a9636630d8c037e1e97d3b0ad8",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "vadd.h"
+      ],
+      "kernel_family_id": "fa6facb915fecc52b3f8881ab1ec892a91e5fdd3f07d7a232c571818d740e17d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/burst_rw",
+      "source_sha256": "ac5c2a68ac5ef70b1026348d30043c5e303b27ad484530653cabefb964ec3f58",
+      "source_task_id": "amd_intro__interface_memory_burst_rw",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/burst_rw",
+      "task_dir": "tasks/track_a_150/compile_repair__16__amd_intro__interface_memory_burst_rw",
+      "task_id": "compile_repair__16__amd_intro__interface_memory_burst_rw",
+      "task_toml_sha256": "2fe0f47a05ec2bc4f72c997e470a9196fb49cc25855bfb66ae2d3cc1adde1369"
+    },
+    {
+      "baseline_sha256": "7eed442daaf014add45c77c43b529b70be28b3bade6e146e597931e6ff5d07de",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "hamming_window.h"
+      ],
+      "kernel_family_id": "b80c5ff3d571b5ae831f62e8ecc67c2edb8889dfaa92f9692e40c2f002ab0a88",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/coefficient_filter",
+      "source_sha256": "8e3d814175bc4d24d0beda2c9f694651e006c86c20a35b57ecb5d4a5482e32a6",
+      "source_task_id": "amd_intro__interface_memory_coefficient_filter",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/coefficient_filter",
+      "task_dir": "tasks/track_a_150/compile_repair__17__amd_intro__interface_memory_coefficient_filter",
+      "task_id": "compile_repair__17__amd_intro__interface_memory_coefficient_filter",
+      "task_toml_sha256": "e576678cf3aa3d85ee707c998237af48d411c6831b9243ef2fa5fb79392a525c"
+    },
+    {
+      "baseline_sha256": "ee0ac7fe5e70bd3f7deaf5355d70779690746a3e97873b72ef4a3c6909175cc6",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "bf3118b1ec804858bc98afce751ab4386b0a991b044de7b80bf5f9a795e78fdf",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "hello_world",
+      "source_sha256": "434b4e7c8c48cff646537e4c7f68d37b77e81fcb1c7e996f1f4ed16e598983ee",
+      "source_task_id": "amd_accel__hello_world_src_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/hello_world",
+      "task_dir": "tasks/track_a_150/compile_repair__18__amd_accel__hello_world_src_vadd",
+      "task_id": "compile_repair__18__amd_accel__hello_world_src_vadd",
+      "task_toml_sha256": "446e33c15c86b0d5e3abe0c24c38b1bf2d82ad51c0ff38f1e04d48e8191662ec"
+    },
+    {
+      "baseline_sha256": "d72cc3b0dc3fe22ab301bfde9e65ee21d9eb1be98beb0a980bb6c6c8117bd4d6",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "8b41da51f092c17d3354720f4b14eb110add9d1b3770073066d223a0c39630df",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/asynchronous_xrt",
+      "source_sha256": "5e1131e4d57d5bef0a80aa5a8bfbd4187fcfcd71dd13789e56419b2d76ce7d34",
+      "source_task_id": "amd_accel__host_xrt_asynchronous_xrt_src_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/asynchronous_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__19__amd_accel__host_xrt_asynchronous_xrt_src_vadd",
+      "task_id": "compile_repair__19__amd_accel__host_xrt_asynchronous_xrt_src_vadd",
+      "task_toml_sha256": "5d7ad3d6b826f65e529aa081481b79a52bc86d64a035fd3c85308f56ea6f3816"
+    },
+    {
+      "baseline_sha256": "44aabc345b0499b41fe72901008f8ea617dd24ea652e4cec3d344678448dadcb",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "483fb44ba750aa543d5054e0dc91dd8546bb698276e1ad7017c477c24e901287",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/copy_buffer_xrt",
+      "source_sha256": "87d753c2d172062d806843559b27c5ec553e5f3b2c84346781fd27e0a888b4d1",
+      "source_task_id": "amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/copy_buffer_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__20__amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition",
+      "task_id": "compile_repair__20__amd_accel__host_xrt_copy_buffer_xrt_src_vector_addition",
+      "task_toml_sha256": "252110cb34ca3a7dd01f16a10c41688af37ccb67e38ec6ddf0e57dfe1fc3cd2d"
+    },
+    {
+      "baseline_sha256": "6ce720650fdef0740bd5d49caf86519b6d746e04c2c4606b4ada7fb9881c35b1",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "8024c23cc25a78833f61ed590fc59c1785bab418cc6bf4b42e9404c78801425d",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/data_transfer_xrt",
+      "source_sha256": "bb157e60ea2e42c12cccc2003b84114c4b9a939b5092cfcf44b61488142638b6",
+      "source_task_id": "amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/data_transfer_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__21__amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel",
+      "task_id": "compile_repair__21__amd_accel__host_xrt_data_transfer_xrt_src_dummy_kernel",
+      "task_toml_sha256": "e999dac98882205d249e6c00d4b1ed37b9126dc1d4da3125ddc3b0cc509758fc"
+    },
+    {
+      "baseline_sha256": "5ce97c6740b2eda714f65f6072524f21a67800c66383761046292807c42448f1",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "2364c72a92c8cde7d8efc10cd92ee9a62e0f9e9f3d2b59a97561c03f8024abf3",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/host_memory_copy_buffer_xrt",
+      "source_sha256": "85e362824422e495aa8634d6a76f5e3490e6563dcea4ba279f8514f51e25557b",
+      "source_task_id": "amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/host_memory_copy_buffer_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__22__amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "task_id": "compile_repair__22__amd_accel__host_xrt_host_memory_copy_buffer_xrt_src_krnl_vadd",
+      "task_toml_sha256": "48badb6bea71fcbd97aa12c5765156c084ed0fa257eddfe5e702d0fdf925c7d8"
+    },
+    {
+      "baseline_sha256": "446ad7e379f4a81af5598740cd20d4ffd127184b262a438a36935ccb92c5ca8e",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "7927300ffed9f4893364edd6c0aa0d638d7a89d6fc18a4b45af7cc4cc55a22bf",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/host_memory_copy_kernel_xrt",
+      "source_sha256": "cab59cb8754bf5eff21b15a65aa21fa0627b61f6b49a7f0886a1c67652139ef7",
+      "source_task_id": "amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/host_memory_copy_kernel_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__23__amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "task_id": "compile_repair__23__amd_accel__host_xrt_host_memory_copy_kernel_xrt_src_copy_kernel",
+      "task_toml_sha256": "41b1ce46670bffba5b4e6f51806f541341d8dffe36a86082707edf53dfe34c30"
+    },
+    {
+      "baseline_sha256": "f1953237b7306d77ae986df64524cc469645e808ae002eb10571c609be68a54a",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "2523af81ae36e8c17bd5aa74c1e4051463986cf8ebf269507b9b56811aae068a",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/p2p_fpga2fpga_xrt",
+      "source_sha256": "633da7a0ce2f706622b72469f66e41c2c1f7a6d31362ff4918b8e412354a1278",
+      "source_task_id": "amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/p2p_fpga2fpga_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__24__amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment",
+      "task_id": "compile_repair__24__amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment",
+      "task_toml_sha256": "55062d67d5471e8f0947f8b9f090539e03d00ec5946c687c8d13f9982c05076d"
+    },
+    {
+      "baseline_sha256": "fbd04f41f379ce84b3eccec43cb1b2657b2f8162d92cd3e9d8284680a4b410ed",
+      "category": "compile_repair",
+      "expected_baseline_state": "compile_fail",
+      "fault_derivation": "preprocessor_compile_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "153fbf47c140f9736a536c49281be9f018d62d170b6e5b43b9c1d2c4168f73d4",
+      "license": "MIT",
+      "repo_commit": "81187602355a7c2b666351154c5acca2074cae64",
+      "requires_cosim": false,
+      "source_path": "host_xrt/p2p_simple_xrt",
+      "source_sha256": "9f38723aec289583b5e6d1e62e6c909738d6871487230d806e0f83da5810cbd9",
+      "source_task_id": "amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "source_url": "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/p2p_simple_xrt",
+      "task_dir": "tasks/track_a_150/compile_repair__25__amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "task_id": "compile_repair__25__amd_accel__host_xrt_p2p_simple_xrt_src_adder",
+      "task_toml_sha256": "c09b52e2e497d8440516a517f27592b6b15a0e3f9e83ae0b75a0e70d0dfd2e9e"
+    },
+    {
+      "baseline_sha256": "7ee617a74f0ec149658847e62fbddc041c9de5ce84cad89015cb37fc8b7d5d0d",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "ecc_flags.h"
+      ],
+      "kernel_family_id": "dd708bebede63e93fd62d6fa60e2dec723f64240ae1d312c15df38f2d3110971",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/ecc_flags",
+      "source_sha256": "a4ccf3252797495141285ff28e52cdfc6fc60366e4ad75f6b3260a317389bf8c",
+      "source_task_id": "amd_intro__interface_memory_ecc_flags",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/ecc_flags",
+      "task_dir": "tasks/track_a_150/synthesis_repair__01__amd_intro__interface_memory_ecc_flags",
+      "task_id": "synthesis_repair__01__amd_intro__interface_memory_ecc_flags",
+      "task_toml_sha256": "1582f725ff414d5695d2549169d96f0884b41ed5a5187a52c80990583c964c58"
+    },
+    {
+      "baseline_sha256": "316e8ca872876f232cba939e49fabe12c8949f7fa84d153a2c8ac93c2d537732",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "vadd.h"
+      ],
+      "kernel_family_id": "906844b8d9113321c9013d085737ed1bdd5e5db28c637866784591912f63748d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/lmem_2rw",
+      "source_sha256": "a16c1b43bd6da1d9426ce6ed5e99ef32f92c8c2a657c3878c860401751a422de",
+      "source_task_id": "amd_intro__interface_memory_lmem_2rw",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/lmem_2rw",
+      "task_dir": "tasks/track_a_150/synthesis_repair__02__amd_intro__interface_memory_lmem_2rw",
+      "task_id": "synthesis_repair__02__amd_intro__interface_memory_lmem_2rw",
+      "task_toml_sha256": "80a25f4562a3df5d430de15d95ade3333c4b4b6aa30b44bcd7fba09870fb351c"
+    },
+    {
+      "baseline_sha256": "e6c1566439551fda8615c637818f574cb829f2b4f0d0694a616298506406744f",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "981a22928e9d49ec4cc1866dd1d7f92d66a759f8721e65433f77033638efe694",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "source_sha256": "f263ee576a9433d949e39cb1a22abbdf09205e6ea5265589addc7d84801cd014",
+      "source_task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "task_dir": "tasks/track_a_150/synthesis_repair__03__amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "task_id": "synthesis_repair__03__amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "task_toml_sha256": "294528db4636bdcf2c644ac9037eb93ccb2bc5786fcab1b8f1d5eb8ded544ed1"
+    },
+    {
+      "baseline_sha256": "aefa0b50829486b704151785637ac053d35fc534739b8c1b9a83e8e8fd74fc25",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "e842f3800ebd9875090401e17401214794dd316aabb8d3aed25221a3f013efb4",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "source_sha256": "96134d6be69f0ea0bd27d454a1330d3b168937d94754f92e70a2d6ec6f9fc8b7",
+      "source_task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "task_dir": "tasks/track_a_150/synthesis_repair__04__amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "task_id": "synthesis_repair__04__amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "task_toml_sha256": "2db8292b8ea6dd7e8be029dcb45c755ebf02e29e6214550dd921a9b9e73d0ddc"
+    },
+    {
+      "baseline_sha256": "5a62214f8c0a03e2953d89d6d8813b28d5b49c9817d744212fe9219576de57d6",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "4a971c85b2e19528ca1c42e2292d12942aeeb28b813fc471b1676082384c33f9",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_with_conditionals",
+      "source_sha256": "15b63a3488cdb6c0bbfb0aa7854b5b96541d3e874961ce901dfad8d1dfdd4b16",
+      "source_task_id": "amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_with_conditionals",
+      "task_dir": "tasks/track_a_150/synthesis_repair__05__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+      "task_id": "synthesis_repair__05__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+      "task_toml_sha256": "fa425aa178bc38870e15e42ac046c8e96a45256ec8dee3d301e8072192744126"
+    },
+    {
+      "baseline_sha256": "21eca2e69eed622af3e45f4c105fe961334081d8fb43b4f6cd7b7ea97a1509bd",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "d73b4d3ea9989e84dd4ce9124b223cfa42e1615274f0c7fd69391f21e299d35d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/max_widen_port_width",
+      "source_sha256": "e2689b66cb53647c821ffe1c2dbfb13acc8240cef28dca2f4ef6a63033c03030",
+      "source_task_id": "amd_intro__interface_memory_max_widen_port_width",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/max_widen_port_width",
+      "task_dir": "tasks/track_a_150/synthesis_repair__06__amd_intro__interface_memory_max_widen_port_width",
+      "task_id": "synthesis_repair__06__amd_intro__interface_memory_max_widen_port_width",
+      "task_toml_sha256": "f375a79026ff99a4c477d3f5a3bd4f7ac8b03c8257f4d91c2e5a41ea004f4dea"
+    },
+    {
+      "baseline_sha256": "b6efb1d41ccca1c4ab9a8e1c136402965c952989727f55e7d84407922354dba9",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "mem_bottleneck_resolved.h"
+      ],
+      "kernel_family_id": "4b177507bed3844ff0b14cf3535f7f03fdde80d35116937cbaceabe3b7117dce",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/memory_bottleneck/modified",
+      "source_sha256": "d35802c6242173bd18ee5b69fd623ddd5a0683c835e99cf306270dc018ca034a",
+      "source_task_id": "amd_intro__interface_memory_memory_bottleneck_modified",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/memory_bottleneck/modified",
+      "task_dir": "tasks/track_a_150/synthesis_repair__07__amd_intro__interface_memory_memory_bottleneck_modified",
+      "task_id": "synthesis_repair__07__amd_intro__interface_memory_memory_bottleneck_modified",
+      "task_toml_sha256": "cc2146874c6617d1a9da6999043366813b2dacfde27a237e9e4c3f96ef210a54"
+    },
+    {
+      "baseline_sha256": "1785a04ab5334cb9cd3d1873d941837801ed6d2ffeac520551ebe35651720c2c",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "mem_bottleneck.h"
+      ],
+      "kernel_family_id": "25549f0cc56ebacffa228b0269386168330ce32511dfc8ec0546e4041af4c3df",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/memory_bottleneck/original",
+      "source_sha256": "000f2b05227b4d517e11ff779d23d6dac9d4c02c9bc86d237d98c67e330a1a28",
+      "source_task_id": "amd_intro__interface_memory_memory_bottleneck_original",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/memory_bottleneck/original",
+      "task_dir": "tasks/track_a_150/synthesis_repair__08__amd_intro__interface_memory_memory_bottleneck_original",
+      "task_id": "synthesis_repair__08__amd_intro__interface_memory_memory_bottleneck_original",
+      "task_toml_sha256": "b88189a68c60d79b67530e84312f2acf17845b2841b3ed0f64a6d1a8a8a6c896"
+    },
+    {
+      "baseline_sha256": "6b137215e43896a2163b0aad177d6a244a94d39eebe06a8c245231509d7dc121",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "lookup_math.h"
+      ],
+      "kernel_family_id": "4c12d71524174fe5a657c159d66838af19c466b6a40a1bf2c6d9197f089b773c",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/rom_lookup_table_math",
+      "source_sha256": "968183ec7cbabcb561759a8374afd7f374f593804afe3d703f747d14ca4f6d98",
+      "source_task_id": "amd_intro__interface_memory_rom_lookup_table_math",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/rom_lookup_table_math",
+      "task_dir": "tasks/track_a_150/synthesis_repair__09__amd_intro__interface_memory_rom_lookup_table_math",
+      "task_id": "synthesis_repair__09__amd_intro__interface_memory_rom_lookup_table_math",
+      "task_toml_sha256": "6206ea2d6e6ee7249696896990e2fe7d7f72a1af9532c8c5819be313639547fa"
+    },
+    {
+      "baseline_sha256": "b2621518ff758420af24cfb13b818485b217a2a17162f26f24d5437f66554a42",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "b35623de9f1eab1717d17b6e0bf0162b07f0531eb2ab4a6c3cccf6b0a50ae698",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/using_axi_master",
+      "source_sha256": "5b1cc9aba94902e437da3416806db8742a04f1c65a82e7b4fe032c3ca08754af",
+      "source_task_id": "amd_intro__interface_memory_using_axi_master",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/using_axi_master",
+      "task_dir": "tasks/track_a_150/synthesis_repair__10__amd_intro__interface_memory_using_axi_master",
+      "task_id": "synthesis_repair__10__amd_intro__interface_memory_using_axi_master",
+      "task_toml_sha256": "3474ba854b6b74a73a4df1653c2da0a0b9291f95430cb03b3b641196b1e2555c"
+    },
+    {
+      "baseline_sha256": "e31e920483469a975fca60aa1320ace7dbdebf4572aed4bc77e06951f3e4bb5e",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "70aefe62ab5b006add8fe318e0c6d79a7533921dbfc54713726e6dd0e00dba12",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Register/using_axi_lite_with_user_defined_offset",
+      "source_sha256": "a7c524d7cba775823955c5c19462f2a3fd7639d5a64b093132367ed51e1632e9",
+      "source_task_id": "amd_intro__interface_register_using_axi_lite_with_user_defined_offset",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Register/using_axi_lite_with_user_defined_offset",
+      "task_dir": "tasks/track_a_150/synthesis_repair__11__amd_intro__interface_register_using_axi_lite_with_user_defined_offset",
+      "task_id": "synthesis_repair__11__amd_intro__interface_register_using_axi_lite_with_user_defined_offset",
+      "task_toml_sha256": "9ac314c2206954dee86f354dc6198ac02be96537ecacbadcc3a253a10959678a"
+    },
+    {
+      "baseline_sha256": "635695ae7e6882ca7b6c4c239bb47dbf765a671c345da1e66d43e31988227b49",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "838ef36b25662a28caecc49cf2679f05642ba4d22176b1c5fb04fee3e1396a18",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Streaming/axi_stream_custom_side_channel_data_2",
+      "source_sha256": "d3d35dbad9d23742bb471a3c39d4df28b125649c2483f274abda6f5d64fc60d2",
+      "source_task_id": "amd_intro__interface_streaming_axi_stream_custom_side_channel_data_2",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axi_stream_custom_side_channel_data_2",
+      "task_dir": "tasks/track_a_150/synthesis_repair__12__amd_intro__interface_streaming_axi_stream_custom_side_channel_data_2",
+      "task_id": "synthesis_repair__12__amd_intro__interface_streaming_axi_stream_custom_side_channel_data_2",
+      "task_toml_sha256": "c1ee8e70bde5ea9c654e78828d1919286ebf00b44a9749581223a7137cf883c2"
+    },
+    {
+      "baseline_sha256": "0879a8745aaf0accc7efdb4c2a39fce285edd0e262e30843c74bb55450088f3c",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "track_a_contract.h"
+      ],
+      "kernel_family_id": "bea6076f90bd55ad7243bf40a5c6f6027d1d3f0c936f0b2e0f43be073076f452",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Streaming/axis_array_stream_no_side_channel_data",
+      "source_sha256": "8001c1c290cf08735f2c1dc5e8e9730c8fadb1d09eb270b4fe496a515d22e511",
+      "source_task_id": "amd_intro__interface_streaming_axis_array_stream_no_side_channel_data",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axis_array_stream_no_side_channel_data",
+      "task_dir": "tasks/track_a_150/synthesis_repair__13__amd_intro__interface_streaming_axis_array_stream_no_side_channel_data",
+      "task_id": "synthesis_repair__13__amd_intro__interface_streaming_axis_array_stream_no_side_channel_data",
+      "task_toml_sha256": "2e67fd9f85a9548a8051ebf6575ef55a50a283304b96266faf3b247907fdb4d9"
+    },
+    {
+      "baseline_sha256": "db8c82d217d0268eb7375b3a4f40bf2f3e229ad647843be2bace95a086d42922",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "a9a1a0253a363087473e97ee9cb464f36b761dfb5f91326e78c913144ecc1313",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Streaming/using_array_of_streams",
+      "source_sha256": "89d6c0b69fc759ea91eb36c1a3056723f9e657091195c6041b2eddf7df09610d",
+      "source_task_id": "amd_intro__interface_streaming_using_array_of_streams",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/using_array_of_streams",
+      "task_dir": "tasks/track_a_150/synthesis_repair__14__amd_intro__interface_streaming_using_array_of_streams",
+      "task_id": "synthesis_repair__14__amd_intro__interface_streaming_using_array_of_streams",
+      "task_toml_sha256": "8e2b7d04e65f533010ce343fa19c4d2aaac238e8ccf72054fa880c0f8659c549"
+    },
+    {
+      "baseline_sha256": "4ea2c7f1a59877a5fab1606c608159ff69d09738cc925bb9d23cea3cc01bdda8",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "734aadcb943b4e3ce8245cf4ae320f4d37505e0d0abe65893f992cf9c36685f1",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Streaming/using_axi_stream_with_side_channel_data",
+      "source_sha256": "4997777c5791f0f658abdd14bdc7f903af01c3e4545e6ea31b0a355e831d1c35",
+      "source_task_id": "amd_intro__interface_streaming_using_axi_stream_with_side_channel_data",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/using_axi_stream_with_side_channel_data",
+      "task_dir": "tasks/track_a_150/synthesis_repair__15__amd_intro__interface_streaming_using_axi_stream_with_side_channel_data",
+      "task_id": "synthesis_repair__15__amd_intro__interface_streaming_using_axi_stream_with_side_channel_data",
+      "task_toml_sha256": "3ffd8e26140f6d50f08cbc0f3237d05d4370ce6098ac5b562a784bbffcb30658"
+    },
+    {
+      "baseline_sha256": "e61a5bf750941c5f5e3369e9a7d3cdf5057be29d38097e186840b8fc9aa517b3",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "a4e1595ba350ff74f68614f64203a46c4ab9b9b8c3ec02c0c31995d9920e4b93",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Streaming/using_axi_stream_with_struct",
+      "source_sha256": "df662a86c45eb05142974b29bfa2907ff1ad25ddea3098df29ead2b21e931aa7",
+      "source_task_id": "amd_intro__interface_streaming_using_axi_stream_with_struct",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/using_axi_stream_with_struct",
+      "task_dir": "tasks/track_a_150/synthesis_repair__16__amd_intro__interface_streaming_using_axi_stream_with_struct",
+      "task_id": "synthesis_repair__16__amd_intro__interface_streaming_using_axi_stream_with_struct",
+      "task_toml_sha256": "e6e9e8d33fdc8e63fda40e00209810cd8f6fe8be8f3d939cd2ab32fbcc05386b"
+    },
+    {
+      "baseline_sha256": "5cb3d8b362b67c4e645fe461dae76a5d2692644cce4e6aefde017e0f6747d9c1",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "pointer_basic.h"
+      ],
+      "kernel_family_id": "540fbfa7e7d316e37cbe2a317350d39cdf9039d54e812af1cd959721ba19fee0",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Migration/tcl_scripts",
+      "source_sha256": "4d8590905b0a86313722c9d6825f94bd63c5c6a8aa57de28ebe09079ef7d766d",
+      "source_task_id": "amd_intro__migration_tcl_scripts",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Migration/tcl_scripts",
+      "task_dir": "tasks/track_a_150/synthesis_repair__17__amd_intro__migration_tcl_scripts",
+      "task_id": "synthesis_repair__17__amd_intro__migration_tcl_scripts",
+      "task_toml_sha256": "4304c936cbf174c42ada80ccd98e5335908a52545eb65634b9140c60ad50a056"
+    },
+    {
+      "baseline_sha256": "7ee617a74f0ec149658847e62fbddc041c9de5ce84cad89015cb37fc8b7d5d0d",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "ecc_flags.h"
+      ],
+      "kernel_family_id": "dd708bebede63e93fd62d6fa60e2dec723f64240ae1d312c15df38f2d3110971",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/ecc_flags",
+      "source_sha256": "a4ccf3252797495141285ff28e52cdfc6fc60366e4ad75f6b3260a317389bf8c",
+      "source_task_id": "amd_intro__interface_memory_ecc_flags",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/ecc_flags",
+      "task_dir": "tasks/track_a_150/synthesis_repair__18__amd_intro__interface_memory_ecc_flags",
+      "task_id": "synthesis_repair__18__amd_intro__interface_memory_ecc_flags",
+      "task_toml_sha256": "5a502e427a1efec0851dad64d341702e37f82d81e750bf53c4af29e8deb4caf3"
+    },
+    {
+      "baseline_sha256": "316e8ca872876f232cba939e49fabe12c8949f7fa84d153a2c8ac93c2d537732",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "vadd.h"
+      ],
+      "kernel_family_id": "906844b8d9113321c9013d085737ed1bdd5e5db28c637866784591912f63748d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/lmem_2rw",
+      "source_sha256": "a16c1b43bd6da1d9426ce6ed5e99ef32f92c8c2a657c3878c860401751a422de",
+      "source_task_id": "amd_intro__interface_memory_lmem_2rw",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/lmem_2rw",
+      "task_dir": "tasks/track_a_150/synthesis_repair__19__amd_intro__interface_memory_lmem_2rw",
+      "task_id": "synthesis_repair__19__amd_intro__interface_memory_lmem_2rw",
+      "task_toml_sha256": "31389d0c691b1bbd59bbb1a84912cab0139130505b467d021b693b61fa1e8d5d"
+    },
+    {
+      "baseline_sha256": "e6c1566439551fda8615c637818f574cb829f2b4f0d0694a616298506406744f",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "981a22928e9d49ec4cc1866dd1d7f92d66a759f8721e65433f77033638efe694",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "source_sha256": "f263ee576a9433d949e39cb1a22abbdf09205e6ea5265589addc7d84801cd014",
+      "source_task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "task_dir": "tasks/track_a_150/synthesis_repair__20__amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "task_id": "synthesis_repair__20__amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "task_toml_sha256": "a4de2f2098794c2c089cea3718b51ca558e20e901634c864ca2a6059bf6955b1"
+    },
+    {
+      "baseline_sha256": "aefa0b50829486b704151785637ac053d35fc534739b8c1b9a83e8e8fd74fc25",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "e842f3800ebd9875090401e17401214794dd316aabb8d3aed25221a3f013efb4",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "source_sha256": "96134d6be69f0ea0bd27d454a1330d3b168937d94754f92e70a2d6ec6f9fc8b7",
+      "source_task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "task_dir": "tasks/track_a_150/synthesis_repair__21__amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "task_id": "synthesis_repair__21__amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "task_toml_sha256": "e29ceee08fdce022ac4b8e98aede2f038cddc60cd1bf32bc1a173461dfe907ea"
+    },
+    {
+      "baseline_sha256": "5a62214f8c0a03e2953d89d6d8813b28d5b49c9817d744212fe9219576de57d6",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "4a971c85b2e19528ca1c42e2292d12942aeeb28b813fc471b1676082384c33f9",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_with_conditionals",
+      "source_sha256": "15b63a3488cdb6c0bbfb0aa7854b5b96541d3e874961ce901dfad8d1dfdd4b16",
+      "source_task_id": "amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_with_conditionals",
+      "task_dir": "tasks/track_a_150/synthesis_repair__22__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+      "task_id": "synthesis_repair__22__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+      "task_toml_sha256": "8492a11e86fe1316aeefb2c684b5d9b735af2fe6107f3d645cf3e5171a033c53"
+    },
+    {
+      "baseline_sha256": "21eca2e69eed622af3e45f4c105fe961334081d8fb43b4f6cd7b7ea97a1509bd",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "d73b4d3ea9989e84dd4ce9124b223cfa42e1615274f0c7fd69391f21e299d35d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/max_widen_port_width",
+      "source_sha256": "e2689b66cb53647c821ffe1c2dbfb13acc8240cef28dca2f4ef6a63033c03030",
+      "source_task_id": "amd_intro__interface_memory_max_widen_port_width",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/max_widen_port_width",
+      "task_dir": "tasks/track_a_150/synthesis_repair__23__amd_intro__interface_memory_max_widen_port_width",
+      "task_id": "synthesis_repair__23__amd_intro__interface_memory_max_widen_port_width",
+      "task_toml_sha256": "c316ae9bdca0f4a94111c76c7c7c14aeb28a6765d0951fa73921ed88f46dd70f"
+    },
+    {
+      "baseline_sha256": "b6efb1d41ccca1c4ab9a8e1c136402965c952989727f55e7d84407922354dba9",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "mem_bottleneck_resolved.h"
+      ],
+      "kernel_family_id": "4b177507bed3844ff0b14cf3535f7f03fdde80d35116937cbaceabe3b7117dce",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/memory_bottleneck/modified",
+      "source_sha256": "d35802c6242173bd18ee5b69fd623ddd5a0683c835e99cf306270dc018ca034a",
+      "source_task_id": "amd_intro__interface_memory_memory_bottleneck_modified",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/memory_bottleneck/modified",
+      "task_dir": "tasks/track_a_150/synthesis_repair__24__amd_intro__interface_memory_memory_bottleneck_modified",
+      "task_id": "synthesis_repair__24__amd_intro__interface_memory_memory_bottleneck_modified",
+      "task_toml_sha256": "5fb7b45717ecaf47d3c27605e9e4574f6a5bbaf1c8042c5e9064eb0170b5bbda"
+    },
+    {
+      "baseline_sha256": "1785a04ab5334cb9cd3d1873d941837801ed6d2ffeac520551ebe35651720c2c",
+      "category": "synthesis_repair",
+      "expected_baseline_state": "synth_fail",
+      "fault_derivation": "synthesis_only_preprocessor_error",
+      "header_files": [
+        "mem_bottleneck.h"
+      ],
+      "kernel_family_id": "25549f0cc56ebacffa228b0269386168330ce32511dfc8ec0546e4041af4c3df",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/memory_bottleneck/original",
+      "source_sha256": "000f2b05227b4d517e11ff779d23d6dac9d4c02c9bc86d237d98c67e330a1a28",
+      "source_task_id": "amd_intro__interface_memory_memory_bottleneck_original",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/memory_bottleneck/original",
+      "task_dir": "tasks/track_a_150/synthesis_repair__25__amd_intro__interface_memory_memory_bottleneck_original",
+      "task_id": "synthesis_repair__25__amd_intro__interface_memory_memory_bottleneck_original",
+      "task_toml_sha256": "e6774123afe7ff7e43c3f66d9f93319a1fcdebbfa9f2d15307b716605d8ff570"
+    },
+    {
+      "baseline_sha256": "da72f6307ba696887cd3977a5cccafca396ce37e1e8dcb730c31f272c102bcb8",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "986c6e1b239d8fad8aba7ac0075d358164bedd61052e4d5bd162b4bbdeb82bde",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "source_sha256": "cc2b82a27e302fae894f35f84fd0ba01b1f8e2c4d6ef86bf34d4a47f878c8119",
+      "source_task_id": "amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "task_dir": "tasks/track_a_150/functional_repair__01__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "task_id": "functional_repair__01__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "task_toml_sha256": "3259f45adaa8590d8ebffdabcd3937398b1ce55cbeb9546ba221028b8b3eb59d"
+    },
+    {
+      "baseline_sha256": "5203165b25f52f4c0852af69b6187c857778796cef42a8318edc43ab44e21898",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "1611679779952ec13d5132ac405d613a27b4fba0d7a0c11ecd145c5f9c47c548",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/initialization_and_reset/static_array_ROM",
+      "source_sha256": "dd0c0cf9ce29722301775368b89f5c9d70094c20ad448950959fc40b880e33bf",
+      "source_task_id": "amd_intro__misc_initialization_and_reset_static_array_rom",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_ROM",
+      "task_dir": "tasks/track_a_150/functional_repair__02__amd_intro__misc_initialization_and_reset_static_array_rom",
+      "task_id": "functional_repair__02__amd_intro__misc_initialization_and_reset_static_array_rom",
+      "task_toml_sha256": "b1cd27836828592902414f79ea27b813eeced11724746df25f714dce08ebe142"
+    },
+    {
+      "baseline_sha256": "74794183dce9eae3d53001c437f1c894df8fb04424b48c59b6f44ccae056c67d",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "malloc_removed.h"
+      ],
+      "kernel_family_id": "eaef9484c01da32d2e661a73c66bb16f5d028d49da5b5848882e1c1d677fef9e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/malloc_removed",
+      "source_sha256": "77a918224fbae77d7e04ec4d960aed697f8a76e66865967bbb8de6a773144b11",
+      "source_task_id": "amd_intro__misc_malloc_removed",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/malloc_removed",
+      "task_dir": "tasks/track_a_150/functional_repair__03__amd_intro__misc_malloc_removed",
+      "task_id": "functional_repair__03__amd_intro__misc_malloc_removed",
+      "task_toml_sha256": "15d0a8b8306beffe52b51e72e60e6978c125a2b5a52037ad7422a216e4b458de"
+    },
+    {
+      "baseline_sha256": "5fac011ed22b4e1a18c9ca6d2f7033edaf108aba2af100183cee91ce6ff8e21a",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "673861431e59bca6f6c51ea31d7835839f2d17a4a5ad7ca87e24388c1f9b8ab2",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/rtl_as_blackbox",
+      "source_sha256": "dd0824663e7fe8b5c66a5bf1d47ed99ec6b41b9e78a59b222924d82e25bcd1cb",
+      "source_task_id": "amd_intro__misc_rtl_as_blackbox",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/rtl_as_blackbox",
+      "task_dir": "tasks/track_a_150/functional_repair__04__amd_intro__misc_rtl_as_blackbox",
+      "task_id": "functional_repair__04__amd_intro__misc_rtl_as_blackbox",
+      "task_toml_sha256": "114a8744f1b40f6455c020f096249e01c94a6b08c68c12e1e13c14046cc46fcf"
+    },
+    {
+      "baseline_sha256": "847ac0a9c22478636bb762bd3c92acff04c830865e3b20571e2f29f1581a8775",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "dot_product.h"
+      ],
+      "kernel_family_id": "0b458c9963489773473e3bd645fe91f1c499bfe29a2dc37c4aa33de5bd14975b",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/conditional_control_of_pragmas/using_defines",
+      "source_sha256": "7856dc077ab659149050856843c1b9a565c87e492564721c35f3cc6fa99ed69b",
+      "source_task_id": "amd_intro__modeling_conditional_control_of_pragmas_using_defines",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_defines",
+      "task_dir": "tasks/track_a_150/functional_repair__05__amd_intro__modeling_conditional_control_of_pragmas_using_defines",
+      "task_id": "functional_repair__05__amd_intro__modeling_conditional_control_of_pragmas_using_defines",
+      "task_toml_sha256": "5c0a26e8177b4ff74a9e4bf05181ef65226c4b57477cbb56d4e22236729c9b20"
+    },
+    {
+      "baseline_sha256": "8c9a337e896cee6cbfd19b19c7616eb9598f6514eb6ec577b05e73ecf064a6c6",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "adder.h"
+      ],
+      "kernel_family_id": "530571ccd8e642d4ecc10432678f4ea4fadd7876a7cf2bca3f65d50ea4ecf44b",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/conditional_control_of_pragmas/using_template_function",
+      "source_sha256": "8aac9e0b411376cd46ff3c9d904458b4f026280b78279272dbcb49ddc44bb294",
+      "source_task_id": "amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_template_function",
+      "task_dir": "tasks/track_a_150/functional_repair__06__amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "task_id": "functional_repair__06__amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "task_toml_sha256": "1c708622609155001a57a059e02594575eb728804ad7279d339cdb23fd102584"
+    },
+    {
+      "baseline_sha256": "4e37e64a41f503c76889be45cf9cc736da4cbd7fb620e8b8487d3feb5b40b9c4",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "cpp_template.h"
+      ],
+      "kernel_family_id": "33b3b24177dacb6f349574c295d7f1a2b9c982474a63f7a5e7d5b7363a26bb09",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/cpp_templates_for_multiple_instances",
+      "source_sha256": "6d9064e41c1725a80004d0475545f4af6d2497f243e971b312c8c881fb88bfcb",
+      "source_task_id": "amd_intro__modeling_cpp_templates_for_multiple_instances",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/cpp_templates_for_multiple_instances",
+      "task_dir": "tasks/track_a_150/functional_repair__07__amd_intro__modeling_cpp_templates_for_multiple_instances",
+      "task_id": "functional_repair__07__amd_intro__modeling_cpp_templates_for_multiple_instances",
+      "task_toml_sha256": "265a6eb557e303ee1a016463057446e9d66f4c4899ca06df66529aad34e99942"
+    },
+    {
+      "baseline_sha256": "d9d9e4f9497768849cd4c8d4f247db6e558481f306e59e92688e6fe36b1b807e",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "fxp_sqrt.h",
+        "fxp_sqrt_top.h"
+      ],
+      "kernel_family_id": "0b62e3ca3687388f893b201ef6dd134145dba94ceba19a14b64b9a12324e4562",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/fixed_point_sqrt",
+      "source_sha256": "7e6b895758e1d3334b5a2c99aeede9c830facb5bbba8dba05060d0761902be7a",
+      "source_task_id": "amd_intro__modeling_fixed_point_sqrt",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/fixed_point_sqrt",
+      "task_dir": "tasks/track_a_150/functional_repair__08__amd_intro__modeling_fixed_point_sqrt",
+      "task_id": "functional_repair__08__amd_intro__modeling_fixed_point_sqrt",
+      "task_toml_sha256": "7458b6f40e4b86a075aa45ea0bd6f7e945aa5cbeac6e8eef152b0d61ff02c7ad"
+    },
+    {
+      "baseline_sha256": "2786da3e82498e3bcae51e688ed9dca118875b474c387f9f68e915ffb93bd01d",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "pointer_arith.h"
+      ],
+      "kernel_family_id": "ab79648da33be222f4840716be755551b85f2066bd4bafb81cdb7bca2b12e53f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/Pointers/basic_arithmetic",
+      "source_sha256": "71af307c11830c74aca39a1778708a439177ca2aa75d7ea1f487a1d8ed0253ca",
+      "source_task_id": "amd_intro__modeling_pointers_basic_arithmetic",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/basic_arithmetic",
+      "task_dir": "tasks/track_a_150/functional_repair__09__amd_intro__modeling_pointers_basic_arithmetic",
+      "task_id": "functional_repair__09__amd_intro__modeling_pointers_basic_arithmetic",
+      "task_toml_sha256": "9cca3751db5b63c438d9ec7a4999589cdbeb94cf1942813f3299807836f2e478"
+    },
+    {
+      "baseline_sha256": "00903e6b6362d9bb522e6211dd999f6b9695a3fe329475fded7cc647abeaa32e",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "pointer_multi.h"
+      ],
+      "kernel_family_id": "15a63a0868e4871af09170367d2a280bc6adf4ce4ff61e6ffd20a7e3bba0243b",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/Pointers/multiple_pointers",
+      "source_sha256": "c39e70d767db3400eb79f8991eed201c46183f3d07514f71fd2ec5ddf87f8713",
+      "source_task_id": "amd_intro__modeling_pointers_multiple_pointers",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/multiple_pointers",
+      "task_dir": "tasks/track_a_150/functional_repair__10__amd_intro__modeling_pointers_multiple_pointers",
+      "task_id": "functional_repair__10__amd_intro__modeling_pointers_multiple_pointers",
+      "task_toml_sha256": "209450f5172d807c8426029438e31ac4a9c066769b08419f66a3117ec3a38a5c"
+    },
+    {
+      "baseline_sha256": "4449c3103c13b678d1744bc40ee68a659f75950a5eefd18d2e7c5da9f86877b5",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "pointer_cast_native.h"
+      ],
+      "kernel_family_id": "e01f82e2e33847e10df13885bccebd384935f4340ddcc9a0362d5c13cef87e30",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/Pointers/native_casts",
+      "source_sha256": "f7cb567c9fad7b90c7ad808ef2e23d791e66cb92c012be61728f661d86ad9566",
+      "source_task_id": "amd_intro__modeling_pointers_native_casts",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/native_casts",
+      "task_dir": "tasks/track_a_150/functional_repair__11__amd_intro__modeling_pointers_native_casts",
+      "task_id": "functional_repair__11__amd_intro__modeling_pointers_native_casts",
+      "task_toml_sha256": "5be6a6f229cab22ac37d5b242826ebf0392a29f22b49e560a9def4715b770f83"
+    },
+    {
+      "baseline_sha256": "2e133847483d0a84369ef053c2caec14cb7025bdb9a8aaa6cc6f654c0fea1f4b",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "pointer_stream_better.h"
+      ],
+      "kernel_family_id": "a30d6cec30f172f18ebbc0c572476eabeaff4188002c0f716f5292d6d06eef5e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/Pointers/stream_better",
+      "source_sha256": "0cf5924c8f3230eca1c346fb4779e7c66716a22d2b1d022a74d15240cb463d8e",
+      "source_task_id": "amd_intro__modeling_pointers_stream_better",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/stream_better",
+      "task_dir": "tasks/track_a_150/functional_repair__12__amd_intro__modeling_pointers_stream_better",
+      "task_id": "functional_repair__12__amd_intro__modeling_pointers_stream_better",
+      "task_toml_sha256": "caf46e37a5e55504920d8789b9acc5a46bd6a5c01958dfeb24e8d57783efd3a2"
+    },
+    {
+      "baseline_sha256": "566dc8429f3336209eb1dd4f3f8106bc77db96ac7c863682ed8eeb3cb3f7aefa",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "pointer_double.h"
+      ],
+      "kernel_family_id": "27260a6bd41cdda5863b891b9d071cfcd00e4ec3c21dd398e0e8a827269772ce",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/Pointers/using_double",
+      "source_sha256": "2bd6cfba2b97b7bff89871c6b4adfde652753e577d7e6688f04c814c787d1955",
+      "source_task_id": "amd_intro__modeling_pointers_using_double",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/using_double",
+      "task_dir": "tasks/track_a_150/functional_repair__13__amd_intro__modeling_pointers_using_double",
+      "task_id": "functional_repair__13__amd_intro__modeling_pointers_using_double",
+      "task_toml_sha256": "305d2a6449b5c3396f7a65b3f438d41c76e5572dafb4b6e4e1c92a30a93d7910"
+    },
+    {
+      "baseline_sha256": "5c23f8ccf8364d36c882aa3446f30bc63ee73d637610fc16eb7d6cc67523afd7",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "cpp_ap_int_arith.h"
+      ],
+      "kernel_family_id": "ecfa2c2cafe0770a63a83bbdb98816ddbfc12d58393f974010e1013c2ec0aab2",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/using_arbitrary_precision_arith",
+      "source_sha256": "ad2e8d6fb768c9826ff2dba6150b96a3d4b48d0b6149dba04308c744371ab4af",
+      "source_task_id": "amd_intro__modeling_using_arbitrary_precision_arith",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_arbitrary_precision_arith",
+      "task_dir": "tasks/track_a_150/functional_repair__14__amd_intro__modeling_using_arbitrary_precision_arith",
+      "task_id": "functional_repair__14__amd_intro__modeling_using_arbitrary_precision_arith",
+      "task_toml_sha256": "ee4113deba8e30e2a2439e8b37c70e6683f41e738bedfa1b13119675ad3a2fa5"
+    },
+    {
+      "baseline_sha256": "d6229a898fa07daaac3c5236df97af987b54b52bfd5967416ececd4e4e9bc5da",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=0",
+      "header_files": [
+        "arbitrary_precision_casting.h"
+      ],
+      "kernel_family_id": "979a8556838cc7d152d0dd0128db3acc7f3c361d0f4163777b59af0de8696e39",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/using_arbitrary_precision_casting",
+      "source_sha256": "58400a637c6f1b9f1f2b144e68553137a57b0c7cb771d7efbf1d3eeb565d0faf",
+      "source_task_id": "amd_intro__modeling_using_arbitrary_precision_casting",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_arbitrary_precision_casting",
+      "task_dir": "tasks/track_a_150/functional_repair__15__amd_intro__modeling_using_arbitrary_precision_casting",
+      "task_id": "functional_repair__15__amd_intro__modeling_using_arbitrary_precision_casting",
+      "task_toml_sha256": "3d169e51a5ce14d0ca37baec0d827a0aee559ee272bb5be8546f4a4376685b3b"
+    },
+    {
+      "baseline_sha256": "682a39b5aa37b60043af9a083202a8f740c3170616d0fd90d4abef6164b87724",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "cmdlineparser.h",
+        "coefficients.h",
+        "common.h"
+      ],
+      "kernel_family_id": "4c738fe1b48f95f63329c44cc5e37e6bc658a832c5feb58bf37b5eca6730b2ed",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/using_array_stencil_2d",
+      "source_sha256": "1b2b6c1486248f2e369984db23e4130b92f95b21b3446e830a8bc971d2d73396",
+      "source_task_id": "amd_intro__modeling_using_array_stencil_2d",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_array_stencil_2d",
+      "task_dir": "tasks/track_a_150/functional_repair__16__amd_intro__modeling_using_array_stencil_2d",
+      "task_id": "functional_repair__16__amd_intro__modeling_using_array_stencil_2d",
+      "task_toml_sha256": "a31979696aab3609ba236bbe11647818cce91595e922efa5520fbeab725db02e"
+    },
+    {
+      "baseline_sha256": "d619a553c03b4150694c24e0b9886c12e7c91378ecd9801541b0659f0af2b6ba",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=0",
+      "header_files": [
+        "cpp_template.h"
+      ],
+      "kernel_family_id": "819f83341f5fd9a34f9c30c52ddc789eb34afaddc71b9b232d612d12822112a8",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/using_cpp_templates",
+      "source_sha256": "28d0dce1f56b6da8333fbc103b1470473ab8a7c123a4d07cce2ec705c83eb333",
+      "source_task_id": "amd_intro__modeling_using_cpp_templates",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_cpp_templates",
+      "task_dir": "tasks/track_a_150/functional_repair__17__amd_intro__modeling_using_cpp_templates",
+      "task_id": "functional_repair__17__amd_intro__modeling_using_cpp_templates",
+      "task_toml_sha256": "d9f48e203aa1f082c95af01fbb47e170f34a0ac439be02b4f72f0d4dc590a8f7"
+    },
+    {
+      "baseline_sha256": "083568b7de20e813bbc281e12c2528ba16533e06254b87a4940c21faaf0933af",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "986c6e1b239d8fad8aba7ac0075d358164bedd61052e4d5bd162b4bbdeb82bde",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "source_sha256": "cc2b82a27e302fae894f35f84fd0ba01b1f8e2c4d6ef86bf34d4a47f878c8119",
+      "source_task_id": "amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "task_dir": "tasks/track_a_150/functional_repair__18__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "task_id": "functional_repair__18__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "task_toml_sha256": "f5362d1fb86d5f3ce800b24c7d09a1848966ff4ec4a5c8b4b76d108e6c20a6df"
+    },
+    {
+      "baseline_sha256": "db803ca9f1bbb0548278b70af8bfa0ce9025b6fdba1e471a6845f37ac7a8e749",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "1611679779952ec13d5132ac405d613a27b4fba0d7a0c11ecd145c5f9c47c548",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/initialization_and_reset/static_array_ROM",
+      "source_sha256": "dd0c0cf9ce29722301775368b89f5c9d70094c20ad448950959fc40b880e33bf",
+      "source_task_id": "amd_intro__misc_initialization_and_reset_static_array_rom",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_ROM",
+      "task_dir": "tasks/track_a_150/functional_repair__19__amd_intro__misc_initialization_and_reset_static_array_rom",
+      "task_id": "functional_repair__19__amd_intro__misc_initialization_and_reset_static_array_rom",
+      "task_toml_sha256": "f2752b316fd47670511206139e9e01d616dfb95bb0acb0466601042086fdc9b4"
+    },
+    {
+      "baseline_sha256": "e41e53cb10585f271b63e6f48c67340dcd384c667890025bebb45c6857e9fad8",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=1",
+      "header_files": [
+        "malloc_removed.h"
+      ],
+      "kernel_family_id": "eaef9484c01da32d2e661a73c66bb16f5d028d49da5b5848882e1c1d677fef9e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/malloc_removed",
+      "source_sha256": "77a918224fbae77d7e04ec4d960aed697f8a76e66865967bbb8de6a773144b11",
+      "source_task_id": "amd_intro__misc_malloc_removed",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/malloc_removed",
+      "task_dir": "tasks/track_a_150/functional_repair__20__amd_intro__misc_malloc_removed",
+      "task_id": "functional_repair__20__amd_intro__misc_malloc_removed",
+      "task_toml_sha256": "996849e78e0b20dd4d7a9ed91432ce2ca4347bc12a200cbc2af249b45166dda0"
+    },
+    {
+      "baseline_sha256": "09089d093c29b40e50e293f34ea48df2a69f2d620753357b310c1a10a1d6e783",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=1",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "673861431e59bca6f6c51ea31d7835839f2d17a4a5ad7ca87e24388c1f9b8ab2",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Misc/rtl_as_blackbox",
+      "source_sha256": "dd0824663e7fe8b5c66a5bf1d47ed99ec6b41b9e78a59b222924d82e25bcd1cb",
+      "source_task_id": "amd_intro__misc_rtl_as_blackbox",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/rtl_as_blackbox",
+      "task_dir": "tasks/track_a_150/functional_repair__21__amd_intro__misc_rtl_as_blackbox",
+      "task_id": "functional_repair__21__amd_intro__misc_rtl_as_blackbox",
+      "task_toml_sha256": "1e4a0f4451d9fcdf8bb040dc1fbc4af27c96c2bd991fec6bf4b19e36496722f1"
+    },
+    {
+      "baseline_sha256": "d107d1defeee0e27e398a0d2816dbe1ec6095807caa4738d1f51d0b6516a37c6",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=1",
+      "header_files": [
+        "dot_product.h"
+      ],
+      "kernel_family_id": "0b458c9963489773473e3bd645fe91f1c499bfe29a2dc37c4aa33de5bd14975b",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/conditional_control_of_pragmas/using_defines",
+      "source_sha256": "7856dc077ab659149050856843c1b9a565c87e492564721c35f3cc6fa99ed69b",
+      "source_task_id": "amd_intro__modeling_conditional_control_of_pragmas_using_defines",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_defines",
+      "task_dir": "tasks/track_a_150/functional_repair__22__amd_intro__modeling_conditional_control_of_pragmas_using_defines",
+      "task_id": "functional_repair__22__amd_intro__modeling_conditional_control_of_pragmas_using_defines",
+      "task_toml_sha256": "f35820856addc8f586330914b3c4f21a7498db9b3b20bf488493487aa6b27914"
+    },
+    {
+      "baseline_sha256": "405f534c1debc3874cf3c2023899b48338138829c5231275625725206be6d85d",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=1",
+      "header_files": [
+        "adder.h"
+      ],
+      "kernel_family_id": "530571ccd8e642d4ecc10432678f4ea4fadd7876a7cf2bca3f65d50ea4ecf44b",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/conditional_control_of_pragmas/using_template_function",
+      "source_sha256": "8aac9e0b411376cd46ff3c9d904458b4f026280b78279272dbcb49ddc44bb294",
+      "source_task_id": "amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_template_function",
+      "task_dir": "tasks/track_a_150/functional_repair__23__amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "task_id": "functional_repair__23__amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "task_toml_sha256": "2389ba6e79855f88df66ef33537301ec0b2e27622d780449311fa5daa820bf48"
+    },
+    {
+      "baseline_sha256": "6d33c0c52ad73f358337d4cb0b990aec3522ab95bca9234716d33c6faa4ae285",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return;:variant=1",
+      "header_files": [
+        "cpp_template.h"
+      ],
+      "kernel_family_id": "33b3b24177dacb6f349574c295d7f1a2b9c982474a63f7a5e7d5b7363a26bb09",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/cpp_templates_for_multiple_instances",
+      "source_sha256": "6d9064e41c1725a80004d0475545f4af6d2497f243e971b312c8c881fb88bfcb",
+      "source_task_id": "amd_intro__modeling_cpp_templates_for_multiple_instances",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/cpp_templates_for_multiple_instances",
+      "task_dir": "tasks/track_a_150/functional_repair__24__amd_intro__modeling_cpp_templates_for_multiple_instances",
+      "task_id": "functional_repair__24__amd_intro__modeling_cpp_templates_for_multiple_instances",
+      "task_toml_sha256": "c60d51b90df4f076cf1eb6c3caaa37d72fc28010a02ba7085f95f8e5d9802088"
+    },
+    {
+      "baseline_sha256": "3aeabeb2d535f0ac4dff8b14e173549e41631956fb68ed8a58c51c4947e8e2d7",
+      "category": "functional_repair",
+      "expected_baseline_state": "csim_fail",
+      "fault_derivation": "top_early_return:return {};:variant=1",
+      "header_files": [
+        "fxp_sqrt.h",
+        "fxp_sqrt_top.h"
+      ],
+      "kernel_family_id": "0b62e3ca3687388f893b201ef6dd134145dba94ceba19a14b64b9a12324e4562",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/fixed_point_sqrt",
+      "source_sha256": "7e6b895758e1d3334b5a2c99aeede9c830facb5bbba8dba05060d0761902be7a",
+      "source_task_id": "amd_intro__modeling_fixed_point_sqrt",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/fixed_point_sqrt",
+      "task_dir": "tasks/track_a_150/functional_repair__25__amd_intro__modeling_fixed_point_sqrt",
+      "task_id": "functional_repair__25__amd_intro__modeling_fixed_point_sqrt",
+      "task_toml_sha256": "64d733d352c2e8a443164861dfc686fc579f8676f949a009772c30f3630a48d1"
+    },
+    {
+      "baseline_sha256": "b4ada7cd75a535aee5644772da85bce175766145c5da1a622939450b4db7852b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return {};:variant=0",
+      "header_files": [
+        "fp_mul_pow2.h"
+      ],
+      "kernel_family_id": "ad8808844096aab99f0a335bd0dd92a62bdac96a868bc896517c0432254d6c4e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Modeling/using_float_and_double",
+      "source_sha256": "395e04bb8d04189a224af38a9ae00d6fa2611ffc66a890ba5bf1f112f8725327",
+      "source_task_id": "amd_intro__modeling_using_float_and_double",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__01__amd_intro__modeling_using_float_and_double",
+      "task_id": "structural_cosim_repair__01__amd_intro__modeling_using_float_and_double",
+      "task_toml_sha256": "e136b69f01e77da1d43d32478d633c0ee7691dd1ff89069154c1e0edb6cd9b15"
+    },
+    {
+      "baseline_sha256": "b4ada7cd75a535aee5644772da85bce175766145c5da1a622939450b4db7852b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return {};:variant=0",
+      "header_files": [
+        "fp_mul_pow2.h"
+      ],
+      "kernel_family_id": "ad8808844096aab99f0a335bd0dd92a62bdac96a868bc896517c0432254d6c4e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Modeling/using_float_and_double",
+      "source_sha256": "395e04bb8d04189a224af38a9ae00d6fa2611ffc66a890ba5bf1f112f8725327",
+      "source_task_id": "structural_cosim_repair__01__amd_intro__modeling_using_float_and_double",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__02__amd_intro__pipelining_functions_function_instantiate",
+      "task_id": "structural_cosim_repair__02__amd_intro__pipelining_functions_function_instantiate",
+      "task_toml_sha256": "39e8cd45e485342072b4f5fe4e428ea065b5e0118f1fd53f2f97df34633f2489"
+    },
+    {
+      "baseline_sha256": "ccacc3a1cc7f9f732cef16e1599413402a192c70a27dac893dac03c4dfe1c93f",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "dut.h"
+      ],
+      "kernel_family_id": "1f01d10ed3acb124db2c1651f6e217e1e02280620d9c36a5d7e1ff230d816296",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "source_sha256": "57d2aa2e2ae7db29541c278accd0d527fb06a060c867f39cf5857e0f82b2278d",
+      "source_task_id": "structural_cosim_repair__07__amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__03__amd_intro__pipelining_loops_imperfect_loop",
+      "task_id": "structural_cosim_repair__03__amd_intro__pipelining_loops_imperfect_loop",
+      "task_toml_sha256": "8af78e583903fde507f33e534d652c79171898d217c9a42b1b8c02f71545df8f"
+    },
+    {
+      "baseline_sha256": "d47e57d90082563e25e5312893dd5667306598a04ac728fca761f0aa42e7821e",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "c48c2920613217e934f1e82dcd7dba82e6120154e59106d498bdce94161b460f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/simple_data_driven",
+      "source_sha256": "acf3f11c5eed549fc91de406ee7f8540532a8cd21a96866d6c45ff29050eb1b9",
+      "source_task_id": "structural_cosim_repair__09__amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/simple_data_driven",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__04__amd_intro__pipelining_loops_perfect_loop",
+      "task_id": "structural_cosim_repair__04__amd_intro__pipelining_loops_perfect_loop",
+      "task_toml_sha256": "6e1869f69a18c1562624ac2aaff3ecfa617dc74cbf099d7219793727fd3bb55b"
+    },
+    {
+      "baseline_sha256": "0f7d214d1f0876bedee56bba913a438ea1e56596ddfbddd93eccef33fe89bd03",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "8beae5cb53ecdba1a4e83e3a8a951c2a262de46f8b3155516ed53e476caaf099",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "source_sha256": "566145198fcbcbb61b74db6544d997c4db6e9cf2e6ce630975395eb7d4fbf1c0",
+      "source_task_id": "structural_cosim_repair__10__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__05__amd_intro__pipelining_loops_pipelined_loop",
+      "task_id": "structural_cosim_repair__05__amd_intro__pipelining_loops_pipelined_loop",
+      "task_toml_sha256": "0ff1add4b3a7467dc30146352973986ecc8ef40183cdf20871cee45f26f973e6"
+    },
+    {
+      "baseline_sha256": "e01d4c99fa5403d490948f8dbd48bb6cf8f6186a0b5a973abe666e2e351eb968",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "54e1ba6839fea10414559b172c2a29873849f3324bd47b7b6111bd8eac805d7f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "source_sha256": "42e6d7f7bc29363f0ba9f7ce618934940c4dda38d0b4f3388c95b0c12938ff3c",
+      "source_task_id": "structural_cosim_repair__11__amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__06__amd_intro__task_level_parallelism_control_driven_channels_using_fifos",
+      "task_id": "structural_cosim_repair__06__amd_intro__task_level_parallelism_control_driven_channels_using_fifos",
+      "task_toml_sha256": "5c1cfb5ba211ccc743753ebefb755e09d95370fd34bc73d5ce481d56950f6a49"
+    },
+    {
+      "baseline_sha256": "ccacc3a1cc7f9f732cef16e1599413402a192c70a27dac893dac03c4dfe1c93f",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "dut.h"
+      ],
+      "kernel_family_id": "1f01d10ed3acb124db2c1651f6e217e1e02280620d9c36a5d7e1ff230d816296",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "source_sha256": "57d2aa2e2ae7db29541c278accd0d527fb06a060c867f39cf5857e0f82b2278d",
+      "source_task_id": "amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__07__amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "task_id": "structural_cosim_repair__07__amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "task_toml_sha256": "fcb08bace24d8982b45e0f6acc8e0c99a678ed651823c9f1f137f9e550e366d0"
+    },
+    {
+      "baseline_sha256": "2669ebb16fb1880fef8d40bd7eccfca1e0fbe574b5726421fcb113edc813355b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "adder_top.h"
+      ],
+      "kernel_family_id": "4df76dba530fcd7988d9b1b0b267b6879cd8d91c10e0676ba4ef227ff64fe3bc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "source_sha256": "bdc2b542b7a89aba184c186aaae13d370b9de655c82d0752a7bd4f47e5701868",
+      "source_task_id": "structural_cosim_repair__12__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__08__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+      "task_id": "structural_cosim_repair__08__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+      "task_toml_sha256": "a7c021788274e6cfd46e2304a2f88099bbd488ded30d9fa05e88bfa58836836b"
+    },
+    {
+      "baseline_sha256": "d47e57d90082563e25e5312893dd5667306598a04ac728fca761f0aa42e7821e",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "c48c2920613217e934f1e82dcd7dba82e6120154e59106d498bdce94161b460f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/simple_data_driven",
+      "source_sha256": "acf3f11c5eed549fc91de406ee7f8540532a8cd21a96866d6c45ff29050eb1b9",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/simple_data_driven",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__09__amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "task_id": "structural_cosim_repair__09__amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "task_toml_sha256": "55b3a6a5a80865ae86bb17296d0d93723f57c977c6bb77cff9146595bf667986"
+    },
+    {
+      "baseline_sha256": "0f7d214d1f0876bedee56bba913a438ea1e56596ddfbddd93eccef33fe89bd03",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "8beae5cb53ecdba1a4e83e3a8a951c2a262de46f8b3155516ed53e476caaf099",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "source_sha256": "566145198fcbcbb61b74db6544d997c4db6e9cf2e6ce630975395eb7d4fbf1c0",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__10__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "task_id": "structural_cosim_repair__10__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "task_toml_sha256": "204f5a270445ec2caf3a29b525d3e6f81d8e1b551a81cf6d912bbd8e35661d30"
+    },
+    {
+      "baseline_sha256": "e01d4c99fa5403d490948f8dbd48bb6cf8f6186a0b5a973abe666e2e351eb968",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "54e1ba6839fea10414559b172c2a29873849f3324bd47b7b6111bd8eac805d7f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "source_sha256": "42e6d7f7bc29363f0ba9f7ce618934940c4dda38d0b4f3388c95b0c12938ff3c",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__11__amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "task_id": "structural_cosim_repair__11__amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "task_toml_sha256": "178f604ac9dffe6f10c9f958b0bb7492fdebebaa195cb638996985b6be1ea699"
+    },
+    {
+      "baseline_sha256": "2669ebb16fb1880fef8d40bd7eccfca1e0fbe574b5726421fcb113edc813355b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=0",
+      "header_files": [
+        "adder_top.h"
+      ],
+      "kernel_family_id": "4df76dba530fcd7988d9b1b0b267b6879cd8d91c10e0676ba4ef227ff64fe3bc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "source_sha256": "bdc2b542b7a89aba184c186aaae13d370b9de655c82d0752a7bd4f47e5701868",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__12__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "task_id": "structural_cosim_repair__12__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "task_toml_sha256": "33373d1e7dae111a861c28c5fc7a2049448f4d5862ecf5854057656272113eeb"
+    },
+    {
+      "baseline_sha256": "b4ada7cd75a535aee5644772da85bce175766145c5da1a622939450b4db7852b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return {};:variant=0",
+      "header_files": [
+        "fp_mul_pow2.h"
+      ],
+      "kernel_family_id": "ad8808844096aab99f0a335bd0dd92a62bdac96a868bc896517c0432254d6c4e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Modeling/using_float_and_double",
+      "source_sha256": "395e04bb8d04189a224af38a9ae00d6fa2611ffc66a890ba5bf1f112f8725327",
+      "source_task_id": "amd_intro__modeling_using_float_and_double",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__13__amd_intro__modeling_using_float_and_double",
+      "task_id": "structural_cosim_repair__13__amd_intro__modeling_using_float_and_double",
+      "task_toml_sha256": "b477be957b5c5c557139c353f4c0d00a0b5a7b478f7443be23cf1a9b61e9a501"
+    },
+    {
+      "baseline_sha256": "b4ada7cd75a535aee5644772da85bce175766145c5da1a622939450b4db7852b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return {};:variant=0",
+      "header_files": [
+        "fp_mul_pow2.h"
+      ],
+      "kernel_family_id": "ad8808844096aab99f0a335bd0dd92a62bdac96a868bc896517c0432254d6c4e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Modeling/using_float_and_double",
+      "source_sha256": "395e04bb8d04189a224af38a9ae00d6fa2611ffc66a890ba5bf1f112f8725327",
+      "source_task_id": "structural_cosim_repair__13__amd_intro__modeling_using_float_and_double",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__14__amd_intro__pipelining_functions_function_instantiate",
+      "task_id": "structural_cosim_repair__14__amd_intro__pipelining_functions_function_instantiate",
+      "task_toml_sha256": "e6ac755b8874b5030ee841e66ad9104db4e608519f0fbfed6d3f57b35c3a2290"
+    },
+    {
+      "baseline_sha256": "22a7b242fe723e71d49c8f158c4b6f6c1f26c2bcb5b6533bd05e741536aa9b23",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "dut.h"
+      ],
+      "kernel_family_id": "1f01d10ed3acb124db2c1651f6e217e1e02280620d9c36a5d7e1ff230d816296",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "source_sha256": "57d2aa2e2ae7db29541c278accd0d527fb06a060c867f39cf5857e0f82b2278d",
+      "source_task_id": "structural_cosim_repair__19__amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__15__amd_intro__pipelining_loops_imperfect_loop",
+      "task_id": "structural_cosim_repair__15__amd_intro__pipelining_loops_imperfect_loop",
+      "task_toml_sha256": "1e3fb9ce1770f5a55c522426a2817bfb939a1413260829b02cdc1133c971f909"
+    },
+    {
+      "baseline_sha256": "5a36031792db963db99ac41d5a49fb42e50e256047f25c7eed708f1153680891",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "c48c2920613217e934f1e82dcd7dba82e6120154e59106d498bdce94161b460f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/simple_data_driven",
+      "source_sha256": "acf3f11c5eed549fc91de406ee7f8540532a8cd21a96866d6c45ff29050eb1b9",
+      "source_task_id": "structural_cosim_repair__21__amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/simple_data_driven",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__16__amd_intro__pipelining_loops_perfect_loop",
+      "task_id": "structural_cosim_repair__16__amd_intro__pipelining_loops_perfect_loop",
+      "task_toml_sha256": "ffe574ef1f87b9089e6a4a9c9b468f42e62fb856c66a8a7e2f5a310792a8b140"
+    },
+    {
+      "baseline_sha256": "c34d55acd1b05e91b12a235a87b07cdbd79014901d3edbc6a8455be728818cb2",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "8beae5cb53ecdba1a4e83e3a8a951c2a262de46f8b3155516ed53e476caaf099",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "source_sha256": "566145198fcbcbb61b74db6544d997c4db6e9cf2e6ce630975395eb7d4fbf1c0",
+      "source_task_id": "structural_cosim_repair__22__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__17__amd_intro__pipelining_loops_pipelined_loop",
+      "task_id": "structural_cosim_repair__17__amd_intro__pipelining_loops_pipelined_loop",
+      "task_toml_sha256": "0d1277f849dcabf9cb5966d029c9c48683fb8ea1071e1ef3f7228f74a1013726"
+    },
+    {
+      "baseline_sha256": "c76669f3265ca328644e018618191c06d9edacc6f71b8e21f885f40e56903239",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "54e1ba6839fea10414559b172c2a29873849f3324bd47b7b6111bd8eac805d7f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "source_sha256": "42e6d7f7bc29363f0ba9f7ce618934940c4dda38d0b4f3388c95b0c12938ff3c",
+      "source_task_id": "structural_cosim_repair__23__amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__18__amd_intro__task_level_parallelism_control_driven_channels_using_fifos",
+      "task_id": "structural_cosim_repair__18__amd_intro__task_level_parallelism_control_driven_channels_using_fifos",
+      "task_toml_sha256": "f54d36a6c74ea2f713178ec15e7e971d53f9a90cfb2252de4ab4d7723e4385cb"
+    },
+    {
+      "baseline_sha256": "22a7b242fe723e71d49c8f158c4b6f6c1f26c2bcb5b6533bd05e741536aa9b23",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "dut.h"
+      ],
+      "kernel_family_id": "1f01d10ed3acb124db2c1651f6e217e1e02280620d9c36a5d7e1ff230d816296",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "source_sha256": "57d2aa2e2ae7db29541c278accd0d527fb06a060c867f39cf5857e0f82b2278d",
+      "source_task_id": "amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/directio/ap_hs",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__19__amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "task_id": "structural_cosim_repair__19__amd_intro__task_level_parallelism_control_driven_directio_ap_hs",
+      "task_toml_sha256": "6860cb7df6318d787c29f9b93d1787982d0e7478ffcee3175c5b8427b6195e10"
+    },
+    {
+      "baseline_sha256": "75b0e3c4c9cd585ce28152086362a9d3a574ee05caf70fbad50f894d77afd027",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "adder_top.h"
+      ],
+      "kernel_family_id": "4df76dba530fcd7988d9b1b0b267b6879cd8d91c10e0676ba4ef227ff64fe3bc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "source_sha256": "bdc2b542b7a89aba184c186aaae13d370b9de655c82d0752a7bd4f47e5701868",
+      "source_task_id": "structural_cosim_repair__24__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__20__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+      "task_id": "structural_cosim_repair__20__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+      "task_toml_sha256": "bf769d563d8c87c41d50b4f41a2bde45152ff5bb0f538cc43b9c7a2e5f1c4920"
+    },
+    {
+      "baseline_sha256": "5a36031792db963db99ac41d5a49fb42e50e256047f25c7eed708f1153680891",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "c48c2920613217e934f1e82dcd7dba82e6120154e59106d498bdce94161b460f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/simple_data_driven",
+      "source_sha256": "acf3f11c5eed549fc91de406ee7f8540532a8cd21a96866d6c45ff29050eb1b9",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/simple_data_driven",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__21__amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "task_id": "structural_cosim_repair__21__amd_intro__task_level_parallelism_data_driven_simple_data_driven",
+      "task_toml_sha256": "0ee71803e33f69d7fbf4365a0f0812d01a6333b5e22dfeb847edfe40f2532b91"
+    },
+    {
+      "baseline_sha256": "c34d55acd1b05e91b12a235a87b07cdbd79014901d3edbc6a8455be728818cb2",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "8beae5cb53ecdba1a4e83e3a8a951c2a262de46f8b3155516ed53e476caaf099",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "source_sha256": "566145198fcbcbb61b74db6544d997c4db6e9cf2e6ce630975395eb7d4fbf1c0",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_axilite_with_directio",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__22__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "task_id": "structural_cosim_repair__22__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+      "task_toml_sha256": "ac443265c96f8a9b20412d7f093108c38174a85089b8efc0caa0b0c7f9017dd4"
+    },
+    {
+      "baseline_sha256": "c76669f3265ca328644e018618191c06d9edacc6f71b8e21f885f40e56903239",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "54e1ba6839fea10414559b172c2a29873849f3324bd47b7b6111bd8eac805d7f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "source_sha256": "42e6d7f7bc29363f0ba9f7ce618934940c4dda38d0b4f3388c95b0c12938ff3c",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_hs_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__23__amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "task_id": "structural_cosim_repair__23__amd_intro__task_level_parallelism_data_driven_using_directio_hs_in_tasks",
+      "task_toml_sha256": "a4d1c183b71fa7a76d135d1cb71ee2e75fef9c33a525bebd1c1f5b2578b80250"
+    },
+    {
+      "baseline_sha256": "75b0e3c4c9cd585ce28152086362a9d3a574ee05caf70fbad50f894d77afd027",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return;:variant=1",
+      "header_files": [
+        "adder_top.h"
+      ],
+      "kernel_family_id": "4df76dba530fcd7988d9b1b0b267b6879cd8d91c10e0676ba4ef227ff64fe3bc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "source_sha256": "bdc2b542b7a89aba184c186aaae13d370b9de655c82d0752a7bd4f47e5701868",
+      "source_task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__24__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "task_id": "structural_cosim_repair__24__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "task_toml_sha256": "fb4b6cd2810d8b74e853df8db1900a819b748f868d670be1379f34e9c4657122"
+    },
+    {
+      "baseline_sha256": "851e300079820242d73cda4a7254a2029124f9c9ff797d8303036aca1289445b",
+      "category": "structural_cosim_repair",
+      "expected_baseline_state": "cosim_fail",
+      "fault_derivation": "synthesis_only_top_early_return:return {};:variant=1",
+      "header_files": [
+        "fp_mul_pow2.h"
+      ],
+      "kernel_family_id": "ad8808844096aab99f0a335bd0dd92a62bdac96a868bc896517c0432254d6c4e",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": true,
+      "source_path": "Modeling/using_float_and_double",
+      "source_sha256": "395e04bb8d04189a224af38a9ae00d6fa2611ffc66a890ba5bf1f112f8725327",
+      "source_task_id": "amd_intro__modeling_using_float_and_double",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double",
+      "task_dir": "tasks/track_a_150/structural_cosim_repair__25__amd_intro__modeling_using_float_and_double",
+      "task_id": "structural_cosim_repair__25__amd_intro__modeling_using_float_and_double",
+      "task_toml_sha256": "6cbb2210703886e2b5933956b5c96488b1f686ad9a0ce7ace4aa4262acd76f46"
+    },
+    {
+      "baseline_sha256": "9e79f58e5075388d36505715f37c3c503787766597f1cfd509c036f795bf156e",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:9",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__01__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "task_id": "qor_optimization__01__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "task_toml_sha256": "92810a8b82ba49078d1f120b561fa1fdb08e218d3278411aad3f7f07595f5403"
+    },
+    {
+      "baseline_sha256": "9e79f58e5075388d36505715f37c3c503787766597f1cfd509c036f795bf156e",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:9",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "qor_optimization__01__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__02__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks",
+      "task_id": "qor_optimization__02__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks",
+      "task_toml_sha256": "f4eb38b52f3248b7fd0f09037de2106d6caefd0ad300e60568a9eae2af752e67"
+    },
+    {
+      "baseline_sha256": "6c37822180124a653b1579dee987af56670f75fc4d644ddf571875ed899bb4cb",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "qor_optimization__07__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__03__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_load_balance",
+      "task_id": "qor_optimization__03__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_load_balance",
+      "task_toml_sha256": "b769581608bb294624a2911bc1398ffc0543a20bbee72d2970003bdd2b61bbb9"
+    },
+    {
+      "baseline_sha256": "4ad863deca5b42917423622073266f75e56407f965e91075d02a9869ada3ac0f",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "qor_optimization__08__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__04__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin",
+      "task_id": "qor_optimization__04__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin",
+      "task_toml_sha256": "b750b4f7cdf76b0da7e1c7ad52c8a2e44037856dc4c6fc89cc4679a4152b67db"
+    },
+    {
+      "baseline_sha256": "9f8cc6f00e25688de243932df1adcb4bf679a8be19fcd346a3091b5e848e4a13",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:2",
+      "header_files": [
+        "matmul_partition.h"
+      ],
+      "kernel_family_id": "7da37cb247a95fe513b78ab69a15480dab660f5f6ae912dd267960001b9cf0be",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Array/array_partition_block_cyclic",
+      "source_sha256": "f8262f4eb659b8889061fd7d71dbd9ca1c2431df1ecda24987fb37646d477bb4",
+      "source_task_id": "qor_optimization__17__amd_intro__array_array_partition_block_cyclic",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic",
+      "task_dir": "tasks/track_a_150/qor_optimization__05__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance",
+      "task_id": "qor_optimization__05__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance",
+      "task_toml_sha256": "a24462af4642fbeaf9e9d1dba71ec8468c307c429494eb4f16d60eb311d73b20"
+    },
+    {
+      "baseline_sha256": "550a7f45a3775004f6d71ef56cc2a34933597c2ed859c0fd3abed05613a222b0",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "qor_optimization__18__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__06__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin",
+      "task_id": "qor_optimization__06__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin",
+      "task_toml_sha256": "84198ce3bee6dcd9703071c0475c4f6566ca4ef608e0ad43b548b204933fc385"
+    },
+    {
+      "baseline_sha256": "6c37822180124a653b1579dee987af56670f75fc4d644ddf571875ed899bb4cb",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__07__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "task_id": "qor_optimization__07__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "task_toml_sha256": "d0b912600773c922037f54fcc96823311fe3d1fcddd650e6396304c5c118f5a9"
+    },
+    {
+      "baseline_sha256": "4ad863deca5b42917423622073266f75e56407f965e91075d02a9869ada3ac0f",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__08__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "task_id": "qor_optimization__08__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "task_toml_sha256": "bda7b494e005ef841f6447a647afc2eb3eded71750cee7ed2eb6c2b69fe93d41"
+    },
+    {
+      "baseline_sha256": "ba8af1f38071e5ee50bc39df8e8c1597b3030bfbd3f5b66fe47bc900a916bb56",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:3",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "qor_optimization__24__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__09__amd_intro__pipelining_loops_using_free_running_pipeline",
+      "task_id": "qor_optimization__09__amd_intro__pipelining_loops_using_free_running_pipeline",
+      "task_toml_sha256": "b3d9f13275d72247ee72a31472d6e17efb3daf9a42afa118aca5352adcad548a"
+    },
+    {
+      "baseline_sha256": "375d13b81a59f05454bc266222a0c6e5c8b6f3edd42dc01481a0eba8ca12c30d",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:3",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "qor_optimization__25__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__10__amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+      "task_id": "qor_optimization__10__amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+      "task_toml_sha256": "20056d87d30f48b42cbaf51c9d9aa2972b8f6b36e1e795075c719c094859712d"
+    },
+    {
+      "baseline_sha256": "9e79f58e5075388d36505715f37c3c503787766597f1cfd509c036f795bf156e",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:9",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "qor_optimization__01__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__11__amd_intro__array_array_partition_complete",
+      "task_id": "qor_optimization__11__amd_intro__array_array_partition_complete",
+      "task_toml_sha256": "c1a17adbaf14be74c29ed5a709100c9e30e91be07ea2eb6264226228019ca07f"
+    },
+    {
+      "baseline_sha256": "6c37822180124a653b1579dee987af56670f75fc4d644ddf571875ed899bb4cb",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "qor_optimization__07__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__12__amd_intro__interface_memory_ram_uram",
+      "task_id": "qor_optimization__12__amd_intro__interface_memory_ram_uram",
+      "task_toml_sha256": "16fbd6b0017fc218a6ed7b236ec232880255d4f5df3b1bcc109152a4114e82ed"
+    },
+    {
+      "baseline_sha256": "4ad863deca5b42917423622073266f75e56407f965e91075d02a9869ada3ac0f",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "qor_optimization__08__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__13__amd_intro__interface_streaming_axi_stream_to_master",
+      "task_id": "qor_optimization__13__amd_intro__interface_streaming_axi_stream_to_master",
+      "task_toml_sha256": "965c4a52056e75105bef15a64d56f0c9d9852db37ba996883ca7e1108270205c"
+    },
+    {
+      "baseline_sha256": "9f8cc6f00e25688de243932df1adcb4bf679a8be19fcd346a3091b5e848e4a13",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:2",
+      "header_files": [
+        "matmul_partition.h"
+      ],
+      "kernel_family_id": "7da37cb247a95fe513b78ab69a15480dab660f5f6ae912dd267960001b9cf0be",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Array/array_partition_block_cyclic",
+      "source_sha256": "f8262f4eb659b8889061fd7d71dbd9ca1c2431df1ecda24987fb37646d477bb4",
+      "source_task_id": "qor_optimization__17__amd_intro__array_array_partition_block_cyclic",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic",
+      "task_dir": "tasks/track_a_150/qor_optimization__14__amd_intro__misc_initialization_and_reset_static_array_ram",
+      "task_id": "qor_optimization__14__amd_intro__misc_initialization_and_reset_static_array_ram",
+      "task_toml_sha256": "c42ddafe3ad3c7d6614d0bc075c12d2c7c0d11ac74fe00543547a12f78eccb52"
+    },
+    {
+      "baseline_sha256": "550a7f45a3775004f6d71ef56cc2a34933597c2ed859c0fd3abed05613a222b0",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "qor_optimization__18__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__15__amd_intro__task_level_parallelism_data_driven_unique_task_regions",
+      "task_id": "qor_optimization__15__amd_intro__task_level_parallelism_data_driven_unique_task_regions",
+      "task_toml_sha256": "369122481d2c3658145bdb320b55d8a9bbb4ff91754a461b86e92e99609500ba"
+    },
+    {
+      "baseline_sha256": "ba8af1f38071e5ee50bc39df8e8c1597b3030bfbd3f5b66fe47bc900a916bb56",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:3",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "qor_optimization__24__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__16__amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks",
+      "task_id": "qor_optimization__16__amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks",
+      "task_toml_sha256": "a769677d25e090546b4ad79b70ea784ad36fa85469d65ce23be261babb394247"
+    },
+    {
+      "baseline_sha256": "9f8cc6f00e25688de243932df1adcb4bf679a8be19fcd346a3091b5e848e4a13",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:2",
+      "header_files": [
+        "matmul_partition.h"
+      ],
+      "kernel_family_id": "7da37cb247a95fe513b78ab69a15480dab660f5f6ae912dd267960001b9cf0be",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Array/array_partition_block_cyclic",
+      "source_sha256": "f8262f4eb659b8889061fd7d71dbd9ca1c2431df1ecda24987fb37646d477bb4",
+      "source_task_id": "amd_intro__array_array_partition_block_cyclic",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic",
+      "task_dir": "tasks/track_a_150/qor_optimization__17__amd_intro__array_array_partition_block_cyclic",
+      "task_id": "qor_optimization__17__amd_intro__array_array_partition_block_cyclic",
+      "task_toml_sha256": "8bf081e880f159cebe3e690549c804bae3969176a0687141546d3b85beb181e6"
+    },
+    {
+      "baseline_sha256": "550a7f45a3775004f6d71ef56cc2a34933597c2ed859c0fd3abed05613a222b0",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__18__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "task_id": "qor_optimization__18__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "task_toml_sha256": "665264cc4b3c2236ccf8981373ac13dc1fa58a95960af5e474141b54b990ba9c"
+    },
+    {
+      "baseline_sha256": "375d13b81a59f05454bc266222a0c6e5c8b6f3edd42dc01481a0eba8ca12c30d",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:3",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "qor_optimization__25__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__19__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks",
+      "task_id": "qor_optimization__19__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks",
+      "task_toml_sha256": "2b1edf4f33395e3b417fe297d9b99eacff3bcc1c4e24453b263b62e8e2788093"
+    },
+    {
+      "baseline_sha256": "9e79f58e5075388d36505715f37c3c503787766597f1cfd509c036f795bf156e",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:9",
+      "header_files": [
+        "diamond.h"
+      ],
+      "kernel_family_id": "eb0eb6a4193610fc2012e66c8ff7b505a05daa1bec2221d763f31dd240cba75d",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "source_task_id": "qor_optimization__01__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "task_dir": "tasks/track_a_150/qor_optimization__20__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_load_balance",
+      "task_id": "qor_optimization__20__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_load_balance",
+      "task_toml_sha256": "801a9d3d0f7d037d50a20288342e59b8be6aa6e297f456823e943a7f01981880"
+    },
+    {
+      "baseline_sha256": "6c37822180124a653b1579dee987af56670f75fc4d644ddf571875ed899bb4cb",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "qor_optimization__07__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__21__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin",
+      "task_id": "qor_optimization__21__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin",
+      "task_toml_sha256": "c5793341d2353b3ed6521443b37bece10ec8f2d07b952466caabfb83a389bed0"
+    },
+    {
+      "baseline_sha256": "4ad863deca5b42917423622073266f75e56407f965e91075d02a9869ada3ac0f",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:5",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "qor_optimization__08__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__22__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance",
+      "task_id": "qor_optimization__22__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance",
+      "task_toml_sha256": "c45d844e2400fc47819c11af66ea5ef6ecafa0f95ac3e0175b6b7da09c3e350b"
+    },
+    {
+      "baseline_sha256": "9f8cc6f00e25688de243932df1adcb4bf679a8be19fcd346a3091b5e848e4a13",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:2",
+      "header_files": [
+        "matmul_partition.h"
+      ],
+      "kernel_family_id": "7da37cb247a95fe513b78ab69a15480dab660f5f6ae912dd267960001b9cf0be",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Array/array_partition_block_cyclic",
+      "source_sha256": "f8262f4eb659b8889061fd7d71dbd9ca1c2431df1ecda24987fb37646d477bb4",
+      "source_task_id": "qor_optimization__17__amd_intro__array_array_partition_block_cyclic",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic",
+      "task_dir": "tasks/track_a_150/qor_optimization__23__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin",
+      "task_id": "qor_optimization__23__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin",
+      "task_toml_sha256": "ec14f3a5e7ead8f8ed7364a4ea7e18317fdeafd38261a2ee19b824ec516ffe29"
+    },
+    {
+      "baseline_sha256": "ba8af1f38071e5ee50bc39df8e8c1597b3030bfbd3f5b66fe47bc900a916bb56",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:3",
+      "header_files": [
+        "test.h"
+      ],
+      "kernel_family_id": "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "source_task_id": "amd_intro__interface_memory_aliasing_axi_master_ports",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "task_dir": "tasks/track_a_150/qor_optimization__24__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "task_id": "qor_optimization__24__amd_intro__interface_memory_aliasing_axi_master_ports",
+      "task_toml_sha256": "f1fefc9df9551aaf87a83484bd51f6fe044ffb0ab3d6c26c82e3d703b2e626ca"
+    },
+    {
+      "baseline_sha256": "375d13b81a59f05454bc266222a0c6e5c8b6f3edd42dc01481a0eba8ca12c30d",
+      "category": "qor_optimization",
+      "expected_baseline_state": "valid_unoptimized",
+      "fault_derivation": "removed_performance_pragmas:3",
+      "header_files": [
+        "example.h"
+      ],
+      "kernel_family_id": "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f",
+      "license": "Apache-2.0",
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "requires_cosim": false,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "source_task_id": "amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "task_dir": "tasks/track_a_150/qor_optimization__25__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "task_id": "qor_optimization__25__amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "task_toml_sha256": "4e2368b71239bdf2c682ee52b075e0aa22dd9b55d0634e970761ef48d07d6dca"
+    }
+  ],
+  "unique_kernel_family_count": 97
+}

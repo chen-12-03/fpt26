@@ -1,0 +1,26 @@
+task_id = "functional_repair__18__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "test"
+kernel_file = "test.cpp"
+header_files = ["test.h"]
+public_tb = "test_tb.cpp"
+hidden_tb = "test_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return {};:variant=1"
+kernel_family_id = "986c6e1b239d8fad8aba7ac0075d358164bedd61052e4d5bd162b4bbdeb82bde"
+source_task_id = "amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_of_struct_with_array_RAM"
+source_path = "Misc/initialization_and_reset/static_array_of_struct_with_array_RAM"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "cc2b82a27e302fae894f35f84fd0ba01b1f8e2c4d6ef86bf34d4a47f878c8119"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

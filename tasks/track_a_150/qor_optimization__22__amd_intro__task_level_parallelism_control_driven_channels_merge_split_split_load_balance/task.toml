@@ -1,0 +1,26 @@
+task_id = "qor_optimization__22__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:5"
+kernel_family_id = "2b9e18ce60847d1079db98684752d2412a8b707d803ae8bd232b0c40ba9d506f"
+source_task_id = "qor_optimization__08__amd_intro__modeling_free_running_kernel_remerge_ii4to1"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1"
+source_path = "Modeling/free_running_kernel_remerge_ii4to1"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

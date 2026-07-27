@@ -1,0 +1,26 @@
+task_id = "functional_repair__21__amd_intro__misc_rtl_as_blackbox"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return;:variant=1"
+kernel_family_id = "673861431e59bca6f6c51ea31d7835839f2d17a4a5ad7ca87e24388c1f9b8ab2"
+source_task_id = "amd_intro__misc_rtl_as_blackbox"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/rtl_as_blackbox"
+source_path = "Misc/rtl_as_blackbox"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "dd0824663e7fe8b5c66a5bf1d47ed99ec6b41b9e78a59b222924d82e25bcd1cb"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

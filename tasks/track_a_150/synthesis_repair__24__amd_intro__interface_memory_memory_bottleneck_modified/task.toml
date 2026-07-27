@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__24__amd_intro__interface_memory_memory_bottleneck_modified"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "mem_bottleneck_resolved"
+kernel_file = "mem_bottleneck_resolved.cpp"
+header_files = ["mem_bottleneck_resolved.h"]
+public_tb = "mem_bottleneck_resolved_tb.cpp"
+hidden_tb = "mem_bottleneck_resolved_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "4b177507bed3844ff0b14cf3535f7f03fdde80d35116937cbaceabe3b7117dce"
+source_task_id = "amd_intro__interface_memory_memory_bottleneck_modified"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/memory_bottleneck/modified"
+source_path = "Interface/Memory/memory_bottleneck/modified"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "d35802c6242173bd18ee5b69fd623ddd5a0683c835e99cf306270dc018ca034a"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

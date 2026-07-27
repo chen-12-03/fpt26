@@ -1,0 +1,26 @@
+task_id = "functional_repair__17__amd_intro__modeling_using_cpp_templates"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "cpp_template"
+kernel_file = "cpp_template.cpp"
+header_files = ["cpp_template.h"]
+public_tb = "cpp_template_tb.cpp"
+hidden_tb = "cpp_template_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return;:variant=0"
+kernel_family_id = "819f83341f5fd9a34f9c30c52ddc789eb34afaddc71b9b232d612d12822112a8"
+source_task_id = "amd_intro__modeling_using_cpp_templates"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_cpp_templates"
+source_path = "Modeling/using_cpp_templates"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "28d0dce1f56b6da8333fbc103b1470473ab8a7c123a4d07cce2ec705c83eb333"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

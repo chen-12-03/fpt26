@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__13__amd_intro__interface_streaming_axis_array_stream_no_side_channel_data"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "bea6076f90bd55ad7243bf40a5c6f6027d1d3f0c936f0b2e0f43be073076f452"
+source_task_id = "amd_intro__interface_streaming_axis_array_stream_no_side_channel_data"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axis_array_stream_no_side_channel_data"
+source_path = "Interface/Streaming/axis_array_stream_no_side_channel_data"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "8001c1c290cf08735f2c1dc5e8e9730c8fadb1d09eb270b4fe496a515d22e511"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

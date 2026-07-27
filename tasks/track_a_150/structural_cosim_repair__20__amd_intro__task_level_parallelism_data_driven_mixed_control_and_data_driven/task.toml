@@ -1,0 +1,26 @@
+task_id = "structural_cosim_repair__20__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "adder_top"
+kernel_file = "adder_top.cpp"
+header_files = ["adder_top.h"]
+public_tb = "adder_top_tb.cpp"
+hidden_tb = "adder_top_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_top_early_return:return;:variant=1"
+kernel_family_id = "4df76dba530fcd7988d9b1b0b267b6879cd8d91c10e0676ba4ef227ff64fe3bc"
+source_task_id = "structural_cosim_repair__24__amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks"
+source_path = "Task_level_Parallelism/Data_driven/using_directio_none_in_tasks"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "bdc2b542b7a89aba184c186aaae13d370b9de655c82d0752a7bd4f47e5701868"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

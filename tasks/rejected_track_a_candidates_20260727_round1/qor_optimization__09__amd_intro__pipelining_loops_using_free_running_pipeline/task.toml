@@ -1,0 +1,26 @@
+task_id = "qor_optimization__09__amd_intro__pipelining_loops_using_free_running_pipeline"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "free_pipe_mult"
+kernel_file = "free_pipe_mult.cpp"
+header_files = ["free_pipe_mult.h"]
+public_tb = "free_pipe_mult_tb.cpp"
+hidden_tb = "free_pipe_mult_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:5"
+kernel_family_id = "d4b611363ef4ebd18c5945b08f6f63a74d4f73e087feed9fac4ab344939a5978"
+source_task_id = "amd_intro__pipelining_loops_using_free_running_pipeline"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/using_free_running_pipeline"
+source_path = "Pipelining/Loops/using_free_running_pipeline"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "912f934b53f0dc3c582be77f1268d8e9bd908f257af65c1e7d0c0ca7809c495d"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

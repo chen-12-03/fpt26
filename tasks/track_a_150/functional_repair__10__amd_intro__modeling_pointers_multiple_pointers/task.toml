@@ -1,0 +1,26 @@
+task_id = "functional_repair__10__amd_intro__modeling_pointers_multiple_pointers"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "pointer_multi"
+kernel_file = "pointer_multi.cpp"
+header_files = ["pointer_multi.h"]
+public_tb = "pointer_multi_tb.cpp"
+hidden_tb = "pointer_multi_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return {};:variant=0"
+kernel_family_id = "15a63a0868e4871af09170367d2a280bc6adf4ce4ff61e6ffd20a7e3bba0243b"
+source_task_id = "amd_intro__modeling_pointers_multiple_pointers"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/multiple_pointers"
+source_path = "Modeling/Pointers/multiple_pointers"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "c39e70d767db3400eb79f8991eed201c46183f3d07514f71fd2ec5ddf87f8713"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

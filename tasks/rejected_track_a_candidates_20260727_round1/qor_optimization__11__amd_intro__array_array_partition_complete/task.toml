@@ -1,0 +1,26 @@
+task_id = "qor_optimization__11__amd_intro__array_array_partition_complete"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "matmul_partition"
+kernel_file = "matmul_partition.cpp"
+header_files = ["matmul_partition.h"]
+public_tb = "matmul_partition_tb.cpp"
+hidden_tb = "matmul_partition_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:3"
+kernel_family_id = "87c04b52970998d6c0f2bc24fceac47b5234769e3c83db06eed4049840ce82fd"
+source_task_id = "amd_intro__array_array_partition_complete"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_complete"
+source_path = "Array/array_partition_complete"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "e08eda565ba14254fec12baa2e7dcc7f3be4dcaa7a3df00f870c8641aaea52a0"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

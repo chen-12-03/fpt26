@@ -1,0 +1,26 @@
+task_id = "functional_repair__08__amd_intro__modeling_fixed_point_sqrt"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "fxp_sqrt_top"
+kernel_file = "fxp_sqrt_top.cpp"
+header_files = ["fxp_sqrt.h", "fxp_sqrt_top.h"]
+public_tb = "fxp_sqrt_top_tb.cpp"
+hidden_tb = "fxp_sqrt_top_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return {};:variant=0"
+kernel_family_id = "0b62e3ca3687388f893b201ef6dd134145dba94ceba19a14b64b9a12324e4562"
+source_task_id = "amd_intro__modeling_fixed_point_sqrt"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/fixed_point_sqrt"
+source_path = "Modeling/fixed_point_sqrt"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "7e6b895758e1d3334b5a2c99aeede9c830facb5bbba8dba05060d0761902be7a"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

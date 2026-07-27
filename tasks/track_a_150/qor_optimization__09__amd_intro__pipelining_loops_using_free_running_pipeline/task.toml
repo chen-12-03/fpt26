@@ -1,0 +1,26 @@
+task_id = "qor_optimization__09__amd_intro__pipelining_loops_using_free_running_pipeline"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["test.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A qor_optimization; baseline=valid_unoptimized"
+expected_baseline_state = "valid_unoptimized"
+fault_derivation = "removed_performance_pragmas:3"
+kernel_family_id = "09327d8187f605398a5264c463a46a8765487e6c0810338f9f299f53998124cc"
+source_task_id = "qor_optimization__24__amd_intro__interface_memory_aliasing_axi_master_ports"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports"
+source_path = "Interface/Memory/aliasing_axi_master_ports"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

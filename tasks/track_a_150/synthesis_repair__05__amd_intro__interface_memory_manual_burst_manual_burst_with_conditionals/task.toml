@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__05__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_preprocessor_error"
+kernel_family_id = "4a971c85b2e19528ca1c42e2292d12942aeeb28b813fc471b1676082384c33f9"
+source_task_id = "amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_with_conditionals"
+source_path = "Interface/Memory/manual_burst/manual_burst_with_conditionals"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "15b63a3488cdb6c0bbfb0aa7854b5b96541d3e874961ce901dfad8d1dfdd4b16"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

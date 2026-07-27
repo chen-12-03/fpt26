@@ -1,0 +1,26 @@
+task_id = "structural_cosim_repair__02__amd_intro__pipelining_functions_function_instantiate"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "double_mul_pow2"
+kernel_file = "double_mul_pow2.cpp"
+header_files = ["fp_mul_pow2.h"]
+public_tb = "double_mul_pow2_tb.cpp"
+hidden_tb = "double_mul_pow2_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_top_early_return:return {};:variant=0"
+kernel_family_id = "ad8808844096aab99f0a335bd0dd92a62bdac96a868bc896517c0432254d6c4e"
+source_task_id = "structural_cosim_repair__01__amd_intro__modeling_using_float_and_double"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_float_and_double"
+source_path = "Modeling/using_float_and_double"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "395e04bb8d04189a224af38a9ae00d6fa2611ffc66a890ba5bf1f112f8725327"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

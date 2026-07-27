@@ -1,0 +1,26 @@
+task_id = "compile_repair__16__amd_intro__interface_memory_burst_rw"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "vadd"
+kernel_file = "vadd.cpp"
+header_files = ["vadd.h"]
+public_tb = "vadd_tb.cpp"
+hidden_tb = "vadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "preprocessor_compile_error"
+kernel_family_id = "fa6facb915fecc52b3f8881ab1ec892a91e5fdd3f07d7a232c571818d740e17d"
+source_task_id = "amd_intro__interface_memory_burst_rw"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/burst_rw"
+source_path = "Interface/Memory/burst_rw"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "ac5c2a68ac5ef70b1026348d30043c5e303b27ad484530653cabefb964ec3f58"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

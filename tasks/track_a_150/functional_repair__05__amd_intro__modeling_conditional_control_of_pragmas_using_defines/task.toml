@@ -1,0 +1,26 @@
+task_id = "functional_repair__05__amd_intro__modeling_conditional_control_of_pragmas_using_defines"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "dot_product"
+kernel_file = "dot_product.cpp"
+header_files = ["dot_product.h"]
+public_tb = "dot_product_tb.cpp"
+hidden_tb = "dot_product_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return {};:variant=0"
+kernel_family_id = "0b458c9963489773473e3bd645fe91f1c499bfe29a2dc37c4aa33de5bd14975b"
+source_task_id = "amd_intro__modeling_conditional_control_of_pragmas_using_defines"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_defines"
+source_path = "Modeling/conditional_control_of_pragmas/using_defines"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "7856dc077ab659149050856843c1b9a565c87e492564721c35f3cc6fa99ed69b"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

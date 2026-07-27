@@ -1,0 +1,26 @@
+task_id = "code_generation__19__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 3
+top = "test_kernel_maxi_256bit_2"
+kernel_file = "test_kernel_maxi_256bit_2.cpp"
+header_files = ["test_kernel_common.hpp"]
+public_tb = "test_kernel_maxi_256bit_2_tb.cpp"
+hidden_tb = "test_kernel_maxi_256bit_2_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "signature_only_generation_stub"
+kernel_family_id = "5eff1ea6278731a27ac92b373040fb48e0ce50cfff16717f82e94b0bc7e24886"
+source_task_id = "amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_2"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/performance/axi_burst_performance"
+source_path = "performance/axi_burst_performance"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+license = "MIT"
+source_sha256 = "225073b6f05192e080fea4902a02e6168ccf6ba097f088ecadfa29c569703d9d"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

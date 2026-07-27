@@ -1,0 +1,26 @@
+task_id = "compile_repair__13__amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["example.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "preprocessor_compile_error"
+kernel_family_id = "86930fdcf7ab3d18fcf3c77424d91fd42aecd7e2f6bd383adba0004b0dea575d"
+source_task_id = "amd_intro__interface_aggregation_disaggregation_auto_disaggregation_of_struct"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/auto_disaggregation_of_struct"
+source_path = "Interface/Aggregation_Disaggregation/auto_disaggregation_of_struct"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "67859a1e372a708bb0102ca2d0ce3a6a9cc488c1183af740a0e04a3b59bc5ff6"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

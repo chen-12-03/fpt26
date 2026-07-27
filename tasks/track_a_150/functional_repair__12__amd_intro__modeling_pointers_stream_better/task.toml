@@ -1,0 +1,26 @@
+task_id = "functional_repair__12__amd_intro__modeling_pointers_stream_better"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "pointer_stream_better"
+kernel_file = "pointer_stream_better.cpp"
+header_files = ["pointer_stream_better.h"]
+public_tb = "pointer_stream_better_tb.cpp"
+hidden_tb = "pointer_stream_better_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "top_early_return:return;:variant=0"
+kernel_family_id = "a30d6cec30f172f18ebbc0c572476eabeaff4188002c0f716f5292d6d06eef5e"
+source_task_id = "amd_intro__modeling_pointers_stream_better"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/stream_better"
+source_path = "Modeling/Pointers/stream_better"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "0cf5924c8f3230eca1c346fb4779e7c66716a22d2b1d022a74d15240cb463d8e"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0
