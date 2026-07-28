@@ -11,6 +11,7 @@ from agent.analysis.action_contract import build_ii_resource_action_contract
 from agent.analysis.source_metadata import (
     bounded_metadata_payload,
     extract_design_metadata,
+    source_supported_banking_evidence,
 )
 from agent.candidate.validator import (
     extract_code,
@@ -21,6 +22,7 @@ from agent.candidate.validator import (
 )
 from agent.knowledge import (
     KnowledgeQuery,
+    MAX_KNOWLEDGE_PROMPT_TOKENS,
     baseline_qor_from_report,
     format_for_prompt,
     prompt_token_upper_bound,
@@ -34,6 +36,7 @@ from scoring.profiles import DEFAULT_SCORING_PROFILE
 from agent.agents.optimization.diagnostics import _diagnose, _latency, _report, _resource_delta
 from agent.agents.optimization.feedback import (
     OptimizationFailure,
+    _action_guard_feedback,
     _csim_failure_feedback,
     _interface_gate_feedback,
     _rejection_feedback,
@@ -47,15 +50,28 @@ from agent.agents.optimization.scoring import (
     score_candidate,
 )
 from agent.agents.optimization.strategies import (
+    _anti_repeat_action_violation,
     _candidate_fingerprint,
     _is_minimum_unroll_frontier,
+    _report_supported_action_violation,
     _strategy_contract_violation,
     _top_function_inline_noop,
     candidate_action_summary,
+    distinct_report_supported_alternatives,
+    inferred_directive_delta,
 )
 
 
 # ── Production entry point reused by OptimizeAgent ───────────────────────
+
+def _bounded_knowledge_text(text: str) -> str:
+    """Cap legacy/hybrid concatenation to the structured RAG prompt budget."""
+    if prompt_token_upper_bound(text) <= MAX_KNOWLEDGE_PROMPT_TOKENS:
+        return text
+    suffix = "...[truncated]"
+    max_chars = MAX_KNOWLEDGE_PROMPT_TOKENS * 3
+    return text[: max(0, max_chars - len(suffix))] + suffix
+
 
 def run_optimization_loop(
     state: RunState,
@@ -83,7 +99,13 @@ def run_optimization_loop(
     best_synth_result = latest_successful_synth(state.results)
     best_cosim_latency = latest_successful_cosim_latency(state.results)
     rejected_fingerprints: set[str] = set()
+    measured_rejected_actions: list[dict[str, Any]] = []
     semantic_duplicate_skips = 0
+    anti_repeat_action_rejections = 0
+    report_evidence_action_rejections = 0
+    action_guard_rejection_reasons: list[str] = []
+    report_supported_convergence = False
+    convergence_reason = ""
     synth_candidates: list[dict] = []
     semantic_current_best_skips = 0
     ii_resource_intent_rejections = 0
@@ -93,6 +115,7 @@ def run_optimization_loop(
     strategy_contract_rejection_reasons: list[str] = []
     optimization_failures: list[OptimizationFailure] = []
     knowledge_retrievals: list[dict[str, Any]] = []
+    source_banking_evidence_history: list[dict[str, Any]] = []
     phase1_ab_baseline = (
         os.environ.get("FPT26_QOR_RAG_AB_BASELINE", "").strip() == "1"
     )
@@ -124,6 +147,12 @@ def run_optimization_loop(
             "loop_ii": bl_ii, "clock_ns": br.clock_period_ns,
             "resources": dict(br.resources),
             "loop_metrics": [dict(lm) for lm in (br.loop_metrics or [])],
+            "inferred_directives": [
+                dict(item)
+                for item in (
+                    getattr(br, "inferred_directives", None) or []
+                )
+            ],
             "q_hw_before": None, "q_hw_after": None, "decision": "BASELINE",
         })
 
@@ -170,15 +199,51 @@ def run_optimization_loop(
             state.log(f"opt r{rnd}: measured action contract targets={targets}")
 
         # ── 2. Structured source evidence and knowledge retrieval ───
-        source_metadata = bounded_metadata_payload(
-            extract_design_metadata(
-                best,
-                loop_metrics=(
-                    getattr(getattr(cr, "report", None), "loop_metrics", None)
-                    or []
-                ),
-            )
+        full_source_metadata = extract_design_metadata(
+            best,
+            loop_metrics=(
+                getattr(getattr(cr, "report", None), "loop_metrics", None)
+                or []
+            ),
+            inferred_directives=(
+                getattr(
+                    getattr(cr, "report", None),
+                    "inferred_directives",
+                    None,
+                )
+                or []
+            ),
+            constant_context="\n".join(
+                str(value)
+                for value in (
+                    getattr(task, "headers", {}) or {}
+                ).values()
+            ),
         )
+        source_metadata = bounded_metadata_payload(full_source_metadata)
+        source_banking_evidence = source_supported_banking_evidence(
+            full_source_metadata
+        )
+        source_banking_evidence_history.append(
+            {
+                "round": rnd,
+                "targets": [
+                    dict(item) for item in source_banking_evidence
+                ],
+            }
+        )
+        if source_banking_evidence:
+            state.log(
+                "opt r"
+                f"{rnd}: source-backed banking targets="
+                + ", ".join(
+                    f"{item['array']}(dim={item['dimension']},"
+                    f"{item['recommended_trial']['partition_type']},"
+                    f"factor={item['recommended_trial']['factor']},"
+                    "soft)"
+                    for item in source_banking_evidence
+                )
+            )
         know = ""
         try:
             if phase1_ab_baseline:
@@ -188,7 +253,9 @@ def run_optimization_loop(
                 )
 
                 legacy_matches = legacy_lookup(task.description or "")
-                know = legacy_format(legacy_matches)
+                know = _bounded_knowledge_text(
+                    legacy_format(legacy_matches)
+                )
                 knowledge_retrievals.append(
                     {
                         "round": rnd,
@@ -252,6 +319,7 @@ def run_optimization_loop(
                     measured_know = format_for_prompt(measured_matches)
                     if measured_know:
                         know += "\n\n## Compatible measured cases\n" + measured_know
+                    know = _bounded_knowledge_text(know)
                     knowledge_retrievals.append(
                         {
                             "round": rnd,
@@ -307,16 +375,28 @@ def run_optimization_loop(
             action_contract=action_contract,
             search_strategy=search_strategy,
             design_metadata=source_metadata,
+            source_banking_evidence=source_banking_evidence,
         )
 
         # ── 4. LLM proposes optimization ────────────────────────────
         resp = llm.complete(SYSTEM, prompt)
-        cand = extract_code(resp)
+        cand = extract_code(
+            resp,
+            required_token=str(getattr(task, "top", "") or ""),
+        )
         if not cand or cand.strip() == best.strip():
             state.log(f"opt r{rnd}: no change — converged")
             break
         candidate_fingerprint = _candidate_fingerprint(cand)
-        candidate_action = candidate_action_summary(best, cand)
+        candidate_action = candidate_action_summary(
+            best,
+            cand,
+            top_function=str(getattr(task, "top", "") or ""),
+            loop_metrics=(
+                getattr(getattr(cr, "report", None), "loop_metrics", None)
+                or []
+            ),
+        )
         if candidate_fingerprint == _candidate_fingerprint(best):
             semantic_current_best_skips += 1
             state.log(f"opt r{rnd}: semantic no-op versus current best — skip csim/synth")
@@ -366,6 +446,54 @@ def run_optimization_loop(
         if candidate_fingerprint in rejected_fingerprints:
             semantic_duplicate_skips += 1
             state.log(f"opt r{rnd}: semantic duplicate of measured rejected candidate — skip csim/synth and converge")
+            break
+
+        anti_repeat_violation = _anti_repeat_action_violation(
+            candidate_action, measured_rejected_actions
+        )
+        if anti_repeat_violation is not None:
+            anti_repeat_action_rejections += 1
+            action_guard_rejection_reasons.append(anti_repeat_violation)
+            rejected_fingerprints.add(candidate_fingerprint)
+            rejection_feedback = _action_guard_feedback(
+                status="REJECTED_BY_MEASURED_ACTION_ANTI_REPEAT",
+                reason=anti_repeat_violation,
+                candidate_action=candidate_action,
+                measured_rejected_actions=measured_rejected_actions,
+            )
+            state.log(
+                f"opt r{rnd}: measured-action anti-repeat gate rejected "
+                f"candidate before tools: {anti_repeat_violation}"
+            )
+            stag += 1
+            if rnd < max_rounds:
+                continue
+            break
+
+        report_evidence_violation = _report_supported_action_violation(
+            candidate_action,
+            getattr(cr, "report", None),
+            action_contract,
+            source_banking_evidence,
+            full_source_metadata.to_dict(),
+        )
+        if report_evidence_violation is not None:
+            report_evidence_action_rejections += 1
+            action_guard_rejection_reasons.append(report_evidence_violation)
+            rejected_fingerprints.add(candidate_fingerprint)
+            rejection_feedback = _action_guard_feedback(
+                status="REJECTED_BY_REPORT_EVIDENCE",
+                reason=report_evidence_violation,
+                candidate_action=candidate_action,
+                measured_rejected_actions=measured_rejected_actions,
+            )
+            state.log(
+                f"opt r{rnd}: report-evidence gate rejected candidate "
+                f"before tools: {report_evidence_violation}"
+            )
+            stag += 1
+            if rnd < max_rounds:
+                continue
             break
 
         if not validate_candidate(state, cand, stage=f"optimize_candidate_{rnd}", current_best=False):
@@ -499,18 +627,65 @@ def run_optimization_loop(
         else:
             accepted = False
             stag += 1
+            round_convergence_reason = ""
             if cand_card is not None and sr.report is not None:
                 rejected_fingerprints.add(candidate_fingerprint)
-                rejection_feedback = _rejection_feedback(cand_card, sr.report, cand, best_q_hw)
+                measured_rejected_actions.append(
+                    {
+                        "round": rnd,
+                        "action": candidate_action,
+                        "candidate_q_hw": cand_card.q_hw,
+                        "current_best_q_hw": best_q_hw,
+                        "reason": "Q_HW did not improve",
+                    }
+                )
+                rejection_feedback = _rejection_feedback(
+                    cand_card,
+                    sr.report,
+                    cand,
+                    best_q_hw,
+                    candidate_action=candidate_action,
+                    measured_rejected_actions=measured_rejected_actions,
+                )
+                alternatives = distinct_report_supported_alternatives(
+                    getattr(cr, "report", None),
+                    action_contract,
+                    candidate_action,
+                    source_banking_evidence,
+                )
+                rejection_feedback["distinct_report_supported_alternatives"] = (
+                    alternatives
+                )
+                if not alternatives:
+                    report_supported_convergence = True
+                    round_convergence_reason = (
+                        "measured Q_HW rejection closed its family/target and "
+                        "the current report exposes no distinct actionable "
+                        "loop or array target"
+                    )
             state.log(f"opt r{rnd}: no score-aligned improvement (stag {stag}/{max_stag})")
             if (cand_card is not None and cr.report is not None
                     and _is_minimum_unroll_frontier(best, cand, cand_card, cr.report)):
                 minimum_factor_convergence = True
-                state.log(f"opt r{rnd}: minimum UNROLL factor=2 already loses Q_HW with loop II=1 — converge")
-                break
+                rejection_feedback["minimum_unroll_frontier"] = (
+                    "factor=2 lost Q_HW; LOOP_UNROLL family is closed"
+                )
 
         if sr is not None and sr.report is not None:
             report = sr.report
+            hierarchy_delta = inferred_directive_delta(
+                getattr(cr, "report", None), report
+            )
+            if hierarchy_delta["pipeline_boundary_changed"]:
+                state.log(
+                    f"opt r{rnd}: Vitis inferred pipeline boundary changed "
+                    f"{hierarchy_delta['pipeline_targets_before']}→"
+                    f"{hierarchy_delta['pipeline_targets_after']}"
+                )
+                if rejection_feedback is not None:
+                    rejection_feedback["inferred_directive_delta"] = (
+                        hierarchy_delta
+                    )
             loop_ii = report.loop_metrics[0].get("pipeline_ii") if report.loop_metrics else None
             synth_candidates.append({
                 "round": rnd,
@@ -521,6 +696,13 @@ def run_optimization_loop(
                 "loop_ii": loop_ii, "clock_ns": report.clock_period_ns,
                 "resources": dict(report.resources),
                 "loop_metrics": [dict(lm) for lm in (report.loop_metrics or [])],
+                "inferred_directives": [
+                    dict(item)
+                    for item in (
+                        getattr(report, "inferred_directives", None) or []
+                    )
+                ],
+                "inferred_directive_delta": hierarchy_delta,
                 "q_hw_before": old_q_hw,
                 "q_hw_after": cand_card.q_hw if cand_card else None,
                 "decision": "ACCEPTED" if accepted else "REJECTED",
@@ -539,6 +721,13 @@ def run_optimization_loop(
                 },
             })
 
+        if not accepted and round_convergence_reason:
+            convergence_reason = round_convergence_reason
+            state.log(
+                f"opt r{rnd}: {round_convergence_reason} — return current "
+                "kernel unchanged without another LLM request"
+            )
+            break
         if stop_after_first_measured:
             state.log("opt: strategy lane measured one candidate — stop lane")
             break
@@ -568,6 +757,18 @@ def run_optimization_loop(
     state.metadata["resource_history"] = resource_history
     state.metadata["best_q_hw"] = best_q_hw
     state.metadata["semantic_duplicate_skips"] = semantic_duplicate_skips
+    state.metadata["anti_repeat_action_rejections"] = anti_repeat_action_rejections
+    state.metadata["report_evidence_action_rejections"] = (
+        report_evidence_action_rejections
+    )
+    state.metadata["report_supported_convergence"] = (
+        report_supported_convergence
+    )
+    state.metadata["optimization_convergence_reason"] = convergence_reason
+    state.metadata["action_guard_rejection_reasons"] = (
+        action_guard_rejection_reasons
+    )
+    state.metadata["measured_rejected_actions"] = measured_rejected_actions
     state.metadata["semantic_current_best_skips"] = semantic_current_best_skips
     state.metadata["synth_candidates"] = synth_candidates
     state.metadata["ii_resource_intent_rejections"] = ii_resource_intent_rejections
@@ -580,6 +781,9 @@ def run_optimization_loop(
         failure.to_dict() for failure in optimization_failures
     ]
     state.metadata["knowledge_retrievals"] = knowledge_retrievals
+    state.metadata["source_banking_evidence"] = (
+        source_banking_evidence_history
+    )
     return state
 
 

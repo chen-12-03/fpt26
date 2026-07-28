@@ -4,17 +4,17 @@ services:
       context: ${FPT26_REPO_ROOT:-..}
       dockerfile: fpt26-agent-v3/Dockerfile
       args:
-        BASE_IMAGE: ${FPT26_AGENT_BASE_IMAGE:-vitis_runtime:2025.2}
-    image: ${FPT26_AGENT_IMAGE:-fpt26-agent:latest}
+        BASE_IMAGE: ${FPT26_AGENT_BASE_IMAGE:-xilinx/xilinx_runtime_base:alveo-2023.2-ubuntu-22.04}
+    image: ${FPT26_AGENT_IMAGE:-fpt26-agent-v3:latest}
     working_dir: /workspace
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     environment:
       FPT26_REPO_ROOT: /workspace
-      VITIS: ${VITIS:?set VITIS to the host Vitis 2025.2 path}
+      VITIS: ${VITIS:-/tools/Xilinx/2025.2/Vitis}
       XRT: ${XRT:-/opt/xilinx/xrt}
       PLATFORM: ${PLATFORM:-}
       HLS_PART: ${HLS_PART:-xcu55c-fsvh2892-2L-e}
-      XILINX_VITIS: ${VITIS:?set VITIS to the host Vitis 2025.2 path}
+      XILINX_VITIS: ${VITIS:-/tools/Xilinx/2025.2/Vitis}
       XILINX_XRT: ${XILINX_XRT:-/opt/xilinx/xrt}
       XILINX_PLATFORM: ${PLATFORM:-}
       FPT26_XRT_SOURCE: ${FPT26_XRT_SOURCE:-image-default}
@@ -38,9 +38,9 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
       LLM4HLS_MODEL: ${LLM4HLS_MODEL:-}
-      LLM4HLS_VITIS_HLS_ROOT: ${VITIS:?set VITIS to the host Vitis 2025.2 path}
+      LLM4HLS_VITIS_HLS_ROOT: ${VITIS:-/tools/Xilinx/2025.2/Vitis}
       LLM4HLS_PART: ${HLS_PART:-xcu55c-fsvh2892-2L-e}
-      PYTHONPATH: /workspace/fpt26-agent-v3:/workspace/fpt26-harness
+      PYTHONPATH: /workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
       USER: ${USER:-fpt26}
@@ -53,8 +53,8 @@ services:
         source: ${FPT26_REPO_ROOT:?set FPT26_REPO_ROOT}
         target: /workspace
       - type: bind
-        source: ${VITIS_MOUNT_ROOT:?set VITIS_MOUNT_ROOT to the host Xilinx install root}
-        target: ${VITIS_MOUNT_ROOT:?set VITIS_MOUNT_ROOT to the host Xilinx install root}
+        source: ${VITIS_MOUNT_ROOT:-/tools/Xilinx}
+        target: ${VITIS_MOUNT_ROOT:-/tools/Xilinx}
         read_only: true
       - type: bind
         source: ${HOME:?set HOME}

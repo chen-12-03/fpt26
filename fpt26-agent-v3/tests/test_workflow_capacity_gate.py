@@ -78,10 +78,16 @@ def _run_score(monkeypatch, tmp_path, candidate, baseline):
     )
 
     class FakeCSimTool:
+        def __init__(self, **kwargs):
+            pass
+
         def run(self, *args, **kwargs):
             return SimpleNamespace(ok=True, report=None)
 
     class FakeSynthTool:
+        def __init__(self, **kwargs):
+            pass
+
         def run(self, *args, **kwargs):
             return next(synth_results)
 

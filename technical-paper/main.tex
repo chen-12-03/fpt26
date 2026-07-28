@@ -2,6 +2,7 @@
 
 \input{preamble}
 \input{macros}
+\input{results_generated}
 
 \begin{document}
 
@@ -25,16 +26,15 @@ quality of results
 \input{sections/introduction}
 \input{sections/vcl}
 \input{sections/qor}
-\input{sections/evidence_reuse}
 \input{sections/evaluation}
 \input{sections/conclusion}
 
-\balance
+% The Track-A wording does not explicitly exempt references from the
+% two-page "main content" limit.  Keep the bibliography inside that
+% conservative two-page boundary; appendices begin on a new page.
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 
-% Keep the two-page paper, including references, separate from supplementary
-% material.
 \clearpage
 \input{appendix}
 

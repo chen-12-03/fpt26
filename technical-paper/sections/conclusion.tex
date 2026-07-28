@@ -1,7 +1,10 @@
-\section{Evidence Controls Promotion}
+\section{Limits and Next Steps}
 
-The \VCL{} binds LLM proposals to the validation chain and \QHW{} promotion
-rule. QoR-RAG supplies compatible evidence, and Failure Reflection supplies
-the next constraint without an extra LLM request. The final evaluation will
-measure how these mechanisms affect validity, hardware quality, and budget
-use.
+The \VCL{} makes validation evidence and \QHW{} the promotion authority. The
+\TotalModelTaskRuns{} runs show that models differ sharply on structural
+repair under this shared contract. One campaign per model cannot separate
+model effects from provider or sampling variation, and the two-repository
+suite limits external validity. Matched ablations and repeated campaigns must
+establish the causal effects of QoR-RAG and Failure Reflection. Broader
+repositories, tool versions, and devices will test transfer beyond the present
+AMD corpus.

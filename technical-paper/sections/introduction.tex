@@ -1,27 +1,24 @@
 \section{Evidence Must Control LLM Edits}
 
 HLS engineers must interpret unfamiliar C/C++ kernels, fix functional and
-streaming failures, and tune hardware under a small evaluation budget. Vitis
-HLS exposes correctness and performance only through simulation and synthesis
-reports~\cite{amd2025vitis}. An LLM can propose source changes, but its text
-cannot certify an interface, a register-transfer-level (RTL) execution, or a
+streaming failures, and tune hardware under a small evaluation budget.
+Simulation and synthesis reports expose correctness and performance
+evidence~\cite{amd2025vitis}. An LLM can propose source changes, but its text
+cannot certify an interface, register-transfer-level (RTL) execution, or a
 hardware tradeoff.
 
 LLM-assisted HLS systems automate code transformation and design-space
-exploration~\cite{xiong2024hlspilot,xu2024ralad}. General tool-using agents
-interleave model reasoning and actions~\cite{yao2023react}. A metered HLS loop
-additionally requires a candidate-promotion rule. An unchecked edit can pass
-compilation while failing a hidden test, deadlocking in RTL, missing 100 MHz,
-or growing one resource beyond its speedup. Partial validation can also exhaust
-the credits needed to recover.
+exploration~\cite{xiong2024hlspilot,xu2024ralad}. ChatHLS further separates
+generation, directive tuning, and feedback-driven debugging
+agents~\cite{li2026chathls}. General tool-using agents interleave model
+reasoning and actions~\cite{yao2023react}. A metered HLS loop also needs a
+candidate-promotion rule. An unchecked edit can pass compilation while failing
+a hidden test, deadlocking in RTL, missing 100 MHz, or consuming more hardware
+than its speedup justifies.
 
-We call our evidence-controlled promotion mechanism the Verified-Candidate
-Loop (\VCL). The paper develops three claims. \textbf{(1) Validity
-preservation:} the validation chain prevents candidates that fail any
-available required gate from replacing the verified fallback.
-\textbf{(2) QoR alignment:} the bounded hardware-quality score \QHW{} rejects
-speedups that lose on clock or the worst-growing resource.
-\textbf{(3) Evidence reuse:} QoR-guided retrieval-augmented generation
-(QoR-RAG) and Failure Reflection focus later iterations on compatible actions
-and prior failures. Section~\ref{sec:evaluation} maps each claim to a separate
-experiment; the final revision will add measured results.
+Our Verified-Candidate Loop (\VCL) contributes three mechanisms.
+\textbf{(1)} A fail-closed interface and validation workflow preserves a
+verified fallback. \textbf{(2)} A bounded hardware score \QHW{} rejects false
+speedups. \textbf{(3)} QoR-guided retrieval-augmented generation (QoR-RAG) and
+Failure Reflection focus later attempts on compatible evidence. We evaluate
+the complete agent in \TotalModelTaskRuns{} hosted-model task runs.

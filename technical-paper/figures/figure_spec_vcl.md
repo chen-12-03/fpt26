@@ -6,7 +6,7 @@
 - **Paper section:** Section II
 - **Placement:** full-width (`figure*`)
 - **Archetype:** architecture overview
-- **Generation backend:** TikZ
+- **Generation backend:** user-supplied vector PDF
 
 ## Purpose
 
@@ -84,7 +84,8 @@
 - **Flow direction:** left-to-right main path with one lower feedback loop
 - **Hierarchy levels:** two
 - **Symmetry constraints:** all validation diamonds share size and style
-- **Size target:** 7.16 inches wide and at most 1.45 inches high, including caption
+- **Size target:** 7.0 inches wide and approximately 1.15 inches high,
+  excluding caption
 
 ## Styling
 
@@ -95,13 +96,13 @@
 
 ## Generation
 
-**TikZ source:** deferred
+**Expected asset:** `technical-paper/figures/vcl_workflow.pdf`
 
 ## Caption
 
-**Draft caption:** The Verified-Candidate Loop grants promotion authority to
-the validation chain and `Q_HW` rule. Failed or unaffordable candidates feed
-the next evidence-guided proposal and cannot replace the verified fallback.
+**Draft caption:** Measured evidence controls every state transition. The
+agent proposes through a bounded interface; only a candidate that passes every
+applicable gate and improves `Q_HW` can replace the verified fallback.
 
 ## Status
 

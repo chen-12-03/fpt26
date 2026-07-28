@@ -3,43 +3,71 @@
 \citation{xiong2024hlspilot,xu2024ralad}
 \citation{yao2023react}
 \@writefile{toc}{\contentsline {section}{\numberline {I}Evidence Must Control LLM Edits}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {II}The VCL Preserves the Verified Fallback}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Tool Evidence Controls the Agent Workflow}{1}{}\protected@file@percent }
 \newlabel{eq:validity}{{1}{1}{}{equation.1}{}}
 \newlabel{eq:promotion}{{2}{1}{}{equation.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {III}QoR Rejects False Speedups}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}One Score Rejects False Speedups}{1}{}\protected@file@percent }
 \newlabel{eq:performance}{{3}{1}{}{equation.3}{}}
 \newlabel{eq:area}{{4}{1}{}{equation.4}{}}
+\newlabel{eq:qhw}{{5}{1}{}{equation.5}{}}
+\newlabel{eq:score}{{6}{1}{}{equation.6}{}}
+\citation{amdIntroExamples,amdAccelExamples}
+\citation{fpt26tracka}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{amd2025vitis}{1}
 \bibcite{xiong2024hlspilot}{2}
 \bibcite{xu2024ralad}{3}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The \textsc  {VCL}{} grants promotion authority to the validation chain and the hardware-quality rule. Failed or unaffordable candidates cannot replace the verified fallback.}}{2}{}\protected@file@percent }
-\newlabel{fig:vcl}{{1}{2}{}{figure.1}{}}
-\newlabel{eq:qhw}{{5}{2}{}{equation.5}{}}
-\newlabel{eq:score}{{6}{2}{}{equation.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}Evidence Reuse Focuses Each Iteration}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}QoR-RAG Retrieves Compatible Actions}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Failure Reflection Converts Errors into Constraints}{2}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Claim-aligned results under the same tasks and budgets.}}{2}{}\protected@file@percent }
-\newlabel{tab:results}{{I}{2}{}{table.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Evaluation Maps Each Claim to Evidence}{2}{}\protected@file@percent }
-\newlabel{sec:evaluation}{{V}{2}{}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}VCL Preserves Required Validity}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}\ensuremath  {Q_{\mathrm  {HW}}}{} Selects Hardware Gains}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Evidence Reuse Reduces Repetition}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {VI}Evidence Controls Promotion}{2}{}\protected@file@percent }
 \bibcite{yao2023react}{4}
-\@writefile{toc}{\contentsline {section}{References}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Implementation Contract}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Experimental Configuration}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: Per-Task Evidence}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  D: Token and Tool Accounting}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  E: Reproduction Procedure}{4}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Reproduction configuration for the final experiment set.}}{5}{}\protected@file@percent }
-\newlabel{tab:configuration}{{II}{5}{}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Per-task correctness and hardware evidence.}}{5}{}\protected@file@percent }
-\newlabel{tab:per-task}{{III}{5}{}{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Per-stage model and tool accounting.}}{5}{}\protected@file@percent }
-\newlabel{tab:accounting}{{IV}{5}{}{table.4}{}}
+\bibcite{amdIntroExamples}{5}
+\bibcite{amdAccelExamples}{6}
+\bibcite{fpt26tracka}{7}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Measured evidence controls every state transition.} Only a valid hardware-score gain can replace the verified fallback.}}{2}{}\protected@file@percent }
+\newlabel{fig:vcl}{{1}{2}{}{figure.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces \textbf  {Structural repair separates the models.} All and structural columns report success (\%); QoR reports the mean official score on 25 optimization tasks.}}{2}{}\protected@file@percent }
+\newlabel{tab:results}{{I}{2}{}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Three Models Expose the Hard Cases}{2}{}\protected@file@percent }
+\newlabel{sec:evaluation}{{IV}{2}{}{section.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Evidence Controls Promotion}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: One State Makes Runs Auditable}{3}{}\protected@file@percent }
+\newlabel{app:interface}{{A}{3}{}{section.Appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Scoring Handles Missing Evidence}{3}{}\protected@file@percent }
+\newlabel{app:scoring}{{B}{3}{}{section.Appendix.B}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: The Suite Balances Six Capabilities}{3}{}\protected@file@percent }
+\newlabel{app:benchmark}{{C}{3}{}{section.Appendix.C}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  D: Outputs Enforce Applicable Gates}{3}{}\protected@file@percent }
+\newlabel{app:compliance}{{D}{3}{}{section.Appendix.D}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  E: Campaigns Share One Contract}{3}{}\protected@file@percent }
+\newlabel{app:configuration}{{E}{3}{}{section.Appendix.E}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  F: Only Proposal Consumes Model Tokens}{3}{}\protected@file@percent }
+\newlabel{app:token-accounting}{{F}{3}{}{section.Appendix.F}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  G: Structural Repair Separates Models}{3}{}\protected@file@percent }
+\newlabel{app:results}{{G}{3}{}{section.Appendix.G}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  H: Generated Macros Keep Results Current}{3}{}\protected@file@percent }
+\newlabel{app:update}{{H}{3}{}{section.Appendix.H}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  I: Current Evidence Leaves Causal Gaps}{3}{}\protected@file@percent }
+\newlabel{app:limitations}{{I}{3}{}{section.Appendix.I}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  J: Reports Preserve Reproduction Evidence}{3}{}\protected@file@percent }
+\newlabel{app:reproduction}{{J}{3}{}{section.Appendix.J}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces \textbf  {One run state connects proposals to auditable evidence.} The output writer preserves the latest candidate that passed every required gate.}}{4}{}\protected@file@percent }
+\newlabel{tab:state-contract}{{II}{4}{}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces \textbf  {The suite balances six distinct agent capabilities.} Only structural repair requires \textsc  {CoSim}{} by construction.}}{4}{}\protected@file@percent }
+\newlabel{tab:task-composition}{{III}{4}{}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textbf  {Fixed commits make the source corpus reproducible.}}}{4}{}\protected@file@percent }
+\newlabel{tab:task-sources}{{IV}{4}{}{table.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces \textbf  {The runtime output contract implements every applicable Track-A evaluation requirement.} Missing evidence fails closed.}}{4}{}\protected@file@percent }
+\newlabel{tab:compliance}{{V}{4}{}{table.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces \textbf  {All three campaigns share the same evaluation contract.}}}{5}{}\protected@file@percent }
+\newlabel{tab:configuration}{{VI}{5}{}{table.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces \textbf  {Only candidate proposal consumes LLM tokens.} Tool phases consume credits and wall time under separate accounting.}}{5}{}\protected@file@percent }
+\newlabel{tab:phase-accounting}{{VII}{5}{}{table.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces \textbf  {Campaign reports account for every model response.} Values use millions of tokens.}}{5}{}\protected@file@percent }
+\newlabel{tab:token-totals}{{VIII}{5}{}{table.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces \textbf  {DeepSeek leads aggregate score and token efficiency.} All-task mean assigns zero to tasks without an official score; scored mean excludes tasks that lack a valid QoR anchor.}}{5}{}\protected@file@percent }
+\newlabel{tab:model-totals}{{IX}{5}{}{table.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces \textbf  {Structural \textsc  {CoSim}{} repair causes the main success gap.} Entries report success rate (\%).}}{5}{}\protected@file@percent }
+\newlabel{tab:category-success}{{X}{5}{}{table.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {XI}{\ignorespaces \textbf  {Matched reruns will isolate each evidence-reuse mechanism.} Pending rows remain outside current causal claims.}}{5}{}\protected@file@percent }
+\newlabel{tab:ablation-plan}{{XI}{5}{}{table.11}{}}
 \gdef \@abspage@last{5}

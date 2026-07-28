@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 from agent.agents.optimize import (
     OptimizeAgent,
+    _anti_repeat_action_violation,
     _candidate_fingerprint,
     _csim_failure_feedback,
     _diagnose,
@@ -10,8 +11,10 @@ from agent.agents.optimize import (
     _is_minimum_unroll_frontier,
     _latest_successful_synth,
     _rejection_feedback,
+    _report_supported_action_violation,
     _score_candidate,
     _source_array_rank,
+    candidate_action_summary,
 )
 from agent.analysis.action_contract import build_ii_resource_action_contract
 from agent.analysis.synth_diagnostics import extract_ii_resource_limits
@@ -162,10 +165,173 @@ def test_rejection_feedback_contains_metrics_and_pragma_evidence() -> None:
     assert "Increasing any UNROLL or ARRAY_PARTITION factor" in feedback[
         "directional_constraint"
     ]
-    assert "Do not increase or repeat" in feedback["required_next_action"]
+    assert "Do not repeat any forbidden optimization family or target" in feedback[
+        "required_next_action"
+    ]
     assert "return the current editable kernel unchanged" in feedback[
         "required_next_action"
     ]
+    assert feedback["forbidden_optimization_families"] == [
+        "LOOP_UNROLL",
+        "MEMORY_BANKING",
+    ]
+    assert feedback["forbidden_targets"]["arrays"] == ["a"]
+    assert feedback["anti_repeat_priority"].startswith("Measured Q_HW")
+
+
+def test_action_guard_blocks_same_family_target_and_pipeline_ii_one_guesses() -> None:
+    prior = {
+        "action": {
+            "families": ["LOOP_UNROLL"],
+            "targets": {
+                "loops": ["reduce"],
+                "arrays": [],
+                "functions": [],
+            },
+            "source_changed": False,
+            "semantic_signature": (
+                "families=LOOP_UNROLL|targets=loop:reduce|source_changed=False"
+            ),
+        }
+    }
+    same_family_other_loop = {
+        "families": ["LOOP_UNROLL"],
+        "targets": {"loops": ["other"], "arrays": [], "functions": []},
+        "source_changed": False,
+    }
+    different_family_same_loop = {
+        "families": ["PIPELINE"],
+        "targets": {"loops": ["reduce"], "arrays": [], "functions": []},
+        "source_changed": False,
+    }
+
+    assert "optimization family already measured" in (
+        _anti_repeat_action_violation(same_family_other_loop, [prior]) or ""
+    )
+    assert "optimization target already measured" in (
+        _anti_repeat_action_violation(different_family_same_loop, [prior]) or ""
+    )
+
+    ii_one_report = SimpleNamespace(
+        loop_metrics=[{"name": "reduce", "pipeline_ii": 1}]
+    )
+    assert "PipelineII=1" in (
+        _report_supported_action_violation(
+            different_family_same_loop, ii_one_report, None
+        )
+        or ""
+    )
+    partially_measured_report = SimpleNamespace(
+        loop_metrics=[
+            {"name": "read_buf", "pipeline_ii": None},
+            {"name": "calc_write", "pipeline_ii": 1},
+        ]
+    )
+    assert (
+        _report_supported_action_violation(
+            different_family_same_loop, partially_measured_report, None
+        )
+        is None
+    )
+    mixed_ii_report = SimpleNamespace(
+        loop_metrics=[
+            {"name": "reduce", "pipeline_ii": 1},
+            {"name": "other", "pipeline_ii": 2},
+        ]
+    )
+    assert "target loop(s) already have PipelineII=1" in (
+        _report_supported_action_violation(
+            different_family_same_loop, mixed_ii_report, None
+        )
+        or ""
+    )
+    banking = {
+        "families": ["MEMORY_BANKING"],
+        "targets": {"loops": [], "arrays": ["a"], "functions": []},
+        "source_changed": False,
+    }
+    assert "lacks source-proven concurrent-access evidence" in (
+        _report_supported_action_violation(banking, ii_one_report, None) or ""
+    )
+    source_evidence = [
+        {
+            "array": "a",
+            "dimension": 1,
+            "array_extent": 64,
+            "concurrent_lanes": 4,
+            "lane_stride": 1,
+            "factor_limit": 4,
+            "reshape_eligible": True,
+        }
+    ]
+    source_backed_banking = {
+        **banking,
+        "added_pragmas": [
+            "#pragma HLS ARRAY_PARTITION variable=a cyclic factor=2 dim=1"
+        ],
+    }
+    assert (
+        _report_supported_action_violation(
+            source_backed_banking,
+            ii_one_report,
+            None,
+            source_banking_evidence=source_evidence,
+        )
+        is None
+    )
+    source_backed_factor_four = {
+        **banking,
+        "added_pragmas": [
+            "#pragma HLS ARRAY_PARTITION variable=a cyclic factor=4 dim=1"
+        ],
+    }
+    source_backed_reshape = {
+        **banking,
+        "added_pragmas": [
+            "#pragma HLS ARRAY_RESHAPE variable=a cyclic factor=4 dim=1"
+        ],
+    }
+    conflicting_block = {
+        **banking,
+        "added_pragmas": [
+            "#pragma HLS ARRAY_PARTITION variable=a block factor=2 dim=1"
+        ],
+    }
+    assert (
+        _report_supported_action_violation(
+            source_backed_factor_four,
+            ii_one_report,
+            None,
+            source_banking_evidence=source_evidence,
+        )
+        is None
+    )
+    assert (
+        _report_supported_action_violation(
+            source_backed_reshape,
+            ii_one_report,
+            None,
+            source_banking_evidence=source_evidence,
+        )
+        is None
+    )
+    assert "does not provably increase distinct banks" in (
+        _report_supported_action_violation(
+            conflicting_block,
+            ii_one_report,
+            None,
+            source_banking_evidence=source_evidence,
+        )
+        or ""
+    )
+    assert (
+        _report_supported_action_violation(
+            banking,
+            ii_one_report,
+            {"kind": "measured_memory_port_ii"},
+        )
+        is None
+    )
 
 
 def test_csim_failure_feedback_contains_concise_error_and_candidate_diff() -> None:
@@ -221,8 +387,197 @@ def test_diagnosis_uses_loop_ii_not_top_function_interval() -> None:
 
     assert "PipelineII=1 is already optimal" in diagnosis
     assert "TopInterval=1025 is the function transaction interval" in diagnosis
-    assert "partial UNROLL factor=2 inside that loop body" in diagnosis
+    assert "does not by itself justify UNROLL" in diagnosis
+    assert "otherwise keep the kernel unchanged" in diagnosis
     assert "II=1025>1" not in diagnosis
+
+
+def test_action_guard_preserves_vitis_inferred_pipeline_hierarchy() -> None:
+    report = SimpleNamespace(
+        loop_metrics=[{"name": "middle", "pipeline_ii": 1}]
+    )
+    action = {
+        "families": ["LOOP_UNROLL"],
+        "targets": {"loops": ["inner"], "arrays": [], "functions": []},
+        "added_pragmas": ["#pragma HLS UNROLL factor=2"],
+    }
+    source_metadata = {
+        "loops": [
+            {
+                "name": "inner",
+                "report_loop_name": "unknown",
+                "auto_parallelism": {
+                    "hierarchy_sensitive": True,
+                    "pipeline_ancestors": ["middle"],
+                },
+            }
+        ]
+    }
+
+    violation = _report_supported_action_violation(
+        action,
+        report,
+        None,
+        source_metadata=source_metadata,
+    )
+
+    assert violation is not None
+    assert "inferred-pipelined ancestor(s) middle" in violation
+    assert "pipeline boundary" in violation
+
+
+def test_optimizer_rejects_inner_unroll_then_measures_source_backed_banking() -> None:
+    task = SimpleNamespace(
+        id="generic_matrix",
+        type="optimize",
+        difficulty=3,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+        description="Optimize local matrix reuse.",
+        headers={"top.h": "#define MAX_DIM 16\n"},
+        top="top",
+        kernel_name="top.cpp",
+    )
+    starter_report = _report(
+        latency=1200,
+        ii=1201,
+        clock=5.0,
+        lut=200,
+        ff=200,
+        dsp=2,
+        loop_metrics=[
+            {
+                "name": "middle",
+                "trip_count": 16,
+                "latency": 1100,
+                "pipeline_ii": 1,
+            }
+        ],
+    )
+    starter_report.inferred_directives = [
+        {
+            "kind": "pipeline",
+            "target": "top/middle",
+            "function": "top",
+            "scope": "middle",
+            "origin": "vitis_inferred",
+        }
+    ]
+    improved_report = _report(
+        latency=500,
+        ii=501,
+        clock=5.0,
+        lut=200,
+        ff=200,
+        dsp=2,
+        loop_metrics=[
+            {
+                "name": "middle",
+                "trip_count": 16,
+                "latency": 450,
+                "pipeline_ii": 1,
+            }
+        ],
+    )
+    improved_report.inferred_directives = list(
+        starter_report.inferred_directives
+    )
+    starter = """#include "top.h"
+void top(int *out) {
+  int A[MAX_DIM * MAX_DIM];
+  int B[MAX_DIM * MAX_DIM];
+outer:
+  for (int i = 0; i < MAX_DIM; ++i) {
+middle:
+    for (int j = 0; j < MAX_DIM; ++j) {
+inner:
+      for (int k = 0; k < MAX_DIM; ++k) {
+        out[i] += A[i * MAX_DIM + k] * B[k * MAX_DIM + j];
+      }
+    }
+  }
+}
+"""
+    forbidden_unroll = starter.replace(
+        "        out[i] +=",
+        "        #pragma HLS UNROLL factor=2\n        out[i] +=",
+    )
+    source_backed_banking = starter.replace(
+        "  int B[MAX_DIM * MAX_DIM];",
+        "  int B[MAX_DIM * MAX_DIM];\n"
+        "  #pragma HLS ARRAY_PARTITION variable=A cyclic factor=2 dim=1\n"
+        "  #pragma HLS ARRAY_PARTITION variable=B block factor=16 dim=1",
+    )
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            payload = json.loads(prompt)
+            evidence = {
+                item["array"]: item
+                for item in payload["source_banking_evidence"]
+            }
+            assert set(evidence) == {"A", "B"}
+            assert evidence["A"]["factor_limit"] == 16
+            assert evidence["A"]["recommended_trial"]["priority"] == (
+                "soft_minimal_trial"
+            )
+            assert evidence["B"]["recommended_trial"]["partition_type"] == "block"
+            if self.calls == 1:
+                return forbidden_unroll
+            assert payload["previous_candidate_feedback"]["status"] == (
+                "REJECTED_BY_REPORT_EVIDENCE"
+            )
+            assert "pipeline boundary" in payload[
+                "previous_candidate_feedback"
+            ]["reason"]
+            return source_backed_banking
+
+    class Server:
+        def __init__(self) -> None:
+            self.csim_calls = 0
+            self.synth_calls = 0
+
+        def csim(self, kernel):
+            self.csim_calls += 1
+            return SimpleNamespace(kind="csim", ok=True, report=None, log="")
+
+        def synth(self, kernel):
+            self.synth_calls += 1
+            return SimpleNamespace(
+                kind="synth", ok=True, report=improved_report, log=""
+            )
+
+    llm = Llm()
+    server = Server()
+    logs: list[str] = []
+    state = SimpleNamespace(
+        task=task,
+        server=server,
+        kernel=starter,
+        best_latency=1200,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=starter_report, log=""
+            )
+        ],
+        metadata={},
+        log=logs.append,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=2).run(state)
+
+    assert result.kernel == source_backed_banking
+    assert llm.calls == 2
+    assert server.csim_calls == 1
+    assert server.synth_calls == 1
+    assert result.metadata["report_evidence_action_rejections"] == 1
+    assert result.metadata["synth_candidates"][-1]["decision"] == "ACCEPTED"
+    assert any("source-backed banking targets=A" in entry for entry in logs)
 
 
 def test_diagnosis_extracts_vitis_memory_port_ii_limit() -> None:
@@ -281,8 +636,14 @@ def test_action_contract_targets_measured_array_with_one_bounded_trial() -> None
     assert target["recommended_minimal_trial"] == {
         "pragma_class": "ARRAY_PARTITION",
         "variable": "orig",
-        "style": "cyclic",
-        "factor": 2,
+        "style": "derive_from_source_bank_mapping",
+        "factor": 5,
+        "factor_is_soft_hint": True,
+        "factor_policy": (
+            "Choose the smallest factor whose cyclic/block bank mapping "
+            "increases usable ports for the reported accesses. The observed "
+            "II lower bound is a search hint, not a mandatory factor."
+        ),
         "dimension_policy": (
             "Choose only the dimension indexed by concurrent loop "
             "iterations. Omit this trial when the source does not prove "
@@ -321,9 +682,13 @@ def test_ii_resource_intent_gate_requires_evidence_matched_banking() -> None:
         "  #pragma HLS ARRAY_RESHAPE variable = orig cyclic factor=2 dim=1\n"
         "  #pragma HLS UNROLL factor=2\n  for",
     )
-    wrong_style = best.replace(
+    matched_block = best.replace(
         "  for",
         "  #pragma HLS ARRAY_PARTITION variable=orig block factor=2 dim=1\n  for",
+    )
+    invalid_factor = best.replace(
+        "  for",
+        "  #pragma HLS ARRAY_PARTITION variable=orig cyclic factor=1 dim=1\n  for",
     )
     invalid_dimension = best.replace(
         "  for",
@@ -364,13 +729,17 @@ def test_ii_resource_intent_gate_requires_evidence_matched_banking() -> None:
     assert "pragma class must be ARRAY_PARTITION" in multi_action_feedback[
         "contract_violations"
     ]
-    style_feedback = _ii_resource_intent_feedback(
-        synth_result, best, wrong_style
+    assert (
+        _ii_resource_intent_feedback(synth_result, best, matched_block)
+        is None
     )
-    assert style_feedback is not None
-    assert "partition style must be cyclic" in style_feedback[
-        "contract_violations"
-    ]
+    factor_feedback = _ii_resource_intent_feedback(
+        synth_result, best, invalid_factor
+    )
+    assert factor_feedback is not None
+    assert "finite factor >=2" in " ".join(
+        factor_feedback["contract_violations"]
+    )
     dimension_feedback = _ii_resource_intent_feedback(
         synth_result, best, invalid_dimension
     )
@@ -446,7 +815,7 @@ def test_optimize_reflects_ii_intent_rejection_without_candidate_tools() -> None
                 assert contract["targets"][0]["array"] == "orig"
                 assert contract["targets"][0]["recommended_minimal_trial"][
                     "factor"
-                ] == 2
+                ] == 5
                 return unmatched_banking
             payload = json.loads(prompt)
             feedback = payload["previous_candidate_feedback"]
@@ -530,7 +899,13 @@ def test_optimize_skips_tools_for_semantically_repeated_rejection() -> None:
                 "trip_count": 1024,
                 "latency": 1025,
                 "pipeline_ii": 1,
-            }
+            },
+            {
+                "name": "distinct_report_target",
+                "trip_count": 64,
+                "latency": 128,
+                "pipeline_ii": 2,
+            },
         ],
     )
     rejected_report = _report(
@@ -612,6 +987,288 @@ def test_optimize_skips_tools_for_semantically_repeated_rejection() -> None:
     assert server.csim_calls == 1
     assert server.synth_calls == 1
     assert result.metadata["semantic_duplicate_skips"] == 1
+
+
+def test_qhw_rejection_blocks_same_action_family_before_next_synth() -> None:
+    task = SimpleNamespace(
+        id="anti_repeat_qhw",
+        type="optimize",
+        difficulty=3,
+        requires_cosim=False,
+        budget=40,
+        clock_ns=5.0,
+        description="Optimize a measured reduction.",
+        headers={},
+        top="top",
+        kernel_name="top.cpp",
+    )
+    starter_report = _report(
+        latency=1000,
+        ii=1000,
+        clock=5.0,
+        lut=100,
+        ff=100,
+        dsp=1,
+        loop_metrics=[
+            {
+                "name": "reduce",
+                "trip_count": 1000,
+                "latency": 999,
+                "pipeline_ii": 1,
+            },
+            {
+                "name": "alternative_loop",
+                "trip_count": 64,
+                "latency": 128,
+                "pipeline_ii": 2,
+            },
+        ],
+    )
+    rejected_report = _report(
+        latency=500,
+        ii=500,
+        clock=5.0,
+        lut=400,
+        ff=400,
+        dsp=4,
+        loop_metrics=[
+            {
+                "name": "reduce",
+                "trip_count": 500,
+                "latency": 499,
+                "pipeline_ii": 1,
+            }
+        ],
+    )
+    starter = """int top(int *a) {
+  int sum = 0;
+  for (int i = 0; i < 1000; ++i) {
+    sum += a[i];
+  }
+  return sum;
+}
+"""
+    factor_four = starter.replace(
+        "    sum += a[i];",
+        "    #pragma HLS UNROLL factor=4\n    sum += a[i];",
+    )
+    # Different source fingerprint and factor, but the same optimization family
+    # and loop target as the already measured Q_HW loser.
+    factor_eight = factor_four.replace("factor=4", "factor=8").replace(
+        "int sum = 0;", "int sum = 0; // layout-only semantic variant"
+    )
+
+    first_action = candidate_action_summary(
+        starter, factor_four, top_function="top"
+    )
+    second_action = candidate_action_summary(
+        starter, factor_eight, top_function="top"
+    )
+    assert first_action["families"] == ["LOOP_UNROLL"]
+    assert first_action["targets"]["loops"] == ["loop_0"]
+    assert first_action["semantic_signature"] == second_action[
+        "semantic_signature"
+    ]
+    assert _candidate_fingerprint(factor_four) != _candidate_fingerprint(
+        factor_eight
+    )
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            payload = json.loads(prompt)
+            if self.calls == 1:
+                return factor_four
+            contract = payload["anti_repeat_contract"]
+            assert contract["forbidden_optimization_families"] == [
+                "LOOP_UNROLL"
+            ]
+            assert contract["forbidden_targets"]["loops"] == ["loop_0"]
+            assert "overrides optimization_patterns" in contract["priority"]
+            if self.calls == 2:
+                assert payload["previous_candidate_feedback"]["status"] == (
+                    "REJECTED_BY_SCORING_V3_Q_HW"
+                )
+                return factor_eight
+            assert payload["previous_candidate_feedback"]["status"] == (
+                "REJECTED_BY_MEASURED_ACTION_ANTI_REPEAT"
+            )
+            return starter
+
+    class Server:
+        def __init__(self) -> None:
+            self.csim_calls = 0
+            self.synth_calls = 0
+
+        def csim(self, kernel):
+            self.csim_calls += 1
+            return SimpleNamespace(kind="csim", ok=True, report=None, log="")
+
+        def synth(self, kernel):
+            self.synth_calls += 1
+            return SimpleNamespace(
+                kind="synth", ok=True, report=rejected_report, log=""
+            )
+
+    llm = Llm()
+    server = Server()
+    state = SimpleNamespace(
+        task=task,
+        server=server,
+        kernel=starter,
+        best_latency=1000,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=starter_report, log=""
+            )
+        ],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=3).run(state)
+
+    assert result.kernel == starter
+    assert llm.calls == 3
+    assert server.csim_calls == 1
+    assert server.synth_calls == 1
+    assert result.metadata["anti_repeat_action_rejections"] == 1
+    assert len(result.metadata["measured_rejected_actions"]) == 1
+    assert "semantic equivalent" in result.metadata[
+        "action_guard_rejection_reasons"
+    ][0]
+
+
+def test_reordered_pipeline_on_unknown_ii_loop_is_measured_once_then_blocked() -> None:
+    task = SimpleNamespace(
+        id="burst_rw_repeat",
+        type="repair",
+        difficulty=3,
+        requires_cosim=False,
+        budget=60,
+        clock_ns=5.0,
+        description="Optimize burst read/write after compile repair.",
+        headers={},
+        top="vadd",
+        kernel_name="vadd.cpp",
+    )
+    starter_report = _report(
+        latency=100,
+        ii=101,
+        clock=3.65,
+        lut=1900,
+        ff=1470,
+        dsp=0,
+        loop_metrics=[
+            {"name": "read_buf", "pipeline_ii": None},
+            {"name": "calc_write", "pipeline_ii": 1},
+        ],
+    )
+    rejected_report = _report(
+        latency=300,
+        ii=301,
+        clock=3.65,
+        lut=1700,
+        ff=1400,
+        dsp=0,
+        loop_metrics=[{"name": "read_buf", "pipeline_ii": None}],
+    )
+    starter = """void vadd(int *a, int size) {
+read_buf:
+  for (int i = 0; i < size; i += 16) {
+    #pragma HLS LOOP_TRIPCOUNT min=1 max=64
+    a[i] += 1;
+  }
+}
+"""
+    first = starter.replace(
+        "    #pragma HLS LOOP_TRIPCOUNT",
+        "    #pragma HLS PIPELINE II=11\n"
+        "    #pragma HLS LOOP_TRIPCOUNT",
+    )
+    reordered = starter.replace(
+        "    a[i] += 1;",
+        "    #pragma HLS PIPELINE II=11\n"
+        "    a[i] += 1;",
+    )
+
+    first_action = candidate_action_summary(
+        starter, first, top_function="vadd"
+    )
+    reordered_action = candidate_action_summary(
+        starter, reordered, top_function="vadd"
+    )
+    assert first_action["targets"]["loops"] == ["read_buf"]
+    assert first_action["semantic_signature"] == reordered_action[
+        "semantic_signature"
+    ]
+    assert _candidate_fingerprint(first) != _candidate_fingerprint(reordered)
+
+    class Llm:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, system, prompt):
+            self.calls += 1
+            if self.calls > 1:
+                raise AssertionError(
+                    "no report-supported alternative means no second LLM call"
+                )
+            return first
+
+    class Server:
+        def __init__(self) -> None:
+            self.csim_calls = 0
+            self.synth_calls = 0
+
+        def csim(self, kernel):
+            self.csim_calls += 1
+            return SimpleNamespace(kind="csim", ok=True, report=None, log="")
+
+        def synth(self, kernel):
+            self.synth_calls += 1
+            return SimpleNamespace(
+                kind="synth", ok=True, report=rejected_report, log=""
+            )
+
+    llm = Llm()
+    server = Server()
+    state = SimpleNamespace(
+        task=task,
+        server=server,
+        kernel=starter,
+        best_latency=100,
+        results=[
+            SimpleNamespace(
+                kind="synth", ok=True, report=starter_report, log=""
+            )
+        ],
+        metadata={},
+        log=lambda message: None,
+    )
+
+    result = OptimizeAgent(llm, max_rounds=2).run(state)
+
+    assert result.kernel == starter
+    assert llm.calls == 1
+    assert server.csim_calls == 1
+    assert server.synth_calls == 1
+    assert result.metadata["report_evidence_action_rejections"] == 0
+    assert result.metadata["anti_repeat_action_rejections"] == 0
+    assert result.metadata["report_supported_convergence"] is True
+    assert "no distinct actionable" in result.metadata[
+        "optimization_convergence_reason"
+    ]
+    assert "semantic equivalent" in (
+        _anti_repeat_action_violation(
+            reordered_action,
+            [{"action": first_action}],
+        )
+        or ""
+    )
 
 
 def test_minimum_unroll_frontier_requires_only_factor_two_and_loop_ii_one() -> None:

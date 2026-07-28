@@ -166,7 +166,7 @@ def test_strategy_prompt_is_explicit_and_mutually_constrained() -> None:
     payload = json.loads(prompt)
     assert payload["search_strategy"]["name"] == "source_reduction_restructure"
     assert "source-level reduction" in payload["search_strategy"]["objective"]
-    assert "Do not copy the conservative UNROLL approach" in payload["instruction"]
+    assert "Do not copy another lane's action" in payload["instruction"]
 
 
 def test_strategy_contracts_enforce_distinct_candidate_families() -> None:

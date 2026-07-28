@@ -37,6 +37,7 @@ class SynthReport:
     utilization: dict  # used / available, in %
     pipeline_type: str | None = None
     loop_metrics: list[dict] = field(default_factory=list)
+    inferred_directives: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -57,7 +58,51 @@ class SynthReport:
         )
 
 
-def parse_csynth_xml(xml_fp: Path) -> SynthReport:
+def parse_inferred_directives(ini_fp: Path | None) -> list[dict]:
+    """Parse Vitis' machine-readable inferred-directive sidecar.
+
+    Vitis writes ``inferred_directives.ini`` next to the synthesis reports.
+    These are tool-selected transformations, not user pragmas.  Keep only the
+    directive kind and hierarchical target so optimization planning can avoid
+    accidentally moving an existing auto-pipeline/flatten boundary.
+    """
+    if ini_fp is None or not ini_fp.is_file():
+        return []
+    directives: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for raw_line in ini_fp.read_text(errors="replace").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith(("#", "[")) or "=" not in line:
+            continue
+        key, value = (part.strip() for part in line.split("=", 1))
+        match = re.fullmatch(r"syn\.directive\.([A-Za-z_]+)", key)
+        if match is None:
+            continue
+        kind = match.group(1).lower()
+        target = value.split(None, 1)[0].strip()
+        if not target:
+            continue
+        fingerprint = (kind, target)
+        if fingerprint in seen:
+            continue
+        seen.add(fingerprint)
+        directives.append(
+            {
+                "kind": kind,
+                "target": target,
+                "function": target.split("/", 1)[0],
+                "scope": target.rsplit("/", 1)[-1],
+                "origin": "vitis_inferred",
+            }
+        )
+    return directives
+
+
+def parse_csynth_xml(
+    xml_fp: Path,
+    *,
+    inferred_directives_fp: Path | None = None,
+) -> SynthReport:
     root = ET.parse(xml_fp).getroot()
 
     perf = root.find("PerformanceEstimates")
@@ -128,6 +173,9 @@ def parse_csynth_xml(xml_fp: Path) -> SynthReport:
         utilization=util,
         pipeline_type=perf.findtext("PipelineType") if perf is not None else None,
         loop_metrics=loop_metrics,
+        inferred_directives=parse_inferred_directives(
+            inferred_directives_fp
+        ),
     )
 
 

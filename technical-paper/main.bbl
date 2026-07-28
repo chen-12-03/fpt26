@@ -7,8 +7,7 @@
 \providecommand{\BIBentrySTDinterwordspacing}{\spaceskip=0pt\relax}
 \providecommand{\BIBentryALTinterwordstretchfactor}{4}
 \providecommand{\BIBentryALTinterwordspacing}{\spaceskip=\fontdimen2\font plus
-\BIBentryALTinterwordstretchfactor\fontdimen3\font minus
-  \fontdimen4\font\relax}
+\BIBentryALTinterwordstretchfactor\fontdimen3\font minus \fontdimen4\font\relax}
 \providecommand{\BIBforeignlanguage}[2]{{%
 \expandafter\ifx\csname l@#1\endcsname\relax
 \typeout{** WARNING: IEEEtran.bst: No hyphenation pattern has been}%
@@ -22,21 +21,26 @@
 \BIBdecl
 
 \bibitem{amd2025vitis}
-{Advanced Micro Devices, Inc.}, \emph{{Vitis High-Level Synthesis User Guide}},
-  AMD, 2025, version 2025.2.
+\BIBentryALTinterwordspacing
+{Advanced Micro Devices, Inc.}, \emph{{Vitis High-Level Synthesis User Guide}}, AMD, 2026, version 2025.2. [Online]. Available: \url{https://docs.amd.com/r/2025.2-English/ug1399-vitis-hls}
+\BIBentrySTDinterwordspacing
 
 \bibitem{xiong2024hlspilot}
-C.~Xiong, C.~Liu, H.~Li, and X.~Li, ``{HLSPilot}: {LLM}-based high-level
-  synthesis,'' \emph{arXiv preprint arXiv:2408.06810}, 2024.
+C.~Xiong, C.~Liu, H.~Li, and X.~Li, ``{HLSPilot}: {LLM}-based high-level synthesis,'' in \emph{Proceedings of the 43rd IEEE/ACM International Conference on Computer-Aided Design}, 2024, pp. 1--9.
 
 \bibitem{xu2024ralad}
-H.~Xu, H.~Hu, and S.~Huang, ``Optimizing high-level synthesis designs with
-  retrieval-augmented large language models,'' in \emph{Proceedings of the 43rd
-  IEEE/ACM International Conference on Computer-Aided Design}, 2024.
+H.~Xu, H.~Hu, and S.~Huang, ``Optimizing high-level synthesis designs with retrieval-augmented large language models,'' in \emph{2024 IEEE LLM Aided Design Workshop}, 2024, pp. 1--5.
 
 \bibitem{yao2023react}
-S.~Yao, J.~Zhao, D.~Yu, N.~Du, I.~Shafran, K.~Narasimhan, and Y.~Cao,
-  ``{ReAct}: Synergizing reasoning and acting in language models,'' in
-  \emph{International Conference on Learning Representations}, 2023.
+S.~Yao, J.~Zhao, D.~Yu, N.~Du, I.~Shafran, K.~Narasimhan, and Y.~Cao, ``{ReAct}: Synergizing reasoning and acting in language models,'' in \emph{International Conference on Learning Representations}, 2023.
+
+\bibitem{amdIntroExamples}
+{Advanced Micro Devices, Inc.}, ``{Vitis-HLS-Introductory-Examples},'' \url{https://github.com/Xilinx/Vitis-HLS-Introductory-Examples}, 2026, apache-2.0 source corpus, commit aa5c160faf5d5ebf58674df8f0591f9984ebae0f.
+
+\bibitem{amdAccelExamples}
+------, ``{Vitis Acceleration Examples},'' \url{https://github.com/Xilinx/Vitis_Accel_Examples}, 2026, mIT source corpus, commit 81187602355a7c2b666351154c5acca2074cae64.
+
+\bibitem{fpt26tracka}
+{FPT 2026 Organizing Committee}, ``{FPT'26 Design Competition: Track A},'' \url{https://fpt2026.uark.edu/fpt26-design-competition/}, 2026, submission and evaluation requirements, accessed July 2026.
 
 \end{thebibliography}

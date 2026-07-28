@@ -75,3 +75,47 @@ def test_compact_report_does_not_overflow(monkeypatch, capsys) -> None:
     assert any("QOR SUMMARY" in line for line in lines)
     assert any("LUT=776" in line for line in lines)
     assert all(len(strip_ansi(line)) <= 96 for line in lines)
+
+
+def test_compact_report_accepts_incomplete_provider_token_usage(
+    monkeypatch, capsys
+) -> None:
+    monkeypatch.setenv("FPT26_CONSOLE_WIDTH", "96")
+    configure("never")
+    usage = SimpleNamespace(
+        snapshot=lambda: {
+            "request_count": 2,
+            "response_count": 2,
+            "total_tokens": None,
+            "observed_total_tokens": 0,
+            "complete": False,
+        }
+    )
+    state = SimpleNamespace(
+        task=SimpleNamespace(id="incomplete_usage", requires_cosim=False),
+        status="failed",
+        stop_reason="csim_failed",
+        csim_ok=False,
+        synth_ok=False,
+        cosim_ok=False,
+        scorecard=None,
+        results=[],
+        metadata={},
+        server=SimpleNamespace(
+            budget=SimpleNamespace(spent=1, total=60),
+            transcript=[],
+        ),
+        llm=SimpleNamespace(
+            model="provider/model",
+            temperature=0.7,
+            max_tokens=4096,
+            token_usage=usage,
+        ),
+    )
+
+    print_evaluation(state)
+
+    output = strip_ansi(capsys.readouterr().out)
+    assert "N/A total" in output
+    assert "2 requests" in output
+    assert "observed partial=0" in output

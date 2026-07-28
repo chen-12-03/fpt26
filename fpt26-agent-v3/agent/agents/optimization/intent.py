@@ -71,10 +71,19 @@ def ii_resource_intent_feedback(
                 contract_violations.append("pragma class must be ARRAY_PARTITION")
             if variable.lower() not in evidence_arrays:
                 contract_violations.append(f"variable '{variable}' is not a reported target")
-            if action["style"] != "cyclic":
-                contract_violations.append("partition style must be cyclic")
-            if action["factor"] != 2:
-                contract_violations.append("partition factor must be 2")
+            if action["style"] not in {"cyclic", "block", "complete"}:
+                contract_violations.append(
+                    "partition style must be explicit: cyclic, block, or complete"
+                )
+            if action["style"] == "complete":
+                if action["factor"] is not None:
+                    contract_violations.append(
+                        "complete partition must omit factor"
+                    )
+            elif action["factor"] is None or action["factor"] < 2:
+                contract_violations.append(
+                    "partial partition requires a finite factor >=2"
+                )
             dimension = action["dimension"]
             if dimension is None:
                 contract_violations.append("partition dim must be explicit and source-supported")
@@ -106,9 +115,9 @@ def ii_resource_intent_feedback(
             "tool was run."
         ),
         "required_next_action": (
-            f"Apply exactly one evidence-matched ARRAY_PARTITION cyclic "
-            f"factor=2 pragma to reported array(s) {arrays}, with an explicit "
-            "dimension no larger than that array's visible source rank; or make "
+            f"Apply exactly one evidence-matched ARRAY_PARTITION to reported "
+            f"array(s) {arrays}, with an explicit source-supported dimension "
+            "and a cyclic/block/complete mapping justified by its accesses; or make "
             "a real code-locality change such as a line buffer/cache that "
             "reduces external reads. Otherwise return the current editable "
             "kernel unchanged to stop."

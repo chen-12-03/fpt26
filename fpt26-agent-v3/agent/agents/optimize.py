@@ -18,10 +18,14 @@ from agent.agents.optimization.feedback import (  # noqa: F401
     _candidate_diff, _csim_failure_feedback, _rejection_feedback,
 )
 from agent.agents.optimization.strategies import (  # noqa: F401
-    _candidate_fingerprint, _hls_pragmas, _is_minimum_unroll_frontier,
+    _anti_repeat_action_violation, _candidate_fingerprint, _hls_pragmas,
+    _is_minimum_unroll_frontier, _report_supported_action_violation,
     _source_array_rank, _strategy_contract_violation,
     _top_function_inline_noop,
     _without_hls_pragmas_fingerprint,
+    candidate_action_summary,
+    distinct_report_supported_alternatives,
+    inferred_directive_delta,
 )
 from agent.agents.optimization.intent import (  # noqa: F401
     ii_resource_intent_feedback as _ii_resource_intent_feedback,

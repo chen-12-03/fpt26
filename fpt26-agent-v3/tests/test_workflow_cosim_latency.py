@@ -93,10 +93,16 @@ def _run_score(monkeypatch, tmp_path, measured_latency):
     )
 
     class FakeCSimTool:
+        def __init__(self, **kwargs):
+            pass
+
         def run(self, *args, **kwargs):
             return SimpleNamespace(ok=True, report=None)
 
     class FakeCoSimTool:
+        def __init__(self, **kwargs):
+            pass
+
         def run(self, *args, **kwargs):
             cosim = (
                 SimpleNamespace(passed=True, latency_max=measured_latency)
@@ -106,6 +112,9 @@ def _run_score(monkeypatch, tmp_path, measured_latency):
             return SimpleNamespace(ok=True, report=candidate, cosim=cosim)
 
     class FakeSynthTool:
+        def __init__(self, **kwargs):
+            pass
+
         def run(self, *args, **kwargs):
             return next(synth_results)
 

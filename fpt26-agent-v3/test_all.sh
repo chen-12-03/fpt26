@@ -14,7 +14,7 @@ test -f "$VITIS_ROOT/settings64.sh" || {
 
 docker run --rm \
   -e FPT26_REAL_VITIS_TESTS=1 \
-  -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
+  -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
   -e PYTHONDONTWRITEBYTECODE=1 \
   -v "$REPO_ROOT:/workspace" \
   -v "$VITIS_MOUNT_ROOT:$VITIS_MOUNT_ROOT:ro" \

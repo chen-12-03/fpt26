@@ -57,7 +57,7 @@ def test_real_vitis_crlf_fixture_passes_and_writes_expected_output(tmp_path) -> 
     task = load_task(_WORKSPACE_ROOT / "tasks/generated/machsuite__aes_aes")
     assert normalize_task_testbench_data(task) == ("check.data", "input.data")
 
-    result = CSimTool().run(
+    result = CSimTool(workspace_root=tmp_path).run(
         tmp_path / "pass",
         task.assemble(task.kernel_code, task.public_tb_code, task.public_tb_name),
         top=task.top,
@@ -80,7 +80,7 @@ def test_real_vitis_bad_expected_data_remains_runtime_failure(tmp_path) -> None:
     normalize_task_testbench_data(task)
     task.public_data_files["check.data"] = b"%%\n" + b"0\n" * 16
 
-    result = CSimTool().run(
+    result = CSimTool(workspace_root=tmp_path).run(
         tmp_path / "fail",
         task.assemble(task.kernel_code, task.public_tb_code, task.public_tb_name),
         top=task.top,

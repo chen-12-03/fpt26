@@ -1,16 +1,16 @@
-\section{The VCL Preserves the Verified Fallback}
+\section{Tool Evidence Controls the Agent Workflow}
 
-The \VCL{} separates proposal, validation, and promotion. Task preflight
-records the editable kernel, public tests, exact top-function signature, target
-part, and budgets. The LLM proposes one complete source candidate. The
-validation chain starts with an interface gate that checks required includes,
-the signature, balanced source structure, and forbidden dependencies.
+The task interface supplies one editable kernel, its top-function signature,
+public tests, target part, and budgets. Through one tool interface, the agent
+submits a complete source file, requests validation, and reads a structured
+report; it never receives hidden tests or frozen references. Preflight rejects
+malformed inputs before the LLM or HLS tools consume budget. The controller
+records every candidate, gate, metric, token, and credit in one run state.
 
-The remaining gates run C simulation (\CSim), HLS synthesis (\Synth), the
-100 MHz frequency check, the U55C capacity check, and required C/RTL
-co-simulation (\CoSim). The metric-completeness gate requires latency, clock,
-and all five resource counts. Let each applicable gate $G_i\in\{0,1\}$; an
-inapplicable \CoSim{} gate equals one. The candidate validity is
+The \VCL{} runs interface checks, C simulation (\CSim), HLS synthesis
+(\Synth), the 100 MHz frequency check, the U55C capacity check, task-required
+C/RTL co-simulation (\CoSim), and metric-completeness checks. Let each
+applicable gate $G_i\in\{0,1\}$. We set an inapplicable \CoSim{} gate to one:
 \begin{equation}
 V(c)=G_{\mathrm{int}}G_{\mathrm{csim}}G_{\mathrm{syn}}
   G_{\mathrm{freq}}G_{\mathrm{cap}}G_{\mathrm{cosim}}G_{\mathrm{metric}}.
@@ -21,18 +21,27 @@ Let $b$ denote the verified fallback. The promotion rule is
 P(c)=V(c)\land[\QHW(c)>\QHW(b)].
 \label{eq:promotion}
 \end{equation}
-Functional and synthesis failures enter the repair path. A \CoSim{} failure
-enters the structural path, whose prompt targets interleaved producer writes,
-bounded stream depths, and producer-consumer rate balance. Before candidate
-tools run, budget admission requires enough credits for \CSim, \Synth, and
-required \CoSim. A failed gate or budget denial retains $b$, the latest kernel
-that passed every available required gate. Hidden acceptance remains an
-external evaluator check.
+Budget admission reserves the credits for all required gates. A failed gate or
+budget denial retains $b$. QoR-RAG supplies version-compatible rules,
+successes, and measured failures. Failure Reflection converts bounded
+diagnostics and the candidate diff into the next constraint without another
+LLM request. Duplicate fingerprints and repeated failure signatures stop
+unproductive retries. Hidden acceptance remains an evaluator-side check.
 
-\noindent Figure~\ref{fig:vcl} maps the promotion boundary and feedback path.
-\figureplaceholderwide
-  {Insert the VCL architecture diagram specified in the figure design brief.}
-  {The \VCL{} grants promotion authority to the validation chain and
-   the hardware-quality rule.
-   Failed or unaffordable candidates cannot replace the verified fallback.}
-  {fig:vcl}
+\begin{figure*}[t]
+  \centering
+  % Recommended vector export: 7.0 in wide, about 1.15 in high.
+  \IfFileExists{figures/vcl_workflow.pdf}{%
+    \includegraphics[width=\textwidth,height=1.15in,keepaspectratio]%
+      {figures/vcl_workflow.pdf}%
+  }{%
+    \fbox{\parbox[c][1.05in][c]{0.96\textwidth}{\centering
+      \textit{Figure placeholder: task interface, budget admission,
+      QoR-RAG proposal, validation gates, promotion/fallback, and the
+      Failure Reflection feedback path.}}}%
+  }
+  \caption{\textbf{Measured evidence controls every state transition.}
+  The agent proposes through a bounded interface; only a candidate that passes
+  every applicable gate and improves \QHW{} can replace the verified fallback.}
+  \label{fig:vcl}
+\end{figure*}

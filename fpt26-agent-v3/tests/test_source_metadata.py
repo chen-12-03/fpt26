@@ -4,7 +4,9 @@ import json
 
 from agent.analysis.source_metadata import (
     bounded_metadata_payload,
+    evaluate_source_banking_trial,
     extract_design_metadata,
+    source_supported_banking_evidence,
 )
 
 
@@ -205,3 +207,198 @@ def test_empty_or_non_text_source_returns_empty_metadata() -> None:
     assert empty["loops"] == []
     assert empty["arrays"] == []
     assert empty["parse_status"] == "empty"
+
+
+def test_source_evidence_respects_inferred_hierarchy_and_affine_banking() -> None:
+    source = """
+void top(int *in1, int *in2, int *out) {
+  int A[MAX_DIM * MAX_DIM];
+  int B[MAX_DIM * MAX_DIM];
+outer:
+  for (int i = 0; i < MAX_DIM; ++i) {
+middle:
+    for (int j = 0; j < MAX_DIM; ++j) {
+inner:
+      for (int k = 0; k < MAX_DIM; ++k) {
+        out[i] += A[i * MAX_DIM + k] * B[k * MAX_DIM + j];
+      }
+    }
+  }
+}
+"""
+    inferred = [
+        {
+            "kind": "pipeline",
+            "target": "top/middle",
+            "function": "top",
+            "scope": "middle",
+        },
+        {
+            "kind": "loop_flatten",
+            "target": "top/outer",
+            "function": "top",
+            "scope": "outer",
+        },
+    ]
+
+    metadata = extract_design_metadata(
+        source,
+        inferred_directives=inferred,
+        constant_context="#define MAX_DIM 16\n",
+    )
+    loops = {item["label"]: item for item in metadata.loops}
+    evidence = {
+        item["array"]: item
+        for item in source_supported_banking_evidence(metadata)
+    }
+
+    assert loops["inner"]["trip_count"] == 16
+    assert loops["inner"]["auto_parallelism"]["pipeline_ancestors"] == [
+        "middle"
+    ]
+    assert loops["inner"]["auto_parallelism"]["hierarchy_sensitive"] is True
+    assert loops["outer"]["auto_parallelism"]["flatten"] is True
+    assert set(evidence) == {"A", "B"}
+    assert evidence["A"] == {
+        "kind": "source_affine_parallel_reads",
+        "array": "A",
+        "loop": "inner",
+        "dimension": 1,
+        "index_expression": "i*MAX_DIM+k",
+        "lane_stride": 1,
+        "array_extent": 256,
+        "concurrent_lanes": 16,
+        "factor_limit": 16,
+        "recommended_trial": {
+            "pragma_class": "ARRAY_PARTITION",
+            "partition_type": "cyclic",
+            "factor": 2,
+            "dimension": 1,
+            "expected_distinct_banks": 2,
+            "collision_free": False,
+            "priority": "soft_minimal_trial",
+        },
+        "reshape_eligible": True,
+        "banking_model": {
+            "cyclic": "bank=index mod factor",
+            "block": "bank=floor(index/ceil(array_extent/factor))",
+        },
+        "co_read_arrays": ["A", "B"],
+        "reason": (
+            "local array A is read with affine lane stride 1 in "
+            "auto-parallel compute loop inner"
+        ),
+    }
+    assert evidence["B"]["dimension"] == 1
+    assert evidence["B"]["lane_stride"] == 16
+    assert evidence["B"]["array_extent"] == 256
+    assert evidence["B"]["factor_limit"] == 16
+    assert evidence["B"]["reshape_eligible"] is False
+    assert evidence["B"]["recommended_trial"] == {
+        "pragma_class": "ARRAY_PARTITION",
+        "partition_type": "block",
+        "factor": 16,
+        "dimension": 1,
+        "expected_distinct_banks": 16,
+        "collision_free": True,
+        "priority": "soft_bank_mapping_trial",
+    }
+    assert all(item["array"] not in {"in1", "in2"} for item in evidence.values())
+
+
+def test_affine_reads_without_proven_concurrent_lanes_do_not_enable_banking() -> None:
+    source = """
+void top(int *out) {
+  int A[16];
+  int B[256];
+inner:
+  for (int k = 0; k < 16; ++k) {
+    out[0] += A[k] * B[k * 16];
+  }
+}
+"""
+
+    metadata = extract_design_metadata(source)
+
+    assert source_supported_banking_evidence(metadata) == []
+
+
+def test_one_local_array_is_enough_when_concurrent_lanes_are_proven() -> None:
+    source = """
+void top(int *out) {
+  int A[32];
+outer:
+  for (int i = 0; i < 2; ++i) {
+inner:
+    for (int k = 0; k < 32; ++k) {
+      out[i] += A[k];
+    }
+  }
+}
+"""
+    metadata = extract_design_metadata(
+        source,
+        inferred_directives=[
+            {
+                "kind": "pipeline",
+                "target": "top/outer",
+                "scope": "outer",
+            }
+        ],
+    )
+
+    evidence = source_supported_banking_evidence(metadata)
+
+    assert [item["array"] for item in evidence] == ["A"]
+    assert evidence[0]["concurrent_lanes"] == 32
+    assert evidence[0]["factor_limit"] == 32
+
+
+def test_bank_mapping_replaces_fixed_factor_sixteen_rules() -> None:
+    contiguous = {
+        "array_extent": 1024,
+        "concurrent_lanes": 32,
+        "lane_stride": 1,
+        "factor_limit": 32,
+        "reshape_eligible": True,
+    }
+    strided = {
+        "array_extent": 1024,
+        "concurrent_lanes": 32,
+        "lane_stride": 32,
+        "factor_limit": 32,
+        "reshape_eligible": False,
+    }
+
+    cyclic_32 = evaluate_source_banking_trial(
+        contiguous,
+        pragma_class="ARRAY_PARTITION",
+        partition_type="cyclic",
+        factor=32,
+    )
+    block_32 = evaluate_source_banking_trial(
+        strided,
+        pragma_class="ARRAY_PARTITION",
+        partition_type="block",
+        factor=32,
+    )
+    conflicting_cyclic = evaluate_source_banking_trial(
+        strided,
+        pragma_class="ARRAY_PARTITION",
+        partition_type="cyclic",
+        factor=32,
+    )
+    reshape = evaluate_source_banking_trial(
+        contiguous,
+        pragma_class="ARRAY_RESHAPE",
+        partition_type="cyclic",
+        factor=4,
+    )
+
+    assert cyclic_32["supported"] is True
+    assert cyclic_32["distinct_banks"] == 32
+    assert block_32["supported"] is True
+    assert block_32["distinct_banks"] == 32
+    assert conflicting_cyclic["supported"] is False
+    assert conflicting_cyclic["distinct_banks"] == 1
+    assert reshape["supported"] is True

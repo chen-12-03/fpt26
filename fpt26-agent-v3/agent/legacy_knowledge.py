@@ -33,12 +33,12 @@ _PATTERNS = [
         "family": "Array Partition for Memory Bandwidth",
         "steps": [
             "1. Identify the loop dimension that performs multiple reads/writes per iteration.",
-            "2. ARRAY_PARTITION variable=<name> dim=<access_dim> factor=<N> cyclic (or block).",
-            "3. Match UNROLL factor=N on the same loop that accesses the partitioned array.",
-            "4. Check resource growth: each partition factor doubles BRAM/register count.",
+            "2. Derive cyclic/block bank mapping from array extent, lane stride, and concurrent lanes; use the smallest factor that provably creates useful distinct banks.",
+            "3. Couple UNROLL to banking only when the same measured loop actually creates those concurrent accesses.",
+            "4. Check synthesized LUT/FF/BRAM growth for the selected type, dimension, and factor.",
         ],
         "signal": "II decreases from >1 to 1; LUT/FF grow proportionally to partition factor.",
-        "warning": "PARTITION + RESHAPE on same variable is redundant — pick ONE. Cyclic is usually better for interleaved access.",
+        "warning": "PARTITION + RESHAPE on the same variable is redundant — pick ONE. Do not assume cyclic, block, or a universal factor without source bank-mapping evidence.",
     },
     {
         "keywords": ["producer consumer", "stream", "stage", "dataflow", "fifo", "pipeline stage"],
@@ -133,13 +133,13 @@ _PATTERNS = [
         "family": "Pipeline II Violation Resolution",
         "steps": [
             "1. CLASSIFY the cause: (a) memory port limit → HLS 200-448 names the array, (b) data dependency / recurrence → loop-carried dependence, (c) timing → clock too aggressive, (d) resource contention.",
-            "2. FOR MEMORY PORT: ARRAY_PARTITION cyclic on the reported array with factor matching II lower bound.",
+            "2. FOR MEMORY PORT: inspect the reported array's affine access dimension and choose cyclic/block/reshape only when its mapping supplies useful parallel accesses.",
             "3. FOR DATA DEPENDENCY: restructure to break the recurrence, or accept II>1 and use PIPELINE II=N.",
             "4. FOR TIMING: if estimated clock > target, reduce combinational path (fewer operations per cycle).",
-            "5. Always match ARRAY_PARTITION factor to II lower bound — factor too small = II unchanged, factor too large = wasted resources.",
+            "5. Treat the II lower bound as a search hint, not a partition factor; validate the smallest source-supported trial by synthesis.",
         ],
-        "signal": "PipelineII decreases from N to 1 or to match partition factor.",
-        "warning": "ARRAY_PARTITION increases BRAM/LUT/FF linearly with factor. Only partition the dimension that is accessed in the bottleneck loop; partition factor = II lower bound is the minimum viable.",
+        "signal": "PipelineII decreases after the measured conflict is relieved without disproportionate resource growth.",
+        "warning": "Only change the dimension accessed concurrently in the bottleneck loop. No fixed cyclic/block choice or factor is universally valid.",
     },
 ]
 

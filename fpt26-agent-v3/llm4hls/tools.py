@@ -168,7 +168,16 @@ class SynthTool:
         if not xml_fp.exists():
             msg = log + f"\nMissing synthesis report: {xml_fp}\n"
             return ToolResult("synth", False, "synth_error", r.return_code, msg, r.elapsed_s)
-        report = parse_csynth_xml(xml_fp)
+        inferred_fp = (
+            work
+            / "synth_proj"
+            / "sol"
+            / "syn"
+            / "inferred_directives.ini"
+        )
+        report = parse_csynth_xml(
+            xml_fp, inferred_directives_fp=inferred_fp
+        )
         return ToolResult("synth", True, "pass", 0, log, r.elapsed_s, report=report)
 
 
@@ -214,7 +223,12 @@ class CoSimTool:
         sol = work / "cosim_proj" / "sol"
         synth_report_fp = sol / "syn" / "report" / "csynth.xml"
         synth_report = (
-            parse_csynth_xml(synth_report_fp)
+            parse_csynth_xml(
+                synth_report_fp,
+                inferred_directives_fp=(
+                    sol / "syn" / "inferred_directives.ini"
+                ),
+            )
             if synth_report_fp.exists()
             else None
         )

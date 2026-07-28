@@ -98,16 +98,28 @@ def _diagnose(r: Any) -> str:
     if (lat > 500 and dominant_loop is not None
             and dominant_loop.get("pipeline_ii") == 1
             and (dominant_loop.get("trip_count") or 0) > 32):
+        inferred = list(getattr(rp, "inferred_directives", None) or [])
+        inferred_text = ", ".join(
+            f"{item.get('kind')}:{item.get('target')}"
+            for item in inferred[:8]
+            if isinstance(item, dict)
+        )
         issues.append(
             f"High latency is dominated by {dominant_loop.get('name')} "
             f"(trip={dominant_loop.get('trip_count')}, "
             f"lat={dominant_loop.get('latency')}, PipelineII=1). Do NOT add "
-            "PIPELINE or speculative top-array partitioning. First try only "
-            "a conservative partial UNROLL factor=2 inside that loop body; keep "
-            "top-level arrays unpartitioned unless Vitis reports a memory-port "
-            "violation. Put loop directives immediately after the loop's opening "
-            "brace: function-scope PIPELINE can flatten/auto-unroll a long loop."
+            "another PIPELINE. PipelineII=1 does not by itself justify UNROLL "
+            "or rule out source-proven local-array banking. Preserve Vitis "
+            "auto-pipeline/unroll/flatten boundaries; choose a different action "
+            "only from measured evidence or affine concurrent-access evidence, "
+            "otherwise keep the kernel unchanged."
         )
+        if inferred_text:
+            issues.append(
+                "Vitis inferred directives already shape this hierarchy: "
+                f"{inferred_text}. An explicit inner-loop directive that moves "
+                "these targets is a regression risk."
+            )
     elif lat > 1000:
         issues.append(
             f"High latency ({lat} cycles): identify the dominant loop from "

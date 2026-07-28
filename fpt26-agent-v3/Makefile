@@ -7,7 +7,7 @@ DOCKER=docker run --rm \
   -v $(REPO_ROOT):/workspace \
   -v /tools/Xilinx:/tools/Xilinx:ro \
   --env-file /tmp/fpt26.env \
-  -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
+  -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
   -e PYTHONDONTWRITEBYTECODE=1 \
   -w /workspace fpt26-agent-v3:latest
 

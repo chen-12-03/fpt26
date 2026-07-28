@@ -6,13 +6,14 @@ REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 DEFAULT_XRT=/opt/xilinx/xrt
 DEFAULT_HLS_PART=xcu55c-fsvh2892-2L-e
+DEFAULT_VITIS=/tools/Xilinx/2025.2/Vitis
 
 fail() {
   echo "run-agent: error: $*" >&2
   exit 2
 }
 
-[ -n "${VITIS:-}" ] || fail "VITIS is required"
+export VITIS=${VITIS:-$DEFAULT_VITIS}
 [ -f "$VITIS/settings64.sh" ] || fail "VITIS settings64.sh does not exist: $VITIS/settings64.sh"
 VITIS_RESOLVED=$(cd "$VITIS" && pwd -P)
 export VITIS_MOUNT_ROOT=${VITIS_MOUNT_ROOT:-$(dirname "$(dirname "$VITIS_RESOLVED")")}
@@ -44,6 +45,8 @@ export LOGNAME=${LOGNAME:-$USER}
 export XILINX_VITIS="$VITIS"
 export LLM4HLS_VITIS_HLS_ROOT="$VITIS"
 export LLM4HLS_PART="$HLS_PART"
+export FPT26_AGENT_IMAGE=${FPT26_AGENT_IMAGE:-fpt26-agent-v3:latest}
+export FPT26_AGENT_BASE_IMAGE=${FPT26_AGENT_BASE_IMAGE:-xilinx/xilinx_runtime_base:alveo-2023.2-ubuntu-22.04}
 
 if [ "$#" -eq 0 ]; then
   set -- bash
@@ -69,6 +72,13 @@ fi
 
 command -v docker >/dev/null 2>&1 || fail "docker is not available on PATH"
 docker compose version >/dev/null 2>&1 || fail "docker compose is not available"
+if ! docker image inspect "$FPT26_AGENT_IMAGE" >/dev/null 2>&1; then
+  echo "run-agent: image $FPT26_AGENT_IMAGE not found; building it..." >&2
+  docker compose \
+    --file "$COMPOSE_FILE" \
+    --project-directory "$REPO_ROOT" \
+    build agent
+fi
 
 printf -v INNER_COMMAND "%q " "$@"
 TOOLCHAIN_PREAMBLE='

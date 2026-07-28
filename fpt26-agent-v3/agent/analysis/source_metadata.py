@@ -8,6 +8,7 @@ optimization workflow.
 
 from __future__ import annotations
 
+import ast
 import json
 import math
 import re
@@ -52,6 +53,15 @@ _POINTER_PARAM_RE = re.compile(
     r"(?:(?:const|volatile|unsigned|signed|long|short)\s+)*"
     r"[A-Za-z_]\w*(?:::\w+)*(?:\s*<[^>]+>)?"
     r")\s*\*+\s*(?P<name>[A-Za-z_]\w*)\s*$"
+)
+_DEFINE_INT_RE = re.compile(
+    r"^[ \t]*#[ \t]*define[ \t]+(?P<name>[A-Za-z_]\w*)"
+    r"[ \t]+(?P<value>\d+)[ \t]*$",
+    re.MULTILINE,
+)
+_CONST_INT_RE = re.compile(
+    r"\b(?:static\s+)?const\s+(?:unsigned\s+)?(?:int|long|short)"
+    r"\s+(?P<name>[A-Za-z_]\w*)\s*=\s*(?P<value>[A-Za-z_]\w*|\d+)\s*;"
 )
 
 
@@ -395,6 +405,144 @@ def _access_pattern(
     return {"kind": UNKNOWN, "stride": UNKNOWN}
 
 
+def _array_access_records(
+    source: str,
+    name: str,
+    declaration_spans: list[tuple[int, int]],
+    loops: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Return bounded, syntax-backed array access records."""
+    records: list[dict[str, Any]] = []
+    pattern = re.compile(
+        rf"\b{re.escape(name)}\s*"
+        r"(?P<dims>(?:\[\s*[^\]\n]+\s*\]\s*)+)"
+    )
+    for match in pattern.finditer(source):
+        if any(start <= match.start() < end for start, end in declaration_spans):
+            continue
+        containing = [
+            loop
+            for loop in loops
+            if isinstance(loop.get("_body_open"), int)
+            and isinstance(loop.get("_body_end"), int)
+            and loop["_body_open"] < match.start() < loop["_body_end"]
+        ]
+        innermost = (
+            max(containing, key=lambda item: item["_body_open"])
+            if containing
+            else None
+        )
+        statement_start = max(
+            source.rfind(";", 0, match.start()),
+            source.rfind("{", 0, match.start()),
+            source.rfind("}", 0, match.start()),
+        ) + 1
+        statement_end = source.find(";", match.end())
+        if statement_end < 0:
+            statement_end = len(source)
+        statement = source[statement_start:statement_end]
+        offset = match.start() - statement_start
+        assignment = re.search(r"(?<![=!<>])(?:\+=|-=|\*=|/=|=)(?!=)", statement)
+        mode = (
+            "write"
+            if assignment is not None and offset < assignment.start()
+            else "read"
+        )
+        records.append(
+            {
+                "dimensions": [
+                    re.sub(r"\s+", "", value)
+                    for value in _DIM_RE.findall(match.group("dims"))
+                ],
+                "mode": mode,
+                "loop": (
+                    str(innermost.get("label") or UNKNOWN)
+                    if innermost is not None
+                    else UNKNOWN
+                ),
+                "induction_variable": (
+                    str(innermost.get("induction_variable") or UNKNOWN)
+                    if innermost is not None
+                    else UNKNOWN
+                ),
+                "nesting_depth": (
+                    innermost.get("nesting_depth", UNKNOWN)
+                    if innermost is not None
+                    else UNKNOWN
+                ),
+            }
+        )
+        if len(records) >= 12:
+            break
+    return records
+
+
+def _constant_values(source: str) -> dict[str, int]:
+    values = {
+        match.group("name"): int(match.group("value"))
+        for match in _DEFINE_INT_RE.finditer(source)
+    }
+    pending = list(_CONST_INT_RE.finditer(source))
+    for _ in range(len(pending) + 1):
+        changed = False
+        for match in pending:
+            raw = match.group("value")
+            value = int(raw) if raw.isdigit() else values.get(raw)
+            if value is not None and values.get(match.group("name")) != value:
+                values[match.group("name")] = value
+                changed = True
+        if not changed:
+            break
+    return values
+
+
+def _positive_int_expression(
+    expression: Any,
+    constants: dict[str, int],
+) -> int | None:
+    """Evaluate a bounded integer extent without executing source code."""
+    try:
+        parsed = ast.parse(str(expression).strip(), mode="eval")
+    except (SyntaxError, ValueError):
+        return None
+
+    def evaluate(node: ast.AST) -> int | None:
+        if isinstance(node, ast.Expression):
+            return evaluate(node.body)
+        if isinstance(node, ast.Constant):
+            return (
+                int(node.value)
+                if isinstance(node.value, int) and not isinstance(node.value, bool)
+                else None
+            )
+        if isinstance(node, ast.Name):
+            return constants.get(node.id)
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.UAdd):
+            return evaluate(node.operand)
+        if isinstance(node, ast.BinOp) and isinstance(
+            node.op, (ast.Add, ast.Sub, ast.Mult, ast.FloorDiv)
+        ):
+            left = evaluate(node.left)
+            right = evaluate(node.right)
+            if left is None or right is None:
+                return None
+            if isinstance(node.op, ast.Add):
+                value = left + right
+            elif isinstance(node.op, ast.Sub):
+                value = left - right
+            elif isinstance(node.op, ast.Mult):
+                value = left * right
+            else:
+                if right == 0:
+                    return None
+                value = left // right
+            return value if 0 < value <= 2**31 - 1 else None
+        return None
+
+    result = evaluate(parsed)
+    return result if isinstance(result, int) and result > 0 else None
+
+
 def _pointer_parameters(source: str) -> list[dict[str, Any]]:
     """Return unambiguous pointer declarations from function parameter lists."""
     pointers: list[dict[str, Any]] = []
@@ -440,6 +588,7 @@ def _pointer_parameters(source: str) -> list[dict[str, Any]]:
 class DesignMetadata:
     loops: tuple[dict[str, Any], ...]
     arrays: tuple[dict[str, Any], ...]
+    constants: tuple[dict[str, Any], ...] = ()
     parse_status: str = "ok"
     truncated: bool = False
 
@@ -448,6 +597,7 @@ class DesignMetadata:
             "parse_status": self.parse_status,
             "loops": [dict(item) for item in self.loops],
             "arrays": [dict(item) for item in self.arrays],
+            "constants": [dict(item) for item in self.constants],
             "truncated": self.truncated,
         }
 
@@ -461,7 +611,11 @@ class DesignMetadata:
 
 
 def extract_design_metadata(
-    source: Any, *, loop_metrics: Iterable[dict[str, Any]] | None = None
+    source: Any,
+    *,
+    loop_metrics: Iterable[dict[str, Any]] | None = None,
+    inferred_directives: Iterable[dict[str, Any]] | None = None,
+    constant_context: Any = "",
 ) -> DesignMetadata:
     """Extract stable loop/array metadata; return an empty result on failure."""
     text = _safe_text(source)
@@ -469,8 +623,24 @@ def extract_design_metadata(
         return DesignMetadata((), (), parse_status="empty")
     try:
         clean = _mask_comments_and_strings(text)
+        constant_values = _constant_values(
+            _mask_comments_and_strings(_safe_text(constant_context))
+            + "\n"
+            + clean
+        )
         pragmas = _directive_pragmas(clean)
         metrics = [dict(item) for item in (loop_metrics or [])]
+        inferred = [
+            dict(item)
+            for item in (inferred_directives or [])
+            if isinstance(item, dict)
+        ]
+        inferred_by_scope: dict[str, set[str]] = {}
+        for item in inferred:
+            scope = str(item.get("scope") or "").strip()
+            kind = str(item.get("kind") or "").strip().lower()
+            if scope and kind:
+                inferred_by_scope.setdefault(scope, set()).add(kind)
 
         loop_matches = list(_FOR_RE.finditer(clean))
         internal_loops: list[dict[str, Any]] = []
@@ -490,17 +660,35 @@ def extract_design_metadata(
                 if isinstance(parent.get("_body_end"), int)
                 and parent["_body_open"] < match.start() < parent["_body_end"]
             )
+            parents = [
+                parent
+                for parent in internal_loops
+                if isinstance(parent.get("_body_end"), int)
+                and parent["_body_open"] < match.start() < parent["_body_end"]
+            ]
             header = _loop_header(
                 match.group("init"),
                 match.group("condition"),
                 match.group("increment"),
             )
+            if (
+                header["trip_count"] == UNKNOWN
+                and header["lower_bound"] == "0"
+                and header["step"] == "1"
+                and header["upper_bound"] in constant_values
+            ):
+                header["trip_count"] = constant_values[header["upper_bound"]]
             internal_loops.append(
                 {
                     "_start": match.start(),
                     "_body_open": body_open,
                     "_body_end": body_end,
                     "_index": index,
+                    "_ancestor_labels": [
+                        str(parent.get("label") or UNKNOWN)
+                        for parent in parents
+                        if str(parent.get("label") or UNKNOWN) != UNKNOWN
+                    ],
                     "label": match.group("label") or UNKNOWN,
                     "nesting_depth": nesting_depth,
                     **header,
@@ -512,6 +700,16 @@ def extract_design_metadata(
             attached = _loop_pragmas(internal, internal_loops, pragmas, clean)
             pipeline, unroll = _parse_loop_directives(attached)
             label = internal["label"]
+            inferred_kinds = sorted(
+                inferred_by_scope.get(
+                    str(label if label != UNKNOWN else ""), set()
+                )
+            )
+            inferred_pipeline_ancestors = [
+                ancestor
+                for ancestor in internal["_ancestor_labels"]
+                if "pipeline" in inferred_by_scope.get(ancestor, set())
+            ]
             loops.append(
                 {
                     "name": label if label != UNKNOWN else f"loop_{internal['_index']}",
@@ -522,8 +720,22 @@ def extract_design_metadata(
                     "upper_bound": internal["upper_bound"],
                     "step": internal["step"],
                     "trip_count": internal["trip_count"],
+                    "ancestor_loops": list(internal["_ancestor_labels"]),
                     "pipeline": pipeline,
                     "unroll": unroll,
+                    "vitis_inferred_directives": inferred_kinds,
+                    "auto_parallelism": {
+                        "pipeline": "pipeline" in inferred_kinds,
+                        "unroll": "unroll" in inferred_kinds,
+                        "flatten": "loop_flatten" in inferred_kinds,
+                        "pipeline_ancestors": inferred_pipeline_ancestors,
+                        "hierarchy_sensitive": bool(
+                            inferred_pipeline_ancestors
+                            or "pipeline" in inferred_kinds
+                            or "loop_flatten" in inferred_kinds
+                            or "unroll" in inferred_kinds
+                        ),
+                    },
                     "report_loop_name": _report_name(
                         None if label == UNKNOWN else label,
                         internal["_index"],
@@ -535,6 +747,10 @@ def extract_design_metadata(
 
         declarations = list(_ARRAY_DECL_RE.finditer(clean))
         pointer_parameters = _pointer_parameters(clean)
+        function_param_spans = [
+            (match.start("params"), match.end("params"))
+            for match in _FUNCTION_PARAMS_RE.finditer(clean)
+        ]
         declaration_spans = [
             (match.start(), match.end()) for match in declarations
         ] + [
@@ -556,6 +772,14 @@ def extract_design_metadata(
                 extent.strip() or UNKNOWN
                 for extent in _DIM_RE.findall(match.group("dims"))
             ]
+            storage = (
+                "parameter"
+                if any(
+                    start <= match.start() < end
+                    for start, end in function_param_spans
+                )
+                else "local"
+            )
             arrays.append(
                 {
                     "name": name,
@@ -564,6 +788,7 @@ def extract_design_metadata(
                     ).strip(),
                     "rank": len(extents),
                     "extents": extents,
+                    "storage": storage,
                     "partition": _storage_directive(
                         pragmas, "ARRAY_PARTITION", name
                     ),
@@ -575,6 +800,12 @@ def extract_design_metadata(
                         name,
                         declaration_spans,
                         induction_variables,
+                    ),
+                    "accesses": _array_access_records(
+                        clean,
+                        name,
+                        declaration_spans,
+                        internal_loops,
                     ),
                 }
             )
@@ -589,6 +820,7 @@ def extract_design_metadata(
                     "element_type": pointer["element_type"],
                     "rank": UNKNOWN,
                     "extents": [UNKNOWN],
+                    "storage": "parameter",
                     "partition": _storage_directive(
                         pragmas, "ARRAY_PARTITION", name
                     ),
@@ -601,12 +833,400 @@ def extract_design_metadata(
                         declaration_spans,
                         induction_variables,
                     ),
+                    "accesses": _array_access_records(
+                        clean,
+                        name,
+                        declaration_spans,
+                        internal_loops,
+                    ),
                 }
             )
 
-        return DesignMetadata(tuple(loops), tuple(arrays))
+        constants = tuple(
+            {"name": name, "value": value}
+            for name, value in sorted(constant_values.items())
+        )
+        return DesignMetadata(tuple(loops), tuple(arrays), constants)
     except Exception:
         return DesignMetadata((), (), parse_status="parse_error")
+
+
+def _lane_stride(
+    expression: str,
+    induction_variable: str,
+    constants: dict[str, int],
+) -> int | None:
+    """Return the proven affine displacement for one consecutive loop lane."""
+    compact = re.sub(r"\s+", "", expression)
+    occurrences = re.findall(
+        rf"(?<![A-Za-z0-9_]){re.escape(induction_variable)}"
+        rf"(?![A-Za-z0-9_])",
+        compact,
+    )
+    if len(occurrences) != 1:
+        return None
+    token = r"(?:\d+|[A-Za-z_]\w*)"
+    multiplied = re.search(
+        rf"(?:{re.escape(induction_variable)}\*(?P<rhs>{token})"
+        rf"|(?P<lhs>{token})\*{re.escape(induction_variable)})",
+        compact,
+    )
+    if multiplied is None:
+        return 1
+    raw = multiplied.group("rhs") or multiplied.group("lhs")
+    if raw.isdigit():
+        value = int(raw)
+    else:
+        value = constants.get(raw)
+    return value if isinstance(value, int) and value > 0 else None
+
+
+def _cyclic_distinct_banks(
+    concurrent_lanes: int,
+    lane_stride: int,
+    factor: int,
+) -> int:
+    return min(
+        concurrent_lanes,
+        factor // math.gcd(factor, lane_stride),
+    )
+
+
+def _block_distinct_bank_lower_bound(
+    array_extent: int,
+    concurrent_lanes: int,
+    lane_stride: int,
+    factor: int,
+) -> int:
+    """Return a base-alignment-independent lower bound on used block banks."""
+    block_size = math.ceil(array_extent / factor)
+    lane_span = (concurrent_lanes - 1) * lane_stride
+    return min(concurrent_lanes, factor, 1 + lane_span // block_size)
+
+
+def _recommended_banking_trial(
+    *,
+    dimension: int,
+    array_extent: int,
+    concurrent_lanes: int,
+    lane_stride: int,
+) -> dict[str, Any] | None:
+    """Rank a small evidence-derived trial without constraining later trials."""
+    factor_limit = min(array_extent, concurrent_lanes)
+    if factor_limit < 2:
+        return None
+    if lane_stride == 1:
+        factor = 2
+        return {
+            "pragma_class": "ARRAY_PARTITION",
+            "partition_type": "cyclic",
+            "factor": factor,
+            "dimension": dimension,
+            "expected_distinct_banks": _cyclic_distinct_banks(
+                concurrent_lanes, lane_stride, factor
+            ),
+            "collision_free": factor >= concurrent_lanes,
+            "priority": "soft_minimal_trial",
+        }
+
+    block_factor = min(
+        factor_limit,
+        max(2, math.ceil(array_extent / lane_stride)),
+    )
+    candidates = [
+        (
+            "block",
+            block_factor,
+            _block_distinct_bank_lower_bound(
+                array_extent,
+                concurrent_lanes,
+                lane_stride,
+                block_factor,
+            ),
+        )
+    ]
+    for factor in {
+        2,
+        min(factor_limit, lane_stride + 1),
+        factor_limit,
+    }:
+        if factor < 2:
+            continue
+        candidates.append(
+            (
+                "cyclic",
+                factor,
+                _cyclic_distinct_banks(
+                    concurrent_lanes, lane_stride, factor
+                ),
+            )
+        )
+    useful = [item for item in candidates if item[2] > 1]
+    if not useful:
+        return None
+    partition_type, factor, distinct_banks = min(
+        useful,
+        key=lambda item: (
+            -item[2],
+            item[1],
+            item[0],
+        ),
+    )
+    return {
+        "pragma_class": "ARRAY_PARTITION",
+        "partition_type": partition_type,
+        "factor": factor,
+        "dimension": dimension,
+        "expected_distinct_banks": distinct_banks,
+        "collision_free": distinct_banks >= concurrent_lanes,
+        "priority": "soft_bank_mapping_trial",
+    }
+
+
+def evaluate_source_banking_trial(
+    evidence: dict[str, Any],
+    *,
+    pragma_class: str,
+    partition_type: str,
+    factor: int | None,
+) -> dict[str, Any]:
+    """Validate a proposed storage trial against deterministic access facts."""
+    directive = pragma_class.upper()
+    kind = partition_type.lower()
+    try:
+        array_extent = int(evidence["array_extent"])
+        concurrent_lanes = int(evidence["concurrent_lanes"])
+        lane_stride = int(evidence["lane_stride"])
+        factor_limit = int(evidence["factor_limit"])
+    except (KeyError, TypeError, ValueError):
+        return {
+            "supported": False,
+            "reason": "source banking evidence is incomplete",
+        }
+
+    if directive not in {"ARRAY_PARTITION", "ARRAY_RESHAPE"}:
+        return {
+            "supported": False,
+            "reason": "unsupported source-backed storage directive",
+        }
+    if directive == "ARRAY_RESHAPE" and not evidence.get("reshape_eligible"):
+        return {
+            "supported": False,
+            "reason": "ARRAY_RESHAPE requires adjacent affine lane accesses",
+        }
+
+    if kind == "complete":
+        if factor is not None:
+            return {
+                "supported": False,
+                "reason": "complete partition/reshape must omit factor",
+            }
+        if array_extent > concurrent_lanes:
+            return {
+                "supported": False,
+                "reason": (
+                    "complete storage expansion exceeds proven concurrent lanes"
+                ),
+            }
+        return {
+            "supported": True,
+            "parallel_values": array_extent,
+            "collision_free": True,
+        }
+
+    if kind not in {"cyclic", "block"}:
+        return {
+            "supported": False,
+            "reason": "partition type must be cyclic, block, or complete",
+        }
+    if factor is None or factor < 2:
+        return {
+            "supported": False,
+            "reason": "a finite factor >=2 is required",
+        }
+    if factor > factor_limit:
+        return {
+            "supported": False,
+            "reason": (
+                f"factor={factor} exceeds the useful source-derived limit "
+                f"{factor_limit} (min(array extent, concurrent lanes))"
+            ),
+        }
+
+    if directive == "ARRAY_RESHAPE":
+        return {
+            "supported": True,
+            "parallel_values": min(concurrent_lanes, factor),
+            "collision_free": factor >= concurrent_lanes,
+        }
+    if kind == "cyclic":
+        distinct_banks = _cyclic_distinct_banks(
+            concurrent_lanes,
+            lane_stride,
+            factor,
+        )
+    else:
+        distinct_banks = _block_distinct_bank_lower_bound(
+            array_extent,
+            concurrent_lanes,
+            lane_stride,
+            factor,
+        )
+    if distinct_banks <= 1:
+        return {
+            "supported": False,
+            "reason": (
+                f"{kind} factor={factor} does not provably increase distinct "
+                "banks for the affine lane mapping"
+            ),
+            "distinct_banks": distinct_banks,
+        }
+    return {
+        "supported": True,
+        "distinct_banks": distinct_banks,
+        "collision_free": distinct_banks >= concurrent_lanes,
+    }
+
+
+def source_supported_banking_evidence(
+    metadata: DesignMetadata,
+) -> list[dict[str, Any]]:
+    """Infer conservative local-array banking trials from affine source access.
+
+    Evidence is emitted only for local arrays read by a source-bounded,
+    Vitis-auto-parallel loop with a provable affine lane displacement and
+    extent.  Type and factor recommendations remain soft: the synthesis gate
+    separately validates the bank mapping of any proposed trial.
+    """
+    loops = {
+        str(loop.get("label") or loop.get("name") or ""): loop
+        for loop in metadata.loops
+    }
+    constants = {
+        str(item.get("name")): int(item["value"])
+        for item in metadata.constants
+        if item.get("name") and isinstance(item.get("value"), int)
+    }
+    grouped: dict[
+        str,
+        list[tuple[dict[str, Any], dict[str, Any], int, int, str]],
+    ] = {}
+    for array in metadata.arrays:
+        if array.get("storage") != "local":
+            continue
+        if array.get("partition", "none") != "none":
+            continue
+        for access in array.get("accesses", []):
+            if not isinstance(access, dict) or access.get("mode") != "read":
+                continue
+            loop_name = str(access.get("loop") or "")
+            variable = str(access.get("induction_variable") or "")
+            dimensions = access.get("dimensions", [])
+            if (
+                not loop_name
+                or loop_name == UNKNOWN
+                or not variable
+                or variable == UNKNOWN
+                or not isinstance(dimensions, list)
+            ):
+                continue
+            for dimension, expression in enumerate(dimensions, start=1):
+                stride = _lane_stride(str(expression), variable, constants)
+                if stride is not None:
+                    grouped.setdefault(loop_name, []).append(
+                        (
+                            array,
+                            access,
+                            dimension,
+                            stride,
+                            str(expression),
+                        )
+                    )
+                    break
+
+    evidence: list[dict[str, Any]] = []
+    for loop_name, records in grouped.items():
+        distinct_arrays = {
+            str(array.get("name") or "")
+            for array, _, _, _, _ in records
+            if array.get("name")
+        }
+        loop = loops.get(loop_name, {})
+        auto_parallelism = loop.get("auto_parallelism", {})
+        concurrent_lanes_proven = bool(
+            isinstance(auto_parallelism, dict)
+            and (
+                auto_parallelism.get("pipeline")
+                or auto_parallelism.get("unroll")
+                or auto_parallelism.get("pipeline_ancestors")
+            )
+        )
+        if not concurrent_lanes_proven:
+            continue
+        trip_count = loop.get("trip_count")
+        if not isinstance(trip_count, int) or trip_count <= 1:
+            continue
+        seen_arrays: set[str] = set()
+        for array, access, dimension, stride, expression in records:
+            name = str(array.get("name") or "")
+            if not name or name in seen_arrays:
+                continue
+            seen_arrays.add(name)
+            same_array_records = [
+                item
+                for item in records
+                if str(item[0].get("name") or "") == name
+            ]
+            access_shapes = {
+                (item[2], item[3]) for item in same_array_records
+            }
+            if len(access_shapes) != 1:
+                continue
+            extents = array.get("extents", [])
+            if not isinstance(extents, list) or dimension > len(extents):
+                continue
+            array_extent = _positive_int_expression(
+                extents[dimension - 1],
+                constants,
+            )
+            if array_extent is None:
+                continue
+            factor_limit = min(array_extent, trip_count)
+            recommended_trial = _recommended_banking_trial(
+                dimension=dimension,
+                array_extent=array_extent,
+                concurrent_lanes=trip_count,
+                lane_stride=stride,
+            )
+            if factor_limit < 2 or recommended_trial is None:
+                continue
+            evidence.append(
+                {
+                    "kind": "source_affine_parallel_reads",
+                    "array": name,
+                    "loop": loop_name,
+                    "dimension": dimension,
+                    "index_expression": expression,
+                    "lane_stride": stride,
+                    "array_extent": array_extent,
+                    "concurrent_lanes": trip_count,
+                    "factor_limit": factor_limit,
+                    "recommended_trial": recommended_trial,
+                    "reshape_eligible": stride == 1,
+                    "banking_model": {
+                        "cyclic": "bank=index mod factor",
+                        "block": (
+                            "bank=floor(index/ceil(array_extent/factor))"
+                        ),
+                    },
+                    "co_read_arrays": sorted(distinct_arrays)[:8],
+                    "reason": (
+                        f"local array {name} is read with affine lane stride "
+                        f"{stride} in auto-parallel compute loop {loop_name}"
+                    ),
+                }
+            )
+    return evidence[:8]
 
 
 def bounded_metadata_payload(
@@ -657,6 +1277,10 @@ def bounded_metadata_payload(
             "report_loop_name": text(
                 item.get("report_loop_name", UNKNOWN)
             ),
+            "vitis_inferred": list(
+                item.get("vitis_inferred_directives", [])
+            )[:4],
+            "auto_parallelism": item.get("auto_parallelism", {}),
         }
 
     def array_projection(item: dict[str, Any]) -> dict[str, Any]:
@@ -668,6 +1292,7 @@ def bounded_metadata_payload(
             "element_type": text(item.get("element_type", UNKNOWN), 64),
             "rank": item.get("rank", UNKNOWN),
             "extents": [text(value, 40) for value in extents[:4]],
+            "storage": item.get("storage", UNKNOWN),
             "partition": item.get("partition", "none"),
             "reshape": item.get("reshape", "none"),
             "access_pattern": item.get(

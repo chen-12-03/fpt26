@@ -21,14 +21,15 @@ from agent.agents.base import RunState
 DIVERSE_OPTIMIZATION_STRATEGIES: tuple[dict[str, Any], ...] = (
     {
         "name": "conservative_loop_parallelism",
-        "objective": "Test the lowest-risk loop-local parallelism supported by the dominant-loop report.",
+        "objective": "Test the lowest-risk local action supported by measured report or deterministic source evidence.",
         "required_family": (
-            "Preserve source arithmetic and apply at most one bounded loop-local "
-            "UNROLL directive to the measured dominant loop."
+            "Preserve source arithmetic and apply one directive family whose exact "
+            "target is supported by measured II/port evidence or source banking evidence."
         ),
         "forbidden_changes": [
             "source-level reduction rewrite",
-            "ARRAY_PARTITION or ARRAY_RESHAPE without a measured port limit",
+            "ARRAY_PARTITION/RESHAPE without measured port or source banking evidence",
+            "UNROLL that overlaps a Vitis inferred pipeline/unroll/flatten hierarchy",
             "function-scope PIPELINE",
         ],
     },
@@ -61,7 +62,7 @@ DIVERSE_OPTIMIZATION_STRATEGIES: tuple[dict[str, Any], ...] = (
             "measured capacity and Q_HW."
         ),
         "forbidden_changes": [
-            "reusing the conservative factor unchanged",
+            "reusing the conservative action unchanged",
             "full unroll of an unbounded or very long loop",
         ],
     },

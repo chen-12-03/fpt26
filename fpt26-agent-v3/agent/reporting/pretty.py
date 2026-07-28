@@ -90,6 +90,27 @@ def _gate_text(value: bool | None) -> str:
     return "PASS" if value else "FAIL"
 
 
+def _usage_integer(usage: dict, key: str) -> int | None:
+    value = usage.get(key)
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    return None
+
+
+def _token_usage_text(usage: dict) -> str:
+    """Render complete or partial provider usage without assuming integers."""
+    requests = _usage_integer(usage, "request_count")
+    total = _usage_integer(usage, "total_tokens")
+    request_text = f"{requests} requests" if requests is not None else "requests N/A"
+    if total is not None:
+        return f"{total:,} total  ({request_text})"
+    observed = _usage_integer(usage, "observed_total_tokens")
+    observed_text = (
+        f"; observed partial={observed:,}" if observed is not None else ""
+    )
+    return f"N/A total  ({request_text}{observed_text})"
+
+
 def print_evaluation(state: Any) -> None:
     """Print a readable run summary without fixed-width overflowing cells."""
     from agent.reporting.metrics import _compute_derived, _llm_summary, _reported_cosim_status
@@ -181,7 +202,7 @@ def print_evaluation(state: Any) -> None:
         panel.key("Model", llm.get("model") or llm.get("client") or "N/A")
         usage = llm.get("token_usage")
         if isinstance(usage, dict):
-            panel.key("Tokens", f"{usage.get('total_tokens', 0):,} total  ({usage.get('request_count', 0)} requests)")
+            panel.key("Tokens", _token_usage_text(usage))
     panel.close()
 
 

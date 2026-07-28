@@ -36,11 +36,22 @@ _CODE_RE = re.compile(r"```(.*?)```", re.DOTALL)
 _FENCE_LANGS = ("cpp", "c++", "c", "cc", "cxx")
 
 
-def extract_code(text: str) -> str | None:
-    """Extract kernel source from an LLM response (```cpp fenced block)."""
+def extract_code(text: str, *, required_token: str = "") -> str | None:
+    """Extract the most plausible complete kernel from an LLM response.
+
+    When a top-function token is supplied, prefer the largest fenced block
+    containing it.  Models sometimes emit a short illustrative snippet before
+    the requested full translation unit; selecting the first block would turn
+    that formatting mistake into a false ``top_function_missing`` rejection.
+    """
     blocks = [_fenced_source(match) for match in _CODE_RE.findall(text)]
     if blocks:
-        return blocks[0].strip() + "\n"
+        selected = blocks[0]
+        if required_token:
+            token_pattern = re.compile(rf"\b{re.escape(required_token)}\b")
+            matching = [block for block in blocks if token_pattern.search(block)]
+            selected = max(matching or blocks, key=len)
+        return selected.strip() + "\n"
     if "```" in text:
         unfenced = _unmatched_fenced_source(text).strip()
         if unfenced:

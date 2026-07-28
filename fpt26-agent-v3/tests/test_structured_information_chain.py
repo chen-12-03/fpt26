@@ -12,7 +12,11 @@ from agent.agents.optimization.feedback import (
     build_synth_failure,
     merge_optimization_failure,
 )
-from agent.prompts import build_prompt, build_repair_prompt
+from agent.prompts import (
+    build_prompt,
+    build_repair_prompt,
+    build_structural_repair_prompt,
+)
 
 
 def _task(**overrides):
@@ -92,6 +96,52 @@ def test_cholesky_prompt_adds_dependency_guard_domain_constraint() -> None:
         for item in constraints["forbidden_candidate_shapes"]
     )
     assert "If domain_constraints is present" in payload["instruction"]
+
+
+def test_cholesky_domain_optimization_guard_does_not_leak_into_repair() -> None:
+    task = _task(
+        description=(
+            "Repair Cholesky decomposition while preserving lower triangular "
+            "row dependency order."
+        ),
+        top="kernel_cholesky",
+        headers={"cholesky.h": "void kernel_cholesky(double A[40][40]);"},
+        kernel_name="cholesky.cpp",
+    )
+    issue = IssueClassification(
+        condition="synth_failure",
+        issue_category="synth_failure",
+        stage="synth",
+        confidence="high",
+        evidence=["PipelineII=11", "unsupported call"],
+        recommended_action="repair_synthesizability",
+    )
+    normalized = _normalized(
+        error_summary="PipelineII=11: unsupported call in kernel_cholesky",
+        key_lines=[
+            "PipelineII=11: unsupported call in kernel_cholesky",
+            "ERROR: synthesis failed",
+        ],
+    )
+
+    repair_payload = json.loads(
+        build_repair_prompt(
+            task,
+            '#include "cholesky.h"\nvoid kernel_cholesky(double A[40][40]) {}\n',
+            normalized,
+            issue,
+        )
+    )
+    structural_payload = json.loads(
+        build_structural_repair_prompt(
+            task,
+            '#include "cholesky.h"\nvoid kernel_cholesky(double A[40][40]) {}\n',
+            "PipelineII=11 deadlock",
+        )
+    )
+
+    assert "domain_constraints" not in repair_payload
+    assert "domain_constraints" not in structural_payload
 
 
 def test_repair_prompt_contains_structured_issue_and_previous_attempt() -> None:

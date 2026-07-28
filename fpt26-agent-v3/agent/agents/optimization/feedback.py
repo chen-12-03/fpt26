@@ -291,26 +291,157 @@ def _interface_gate_feedback(
     }
 
 
+def _action_guard_feedback(
+    *,
+    status: str,
+    reason: str,
+    candidate_action: dict[str, Any],
+    measured_rejected_actions: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Preserve measured anti-repeat history after a pre-tool action rejection."""
+    forbidden_families = {
+        str(family)
+        for entry in measured_rejected_actions
+        for family in (
+            entry.get("action", entry).get("families", [])
+            if isinstance(entry.get("action", entry), dict)
+            else []
+        )
+        if str(family)
+    }
+    forbidden_targets = {
+        kind: {
+            str(target)
+            for entry in measured_rejected_actions
+            for target in (
+                entry.get("action", entry).get("targets", {}).get(kind, [])
+                if isinstance(entry.get("action", entry), dict)
+                and isinstance(
+                    entry.get("action", entry).get("targets", {}), dict
+                )
+                else []
+            )
+            if str(target)
+        }
+        for kind in ("loops", "arrays", "functions")
+    }
+    # The report-evidence gate itself is also a hard prohibition for the next
+    # reflection, even when no Q_HW candidate has yet been measured.
+    if status == "REJECTED_BY_REPORT_EVIDENCE":
+        forbidden_families.update(
+            str(value)
+            for value in candidate_action.get("families", [])
+            if str(value)
+        )
+        candidate_targets = candidate_action.get("targets", {})
+        if isinstance(candidate_targets, dict):
+            for kind in forbidden_targets:
+                forbidden_targets[kind].update(
+                    str(value)
+                    for value in candidate_targets.get(kind, [])
+                    if str(value)
+                )
+    return {
+        "status": status,
+        "reason": reason,
+        "no_candidate_tools_run": True,
+        "candidate_action": candidate_action,
+        "measured_rejected_actions": measured_rejected_actions[-4:],
+        "forbidden_optimization_families": sorted(forbidden_families),
+        "forbidden_targets": {
+            kind: sorted(values)
+            for kind, values in forbidden_targets.items()
+        },
+        "required_next_action": (
+            "Do not retry the rejected family or target through a different "
+            "factor, spelling, source layout, or fingerprint. Propose only a "
+            "different-family, different-target action explicitly supported by "
+            "the current synthesis report. If none exists, return the current "
+            "editable kernel unchanged."
+        ),
+    }
+
+
 def _rejection_feedback(
-    card: Any, report: Any, candidate: str, best_q_hw: float | None = None,
+    card: Any,
+    report: Any,
+    candidate: str,
+    best_q_hw: float | None = None,
+    *,
+    candidate_action: dict[str, Any] | None = None,
+    measured_rejected_actions: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Build concise scorer evidence for the next optimization round."""
     from agent.agents.optimization.diagnostics import _report as _fmt_report
+    from agent.agents.optimization.strategies import candidate_action_summary
     from agent.agents.optimize import SimpleToolResult
 
     pragmas = [l.strip() for l in candidate.splitlines() if "#pragma HLS" in l]
+    action = candidate_action or candidate_action_summary("", candidate)
+    rejected_actions = list(measured_rejected_actions or [])
+    if not rejected_actions:
+        rejected_actions.append(
+            {
+                "action": action,
+                "candidate_q_hw": card.q_hw,
+                "current_best_q_hw": best_q_hw,
+            }
+        )
+    forbidden_families = sorted(
+        {
+            str(family)
+            for entry in rejected_actions
+            for family in (
+                entry.get("action", entry).get("families", [])
+                if isinstance(entry.get("action", entry), dict)
+                else []
+            )
+            if str(family)
+        }
+    )
+    forbidden_targets = {
+        kind: sorted(
+            {
+                str(target)
+                for entry in rejected_actions
+                for target in (
+                    entry.get("action", entry)
+                    .get("targets", {})
+                    .get(kind, [])
+                    if isinstance(entry.get("action", entry), dict)
+                    and isinstance(
+                        entry.get("action", entry).get("targets", {}), dict
+                    )
+                    else []
+                )
+                if str(target)
+            }
+        )
+        for kind in ("loops", "arrays", "functions")
+    }
     bottleneck = card.bottleneck_resource
     growth = card.growth_by_resource
 
     resource_hint = ""
     if bottleneck == "DSP" and growth.get("DSP", 1.0) > 2.0:
-        resource_hint = f"DSP grew {growth['DSP']:.1f}x — reduce UNROLL/PIPELINE factor."
+        resource_hint = (
+            f"DSP grew {growth['DSP']:.1f}x — retire the measured "
+            "UNROLL/PIPELINE family."
+        )
     elif bottleneck == "LUT" and growth.get("LUT", 1.0) > 3.0:
-        resource_hint = f"LUT grew {growth['LUT']:.1f}x — try smaller UNROLL factor."
+        resource_hint = (
+            f"LUT grew {growth['LUT']:.1f}x — do not retry that "
+            "parallelism family with a different factor."
+        )
     elif bottleneck == "FF" and growth.get("FF", 1.0) > 3.0:
-        resource_hint = f"FF grew {growth['FF']:.1f}x — reduce UNROLL or ARRAY_PARTITION factor."
+        resource_hint = (
+            f"FF grew {growth['FF']:.1f}x — retire that UNROLL or "
+            "memory-banking family."
+        )
     elif bottleneck == "BRAM_18K":
-        resource_hint = "BRAM growth detected — reduce ARRAY_PARTITION factor."
+        resource_hint = (
+            "BRAM growth detected — do not retry memory banking on that array."
+        )
 
     cand_clk = getattr(report, "clock_period_ns", None)
     clock_hint = ""
@@ -327,6 +458,13 @@ def _rejection_feedback(
         "bottleneck_resource": bottleneck,
         "growth_by_resource": growth,
         "candidate_pragmas": pragmas,
+        "candidate_action": action,
+        "measured_rejected_actions": rejected_actions[-4:],
+        "forbidden_optimization_families": forbidden_families,
+        "forbidden_targets": forbidden_targets,
+        "anti_repeat_priority": (
+            "Measured Q_HW rejection overrides repeated RAG suggestions."
+        ),
         "resource_hint": resource_hint,
         "clock_hint": clock_hint,
         "reason": "The candidate did not improve Q_HW over the current best.",
@@ -338,20 +476,23 @@ def _rejection_feedback(
             "moves in the wrong direction and is forbidden."
         )
         feedback["required_next_action"] = (
-            f"Do not increase or repeat the rejected parallelism factor. "
+            "Do not repeat any forbidden optimization family or target, even "
+            "with a different factor, pragma spelling, source layout, or "
+            "fingerprint. "
             f"{resource_hint + ' ' if resource_hint else ''}"
             f"{clock_hint + ' ' if clock_hint else ''}"
-            "Remove that pragma class and use a materially different, report-supported "
+            "Use only a different-family, different-target, report-supported "
             "resource-neutral/resource-reducing idea. If no such evidence-based "
-            "idea exists, return the current editable kernel unchanged to stop."
+            "alternative exists, return the current editable kernel unchanged to stop."
         ).strip()
     else:
         feedback["required_next_action"] = (
             f"{resource_hint + ' ' if resource_hint else ''}"
             f"{clock_hint + ' ' if clock_hint else ''}"
-            "Remove speculative top-level ARRAY_PARTITION and any function-scope "
-            "PIPELINE first. Use a materially different single pragma class. If "
-            "no report-supported alternative exists, return the current editable "
-            "kernel unchanged to stop."
+            "Do not repeat any forbidden optimization family or loop/array/function "
+            "target, including semantic variants with different fingerprints. "
+            "Use only a different-family, different-target, report-supported "
+            "alternative. If none exists, return the current editable kernel "
+            "unchanged to stop."
         ).strip()
     return feedback

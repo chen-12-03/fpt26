@@ -1,4 +1,4 @@
-from llm4hls.report import parse_csynth_xml
+from llm4hls.report import parse_csynth_xml, parse_inferred_directives
 
 
 def test_parse_csynth_xml_exposes_pipeline_and_loop_metrics(tmp_path) -> None:
@@ -101,3 +101,61 @@ def test_parse_csynth_xml_finds_and_deduplicates_nested_module_loops(tmp_path) -
             "pipeline_depth": 7,
         }
     ]
+
+
+def test_parse_csynth_xml_attaches_vitis_inferred_directives(tmp_path) -> None:
+    report_path = tmp_path / "csynth.xml"
+    report_path.write_text(
+        """<profile>
+<PerformanceEstimates>
+  <SummaryOfTimingAnalysis><EstimatedClockPeriod>4.0</EstimatedClockPeriod></SummaryOfTimingAnalysis>
+  <SummaryOfOverallLatency>
+    <Best-caseLatency>16</Best-caseLatency><Average-caseLatency>16</Average-caseLatency>
+    <Worst-caseLatency>16</Worst-caseLatency><Interval-min>1</Interval-min><Interval-max>1</Interval-max>
+  </SummaryOfOverallLatency>
+</PerformanceEstimates>
+<AreaEstimates>
+  <Resources><LUT>1</LUT><FF>1</FF><DSP>0</DSP><BRAM_18K>0</BRAM_18K><URAM>0</URAM></Resources>
+  <AvailableResources><LUT>10</LUT><FF>10</FF><DSP>10</DSP><BRAM_18K>10</BRAM_18K><URAM>10</URAM></AvailableResources>
+</AreaEstimates>
+</profile>"""
+    )
+    inferred_path = tmp_path / "inferred_directives.ini"
+    inferred_path.write_text(
+        """[hls]
+# Inferred by Vitis
+syn.directive.pipeline=top/middle
+syn.directive.loop_flatten=top/outer
+syn.directive.pipeline=top/middle
+syn.directive.unroll=top/inner
+"""
+    )
+
+    expected = [
+        {
+            "kind": "pipeline",
+            "target": "top/middle",
+            "function": "top",
+            "scope": "middle",
+            "origin": "vitis_inferred",
+        },
+        {
+            "kind": "loop_flatten",
+            "target": "top/outer",
+            "function": "top",
+            "scope": "outer",
+            "origin": "vitis_inferred",
+        },
+        {
+            "kind": "unroll",
+            "target": "top/inner",
+            "function": "top",
+            "scope": "inner",
+            "origin": "vitis_inferred",
+        },
+    ]
+
+    assert parse_inferred_directives(inferred_path) == expected
+    assert parse_csynth_xml(
+        report_path, inferred_directives_fp=inferred_path
+    ).inferred_directives == expected

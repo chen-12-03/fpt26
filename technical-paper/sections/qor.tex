@@ -1,26 +1,25 @@
-\section{QoR Rejects False Speedups}
+\section{One Score Rejects False Speedups}
 
-\QHW{} applies one objective to every task. Evaluator-side anchor selection
-prefers a valid starter and falls back to a frozen reference. The agent never
-receives reference source or measurements. Let $L$, $p$, and $II$ denote cycle
-latency, effective period, and initiation interval; $a$ and $c$ mark the
-anchor and candidate. The effective period is
-$p_x=\max(p_{\mathrm{target}},p_{\mathrm{estimated},x})$. The performance and
-area ratios are as follows. The weighted $II$ branch applies when the task
-marks $II$ relevant and both designs report positive $II$.
+The evaluator selects a valid starter as anchor $a$ and falls back to a
+frozen reference that the agent cannot inspect. Let $c$ denote a candidate,
+$L$ its cycle latency, $p=\max(p_{\mathrm{target}},p_{\mathrm{estimated}})$
+its effective period, and $II$ its initiation interval. The score uses the
+$II$ branch only when the task marks $II$ relevant and both values are
+positive:
 \begin{align}
 r_L &= \frac{p_aL_a}{p_cL_c}, &
 r_P &=
 \begin{cases}
 r_L^{0.85}(II_a/II_c)^{0.15}, & \text{reliable }II,\\
 r_L, & \text{latency only},
-\end{cases}
+\end{cases}.
 \label{eq:performance}
 \end{align}
-For resource counts $A_j$ and $C_j$, define
+For anchor and candidate resource counts $A_j$ and $C_j$, let
+$\mathcal{R}$ contain lookup tables (LUTs), flip-flops (FFs), digital signal
+processing (DSP) blocks, block RAM (BRAM), and UltraRAM (URAM). The worst
+growth defines area quality:
 \begin{align}
-\mathcal{R}&=\{\mathrm{LUT},\mathrm{FF},\mathrm{DSP},
-\mathrm{BRAM}_{18\mathrm{K}},\mathrm{URAM}\},\nonumber\\
 \mathcal{R}_{+}&=\{j\in\mathcal{R}:A_j>1\lor C_j>1\},\nonumber\\
 \widehat{\mathcal{R}}&=
 \begin{cases}
@@ -31,7 +30,8 @@ r_A&=\left[\max_{j\in\widehat{\mathcal{R}}}
 \frac{\max(C_j,1)}{\max(A_j,1)}\right]^{-1}.
 \label{eq:area}
 \end{align}
-The score maps a weighted hardware ratio through a bounded utility:
+The official score combines validity, bounded hardware utility, and budget
+efficiency:
 \begin{align}
 h &= r_P^{0.55}r_A^{0.45}, &
 \QHW &= 1-\frac{1}{(1+h)^2}, \label{eq:qhw}\\
@@ -40,8 +40,6 @@ E &= \max\bigl(0.80,\,1-0.10u_{\mathrm{credit}}
   &\hspace{4.7em}{}-0.10u_{\mathrm{time}}\bigr), \nonumber\\
 S &= 100V\QHW E. \label{eq:score}
 \end{align}
-Here $u_{\mathrm{credit}}$ and $u_{\mathrm{time}}$ denote consumed fractions
-clipped to $[0,1]$; $E$ supplies the bounded budget term in the official score
-$S$. The promotion rule compares \QHW{}, after $V(c)=1$, and excludes $E$.
-It rejects a cycle reduction when clock degradation or the largest
-resource-growth ratio outweighs the gain.
+Here the two $u$ terms denote consumed fractions clipped to $[0,1]$.
+Promotion compares \QHW{} only after $V(c)=1$, so remaining budget cannot turn
+an inferior design into the fallback.

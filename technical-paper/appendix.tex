@@ -1,43 +1,185 @@
 \appendices
 
-\section{Implementation Contract}
+\section{Benchmark Sources and Task Composition}
+\label{app:benchmark}
 
-The submission pipeline stores the candidate, gate results, best synthesis
-evidence, verified fallback, accounting, and terminal status in one run state.
-Every repair and optimization path uses the same validation chain and
-promotion rule. The output writer saves the latest kernel that passed every
-available required gate; failed and interrupted paths return the verified
-fallback.
+The accepted manifest freezes every upstream path, commit, task description,
+public test, evaluator-only hidden test, reference, and gate configuration.
+The builder rejected construction candidates that failed acceptance checks and
+retained \CorpusTaskCount{} tasks with no cross-category kernel overlap.
+Table~\ref{tab:task-composition} separates six capabilities so that an
+aggregate success rate cannot hide a weak repair mode.
 
-\section{Experimental Configuration}
+\begin{table*}[t]
+  \caption{\textbf{The test suite balances six agent capabilities.}
+  Each category contains \TasksPerCategory{} tasks; only the structural
+  category requires C/RTL co-simulation in the accepted manifest.}
+  \label{tab:task-composition}
+  \centering
+  \small
+  \begin{tabular}{lllrr}
+    \toprule
+    Task type & Initial condition & Required output & Tasks & \CoSim{} \\
+    \midrule
+    Code generation & Signature-only stub & Complete kernel & 25 & 0 \\
+    Compile repair & Compile failure & Compiling kernel & 25 & 0 \\
+    Synthesis repair & Synthesis failure & Synthesizable kernel & 25 & 0 \\
+    Functional repair & \CSim{} failure & Functionally correct kernel & 25 & 0 \\
+    Structural repair & \CoSim{} failure & Executable RTL structure & 25 & 25 \\
+    QoR optimization & Valid baseline & Better valid \QHW{} & 25 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
-\tableplaceholderwide
-  {Insert the final container, source revision, open-source model, inference
-   settings, task budgets, and benchmark configuration.}
-  {Reproduction configuration for the final experiment set.}
-  {tab:configuration}
+The kernels come from two public AMD repositories at fixed commits. The
+introductory examples contribute \IntroExampleTaskCount{} tasks under
+Apache-2.0; the acceleration examples contribute
+\AccelExampleTaskCount{} under MIT. Controlled faults define generation and
+repair conditions, while frozen valid starters or evaluator-only references
+anchor QoR evaluation.
 
-\section{Per-Task Evidence}
+\begin{table*}[t]
+  \caption{\textbf{Fixed source revisions make the corpus reconstructable.}}
+  \label{tab:task-sources}
+  \centering
+  \small
+  \begin{tabular}{lllr}
+    \toprule
+    Repository & License & Upstream commit & Tasks \\
+    \midrule
+    Xilinx/Vitis-HLS-Introductory-Examples &
+    Apache-2.0 & \texttt{aa5c160faf5d5ebf58674df8f0591f9984ebae0f} &
+    \IntroExampleTaskCount \\
+    Xilinx/Vitis\_Accel\_Examples &
+    MIT & \texttt{81187602355a7c2b666351154c5acca2074cae64} &
+    \AccelExampleTaskCount \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
-\tableplaceholderwide
-  {Insert per-task gates, latency, II, clock, resources, \QHW{}, status, and
-   evidence identifiers.}
-  {Per-task correctness and hardware evidence.}
-  {tab:per-task}
+\section{Track-A Compliance and Experimental Contract}
+\label{app:compliance}
 
-\section{Token and Tool Accounting}
+Table~\ref{tab:compliance} distinguishes runtime-output evidence from
+submission-package obligations. ``Strict'' refers to fail-closed enforcement:
+missing evidence for an applicable gate rejects the output. It does not imply
+that an inapplicable gate was executed. In particular, all tasks require
+\CSim{} and \Synth{}, whereas the manifest requires \CoSim{} for the
+\RequiredCosimTaskCount{} structural tasks.
 
-\tableplaceholderwide
-  {Insert per-stage prompt/completion tokens, LLM requests, tool calls,
-   credits, and wall time.}
-  {Per-stage model and tool accounting.}
-  {tab:accounting}
+\begin{table*}[t]
+  \caption{\textbf{The run contract implements every applicable Track-A
+  evaluation requirement.} Submission files and video remain author-side
+  checklist items.}
+  \label{tab:compliance}
+  \centering
+  \small
+  \begin{tabular}{p{0.22\textwidth}p{0.69\textwidth}}
+    \toprule
+    Track-A requirement & Enforcement and recorded evidence \\
+    \midrule
+    U55C; Vitis 2025.2 &
+    The container fixes the target part and tool release; reports preserve the
+    execution-source revision. \\
+    \CSim, \Synth, applicable \CoSim &
+    A missing or failed required gate rejects the candidate. Hidden tests and
+    frozen references remain evaluator-only. \\
+    At least 100 MHz; feasible resources &
+    Frequency and U55C capacity gates precede promotion. Reports retain
+    latency, $II$, period, LUT, FF, DSP, BRAM, and URAM. \\
+    Budget and token accounting &
+    Every report records prompt, completion, and total tokens, API requests,
+    tool calls, credits, and wall time. The campaign limit is
+    \CampaignCreditLimit{} credits. \\
+    Recommended model comparison &
+    Real-API campaigns cover DeepSeek V4 Pro, Qwen3.5-122B-A10B, and
+    Qwen3.6-27B under one manifest and source revision; mock, replay, and
+    scripted backends are rejected by the result generator. \\
+    Docker and reproducibility &
+    The repository supplies the Docker workflow, public task materials,
+    structured reports, and result-generation script. \\
+    PDF, source archive, video &
+    These are submission-package obligations, not run-output fields. Authors
+    must separately confirm IEEE format, the two-page boundary, archive
+    contents, and the five-minute demonstration. \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
-\section{Reproduction Procedure}
+\section{Detailed Three-Model Results}
+\label{app:results}
 
-Evaluators build the supplied Docker image, configure the open-source model
-endpoint through environment variables, and mount the task and output
-directories. The command-line entry point writes the final kernel, structured
-run report, and submission evidence under the selected output root. The Vitis
-child environment excludes credentials, and report writers redact sensitive
-text.
+All campaigns cover the same \CorpusTaskCount{} tasks and share one source
+hash and credit limit. Table~\ref{tab:model-totals} reports both binary
+completion and optimization quality. The all-task mean assigns zero to a task
+without an official score; the scored mean excludes tasks without a valid QoR
+anchor.
+
+\begin{table*}[t]
+  \caption{\textbf{Aggregate outcomes separate completion, optimization
+  quality, and cost.} Token, credit, and call counts come from the same final
+  reports as the success and score columns.}
+  \label{tab:model-totals}
+  \centering
+  \small
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Model & Success & All-task mean & Scored mean & Tokens (M) & Credits & Calls \\
+    \midrule
+    \DetailedModelResultsRows
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+  \caption{\textbf{Structural repair explains most of the Qwen3.5--Qwen3.6
+  success gap.} Entries are success rates in percent.}
+  \label{tab:category-success}
+  \centering
+  \small
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Model & Generate & Compile & Synth & Functional & Structural & QoR \\
+    \midrule
+    \CategorySuccessRows
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+DeepSeek fails \DeepSeekFailureCount{} tasks, Qwen3.5 fails
+\QwenThreeFiveFailureCount{}, and Qwen3.6 fails
+\QwenThreeSixFailureCount{}. The structural category contributes
+\StructuralGapTaskCount{} of the \OverallGapTaskCount{}-success
+Qwen3.5--Qwen3.6 difference. All three models complete every QoR task, but
+their QoR-category means of \DeepSeekQorScore{},
+\QwenThreeFiveQorScore{}, and \QwenThreeSixQorScore{} remain distinct. The
+reports retain the gate, diagnostic, hardware, and accounting fields needed
+for later failure subtyping.
+
+\textbf{Future-result frame.} A matched rerun should add one row per agent
+variant and report campaign identifier, success, repeated failures, mean
+\QHW{}, tokens, calls, credits, and wall time. Planned variants are full
+agent, no QoR-RAG, no measured-failure retrieval, and no Failure Reflection.
+Until such runs exist, no value is printed and no causal improvement is
+claimed.
+
+\section{Reproduction and Result Refresh}
+\label{app:reproduction}
+
+The accepted task list is
+\texttt{tasks/track\_a\_150/candidate\_manifest.json}. The three source report
+paths are written as comments at the end of
+\texttt{technical-paper/results\_generated.tex}. After replacing or extending
+matching directories under \texttt{runs/}, execute
+\texttt{python3 technical-paper/scripts/update\_results.py} from the repository
+root. The script selects the latest matching final report and refuses to emit
+macros unless model identity, task count, real-API status, execution-source
+hash, and credit limit agree.
+
+The generated file supplies task counts, result prose values, and all detailed
+table rows. A refreshed campaign therefore updates numerical evidence without
+hand-editing the paper. The two PDF figures are intentionally separate vector
+assets and must be regenerated from the same report set before final
+submission. Evaluator-only tests and references remain outside the
+agent-visible filesystem; report writers redact credentials and sensitive
+paths.

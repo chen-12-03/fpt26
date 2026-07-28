@@ -6,15 +6,38 @@
 cd /home/chen1/projects/fpt26_new
 ```
 
-## 1. 环境配置
+## 1. 换机与环境配置
 
-检查必需文件和镜像：
+仓库内的 Dockerfile 已包含 Agent、Python 和 Vitis Linux runtime
+依赖。首次运行若找不到 `fpt26-agent-v3:latest`，入口脚本会自动从
+Dockerfile 构建，不再依赖旧设备预先制作的 `vitis_runtime:2025.2`
+本地镜像。
+
+仍有三项不能随 Git 仓库分发：
+
+- x86_64 Linux/WSL 上可用的 Docker；
+- 宿主机安装的 AMD Vitis 2025.2 及有效许可证；
+- OpenRouter 或其他兼容后端的 API key。
+
+默认检查位置：
 
 ```bash
-docker image inspect fpt26-agent-v3:latest >/dev/null
+docker version
 test -f /tmp/fpt26.env
 test -f /tools/Xilinx/2025.2/Vitis/settings64.sh
 test -d tasks/track_a_150
+```
+
+若 Vitis 安装在其他路径，设置：
+
+```bash
+export FPT26_VITIS_SETTINGS=/opt/amd/Vitis/2025.2/settings64.sh
+```
+
+入口会把对应的安装根目录按原绝对路径只读挂载进容器。运行完整自检：
+
+```bash
+./fpt26-agent-v3/run-task-cli --doctor --backend openrouter
 ```
 
 `/tmp/fpt26.env` 至少需要：
@@ -39,37 +62,51 @@ export MODEL='qwen/qwen3.6-27b'
 
 ## 2. 单个 task 运行
 
-按 `run_agent.sh` 的方式前台运行，终端实时输出，同时写入 `runs/*.terminal.log`：
+推荐使用统一 CLI。入口脚本默认只在宿主机组装一次 `docker run`，task
+发现、Vitis HLS、agent、LLM 调用和评分都在该容器内执行；无需在宿主机
+提前 `source settings64.sh`。CLI 会按 task ID 查找路径，自动加载
+`/tmp/fpt26.env`、自动检测 Vitis `settings64.sh`，生成带时间戳的 run
+root，并把无 ANSI 控制符的完整终端输出写入
+`runs/*.terminal.log`。
 
 ```bash
-export TASK_ID='compile_repair__16__amd_intro__interface_memory_burst_rw'
-export TASK_PATH="tasks/track_a_150/${TASK_ID}"
-export RUN_LABEL="single_${TASK_ID}_$(date +%Y%m%d_%H%M%S)"
-export RUN_ROOT="runs/${RUN_LABEL}"
-export LOG_FILE="runs/${RUN_LABEL}.terminal.log"
-
-export LOCPATH=/tmp/fpt26_locale_dirs/usr/lib/locale
-source /tools/Xilinx/2025.2/Vitis/settings64.sh
-export LD_LIBRARY_PATH="/tmp/fpt26_vitis_tinfo5_qemu:/tools/Xilinx/2025.2/Vitis/lib/lnx64.o/Ubuntu/22:${LD_LIBRARY_PATH:-}"
-
-set -a
-source /tmp/fpt26.env
-set +a
-
-export LLM4HLS_MODEL="${MODEL}"
-
-PYTHONPATH=fpt26-agent-v3:. python3 -m agent.main \
-  --task "${TASK_PATH}" \
+./fpt26-agent-v3/run-task-cli \
+  --task-id compile_repair__16__amd_intro__interface_memory_burst_rw \
   --mode auto \
   --backend openrouter \
-  --output-root "${RUN_ROOT}" \
-  --scoring-profile balanced \
-  --color always \
-  2>&1 | tee "${LOG_FILE}"
-
-echo "run_root=${RUN_ROOT}"
-echo "terminal_log=${LOG_FILE}"
+  --model "${MODEL}" \
+  --max-optimization-rounds 2
 ```
+
+也可以直接指定路径：
+
+```bash
+./fpt26-agent-v3/run-task-cli \
+  --task-path tasks/track_a_150/compile_repair__16__amd_intro__interface_memory_burst_rw \
+  --mode auto --backend openrouter --model "${MODEL}"
+```
+
+查看任务、预览配置或进入交互设置：
+
+```bash
+./fpt26-agent-v3/run-task-cli --list-tasks burst_rw
+./fpt26-agent-v3/run-task-cli --task-id compile_repair__16__amd_intro__interface_memory_burst_rw --dry-run
+./fpt26-agent-v3/run-task-cli --interactive
+```
+
+配置面板的 `Runtime` 会显示 `docker`，`--dry-run` 会在容器中打印实际
+agent 命令但不执行 task。镜像默认是 `fpt26-agent-v3:latest`，可用
+`--image <image>` 或 `FPT26_AGENT_IMAGE` 覆盖。仅调试 CLI 本身时才应
+显式使用 `--runtime local`；通过入口脚本调用时，即使选择 local，入口
+脚本本身仍会把整个 CLI 放进同一个 Docker 容器。
+
+自动构建可用 `FPT26_AUTO_BUILD=0` 禁用。基础镜像可用
+`FPT26_AGENT_BASE_IMAGE` 覆盖；默认是公开的
+`xilinx/xilinx_runtime_base:alveo-2023.2-ubuntu-22.04`。
+
+高级参数仍直接透传到 `agent.main`，包括 `--budget`、`--competition`、
+`--max-repair-attempts`、`--max-optimization-rounds`、
+`--max-structural-attempts` 和 `--scoring-profile`。
 
 ## 3. Track-A 150 三分片运行
 
@@ -91,7 +128,7 @@ export RUN_ROOT="runs/${RUN_LABEL}"
 ```bash
 for SHARD in 0 1 2; do
   docker run -d --name "fpt26-${RUN_LABEL}-s${SHARD}" --env-file /tmp/fpt26.env \
-    -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
+    -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
     -e PYTHONDONTWRITEBYTECODE=1 \
     -v /home/chen1/projects/fpt26_new:/workspace \
     -v /tools/Xilinx:/tools/Xilinx:ro \
@@ -100,7 +137,7 @@ for SHARD in 0 1 2; do
     bash -lc "source /tools/Xilinx/2025.2/Vitis/settings64.sh && python3 -m scoring.run_p0_real_api_shard \
       --task-root /workspace/tasks/track_a_150 \
       --output-root /workspace/${RUN_ROOT}/shard_0${SHARD} \
-      --shard-index ${SHARD} --shard-count 3 --task-timeout-s 7200 \
+      --shard-index ${SHARD} --shard-count 3 --task-timeout-s 3600 \
       --backend openrouter --model ${MODEL}"
 done
 ```

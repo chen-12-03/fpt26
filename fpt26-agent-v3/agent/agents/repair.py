@@ -104,7 +104,10 @@ class RepairAgent:
 
             # ── 5. LLM modifies code ──────────────────────────────────────
             response = self.llm.complete(REPAIR_SYSTEM, prompt)
-            new_code = extract_code(response)
+            new_code = extract_code(
+                response,
+                required_token=str(getattr(task, "top", "") or ""),
+            )
             if new_code is None or new_code.strip() == stable_code.strip():
                 state.log(f"repair attempt {attempt}: LLM returned no change")
                 previous_attempt = {

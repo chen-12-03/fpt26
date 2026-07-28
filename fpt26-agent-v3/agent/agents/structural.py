@@ -95,7 +95,10 @@ class StructuralRepairAgent:
 
             # ── 3. LLM proposes fix ──────────────────────────────────
             response = self.llm.complete(STRUCTURAL_REPAIR_SYSTEM, prompt)
-            new_code = extract_code(response)
+            new_code = extract_code(
+                response,
+                required_token=str(getattr(task, "top", "") or ""),
+            )
             if new_code is None or new_code.strip() == stable_code.strip():
                 state.log(f"structural repair attempt {attempt}: no change proposed")
                 continue

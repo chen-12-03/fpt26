@@ -28,14 +28,16 @@ Do NOT modify the top function signature, language linkage, headers, or testbenc
    - Cosim DEADLOCK → stream depth, DATAFLOW ordering, producer/consumer rate balance.
 3. **Apply ONE optimization family per candidate.** A family may be one pragma class or one source-level architectural rewrite. Re-synthesize every candidate and compare reports against the same baseline.
 4. **If a directive does NOT improve the limiting metric, REMOVE or revise it.** Do not accumulate ineffective directives.
+   After a candidate is measured and rejected for failing to improve Q_HW, its optimization family and its loop/array/function target are closed for the rest of the search. Do not retry them with a different factor, spelling, source layout, or fingerprint. Measured rejection evidence overrides any repeated RAG suggestion.
 5. **Never apply both ARRAY_PARTITION and ARRAY_RESHAPE to the same variable.**
 6. **DATAFLOW regions need explicit stream depths** for cosim safety.
-7. In a conservative loop-parallelism lane, prefer a bounded partial UNROLL. In other declared search lanes, do not fall back to that same edit: explore the assigned source-level reduction, throughput, or resource strategy. Add ARRAY_PARTITION only after Vitis reports memory-port pressure; never speculatively partition large top-level arrays. Never fully unroll a long reduction just to minimize cycle count; keep the worst resource growth controlled and check estimated clock after synthesis.
+7. Never infer that a long PipelineII=1 loop should receive partial UNROLL. Before adding any loop directive, preserve Vitis inferred auto-pipeline, auto-unroll, and flatten boundaries. ARRAY_PARTITION/RESHAPE requires an exact local array and dimension backed by a measured memory-port contract or deterministic affine concurrent-access evidence. A source-derived recommended_trial is a soft first choice; other type/factor trials are allowed only when their bank mapping provably increases parallel access. Never speculatively partition top-level arrays.
 
 ## Pipeline & II Rules
 - PIPELINE II=<n> on the loop/function that directly controls throughput.
 - A loop-scoped PIPELINE or UNROLL directive belongs inside the loop body immediately after its opening brace. A PIPELINE at function-body scope pipelines the function and may flatten/auto-unroll contained loops.
 - If a loop already reports PipelineII=1, do not add another PIPELINE or infer a memory-port problem from the top-function transaction Interval.
+- When all reported loops have PipelineII=1, PIPELINE is not an alternative. This does not prove that conservative local-array banking is useless: ARRAY_PARTITION/RESHAPE remains eligible only when a measured memory-port contract or source_banking_evidence names the exact local array and dimension and validates useful parallel access.
 - If II=1 fails: classify cause (timing/recurrence/memory-port/bandwidth) before adding more pragmas.
 - Pipelining an outer loop forces inner-loop concurrency — this is an architectural decision that can expose memory bandwidth bottlenecks.
 
@@ -43,7 +45,7 @@ Do NOT modify the top function signature, language linkage, headers, or testbenc
 - ARRAY_PARTITION: creates parallel banks/elements for concurrent access. Grows LUT/FF/BRAM.
 - ARRAY_RESHAPE: widens storage word while preserving packed view. Use when adjacent elements move together.
 - Match dim, type, factor to the access pattern in the bottleneck.
-- For a long vector reduction already at PipelineII=1: follow the declared independent search lane. A conservative lane may test a small loop-local partial UNROLL; a source-restructure lane must instead change the reduction architecture without adding parallelism pragmas. Add banking only if a Vitis report proves port pressure.
+- For a long loop already at PipelineII=1: do not mechanically add UNROLL. Preserve inferred hierarchy and use only a distinct measured/source-supported action. If none exists, return the kernel unchanged.
 
 ## Dataflow & Streaming
 - DATAFLOW: use after design has clear producer/compute/consumer stages.
@@ -54,6 +56,7 @@ Do NOT modify the top function signature, language linkage, headers, or testbenc
 ## Stopping Criteria
 - Evaluate every declared independent strategy lane before selecting the highest measured scoring_v3 Q_HW. A no-op, duplicate, C-sim failure, or synthesis failure in one lane must not stop the other lanes.
 - Reject a candidate when reduced cycles are outweighed by clock-period or worst-resource growth.
+- If the only ideas repeat a measured rejected family/target or lack report/source support, return the editable kernel byte-for-byte unchanged.
 - If Q_HW cannot be improved without breaking csim/cosim → stop and submit current best."""
 
 # All modes share one system policy. Stage-specific behavior is selected only
@@ -161,6 +164,7 @@ def build_prompt(
     search_strategy: dict[str, Any] | None = None,
     repair_evidence: dict[str, Any] | None = None,
     design_metadata: dict[str, Any] | None = None,
+    source_banking_evidence: list[dict[str, Any]] | None = None,
 ) -> str:
     header_text, omitted_attachments = _prompt_header_context(task.headers)
     try:
@@ -206,6 +210,36 @@ def build_prompt(
         payload["resource_trend"] = resource_delta
     if rejection_feedback:
         payload["previous_candidate_feedback"] = rejection_feedback
+        if (
+            rejection_feedback.get("measured_rejected_actions")
+            or rejection_feedback.get("forbidden_optimization_families")
+            or rejection_feedback.get("forbidden_targets")
+        ):
+            payload["anti_repeat_contract"] = {
+                "priority": (
+                    "HARD: measured Q_HW evidence overrides optimization_patterns "
+                    "and any repeated RAG recommendation."
+                ),
+                "measured_rejected_actions": rejection_feedback.get(
+                    "measured_rejected_actions", []
+                ),
+                "forbidden_optimization_families": rejection_feedback.get(
+                    "forbidden_optimization_families", []
+                ),
+                "forbidden_targets": rejection_feedback.get(
+                    "forbidden_targets", {}
+                ),
+                "semantic_equivalence_rule": (
+                    "Changing factor, pragma spelling, comments, helper names, "
+                    "or source layout does not make the same family/target action new."
+                ),
+                "fallback": (
+                    "If no different-family, different-target alternative is "
+                    "supported by the current synthesis report or deterministic "
+                    "editable-source evidence, return "
+                    "editable_kernel unchanged."
+                ),
+            }
     if action_contract:
         payload["measured_action_contract"] = action_contract
     if search_strategy:
@@ -219,12 +253,20 @@ def build_prompt(
             separators=(",", ":"),
             ensure_ascii=False,
         )
-    domain_constraints = _domain_constraints_for_prompt(
-        description=task.description or "",
-        synth_result=synth_result,
-        bottleneck_hint=bottleneck_hint,
-        knowledge_hint=knowledge_hint,
-    )
+    if source_banking_evidence:
+        payload["source_banking_evidence"] = source_banking_evidence
+    # Benchmark-family optimization guards must never steer functional or
+    # structural repair.  Repair is driven only by its measured failure
+    # evidence; otherwise a synthesis diagnostic such as "II=11" could turn a
+    # compile/synth repair into an unrelated Cholesky optimization.
+    domain_constraints = None
+    if not repair_evidence and not cosim_result:
+        domain_constraints = _domain_constraints_for_prompt(
+            description=task.description or "",
+            synth_result=synth_result,
+            bottleneck_hint=bottleneck_hint,
+            knowledge_hint=knowledge_hint,
+        )
     if domain_constraints:
         payload["domain_constraints"] = domain_constraints
 
@@ -240,10 +282,10 @@ def build_prompt(
 
     optimization_instruction = (
         "Follow search_strategy as a hard independent-lane contract. The candidate must use its required_family and obey forbidden_changes. "
-        "Do not copy the conservative UNROLL approach when assigned a different lane. If the assigned family is unsupported by the source and measured report, return editable_kernel unchanged; do not switch families."
+        "Do not copy another lane's action. If the assigned family is unsupported by the source and measured report, return editable_kernel unchanged; do not switch families."
         if search_strategy
         else
-        "Apply ONE pragma class to improve scoring_v3 Q_HW, guided by bottleneck diagnosis. Balance effective latency (clock period × cycles) against the worst resource growth; do not optimize cycle count alone. Prefer a small loop-local partial unroll first; add array partition only for measured port pressure."
+        "Apply ONE report/source-supported optimization family to improve scoring_v3 Q_HW. Balance effective latency (clock period × cycles) against the worst resource growth; do not optimize cycle count alone. Do not prefer UNROLL merely because a long loop has PipelineII=1. Use ARRAY_PARTITION/RESHAPE only when measured_action_contract or source_banking_evidence supports its exact target and dimension; treat recommended_trial as a soft first choice and require any other type/factor to improve the supplied bank mapping."
     )
     payload["instruction"] = (
         "Read tool_results carefully. Determine the situation from results alone:\n"
@@ -259,12 +301,14 @@ def build_prompt(
         "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_STRATEGY_CONTRACT: no candidate tool was run. Stay in the same search_strategy and correct the exact contract violation; do not switch to another lane or repeat the rejected architecture.\n"
         "- If previous_candidate_feedback.status is REJECTED_BY_INTERFACE_GATE: no candidate tool was run. Obey required_next_action exactly: regenerate a complete C/C++ translation unit, preserve required includes and the exact top function signature, include the top_function token, and balance all braces/parentheses before making any QoR change.\n"
+        "- If anti_repeat_contract is present: it is a pre-synthesis hard gate and has higher priority than optimization_patterns/RAG. Do not reuse any forbidden_optimization_family and do not touch any forbidden loop/array/function target. Semantic variants with different factors, spellings, comments, helper names, layouts, or fingerprints are still repeats. If the report supports no action outside both forbidden sets, return editable_kernel unchanged.\n"
         "- If domain_constraints is present: it is a hard constraint derived from public task text plus measured synth diagnostics. Apply its required_candidate_shape before generic QoR advice or measured examples; do not produce a candidate listed in forbidden_candidate_shapes.\n"
         "- If measured_action_contract is present: treat its target, required_candidate_delta, forbidden_as_non_responsive, dimension policy, and verification as hard planning constraints. Implement one recommended minimal trial only when the editable source proves the required dimension; otherwise use its locality alternative or return editable_kernel unchanged.\n"
+        "- If source_banking_evidence is present: it is deterministic editable-source evidence, not a generic RAG suggestion. A banking candidate must use only listed local arrays and the exact listed dimension. recommended_trial is a soft first choice, not a unique legal answer. Another partition type/factor is allowed only when the affine banking_model produces more than one distinct bank within factor_limit; reshape additionally requires reshape_eligible. Do not bank an unlisted or top-level array.\n"
         "- For other previous_candidate_feedback: the prior candidate was measured and rejected by scoring. "
-        "Do NOT repeat its pragma set or architecture. Obey directional_constraint and required_next_action; never "
-        "increase a factor when measured resource growth outweighed speedup. If there is no report-supported "
-        "resource-neutral alternative, return editable_kernel unchanged.\n"
+        "Do NOT repeat its optimization family, loop/array/function target, pragma set, or architecture. Obey directional_constraint and required_next_action; never "
+        "increase a factor when measured resource growth outweighed speedup. If there is no report/source-supported "
+        "different-family and different-target alternative, return editable_kernel unchanged.\n"
         "Return the FULL kernel source code. Keep the top function signature and "
         "language linkage (including any extern \"C\") UNCHANGED."
     )

@@ -54,6 +54,7 @@ def _evaluate_anchor_source(
     source_label: str,  # "starter" | "reference"
     task: Any,
     grade_root: Path,
+    workspace_root: Path,
     requires_cosim: bool,
 ) -> CandidateEvaluation:
     """Run every required gate for *source_code* independently.
@@ -87,7 +88,7 @@ def _evaluate_anchor_source(
     # ── CSim gate ───────────────────────────────────────────────────────
     source_files = task.assemble(source_code, task.hidden_tb_code, task.hidden_tb_name)
     data_files = getattr(task, "hidden_data_files", None) or None
-    csim_result = CSimTool().run(
+    csim_result = CSimTool(workspace_root=workspace_root).run(
         grade_root / f"grade_csim_{source_label}", source_files,
         top=task.top, part=task.part, clock_ns=task.clock_ns,
         data_files=data_files,
@@ -101,7 +102,7 @@ def _evaluate_anchor_source(
     # ── Synth gate ──────────────────────────────────────────────────────
     synth_files = dict(getattr(task, "headers", {}))
     synth_files[task.kernel_name] = source_code
-    synth_result = SynthTool().run(
+    synth_result = SynthTool(workspace_root=workspace_root).run(
         grade_root / f"grade_synth_{source_label}", synth_files,
         synth_sources=[task.kernel_name],
         top=task.top, part=task.part, clock_ns=task.clock_ns,
@@ -151,7 +152,7 @@ def _evaluate_anchor_source(
 
     # ── CoSim gate (only when required) ─────────────────────────────────
     if requires_cosim:
-        cosim_result = CoSimTool().run(
+        cosim_result = CoSimTool(workspace_root=workspace_root).run(
             grade_root / f"grade_cosim_{source_label}", source_files,
             synth_sources=[task.kernel_name],
             tb_sources=[task.hidden_tb_name],
@@ -199,6 +200,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
     if not isinstance(getattr(state, "metadata", None), dict):
         state.metadata = {}
     grade_root = Path(state.config.output_root) / task.id / "grade"
+    workspace_root = Path(state.config.output_root).resolve()
     _start = time.monotonic()
 
     grading_results: list[tuple[str, Any]] = []
@@ -220,7 +222,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
     # ── 1. Hidden CSim (candidate validity gate) ──────────────────────────
     hidden_files = task.assemble(kernel, task.hidden_tb_code, task.hidden_tb_name)
     data_files = getattr(task, "hidden_data_files", None) or None
-    csim = CSimTool().run(
+    csim = CSimTool(workspace_root=workspace_root).run(
         grade_root / "grade_csim", hidden_files,
         top=task.top, part=task.part, clock_ns=task.clock_ns,
         data_files=data_files,
@@ -233,7 +235,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
     # ── 2. Candidate synthesis ────────────────────────────────────────────
     cand_files = dict(task.headers)
     cand_files[task.kernel_name] = kernel
-    cand_synth = SynthTool().run(
+    cand_synth = SynthTool(workspace_root=workspace_root).run(
         grade_root / "grade_synth_cand", cand_files,
         synth_sources=[task.kernel_name],
         top=task.top, part=task.part, clock_ns=task.clock_ns,
@@ -255,7 +257,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
     cosim_ok: bool | None = None
     cosim_latency: int | None = None
     if task.requires_cosim:
-        cosim = CoSimTool().run(
+        cosim = CoSimTool(workspace_root=workspace_root).run(
             grade_root / "grade_cosim", hidden_files,
             synth_sources=[task.kernel_name],
             tb_sources=[task.hidden_tb_name],
@@ -281,6 +283,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
         source_label="starter",
         task=task,
         grade_root=grade_root,
+        workspace_root=workspace_root,
         requires_cosim=task.requires_cosim,
     )
     _record("starter_anchor_eval", starter_eval)
@@ -292,6 +295,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
             source_label="reference",
             task=task,
             grade_root=grade_root,
+            workspace_root=workspace_root,
             requires_cosim=task.requires_cosim,
         )
         _record("reference_anchor_eval", ref_eval)

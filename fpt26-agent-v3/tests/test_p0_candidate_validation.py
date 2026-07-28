@@ -140,6 +140,21 @@ def test_extract_code_accepts_common_markdown_fence_variants(response: str) -> N
     assert CandidateValidator.from_task(_task()).validate(code).ok
 
 
+def test_extract_code_prefers_full_top_function_over_first_snippet() -> None:
+    response = (
+        "Avoid this repeated action:\n"
+        "```cpp\n#pragma HLS PIPELINE II=11\n```\n"
+        "Return the complete kernel:\n"
+        f"```cpp\n{_STARTER}```"
+    )
+
+    code = extract_code(response, required_token="kernel")
+
+    assert code is not None
+    assert code.startswith('#include "kernel.h"')
+    assert CandidateValidator.from_task(_task()).validate(code).ok
+
+
 def test_interface_failure_records_bounded_source_diagnostics() -> None:
     state = SimpleNamespace(
         task=_task(),

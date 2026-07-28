@@ -23,7 +23,7 @@ mkdir -p "$HOST_OUTPUT_ROOT"
 
 docker_base=(
   docker run --rm
-  -e PYTHONPATH=/workspace/fpt26-agent-v3:/workspace/fpt26-harness
+  -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness
   -e PYTHONDONTWRITEBYTECODE=1
   -v "$REPO_ROOT:/workspace"
   -v /tools/Xilinx:/tools/Xilinx:ro

@@ -9,10 +9,10 @@ from agent.analysis.synth_diagnostics import extract_ii_resource_limits
 def build_ii_resource_action_contract(log_text: str) -> dict[str, Any] | None:
     """Build a prompt contract from Vitis HLS 200-448 evidence.
 
-    The contract deliberately recommends only the smallest evidence-matched
-    experiment.  It does not decide an array dimension because that requires
-    inspecting the source access pattern; an unsupported trial must not be
-    guessed into the kernel.
+    The contract records the measured II lower bound as a soft search hint.
+    It does not decide an array dimension, banking style, or mandatory factor
+    because those require inspecting the source access pattern; an unsupported
+    trial must not be guessed into the kernel.
     """
     limits = [
         limit
@@ -33,8 +33,15 @@ def build_ii_resource_action_contract(log_text: str) -> dict[str, Any] | None:
                 "recommended_minimal_trial": {
                     "pragma_class": "ARRAY_PARTITION",
                     "variable": limit.array,
-                    "style": "cyclic",
-                    "factor": 2,
+                    "style": "derive_from_source_bank_mapping",
+                    "factor": max(2, limit.lower_bound),
+                    "factor_is_soft_hint": True,
+                    "factor_policy": (
+                        "Choose the smallest factor whose cyclic/block bank "
+                        "mapping increases usable ports for the reported "
+                        "accesses. The observed II lower bound is a search "
+                        "hint, not a mandatory factor."
+                    ),
                     "dimension_policy": (
                         "Choose only the dimension indexed by concurrent loop "
                         "iterations. Omit this trial when the source does not "
@@ -54,7 +61,7 @@ def build_ii_resource_action_contract(log_text: str) -> dict[str, Any] | None:
         "evidence_id": "HLS 200-448",
         "targets": targets,
         "required_candidate_delta": (
-            "Use exactly one minimal action that changes bandwidth or read "
+            "Use exactly one evidence-matched action that changes bandwidth or read "
             f"reuse for a reported target {arrays}; otherwise return the "
             "current editable kernel unchanged."
         ),

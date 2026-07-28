@@ -1,0 +1,3 @@
+# Python 3.10 is supplied by the Ubuntu 22.04 runtime image.
+tomli==2.2.1; python_version < "3.11"
+pytest==8.4.1

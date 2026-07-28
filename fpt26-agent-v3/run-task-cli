@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+IMAGE=${FPT26_AGENT_IMAGE:-fpt26-agent-v3:latest}
+ENV_FILE=${FPT26_ENV_FILE:-/tmp/fpt26.env}
+VITIS_SETTINGS=${FPT26_VITIS_SETTINGS:-}
+USE_ENV_FILE=1
+EXPECT_ENV_PATH=0
+EXPECT_IMAGE=0
+EXPECT_VITIS_SETTINGS=0
+NEEDS_VITIS=1
+
+for argument in "$@"; do
+  if [ "$EXPECT_VITIS_SETTINGS" = 1 ]; then
+    VITIS_SETTINGS=$argument
+    EXPECT_VITIS_SETTINGS=0
+    continue
+  fi
+  if [ "$EXPECT_IMAGE" = 1 ]; then
+    IMAGE=$argument
+    EXPECT_IMAGE=0
+    continue
+  fi
+  if [ "$EXPECT_ENV_PATH" = 1 ]; then
+    ENV_FILE=$argument
+    EXPECT_ENV_PATH=0
+    continue
+  fi
+  case "$argument" in
+    --env-file)
+      EXPECT_ENV_PATH=1
+      ;;
+    --env-file=*)
+      ENV_FILE=${argument#--env-file=}
+      ;;
+    --image)
+      EXPECT_IMAGE=1
+      ;;
+    --image=*)
+      IMAGE=${argument#--image=}
+      ;;
+    --vitis-settings)
+      EXPECT_VITIS_SETTINGS=1
+      ;;
+    --vitis-settings=*)
+      VITIS_SETTINGS=${argument#--vitis-settings=}
+      ;;
+    --no-env-file)
+      USE_ENV_FILE=0
+      ;;
+    --help|-h|--list-tasks|--list-tasks=*)
+      NEEDS_VITIS=0
+      ;;
+  esac
+done
+
+if [ "$EXPECT_ENV_PATH" = 1 ] || [ "$EXPECT_IMAGE" = 1 ] || [ "$EXPECT_VITIS_SETTINGS" = 1 ]; then
+  echo "run-task-cli: --env-file/--image/--vitis-settings requires a value" >&2
+  exit 2
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "run-task-cli: docker is not installed or not available on PATH" >&2
+  exit 2
+fi
+if ! docker info >/dev/null 2>&1; then
+  echo "run-task-cli: Docker daemon is not reachable by the current user" >&2
+  exit 2
+fi
+
+if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  if [ "${FPT26_AUTO_BUILD:-1}" != "1" ]; then
+    echo "run-task-cli: image not found: $IMAGE (set FPT26_AUTO_BUILD=1 to build it)" >&2
+    exit 2
+  fi
+  echo "run-task-cli: image $IMAGE not found; building it from the repository..." >&2
+  docker build \
+    --build-arg "BASE_IMAGE=${FPT26_AGENT_BASE_IMAGE:-xilinx/xilinx_runtime_base:alveo-2023.2-ubuntu-22.04}" \
+    -t "$IMAGE" \
+    -f "$SCRIPT_DIR/Dockerfile" \
+    "$REPO_ROOT"
+fi
+
+if [ -z "$VITIS_SETTINGS" ]; then
+  for candidate in \
+    "${VITIS:-}/settings64.sh" \
+    "${XILINX_VITIS:-}/settings64.sh" \
+    /tools/Xilinx/2025.2/Vitis/settings64.sh \
+    /tools/Xilinx/Vitis/2025.2/settings64.sh
+  do
+    if [ -f "$candidate" ]; then
+      VITIS_SETTINGS=$candidate
+      break
+    fi
+  done
+fi
+
+if [ "$NEEDS_VITIS" = 1 ] && [ ! -f "$VITIS_SETTINGS" ]; then
+  echo "run-task-cli: Vitis 2025.2 settings64.sh was not found" >&2
+  echo "set FPT26_VITIS_SETTINGS or pass --vitis-settings /path/to/settings64.sh" >&2
+  exit 2
+fi
+
+DOCKER_ARGS=(
+  run --rm
+  --user "$(id -u):$(id -g)"
+  -v "$REPO_ROOT:/workspace"
+  -v "$REPO_ROOT:$REPO_ROOT"
+  -v /etc/passwd:/etc/passwd:ro
+  -v /etc/group:/etc/group:ro
+  -e "HOME=$HOME"
+  -e "USER=${USER:-fpt26}"
+  -e "LOGNAME=${LOGNAME:-${USER:-fpt26}}"
+  -e FPT26_CLI_IN_CONTAINER=1
+  -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness
+  -e PYTHONDONTWRITEBYTECODE=1
+  -e PYTHONUNBUFFERED=1
+  -v "$HOME:$HOME"
+  -w /workspace
+)
+
+if [ -f "$VITIS_SETTINGS" ]; then
+  VITIS_SETTINGS=$(realpath "$VITIS_SETTINGS")
+  VITIS_ROOT=$(dirname "$VITIS_SETTINGS")
+  VITIS_MOUNT_ROOT=${VITIS_MOUNT_ROOT:-$(dirname "$(dirname "$VITIS_ROOT")")}
+  if [ "$VITIS_MOUNT_ROOT" = / ]; then
+    echo "run-task-cli: refusing to mount / as the Vitis installation root" >&2
+    echo "set VITIS_MOUNT_ROOT to the specific Xilinx installation directory" >&2
+    exit 2
+  fi
+  if [ ! -d "$VITIS_MOUNT_ROOT" ]; then
+    echo "run-task-cli: Vitis mount root not found: $VITIS_MOUNT_ROOT" >&2
+    exit 2
+  fi
+  DOCKER_ARGS+=(
+    -v "$VITIS_MOUNT_ROOT:$VITIS_MOUNT_ROOT:ro"
+    -e "FPT26_VITIS_SETTINGS=$VITIS_SETTINGS"
+  )
+fi
+if [ -d /tmp/fpt26_locale_dirs ]; then
+  DOCKER_ARGS+=(
+    -v /tmp/fpt26_locale_dirs:/tmp/fpt26_locale_dirs:ro
+    -e LOCPATH=/tmp/fpt26_locale_dirs/usr/lib/locale
+  )
+fi
+if [ -d /tmp/fpt26_vitis_tinfo5_qemu ]; then
+  DOCKER_ARGS+=(
+    -v /tmp/fpt26_vitis_tinfo5_qemu:/tmp/fpt26_vitis_tinfo5_qemu:ro
+  )
+fi
+
+if [ "$USE_ENV_FILE" = 1 ] && [ -f "$ENV_FILE" ]; then
+  ENV_FILE=$(realpath "$ENV_FILE")
+  DOCKER_ARGS+=(--env-file "$ENV_FILE" -v "$ENV_FILE:$ENV_FILE:ro")
+fi
+
+exec docker "${DOCKER_ARGS[@]}" "$IMAGE" python3 -m agent.run_cli "$@"
