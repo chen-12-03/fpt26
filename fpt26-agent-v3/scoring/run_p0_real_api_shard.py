@@ -12,11 +12,13 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import urlparse
 
 
 TERMINAL_STATUSES = {
@@ -29,6 +31,55 @@ TERMINAL_STATUSES = {
 EXPECTED_GENERATED_TASK_COUNT = 196
 EXPECTED_OFFICIAL_TASK_COUNT = 3
 EXPECTED_TASK_COUNT = EXPECTED_GENERATED_TASK_COUNT + EXPECTED_OFFICIAL_TASK_COUNT
+
+REAL_API_CLIENTS = {
+    "custom": "OpenAICompatClient",
+    "openrouter": "OpenRouterClient",
+}
+
+
+def resolve_llm_run_contract(
+    backend: str,
+    model: str | None,
+) -> dict[str, Any]:
+    """Resolve the immutable, non-secret LLM contract for one shard."""
+
+    if backend not in REAL_API_CLIENTS:
+        raise RuntimeError(f"unsupported real API backend: {backend!r}")
+    model_env = "LLM4HLS_MODEL" if backend == "openrouter" else "FPT26_LLM_MODEL"
+    resolved_model = (model or os.environ.get(model_env, "")).strip()
+    if not resolved_model:
+        raise RuntimeError(
+            f"{backend} model missing; pass --model or set {model_env}"
+        )
+
+    contract: dict[str, Any] = {
+        "backend": backend,
+        "expected_client": REAL_API_CLIENTS[backend],
+        "model": resolved_model,
+        "temperature": float(
+            os.environ.get("FPT26_LLM_TEMPERATURE") or "0.7"
+        ),
+        "max_tokens": int(
+            os.environ.get("FPT26_LLM_MAX_TOKENS") or "4096"
+        ),
+    }
+    if backend == "openrouter":
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            raise RuntimeError(
+                "OpenRouter credential missing; set OPENROUTER_API_KEY"
+            )
+        base_url = os.environ.get(
+            "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
+        ).strip()
+        parsed = urlparse(base_url)
+        if parsed.scheme != "https" or parsed.hostname != "openrouter.ai":
+            raise RuntimeError(
+                "OPENROUTER_BASE_URL must use https://openrouter.ai"
+            )
+        contract["provider"] = "openrouter"
+        contract["api_origin"] = "https://openrouter.ai"
+    return contract
 
 
 def discover_tasks(
@@ -162,7 +213,13 @@ def _ok_gate(report: dict[str, Any], name: str) -> bool:
     return isinstance(gate, dict) and gate.get("ok") is True
 
 
-def validate_submission(report: dict[str, Any], task_id: str) -> list[str]:
+def validate_submission(
+    report: dict[str, Any],
+    task_id: str,
+    *,
+    expected_client: str = "OpenAICompatClient",
+    expected_model: str | None = None,
+) -> list[str]:
     errors: list[str] = []
     if report.get("task_id") != task_id:
         errors.append("task_id_mismatch")
@@ -195,8 +252,14 @@ def validate_submission(report: dict[str, Any], task_id: str) -> list[str]:
         errors.append("model_compliance_unproven")
     llm = report.get("llm") or {}
     usage = llm.get("token_usage") or {}
-    if llm.get("client") != "OpenAICompatClient":
-        errors.append("real_custom_api_client_missing")
+    if llm.get("client") != expected_client:
+        errors.append(
+            "real_openrouter_api_client_missing"
+            if expected_client == "OpenRouterClient"
+            else "real_custom_api_client_missing"
+        )
+    if expected_model is not None and llm.get("model") != expected_model:
+        errors.append("llm_model_mismatch")
     request_count = usage.get("request_count", 0)
     if (
         usage.get("complete") is not True
@@ -329,8 +392,12 @@ def _run(
     command: list[str],
     log_path: Path,
     timeout_s: float,
+    env_overrides: dict[str, str] | None = None,
 ) -> tuple[int | None, str, float]:
     started = time.monotonic()
+    process_env = os.environ.copy()
+    if env_overrides:
+        process_env.update(env_overrides)
     try:
         completed = subprocess.run(
             command,
@@ -339,6 +406,7 @@ def _run(
             text=True,
             timeout=timeout_s,
             check=False,
+            env=process_env,
         )
         log_path.write_text(completed.stdout, encoding="utf-8")
         return completed.returncode, "", time.monotonic() - started
@@ -413,6 +481,7 @@ def _summary(
     source_start: dict[str, Any],
     source_current: dict[str, Any],
     quarantine: dict[str, Any] | None = None,
+    llm_run_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     outcomes: dict[str, int] = {}
     for record in records:
@@ -444,6 +513,8 @@ def _summary(
         "elapsed_s": time.monotonic() - started,
         "records": records,
     }
+    if llm_run_contract is not None:
+        summary["llm_run_contract"] = llm_run_contract
     if quarantine is not None:
         summary["task_quarantine"] = quarantine
     return summary
@@ -469,7 +540,12 @@ def run_shard(
     requested_task_ids: set[str] | None = None,
     excluded_task_ids: set[str] | None = None,
     excluded_task_source: str | None = None,
+    backend: str = "custom",
+    model: str | None = None,
 ) -> dict[str, Any]:
+    llm_run_contract = resolve_llm_run_contract(backend, model)
+    model_env = "LLM4HLS_MODEL" if backend == "openrouter" else "FPT26_LLM_MODEL"
+    submission_env = {model_env: llm_run_contract["model"]}
     tasks = discover_tasks(task_root, excluded_task_ids=excluded_task_ids)
     quarantine = None
     if excluded_task_ids:
@@ -504,6 +580,10 @@ def run_shard(
         if not resume or not summary_path.is_file():
             raise RuntimeError(f"refusing to reuse output root: {output_root}")
         previous = json.loads(summary_path.read_text(encoding="utf-8"))
+        if previous.get("llm_run_contract") != llm_run_contract:
+            raise RuntimeError(
+                "refusing to resume shard after LLM run contract drift"
+            )
         previous_source = (
             (previous.get("execution_source") or {}).get("start") or {}
         )
@@ -528,6 +608,7 @@ def run_shard(
                 source_start=source_start,
                 source_current=source_start,
                 quarantine=quarantine,
+                llm_run_contract=llm_run_contract,
             ),
         )
     selected_ids = {task.name for task in selected}
@@ -552,6 +633,7 @@ def run_shard(
             source_start=source_start,
             source_current=source_start,
             quarantine=quarantine,
+            llm_run_contract=llm_run_contract,
         ),
     )
 
@@ -589,20 +671,28 @@ def run_shard(
             "--run-role",
             "submission",
             "--backend",
-            "custom",
+            backend,
             "--output-root",
             str(submission_root),
             "--quiet",
         ]
         submission_rc, launcher_error, submission_elapsed = _run(
-            submission_command, submission_log, timeout_s
+            submission_command,
+            submission_log,
+            timeout_s,
+            env_overrides=submission_env,
         )
         submission_path = submission_root / task_id / "run_report.json"
         submission: dict[str, Any] | None = None
         submission_errors: list[str] = []
         try:
             submission = _load_report(submission_path)
-            submission_errors = validate_submission(submission, task_id)
+            submission_errors = validate_submission(
+                submission,
+                task_id,
+                expected_client=llm_run_contract["expected_client"],
+                expected_model=llm_run_contract["model"],
+            )
         except Exception as exc:
             submission_errors = [str(exc)]
 
@@ -691,6 +781,7 @@ def run_shard(
             "launcher_error": launcher_error,
             "audit_errors": audit_errors,
             "submission": {
+                "backend": backend,
                 "command": submission_command,
                 "return_code": submission_rc,
                 "elapsed_s": submission_elapsed,
@@ -772,6 +863,7 @@ def run_shard(
                 source_start=source_start,
                 source_current=source_current,
                 quarantine=quarantine,
+                llm_run_contract=llm_run_contract,
             ),
         )
         if source_current.get("tree_sha256") != source_start.get(
@@ -803,6 +895,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--shard-count", type=int, default=3)
     parser.add_argument("--task-timeout-s", type=float, default=7200.0)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--backend",
+        choices=sorted(REAL_API_CLIENTS),
+        default="custom",
+        help="Real API provider used by every task in this shard",
+    )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help=(
+            "Exact provider model ID. Required unless the backend-specific "
+            "model environment variable is set."
+        ),
+    )
     parser.add_argument("--task-id", action="append", default=[])
     parser.add_argument(
         "--exclude-task-ids",
@@ -849,6 +955,8 @@ def main() -> int:
         excluded_task_source=(
             str(args.exclude_task_ids) if args.exclude_task_ids is not None else None
         ),
+        backend=args.backend,
+        model=args.model,
     )
     return 0 if result["completed_record_count"] == result[
         "selected_task_count"

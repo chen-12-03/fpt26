@@ -10,6 +10,7 @@ from scoring.run_p0_real_api_shard import (
     discover_tasks,
     execution_source_snapshot,
     load_excluded_task_ids,
+    resolve_llm_run_contract,
     submission_requires_evaluator,
     validate_evaluator,
     validate_submission,
@@ -170,6 +171,43 @@ def test_summary_records_quarantine_without_full199_claim() -> None:
     assert summary["purpose"] == "p0_split_role_real_api_vitis_acceptance"
     assert summary["task_quarantine"] == quarantine
     assert "full199" not in summary["purpose"]
+
+
+def test_openrouter_contract_is_explicit_and_contains_no_credential(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-secret")
+    monkeypatch.setenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+    monkeypatch.setenv("FPT26_LLM_TEMPERATURE", "0.2")
+    monkeypatch.setenv("FPT26_LLM_MAX_TOKENS", "8192")
+
+    contract = resolve_llm_run_contract(
+        "openrouter", "qwen/qwen3-coder"
+    )
+
+    assert contract == {
+        "backend": "openrouter",
+        "expected_client": "OpenRouterClient",
+        "model": "qwen/qwen3-coder",
+        "temperature": 0.2,
+        "max_tokens": 8192,
+        "provider": "openrouter",
+        "api_origin": "https://openrouter.ai",
+    }
+    assert "test-secret" not in str(contract)
+
+
+def test_openrouter_contract_rejects_missing_key_or_non_openrouter_endpoint(
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="credential missing"):
+        resolve_llm_run_contract("openrouter", "qwen/qwen3-coder")
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-secret")
+    monkeypatch.setenv("OPENROUTER_BASE_URL", "https://example.invalid/v1")
+    with pytest.raises(RuntimeError, match="must use https://openrouter.ai"):
+        resolve_llm_run_contract("openrouter", "qwen/qwen3-coder")
 
 
 def test_formal_evaluator_command_always_links_submission_evidence() -> None:
@@ -423,3 +461,51 @@ def test_pre_llm_terminal_gate_allows_exact_zero_api_usage() -> None:
     }
 
     assert validate_submission(report, "clockless") == []
+
+
+def test_submission_audit_locks_openrouter_client_and_model() -> None:
+    report = {
+        "task_id": "clockless",
+        "run_role": "submission",
+        "mode": "auto",
+        "status": "failed",
+        "task_preflight": {
+            "forbidden_artifact_accesses": 0,
+            "public_files_read": ["task.toml", "kernel.cpp", "tb.cpp"],
+        },
+        "execution_trace": {"grading_results": []},
+        "grading": {"source": None},
+        "model_compliance": {"compliance_proven": True},
+        "llm": {
+            "client": "OpenRouterClient",
+            "model": "qwen/qwen3-coder",
+            "token_usage": {
+                "complete": True,
+                "request_count": 0,
+                "response_count": 0,
+                "failed_request_count": 0,
+                "unreported_response_count": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            },
+        },
+        "toolchain": {"version_gate_ok": True, "part_gate_ok": True},
+        "gates": {},
+    }
+
+    assert validate_submission(
+        report,
+        "clockless",
+        expected_client="OpenRouterClient",
+        expected_model="qwen/qwen3-coder",
+    ) == []
+
+    errors = validate_submission(
+        report,
+        "clockless",
+        expected_client="OpenAICompatClient",
+        expected_model="different/model",
+    )
+    assert "real_custom_api_client_missing" in errors
+    assert "llm_model_mismatch" in errors

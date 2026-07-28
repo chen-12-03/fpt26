@@ -100,6 +100,10 @@ class LLMExecutor:
             t0 = time.monotonic()
             try:
                 text = self._client.complete(system, user)
+                if not isinstance(text, str) or not text.strip():
+                    raise RuntimeError(
+                        "LLM client returned empty or non-text message content"
+                    )
                 elapsed = time.monotonic() - t0
 
                 # Track tokens

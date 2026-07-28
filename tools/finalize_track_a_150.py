@@ -373,7 +373,7 @@ def finalize(
         }
     payload = {
         "schema_version": 1,
-        "purpose": "track_a_150_real_ali_api_final_report",
+        "purpose": "track_a_150_real_api_final_report",
         "run_root": str(run_root),
         "frozen_corpus_manifest": {
             "path": str(corpus_manifest),
@@ -511,7 +511,8 @@ def finalize(
             "models": sorted(models),
             "clients": sorted(clients),
             "model_compliance_proven_task_count": compliance_proven,
-            "real_api_only": clients == {"OpenAICompatClient"}
+            "real_api_only": clients <= {"OpenAICompatClient", "OpenRouterClient"}
+            and bool(clients)
             and totals["request_count"] == totals["response_count"]
             and totals["failed_request_count"] == 0,
             "mock_or_scripted_backend_observed": any(

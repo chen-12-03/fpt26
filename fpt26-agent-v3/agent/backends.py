@@ -26,13 +26,27 @@ def create_llm(backend: str = "auto") -> LLMExecutor:
     timeout, and token-budget tracking.  The underlying client is still
     a ``llm4hls.llm.LLMClient`` for backward compatibility.
     """
+    temperature = float(
+        os.environ.get("FPT26_LLM_TEMPERATURE") or "0.7"
+    )
+    max_tokens = int(os.environ.get("FPT26_LLM_MAX_TOKENS") or "4096")
     raw = _official_create_llm(backend)
+    # The official clients expose these request parameters as attributes.
+    # Keep the actual HTTP payload and the run report on one configuration;
+    # otherwise the wrapper could report environment overrides that the raw
+    # client never sent.
+    if hasattr(raw, "temperature"):
+        raw.temperature = temperature
+    if hasattr(raw, "max_tokens"):
+        raw.max_tokens = max_tokens
     cfg = LLMConfig(
         model=getattr(raw, "model", "") or os.environ.get("FPT26_LLM_MODEL", ""),
-        temperature=float(os.environ.get("FPT26_LLM_TEMPERATURE", "0.7")),
-        max_tokens=int(os.environ.get("FPT26_LLM_MAX_TOKENS", "4096")),
-        timeout_s=float(os.environ.get("FPT26_LLM_TIMEOUT_SECONDS", "180")),
-        max_retries=int(os.environ.get("FPT26_LLM_MAX_RETRIES", "2")),
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout_s=float(
+            os.environ.get("FPT26_LLM_TIMEOUT_SECONDS") or "180"
+        ),
+        max_retries=int(os.environ.get("FPT26_LLM_MAX_RETRIES") or "2"),
     )
     return LLMExecutor(raw, cfg)
 

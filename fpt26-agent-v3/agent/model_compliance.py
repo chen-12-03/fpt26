@@ -24,6 +24,31 @@ _PROVEN_MODELS: dict[str, dict[str, Any]] = {
             "Official Qwen Hugging Face model card declares apache-2.0",
         ],
     },
+    "deepseek/deepseek-v4-pro": {
+        "open_weight_model": "deepseek-ai/DeepSeek-V4-Pro",
+        "license": "MIT",
+        "evidence": [
+            "OpenRouter model slug maps to DeepSeek V4 Pro model weights",
+            "Official DeepSeek Hugging Face model card declares MIT",
+        ],
+    },
+    "qwen/qwen3.5-122b-a10b": {
+        "open_weight_model": "cyankiwi/Qwen3.5-122B-A10B-AWQ-4bit",
+        "license": "Apache-2.0",
+        "evidence": [
+            "Track-A guidelines map the recommended Qwen3.5 122B A10B "
+            "model to the public AWQ-4bit weights",
+            "The linked Hugging Face model card declares apache-2.0",
+        ],
+    },
+    "qwen/qwen3.6-27b": {
+        "open_weight_model": "Qwen/Qwen3.6-27B-FP8",
+        "license": "Apache-2.0",
+        "evidence": [
+            "OpenRouter model slug maps to Qwen3.6 27B model weights",
+            "Official Qwen Hugging Face model card declares apache-2.0",
+        ],
+    },
 }
 
 

@@ -8,6 +8,7 @@ from llm4hls.llm import (
 
 from agent.integrations.llm.protocol import LLMConfig, LLMExecutor
 from agent.reporting.metrics import _llm_summary
+import agent.backends as agent_backends
 
 
 def test_token_usage_reports_exact_totals_when_all_responses_include_usage() -> None:
@@ -164,3 +165,69 @@ def test_create_llm_openrouter_backend_uses_openrouter_client(monkeypatch) -> No
 
     assert isinstance(client, OpenRouterClient)
     assert client.base_url == "https://openrouter.ai/api/v1/chat/completions"
+
+
+def test_agent_backend_applies_reported_request_parameters_to_raw_client(
+    monkeypatch,
+) -> None:
+    class RawClient:
+        model = "qwen/qwen3-coder"
+        temperature = 0.7
+        max_tokens = 4096
+
+    raw = RawClient()
+    monkeypatch.setattr(
+        agent_backends, "_official_create_llm", lambda backend: raw
+    )
+    monkeypatch.setenv("FPT26_LLM_TEMPERATURE", "0.15")
+    monkeypatch.setenv("FPT26_LLM_MAX_TOKENS", "6144")
+
+    executor = agent_backends.create_llm("openrouter")
+
+    assert raw.temperature == 0.15
+    assert raw.max_tokens == 6144
+    assert executor.temperature == raw.temperature
+    assert executor.max_tokens == raw.max_tokens
+
+
+def test_llm_executor_retries_null_message_content(monkeypatch) -> None:
+    import time
+
+    class RawClient:
+        model = "deepseek/deepseek-v4-pro"
+
+        def __init__(self) -> None:
+            self.responses = [None, "valid response"]
+
+        def complete(self, system: str, user: str):
+            return self.responses.pop(0)
+
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    executor = LLMExecutor(
+        RawClient(),
+        LLMConfig(model="deepseek/deepseek-v4-pro", max_retries=1),
+    )
+
+    response = executor.complete_structured("system", "user")
+
+    assert response.text == "valid response"
+    assert response.retry_count == 1
+    assert response.error is None
+
+
+def test_llm_executor_returns_canonical_empty_string_after_null_content() -> None:
+    class RawClient:
+        model = "deepseek/deepseek-v4-pro"
+
+        def complete(self, system: str, user: str):
+            return None
+
+    executor = LLMExecutor(
+        RawClient(),
+        LLMConfig(model="deepseek/deepseek-v4-pro", max_retries=0),
+    )
+
+    response = executor.complete_structured("system", "user")
+
+    assert response.text == ""
+    assert "empty or non-text" in str(response.error)
