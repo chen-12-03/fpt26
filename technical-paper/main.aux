@@ -1,6 +1,6 @@
 \relax 
 \citation{amd2025vitis}
-\citation{xiong2024hlspilot,xu2024ralad}
+\citation{xiong2024hlspilot,xu2024ralad,li2026chathls}
 \citation{yao2023react}
 \@writefile{toc}{\contentsline {section}{\numberline {I}Evidence Must Control LLM Edits}{1}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {II}Tool Evidence Controls the Agent Workflow}{1}{}\protected@file@percent }
@@ -9,65 +9,55 @@
 \@writefile{toc}{\contentsline {section}{\numberline {III}One Score Rejects False Speedups}{1}{}\protected@file@percent }
 \newlabel{eq:performance}{{3}{1}{}{equation.3}{}}
 \newlabel{eq:area}{{4}{1}{}{equation.4}{}}
-\newlabel{eq:qhw}{{5}{1}{}{equation.5}{}}
-\newlabel{eq:score}{{6}{1}{}{equation.6}{}}
-\citation{amdIntroExamples,amdAccelExamples}
 \citation{fpt26tracka}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{amd2025vitis}{1}
 \bibcite{xiong2024hlspilot}{2}
 \bibcite{xu2024ralad}{3}
-\bibcite{yao2023react}{4}
-\bibcite{amdIntroExamples}{5}
-\bibcite{amdAccelExamples}{6}
-\bibcite{fpt26tracka}{7}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Measured evidence controls every state transition.} Only a valid hardware-score gain can replace the verified fallback.}}{2}{}\protected@file@percent }
+\bibcite{li2026chathls}{4}
+\bibcite{yao2023react}{5}
+\bibcite{amdIntroExamples}{6}
+\bibcite{amdAccelExamples}{7}
+\bibcite{fpt26tracka}{8}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Measured evidence controls every state transition.} A candidate replaces the verified fallback only after every applicable gate passes and \ensuremath  {Q_{\mathrm  {HW}}}{} improves.}}{2}{}\protected@file@percent }
 \newlabel{fig:vcl}{{1}{2}{}{figure.1}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces \textbf  {Structural repair separates the models.} All and structural columns report success (\%); QoR reports the mean official score on 25 optimization tasks.}}{2}{}\protected@file@percent }
-\newlabel{tab:results}{{I}{2}{}{table.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}Three Models Expose the Hard Cases}{2}{}\protected@file@percent }
+\newlabel{eq:qhw}{{5}{2}{}{equation.5}{}}
+\newlabel{eq:score}{{6}{2}{}{equation.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Qwen3.5 Leads This Endpoint Run Set}{2}{}\protected@file@percent }
 \newlabel{sec:evaluation}{{IV}{2}{}{section.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Evidence Controls Promotion}{2}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces \textbf  {Qwen3.5 combines the highest audit-clean success and score sum.} Tokens are in millions; ``API tasks'' had at least one failed request. Score sum includes every non-null evaluator score, including scores from tasks rejected by the API audit.}}{2}{}\protected@file@percent }
+\newlabel{tab:headline-results}{{I}{2}{}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Limits and Next Steps}{2}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: One State Makes Runs Auditable}{3}{}\protected@file@percent }
-\newlabel{app:interface}{{A}{3}{}{section.Appendix.A}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Scoring Handles Missing Evidence}{3}{}\protected@file@percent }
-\newlabel{app:scoring}{{B}{3}{}{section.Appendix.B}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: The Suite Balances Six Capabilities}{3}{}\protected@file@percent }
-\newlabel{app:benchmark}{{C}{3}{}{section.Appendix.C}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  D: Outputs Enforce Applicable Gates}{3}{}\protected@file@percent }
-\newlabel{app:compliance}{{D}{3}{}{section.Appendix.D}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  E: Campaigns Share One Contract}{3}{}\protected@file@percent }
-\newlabel{app:configuration}{{E}{3}{}{section.Appendix.E}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  F: Only Proposal Consumes Model Tokens}{3}{}\protected@file@percent }
-\newlabel{app:token-accounting}{{F}{3}{}{section.Appendix.F}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  G: Structural Repair Separates Models}{3}{}\protected@file@percent }
-\newlabel{app:results}{{G}{3}{}{section.Appendix.G}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  H: Generated Macros Keep Results Current}{3}{}\protected@file@percent }
-\newlabel{app:update}{{H}{3}{}{section.Appendix.H}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  I: Current Evidence Leaves Causal Gaps}{3}{}\protected@file@percent }
-\newlabel{app:limitations}{{I}{3}{}{section.Appendix.I}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  J: Reports Preserve Reproduction Evidence}{3}{}\protected@file@percent }
-\newlabel{app:reproduction}{{J}{3}{}{section.Appendix.J}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces \textbf  {One run state connects proposals to auditable evidence.} The output writer preserves the latest candidate that passed every required gate.}}{4}{}\protected@file@percent }
-\newlabel{tab:state-contract}{{II}{4}{}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces \textbf  {The suite balances six distinct agent capabilities.} Only structural repair requires \textsc  {CoSim}{} by construction.}}{4}{}\protected@file@percent }
-\newlabel{tab:task-composition}{{III}{4}{}{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textbf  {Fixed commits make the source corpus reproducible.}}}{4}{}\protected@file@percent }
-\newlabel{tab:task-sources}{{IV}{4}{}{table.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces \textbf  {The runtime output contract implements every applicable Track-A evaluation requirement.} Missing evidence fails closed.}}{4}{}\protected@file@percent }
-\newlabel{tab:compliance}{{V}{4}{}{table.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces \textbf  {All three campaigns share the same evaluation contract.}}}{5}{}\protected@file@percent }
-\newlabel{tab:configuration}{{VI}{5}{}{table.6}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces \textbf  {Only candidate proposal consumes LLM tokens.} Tool phases consume credits and wall time under separate accounting.}}{5}{}\protected@file@percent }
-\newlabel{tab:phase-accounting}{{VII}{5}{}{table.7}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces \textbf  {Campaign reports account for every model response.} Values use millions of tokens.}}{5}{}\protected@file@percent }
-\newlabel{tab:token-totals}{{VIII}{5}{}{table.8}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces \textbf  {DeepSeek leads aggregate score and token efficiency.} All-task mean assigns zero to tasks without an official score; scored mean excludes tasks that lack a valid QoR anchor.}}{5}{}\protected@file@percent }
-\newlabel{tab:model-totals}{{IX}{5}{}{table.9}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces \textbf  {Structural \textsc  {CoSim}{} repair causes the main success gap.} Entries report success rate (\%).}}{5}{}\protected@file@percent }
-\newlabel{tab:category-success}{{X}{5}{}{table.10}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {XI}{\ignorespaces \textbf  {Matched reruns will isolate each evidence-reuse mechanism.} Pending rows remain outside current causal claims.}}{5}{}\protected@file@percent }
-\newlabel{tab:ablation-plan}{{XI}{5}{}{table.11}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Benchmark Sources and Task Composition}{3}{}\protected@file@percent }
+\newlabel{app:benchmark}{{A}{3}{}{section.Appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Track-A Requirement Mapping and Scope}{3}{}\protected@file@percent }
+\newlabel{app:compliance}{{B}{3}{}{section.Appendix.B}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: Detailed Three-Model Results}{3}{}\protected@file@percent }
+\newlabel{app:results}{{C}{3}{}{section.Appendix.C}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  D: Reproduction and Result Refresh}{3}{}\protected@file@percent }
+\newlabel{app:reproduction}{{D}{3}{}{section.Appendix.D}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces \textbf  {The test suite balances six agent capabilities.} Each category contains 25{} tasks; only the structural category requires C/RTL co-simulation in the accepted manifest.}}{4}{}\protected@file@percent }
+\newlabel{tab:task-composition}{{II}{4}{}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces \textbf  {Fixed source revisions make the corpus reconstructable.}}}{4}{}\protected@file@percent }
+\newlabel{tab:task-sources}{{III}{4}{}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textbf  {The run contract maps the applicable Track-A evaluation requirements to recorded evidence.} Submission files and video remain author-side checklist items.}}{4}{}\protected@file@percent }
+\newlabel{tab:compliance}{{IV}{4}{}{table.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces \textbf  {The public guideline identifies three recommended checkpoints.} Architecture and quantization describe the listed checkpoints; the hosted provider build remains opaque. MoE means mixture-of-experts, FP8 means 8-bit floating point, and AWQ means activation-aware weight quantization.}}{4}{}\protected@file@percent }
+\newlabel{tab:model-config}{{V}{4}{}{table.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces \textbf  {Aggregate outcomes separate acceptance, optimization quality, and coverage.}}}{4}{}\protected@file@percent }
+\newlabel{tab:model-totals}{{VI}{4}{}{table.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces \textbf  {QoR tasks expose normalized performance and resource quality.} Each campaign evaluates the same 25 QoR tasks. Their evaluator score combines normalized performance \(r_P\), worst-resource quality \(r_A\), validity, and budget use; the frozen evaluator does not report power, and raw cross-kernel resource counts are not averaged.}}{5}{}\protected@file@percent }
+\newlabel{tab:qor-summary}{{VII}{5}{}{table.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces \textbf  {Endpoint availability shapes the category spread.} Entries give audit-clean successes out of 25 tasks and the corresponding rate.}}{5}{}\protected@file@percent }
+\newlabel{tab:category-success}{{VIII}{5}{}{table.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces \textbf  {The reports retain model and tool budget costs.} Token counts are in millions; API failures count requests without a usable response.}}{5}{}\protected@file@percent }
+\newlabel{tab:costs}{{IX}{5}{}{table.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces \textbf  {Derived costs use audit-clean success as the denominator.} HTTP failures count raw requests and may cluster within one logical model call. ``Wall span'' measures the parallel campaign span.}}{5}{}\protected@file@percent }
+\newlabel{tab:efficiency}{{X}{5}{}{table.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {XI}{\ignorespaces \textbf  {Tool calls expose validation effort under the shared budget.}}}{5}{}\protected@file@percent }
+\newlabel{tab:tool-calls}{{XI}{5}{}{table.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {XII}{\ignorespaces \textbf  {Task-level evidence separates clean success from API exposure.} ``Completed'' records the agent run outcome before the strict API audit. ``API affected'' counts tasks with at least one failed request.}}{5}{}\protected@file@percent }
+\newlabel{tab:api-outcomes}{{XII}{5}{}{table.12}{}}
 \gdef \@abspage@last{5}

@@ -14,19 +14,19 @@ MODEL_SPECS = (
         "DeepSeek",
         "DeepSeek V4 Pro",
         "deepseek/deepseek-v4-pro",
-        "track_a_150_openrouter_deepseek_v4_pro_*/final_report.json",
+        "track_a_150_or_dsv4_*/final_report.json",
     ),
     (
         "QwenThreeFive",
         "Qwen3.5-122B-A10B",
         "qwen/qwen3.5-122b-a10b",
-        "track_a_150_openrouter_qwen35_122b_a10b_*/final_report.json",
+        "track_a_150_or_qwen35_*/final_report.json",
     ),
     (
         "QwenThreeSix",
         "Qwen3.6-27B",
         "qwen/qwen3.6-27b",
-        "track_a_150_openrouter_qwen36_27b_*/final_report.json",
+        "track_a_150_or_qwen36_*/final_report.json",
     ),
 )
 
@@ -66,6 +66,27 @@ def command(name: str, value: str) -> str:
     return rf"\newcommand{{\{name}}}{{{value}}}"
 
 
+def breakable_monospace(value: str, chunk_size: int = 8) -> str:
+    chunks = [
+        value[index : index + chunk_size]
+        for index in range(0, len(value), chunk_size)
+    ]
+    return r"\texttt{" + r"\allowbreak{}".join(chunks) + "}"
+
+
+def submission_report_path(repo_root: Path, recorded_path: str) -> Path:
+    path = Path(recorded_path)
+    if path.exists():
+        return path
+    parts = path.parts
+    if "runs" not in parts:
+        raise ValueError(f"cannot resolve submission report: {recorded_path}")
+    candidate = repo_root.joinpath(*parts[parts.index("runs") :])
+    if not candidate.exists():
+        raise FileNotFoundError(candidate)
+    return candidate
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     repo_root = Path(__file__).resolve().parents[2]
@@ -103,8 +124,13 @@ def main() -> None:
             raise ValueError(f"{path}: expected {expected_model}, found {models}")
         if report["coverage"]["recorded_task_count"] != manifest["task_count"]:
             raise ValueError(f"{path}: report and corpus task counts differ")
-        if not report["model_and_api"]["real_api_only"]:
-            raise ValueError(f"{path}: campaign is not real-API only")
+        if report["model_and_api"]["clients"] != ["OpenRouterClient"]:
+            raise ValueError(f"{path}: campaign did not use OpenRouterClient")
+        proven_task_count = report["model_and_api"][
+            "model_compliance_proven_task_count"
+        ]
+        if proven_task_count != manifest["task_count"]:
+            raise ValueError(f"{path}: model compliance is incomplete")
         if report["model_and_api"]["mock_or_scripted_backend_observed"]:
             raise ValueError(f"{path}: mock or scripted backend was observed")
         report_source_hash = report["coverage"]["execution_source_tree_sha256"]
@@ -136,22 +162,39 @@ def main() -> None:
             "AccelExampleTaskCount",
             str(repo_counts["Vitis_Accel_Examples"]),
         ),
+        command(
+            "UniqueSourcePathCount",
+            str(len({task["source_path"] for task in tasks})),
+        ),
         command("RequiredCosimTaskCount", str(cosim_count)),
         command(
             "TotalModelTaskRuns",
             str(manifest["task_count"] * len(reports)),
         ),
         command("CampaignCreditLimit", f"{credit_limit:,}"),
-        command("ExecutionSourceHash", rf"\texttt{{{execution_source_hash}}}"),
+        command(
+            "ExecutionSourceHash",
+            breakable_monospace(execution_source_hash),
+        ),
         "",
     ]
 
     main_rows: list[str] = []
+    headline_rows: list[str] = []
     detail_rows: list[str] = []
     category_rows: list[str] = []
     token_rows: list[str] = []
+    efficiency_rows: list[str] = []
+    tool_call_rows: list[str] = []
+    qor_summary_rows: list[str] = []
+    api_outcome_rows: list[str] = []
     provenance_rows: list[str] = []
     campaign_summaries: dict[str, dict[str, int]] = {}
+    candidate_events = 0
+    candidate_interface_rejects = 0
+    candidate_synth_gates = 0
+    candidate_cosim_gates = 0
+    candidate_cosim_rejects = 0
     for prefix, display, report, path in reports:
         aggregate = report["aggregate"]
         categories = report["category_metrics"]
@@ -168,9 +211,45 @@ def main() -> None:
         scored_mean = aggregate["official_score_mean_scored_tasks"]
         all_task_mean = aggregate["official_score_mean_all_tasks"]
         score_sum = aggregate["official_score_sum"]
+        scored_count = aggregate["scored_task_count"]
+        unscored_count = task_count - scored_count
         prompt_tokens_m = aggregate["tokens"]["prompt"] / 1_000_000
         completion_tokens_m = aggregate["tokens"]["completion"] / 1_000_000
         tokens_m = aggregate["tokens"]["total"] / 1_000_000
+        api_failures = aggregate["failed_api_requests"]
+        api_requests = aggregate["api_requests"]
+        retry_count = len(report["retry_task_ids"])
+        per_task = report["per_task"]
+        api_affected_task_count = sum(
+            (record.get("failed_api_requests") or 0) > 0
+            for record in per_task.values()
+        )
+        if api_affected_task_count != retry_count:
+            raise ValueError(
+                f"{path}: retry-task and failed-request task counts differ"
+            )
+        run_completed_count = sum(
+            record["outcome"] == "completed" for record in per_task.values()
+        )
+        api_affected_completed_count = sum(
+            record["outcome"] == "completed"
+            and (record.get("failed_api_requests") or 0) > 0
+            for record in per_task.values()
+        )
+        zero_response_failed_count = sum(
+            record["outcome"] == "failed"
+            and (record.get("api_requests") or 0) > 0
+            and (record.get("api_responses") or 0) == 0
+            for record in per_task.values()
+        )
+        tokens_per_success = aggregate["tokens"]["total"] / success_count
+        requests_per_success = api_requests / success_count
+        credits_per_success = aggregate["credits_spent"] / success_count
+        api_failure_rate = 100.0 * api_failures / api_requests
+        campaign_wall_hours = (
+            aggregate["parallel_campaign_elapsed_max_shard_s"] / 3600.0
+        )
+        calls_by_tool = aggregate["calls_by_tool"]
 
         lines.extend(
             [
@@ -184,6 +263,8 @@ def main() -> None:
                 command(f"{prefix}QorRate", rf"{qor_rate}\%"),
                 command(f"{prefix}QorScore", f"{qor_score:.2f}"),
                 command(f"{prefix}ScoredMean", f"{scored_mean:.2f}"),
+                command(f"{prefix}ScoredTaskCount", str(scored_count)),
+                command(f"{prefix}UnscoredTaskCount", str(unscored_count)),
                 command(f"{prefix}AllTaskMean", f"{all_task_mean:.2f}"),
                 command(f"{prefix}ScoreSum", f"{score_sum:.2f}"),
                 command(f"{prefix}TokensM", f"{tokens_m:.2f}"),
@@ -195,6 +276,31 @@ def main() -> None:
                 command(
                     f"{prefix}ApiRequests",
                     f"{aggregate['api_requests']:,}",
+                ),
+                command(
+                    f"{prefix}ApiResponses",
+                    f"{aggregate['api_responses']:,}",
+                ),
+                command(
+                    f"{prefix}ApiFailures",
+                    f"{api_failures:,}",
+                ),
+                command(f"{prefix}RetryTaskCount", str(retry_count)),
+                command(
+                    f"{prefix}ApiAffectedTaskCount",
+                    str(api_affected_task_count),
+                ),
+                command(
+                    f"{prefix}RunCompletedCount",
+                    str(run_completed_count),
+                ),
+                command(
+                    f"{prefix}ApiAffectedCompletedCount",
+                    str(api_affected_completed_count),
+                ),
+                command(
+                    f"{prefix}ZeroResponseFailedCount",
+                    str(zero_response_failed_count),
                 ),
                 command(
                     f"{prefix}Credits",
@@ -212,24 +318,87 @@ def main() -> None:
             f"{MAIN_TABLE_NAMES[prefix]} & {success_rate} & {structural_rate} & "
             f"{qor_score:.2f} & {tokens_m:.2f} \\\\"
         )
-        detail_rows.append(
-            f"{display} & {success_count}/{task_count} & {all_task_mean:.2f} & "
-            f"{scored_mean:.2f} & "
-            f"{tokens_m:.2f} & {aggregate['credits_spent']:,} & "
-            f"{aggregate['tool_calls']:,} \\\\"
+        headline_rows.append(
+            f"{display} & {success_count}/{task_count} & "
+            f"{run_completed_count}/{task_count} & {score_sum:.2f} & "
+            f"{tokens_m:.2f} & {api_affected_task_count} \\\\"
         )
-        category_values = [
-            percent(categories[category]["success_rate"], 0)
-            for category in CATEGORY_ORDER
-        ]
+        detail_rows.append(
+            f"{display} & {success_count}/{task_count} & {scored_count} & "
+            f"{scored_mean:.2f} & {all_task_mean:.2f} & "
+            f"{score_sum:.2f} \\\\"
+        )
+        category_values = []
+        for category in CATEGORY_ORDER:
+            category_count = categories[category]["task_count"]
+            category_success = categories[category]["success_count"]
+            category_rate = percent(
+                categories[category]["success_rate"], 0
+            )
+            category_values.append(
+                f"{category_success}/{category_count} ({category_rate}\\%)"
+            )
         category_rows.append(
             f"{display} & " + " & ".join(category_values) + r" \\"
         )
         token_rows.append(
             f"{display} & {prompt_tokens_m:.2f} & "
             f"{completion_tokens_m:.2f} & {tokens_m:.2f} & "
-            f"{aggregate['api_requests']:,} \\\\"
+            f"{aggregate['api_requests']:,} & {aggregate['api_responses']:,} & "
+            f"{api_failures:,} & {aggregate['credits_spent']:,} & "
+            f"{aggregate['tool_calls']:,} \\\\"
         )
+        efficiency_rows.append(
+            f"{display} & {tokens_per_success:,.1f} & "
+            f"{requests_per_success:.2f} & {credits_per_success:.2f} & "
+            f"{api_failure_rate:.1f}\\% & {campaign_wall_hours:.2f} \\\\"
+        )
+        tool_call_rows.append(
+            f"{display} & {calls_by_tool['csim']:,} & "
+            f"{calls_by_tool['synth']:,} & {calls_by_tool['cosim']:,} & "
+            f"{aggregate['tool_calls']:,} \\\\"
+        )
+        qor_category = categories["qor_optimization"]
+        qor_summary_rows.append(
+            f"{display} & {qor_category['success_count']}/"
+            f"{qor_category['task_count']} & "
+            f"{qor_category['mean_official_score_all_tasks']:.2f} \\\\"
+        )
+        api_outcome_rows.append(
+            f"{display} & {success_count} & {run_completed_count} & "
+            f"{api_affected_task_count} & "
+            f"{api_affected_completed_count} & "
+            f"{zero_response_failed_count} \\\\"
+        )
+        for record in per_task.values():
+            submission_path = submission_report_path(
+                repo_root, record["submission_report"]
+            )
+            submission_report = load_json(submission_path)
+            for event in submission_report.get(
+                "candidate_validation_history", []
+            ):
+                if event.get("stage") == "baseline":
+                    continue
+                candidate_events += 1
+                candidate_interface_rejects += int(event.get("ok") is not True)
+            for event in submission_report.get(
+                "synthesis_gate_history", []
+            ):
+                stage = str(event.get("stage") or "")
+                if stage != "pipeline_synth" and not stage.endswith(
+                    "_accepted"
+                ):
+                    candidate_synth_gates += 1
+            for event in submission_report.get("cosim_gate_history", []):
+                stage = str(event.get("stage") or "")
+                if stage != "pipeline_cosim" and not stage.endswith(
+                    "_accepted"
+                ):
+                    candidate_cosim_gates += 1
+                    candidate_cosim_rejects += int(
+                        event.get("ok") is not True
+                    )
         campaign_summaries[prefix] = {
             "success_count": success_count,
             "structural_success_count": categories[
@@ -255,9 +424,29 @@ def main() -> None:
                     - qwen36["structural_success_count"]
                 ),
             ),
+            command("CandidateEventCount", f"{candidate_events:,}"),
+            command(
+                "CandidateInterfaceRejectCount",
+                f"{candidate_interface_rejects:,}",
+            ),
+            command(
+                "CandidateSynthGateCount",
+                f"{candidate_synth_gates:,}",
+            ),
+            command(
+                "CandidateCosimGateCount",
+                f"{candidate_cosim_gates:,}",
+            ),
+            command(
+                "CandidateCosimRejectCount",
+                f"{candidate_cosim_rejects:,}",
+            ),
             "",
             r"\newcommand{\MainModelResultsRows}{%",
             *main_rows,
+            "}",
+            r"\newcommand{\HeadlineModelResultsRows}{%",
+            *headline_rows,
             "}",
             r"\newcommand{\DetailedModelResultsRows}{%",
             *detail_rows,
@@ -267,6 +456,18 @@ def main() -> None:
             "}",
             r"\newcommand{\TokenAccountingRows}{%",
             *token_rows,
+            "}",
+            r"\newcommand{\EfficiencyRows}{%",
+            *efficiency_rows,
+            "}",
+            r"\newcommand{\ToolCallRows}{%",
+            *tool_call_rows,
+            "}",
+            r"\newcommand{\QorSummaryRows}{%",
+            *qor_summary_rows,
+            "}",
+            r"\newcommand{\ApiOutcomeRows}{%",
+            *api_outcome_rows,
             "}",
             "",
             *provenance_rows,

@@ -1,24 +1,26 @@
 \section{Evidence Must Control LLM Edits}
 
-HLS engineers must interpret unfamiliar C/C++ kernels, fix functional and
-streaming failures, and tune hardware under a small evaluation budget.
-Simulation and synthesis reports expose correctness and performance
-evidence~\cite{amd2025vitis}. An LLM can propose source changes, but its text
-cannot certify an interface, register-transfer-level (RTL) execution, or a
-hardware tradeoff.
+Large language model (LLM) agents can edit unfamiliar high-level synthesis
+(HLS) kernels, but only tool reports certify correctness and hardware quality.
+A metered agent therefore needs a promotion rule that preserves a verified
+fallback when an edit fails simulation, synthesis, timing, capacity, or
+co-simulation~\cite{amd2025vitis}.
 
-LLM-assisted HLS systems automate code transformation and design-space
-exploration~\cite{xiong2024hlspilot,xu2024ralad}. ChatHLS further separates
-generation, directive tuning, and feedback-driven debugging
-agents~\cite{li2026chathls}. General tool-using agents interleave model
-reasoning and actions~\cite{yao2023react}. A metered HLS loop also needs a
-candidate-promotion rule. An unchecked edit can pass compilation while failing
-a hidden test, deadlocking in RTL, missing 100 MHz, or consuming more hardware
-than its speedup justifies.
+Prior HLS agents automate code transformation, directive search, and
+feedback-driven repair~\cite{xiong2024hlspilot,xu2024ralad,li2026chathls}.
+Tool-using language agents also alternate reasoning and actions
+~\cite{yao2023react}. Our design assigns candidate promotion to deterministic
+HLS evidence under explicit model and tool budgets.
 
-Our Verified-Candidate Loop (\VCL) contributes three mechanisms.
-\textbf{(1)} A fail-closed interface and validation workflow preserves a
-verified fallback. \textbf{(2)} A bounded hardware score \QHW{} rejects false
-speedups. \textbf{(3)} QoR-guided retrieval-augmented generation (QoR-RAG) and
-Failure Reflection focus later attempts on compatible evidence. We evaluate
-the complete agent in \TotalModelTaskRuns{} hosted-model task runs.
+Our Verified-Candidate Loop (\VCL) contributes three artifacts and findings.
+\textbf{(1) Validation contract.} A fail-closed workflow preserves a verified
+fallback across interface, simulation, synthesis, frequency, capacity, and
+required co-simulation checks.
+\textbf{(2) Hardware objective.} The bounded score \QHW{} rejects speedups
+that lose more clock or worst-resource quality than they gain in latency.
+\textbf{(3) Endpoint evaluation.} Across \TotalModelTaskRuns{} task runs,
+Qwen3.5 reaches \QwenThreeFiveSuccessRate{} audit-clean success and the highest
+score sum, \QwenThreeFiveScoreSum. DeepSeek leads the scored-task mean at
+\DeepSeekScoredMean. Unequal application programming interface (API) failures
+limit this comparison to the deployed endpoints; matched ablations remain
+future work.

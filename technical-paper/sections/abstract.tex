@@ -1,11 +1,12 @@
 High-level synthesis (HLS) agents must repair and optimize unfamiliar kernels
-within limited large language model (LLM) and tool budgets. We introduce the
-Verified-Candidate Loop (\VCL), which lets measured validation evidence control
-candidate promotion. A bounded quality-of-results score combines effective
-latency and worst-resource growth. QoR-guided retrieval-augmented generation
-(QoR-RAG) reuses compatible measured evidence, while Failure Reflection turns
-tool diagnostics into the next constraint. On a balanced 150-task suite built
-from two fixed-commit AMD repositories, three hosted-model campaigns solve
-from 88.0\% to 98.0\% of tasks. Every model solves all 25 QoR-optimization
-tasks. Structural C/register-transfer-level (RTL) co-simulation repair accounts
-for the largest cross-model gap.
+within limited model and tool budgets. The Verified-Candidate Loop (\VCL) lets
+validation evidence control candidate promotion. Its quality-of-results (QoR)
+score combines effective latency and worst-resource growth. QoR-guided
+retrieval-augmented generation (QoR-RAG) reuses compatible evidence, and
+Failure Reflection turns tool diagnostics into the next constraint. We
+evaluate three hosted large language model endpoints on a balanced 150-task
+suite. Qwen3.5 reaches \QwenThreeFiveSuccessRate{} audit-clean success and the
+highest score sum, \QwenThreeFiveScoreSum. DeepSeek reaches the
+highest mean over tasks with an available score, \DeepSeekScoredMean, while
+Qwen3.6 reaches \QwenThreeSixSuccessRate{} success. Unequal provider failures
+limit model-only conclusions, so the comparison measures deployed endpoints.

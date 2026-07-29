@@ -1,58 +1,42 @@
-\section{Three Models Expose the Hard Cases}
+\section{Qwen3.5 Leads This Endpoint Run Set}
 \label{sec:evaluation}
 
-\textbf{Tasks and sources.} The frozen suite contains \CorpusTaskCount{} tasks
-and balances \TasksPerCategory{} tasks each across generation, compile repair,
-synthesis repair, functional repair, structural \CoSim{} repair, and QoR
-optimization. It derives \IntroExampleTaskCount{} kernels from AMD's Vitis HLS
-introductory examples and \AccelExampleTaskCount{} from its acceleration
-examples at fixed commits~\cite{amdIntroExamples,amdAccelExamples}. The builder
-adds controlled faults, public tests, evaluator-only hidden tests, and frozen
-references. Appendix~\ref{app:benchmark} records the complete composition and
-provenance.
+\textbf{Protocol.} Three hosted endpoints process the same balanced
+\CorpusTaskCount{}-task suite under one agent revision and
+\CampaignCreditLimit{}-credit limit. Each completed output must pass \CSim,
+\Synth, 100 MHz, U55C capacity, and every applicable \CoSim{} gate under the
+Track-A contract~\cite{fpt26tracka}. Audit-clean success also excludes any
+task with a failed API request. Appendix~\ref{app:benchmark} gives task
+provenance; Appendix~\ref{app:results} gives score and cost details.
 
-\textbf{Protocol.} Three campaigns call hosted models through application
-programming interfaces (APIs). They use the same 150 tasks,
-\CampaignCreditLimit{} credits, agent source revision, Alveo U55C target, and
-Vitis 2025.2. The manifest-defined gate contract applies the Track-A runtime
-requirements~\cite{fpt26tracka}. We count success only when the output passes
-\CSim, \Synth, 100 MHz, capacity, and every task-applicable \CoSim{} gate. The
-\RequiredCosimTaskCount{} structural tasks require \CoSim. Missing or failed
-required evidence counts as failure. Reports record model identity,
-hidden-test outcome, tokens, tool calls, credits, frequency, and hardware
-metrics. This is strict compliance with the applicable runtime contract; the
-PDF, source archive, and video remain separate submission-package checks.
-
-\begin{figure}[t]
+\begin{table}[!h]
   \centering
-  % Recommended vector export: 3.45 in wide, about 1.05 in high.
-  \IfFileExists{figures/model_comparison.pdf}{%
-    \includegraphics[width=\columnwidth,height=1.05in,keepaspectratio]%
-      {figures/model_comparison.pdf}%
-  }{%
-    \fbox{\parbox[c][0.95in][c]{0.92\columnwidth}{\centering
-      \textit{Figure placeholder: three-model success rate, structural-repair
-      success, QoR score, and token use.}}}%
-  }
-  \caption{\textbf{Structural repair separates the three models.}
-  Overall and structural success (\%), mean official score on the 25 QoR
-  tasks, and total tokens come from the generated run aggregates.}
-  \label{fig:results}
-\end{figure}
+  \caption{\textbf{Qwen3.5 combines the highest audit-clean success and score
+  sum.} Tokens are in millions; ``API tasks'' had at least one failed request.
+  Score sum includes every non-null evaluator score, including scores from
+  tasks rejected by the API audit.}
+  \label{tab:headline-results}
+  \scriptsize
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Endpoint & Audit-clean & Completed & Score sum & Tokens & API tasks \\
+    \midrule
+    \HeadlineModelResultsRows
+    \bottomrule
+  \end{tabular}}
+\end{table}
 
-\textbf{Results.} DeepSeek V4 Pro leads with
-\DeepSeekSuccessCount{}/\CorpusTaskCount{} successes, the highest QoR score
-(\DeepSeekQorScore), and the lowest token total
-(\DeepSeekTokensM{} million). Qwen3.5 solves
-\QwenThreeFiveSuccessCount{} tasks but uses \QwenThreeFiveTokensM{} million
-tokens. Qwen3.6 reaches only \QwenThreeSixStructuralRate{} on structural
-\CoSim{} repair, versus \DeepSeekStructuralRate{} and
-\QwenThreeFiveStructuralRate{} for the other models. Structural repair
-accounts for \StructuralGapTaskCount{} of its
-\OverallGapTaskCount{}-success gap to Qwen3.5. Every model solves all 25 QoR
-tasks, yet their mean QoR scores differ; completion rate therefore cannot
-measure optimization quality by itself. Detailed category, budget, and token
-results appear in Appendix~\ref{app:results}.
+\textbf{Results.} Qwen3.5 records
+\QwenThreeFiveSuccessCount{}/\CorpusTaskCount{} audit-clean successes and the
+highest score sum, \QwenThreeFiveScoreSum. DeepSeek completes
+\DeepSeekRunCompletedCount{} tasks but passes the API audit on
+\DeepSeekSuccessCount{}; it still has the highest scored-task mean,
+\DeepSeekScoredMean. Qwen3.6 encounters failed requests on
+\QwenThreeSixApiAffectedTaskCount{} tasks, and
+\QwenThreeSixZeroResponseFailedCount{} tasks fail without a response.
+Conditional means cover different subsets, while unequal provider failures
+confound model-weight comparisons.
 
-\takeaway{Model choice changes structural repair reliability and token cost
-more than binary QoR-task completion.}
+\takeaway{Qwen3.5 provides the strongest deployed endpoint in this run set.
+DeepSeek's higher conditional mean still yields a lower aggregate score.}
