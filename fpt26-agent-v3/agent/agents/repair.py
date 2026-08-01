@@ -103,7 +103,28 @@ class RepairAgent:
             )
 
             # ── 5. LLM modifies code ──────────────────────────────────────
-            response = self.llm.complete(REPAIR_SYSTEM, prompt)
+            try:
+                response = self.llm.complete(REPAIR_SYSTEM, prompt)
+            except Exception as exc:
+                state.log(
+                    f"repair attempt {attempt}: LLM API call failed: {exc}"
+                )
+                state.metadata.setdefault("infrastructure_errors", []).append(
+                    {
+                        "step": f"repair_attempt_{attempt}",
+                        "error": f"{type(exc).__name__}: {exc}",
+                    }
+                )
+                previous_attempt = {
+                    "attempt": attempt,
+                    "candidate_diff": "",
+                    "result": {
+                        "stage": kind,
+                        "phase": "api_failure",
+                        "summary": f"LLM API error: {exc}",
+                    },
+                }
+                continue
             new_code = extract_code(
                 response,
                 required_token=str(getattr(task, "top", "") or ""),

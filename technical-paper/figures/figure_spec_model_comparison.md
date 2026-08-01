@@ -1,4 +1,4 @@
-# Figure Spec: Three-Model Comparison
+# Figure Spec: Three-Endpoint Comparison
 
 ## Identity
 
@@ -13,8 +13,8 @@
 Compare DeepSeek V4 Pro, Qwen3.5-122B-A10B, and Qwen3.6-27B using four values
 from `technical-paper/results_generated.tex`:
 
-1. overall task success rate (%);
-2. structural-repair success rate (%);
+1. overall task completion rate (%);
+2. structural-repair completion rate (%);
 3. mean official score on the 25 QoR tasks; and
 4. total model tokens (millions).
 
@@ -32,6 +32,6 @@ unit. Do not recompute values from prose.
 
 ## Caption
 
-Structural repair separates the three models. Plot overall and structural
-success (%), mean official score on the 25 QoR tasks, and total tokens using
-the generated run aggregates.
+Structural repair separates the three endpoints. Plot overall and structural
+completion (%), mean official score on the 25 QoR tasks, and total tokens
+using the generated merged-record aggregates.

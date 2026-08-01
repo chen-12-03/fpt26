@@ -1,42 +1,52 @@
-\section{Qwen3.5 Leads This Endpoint Run Set}
+\section{Completion Outpaces Score Coverage}
 \label{sec:evaluation}
 
 \textbf{Protocol.} Three hosted endpoints process the same balanced
 \CorpusTaskCount{}-task suite under one agent revision and
 \CampaignCreditLimit{}-credit limit. Each completed output must pass \CSim,
 \Synth, 100 MHz, U55C capacity, and every applicable \CoSim{} gate under the
-Track-A contract~\cite{fpt26tracka}. Audit-clean success also excludes any
-task with a failed API request. Appendix~\ref{app:benchmark} gives task
-provenance; Appendix~\ref{app:results} gives score and cost details.
+Track-A contract~\cite{fpt26tracka}. For tasks whose original records contain
+failed API requests, the merged corpus selects an available submission-rerun
+record and recomputes completion counts. Separate evaluator reruns fill
+selected missing scores. ``Scored'' counts tasks with a non-null evaluator
+score. The merged records retain \DeepSeekApiFailures{},
+\QwenThreeFiveApiFailures{}, and \QwenThreeSixApiFailures{} failed requests,
+respectively.
+Appendix~\ref{app:benchmark} gives task provenance;
+Appendix~\ref{app:results} gives category and selected-record accounting
+details.
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{Qwen3.5 combines the highest audit-clean success and score
-  sum.} Tokens are in millions; ``API tasks'' had at least one failed request.
-  Score sum includes every non-null evaluator score, including scores from
-  tasks rejected by the API audit.}
+  \caption{\textbf{Reruns recover completion, while score coverage remains
+  uneven.} ``Scored mean'' is conditional on the scored set; ``API fails''
+  counts failed requests in the merged records.}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lrrrrr}
     \toprule
-    Endpoint & Audit-clean & Completed & Score sum & Tokens & API tasks \\
+    Endpoint & Completed & Scored & Scored mean & Score sum & API fails \\
     \midrule
     \HeadlineModelResultsRows
     \bottomrule
   \end{tabular}}
 \end{table}
 
-\textbf{Results.} Qwen3.5 records
-\QwenThreeFiveSuccessCount{}/\CorpusTaskCount{} audit-clean successes and the
-highest score sum, \QwenThreeFiveScoreSum. DeepSeek completes
-\DeepSeekRunCompletedCount{} tasks but passes the API audit on
-\DeepSeekSuccessCount{}; it still has the highest scored-task mean,
-\DeepSeekScoredMean. Qwen3.6 encounters failed requests on
-\QwenThreeSixApiAffectedTaskCount{} tasks, and
-\QwenThreeSixZeroResponseFailedCount{} tasks fail without a response.
-Conditional means cover different subsets, while unequal provider failures
-confound model-weight comparisons.
+\textbf{Results.} DeepSeek provides the broadest and most balanced coverage:
+\DeepSeekSuccessCount{}/\CorpusTaskCount{} completions and at least 24/25 in
+every category. It also records the highest score sum and conditional mean.
+Qwen3.5 trails by one completion, but its
+\QwenThreeFiveScoredTaskCount{} scored tasks form the largest scored set.
+The endpoint-specific scored subsets prevent these aggregates from
+establishing a paired quality advantage.
 
-\takeaway{Qwen3.5 provides the strongest deployed endpoint in this run set.
-DeepSeek's higher conditional mean still yields a lower aggregate score.}
+Qwen3.6 reaches \QwenThreeSixSuccessCount{} completions, including 25/25 in
+compile repair, synthesis repair, and QoR optimization. Its residual gap
+concentrates in structural repair (18/25) and code generation (21/25).
+Only \QwenThreeSixScoredTaskCount{} Qwen3.6 tasks carry evaluator scores, so
+its score sum omits \QwenThreeSixUnscoredTaskCount{} corpus tasks.
+
+\takeaway{Targeted reruns raise completion coverage across all three
+endpoints. DeepSeek leads completion and score sum, while unequal scored
+subsets prevent a paired quality claim.}

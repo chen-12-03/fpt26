@@ -5,8 +5,15 @@ score combines effective latency and worst-resource growth. QoR-guided
 retrieval-augmented generation (QoR-RAG) reuses compatible evidence, and
 Failure Reflection turns tool diagnostics into the next constraint. We
 evaluate three hosted large language model endpoints on a balanced 150-task
-suite. Qwen3.5 reaches \QwenThreeFiveSuccessRate{} audit-clean success and the
-highest score sum, \QwenThreeFiveScoreSum. DeepSeek reaches the
-highest mean over tasks with an available score, \DeepSeekScoredMean, while
-Qwen3.6 reaches \QwenThreeSixSuccessRate{} success. Unequal provider failures
-limit model-only conclusions, so the comparison measures deployed endpoints.
+suite. Targeted submission reruns replace records affected by application
+programming interface (API) failures, while evaluator reruns fill selected
+missing scores. DeepSeek V4 Pro completes
+\DeepSeekSuccessCount{}/\CorpusTaskCount{} tasks and records the highest score
+sum, \DeepSeekScoreSum, across \DeepSeekScoredTaskCount{} scored tasks.
+Qwen3.5-122B-A10B completes \QwenThreeFiveSuccessCount{} tasks and supplies
+the largest scored set, with \QwenThreeFiveScoredTaskCount{} tasks. Qwen3.6
+reaches \QwenThreeSixSuccessCount{}/\CorpusTaskCount{}
+(\QwenThreeSixSuccessRate{}) completion after targeted reruns, but only
+\QwenThreeSixScoredTaskCount{} tasks carry evaluator scores. Uneven scored
+subsets and residual provider failures prevent attributing endpoint
+differences to model weights alone.

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.6.26)  29 JUL 2026 14:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.6.26)  29 JUL 2026 21:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -331,15 +331,18 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )) (./sections/vcl.tex
 
 ) (./sections/qor.tex
+Underfull \vbox (badness 1264) has occurred while \output is active []
+
+
 
 [1{d:/LenovoSoftstore/Install/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pd
 ftex.map}{d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/enc/dvips/ba
 se/8r.enc}
 
 
-]) (./sections/evaluation.tex) (./sections/conclusion.tex)
+]) (./sections/evaluation.tex
 
-(./main.bbl
+) (./sections/conclusion.tex) (./main.bbl
 Underfull \hbox (badness 2828) in paragraph at lines 55--58
 []\OT1/ptm/m/n/8 Advanced Mi-cro De-vices, Inc., ``Vitis-HLS-Introductory-Examp
 les,''
@@ -377,39 +380,39 @@ Underfull \hbox (badness 10000) in paragraph at lines 93--93
 
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 293--302
+Underfull \hbox (badness 10000) in paragraph at lines 183--192
 []\OT1/ptm/m/n/10 The ac-cepted task list is
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 293--302
+Underfull \hbox (badness 10000) in paragraph at lines 183--192
 \OT1/pcr/m/n/10 tasks/track_a_150/candidate_manifest.json\OT1/ptm/m/n/10 .
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 293--302
+Underfull \hbox (badness 10000) in paragraph at lines 183--192
 \OT1/ptm/m/n/10 of \OT1/pcr/m/n/10 technical-paper/results_generated.tex\OT1/pt
 m/m/n/10 .
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 293--302
+Underfull \hbox (badness 10000) in paragraph at lines 183--192
 \OT1/ptm/m/n/10 Af-ter re-plac-ing or ex-tend-ing match-ing di-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 293--302
+Underfull \hbox (badness 10000) in paragraph at lines 183--192
 \OT1/ptm/m/n/10 rec-to-ries un-der \OT1/pcr/m/n/10 runs/\OT1/ptm/m/n/10 , ex-e-
 cute \OT1/pcr/m/n/10 python3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 293--302
+Underfull \hbox (badness 10000) in paragraph at lines 183--192
 \OT1/pcr/m/n/10 technical-paper/scripts/update_results.py
  []
 
 )
-Underfull \hbox (badness 10000) in paragraph at lines 309--39
+Underfull \hbox (badness 10000) in paragraph at lines 199--39
 \OT1/pcr/m/n/10 f3962afa2910232eaf782e91727e0f184ec168f1
  []
 
@@ -428,47 +431,45 @@ Before submitting the final camera ready copy, remember to:
 
 [3
 
-] [4] [5] (./main.aux)
+] [4] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 3915 strings out of 475118
- 63869 string characters out of 5762452
- 478232 words of memory out of 5000000
- 26852 multiletter control sequences out of 15000+600000
+ 3905 strings out of 475118
+ 63692 string characters out of 5762452
+ 466765 words of memory out of 5000000
+ 26842 multiletter control sequences out of 15000+600000
  607435 words of font info for 127 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 62i,16n,68p,475b,356s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 62i,16n,68p,458b,356s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmex10.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type
 1/public/amsfonts/cmextra/cmex7.pfb><d:/LenovoSoftstore/Install/texlive/2025/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/LenovoSoftstore/Install/
-texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb><d:/LenovoSoft
-store/Install/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb>
+texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb><d:/LenovoSoft
+store/Install/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb>
 <d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmmi8.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmmi9.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmr10.pfb><d:/LenovoSoftstore/Install/texlive/2
-025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><d:/LenovoSoftstore/Inst
-all/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><d:/LenovoS
-oftstore/Install/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.
+/cm/cmmi9.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmr10.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmr6.pfb><d:/LenovoSoftstore/Install/texlive/20
+25/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><d:/LenovoSoftstore/Insta
+ll/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/Lenovo
+Softstore/Install/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.
 pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmsy7.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmsy8.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-
-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><d:/LenovoSoftstore/Install
-/texlive/2025/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb><d:/LenovoSoftstore
-/Install/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><d:/LenovoSof
-tstore/Install/texlive/2025/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><d:/Le
-novoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-<d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri
-8a.pfb>
-Output written on main.pdf (5 pages, 224040 bytes).
+onts/cm/cmsy8.pfb><d:/LenovoSoftstore/Install/texlive/2025/texmf-dist/fonts/typ
+e1/public/amsfonts/symbols/msbm10.pfb><d:/LenovoSoftstore/Install/texlive/2025/
+texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb><d:/LenovoSoftstore/Install/texli
+ve/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><d:/LenovoSoftstore/Install
+/texlive/2025/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><d:/LenovoSoftstore/
+Install/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><d:/LenovoSoft
+store/Install/texlive/2025/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (4 pages, 212947 bytes).
 PDF statistics:
- 116 PDF objects out of 1000 (max. 8388607)
- 70 compressed objects within 1 object stream
+ 108 PDF objects out of 1000 (max. 8388607)
+ 65 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

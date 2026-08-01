@@ -40,8 +40,8 @@ CATEGORY_ORDER = (
 )
 
 MAIN_TABLE_NAMES = {
-    "DeepSeek": "DeepSeek V4",
-    "QwenThreeFive": "Qwen3.5-122B",
+    "DeepSeek": "DeepSeek V4 Pro",
+    "QwenThreeFive": "Qwen3.5-122B-A10B",
     "QwenThreeSix": "Qwen3.6-27B",
 }
 
@@ -181,13 +181,8 @@ def main() -> None:
 
     main_rows: list[str] = []
     headline_rows: list[str] = []
-    detail_rows: list[str] = []
     category_rows: list[str] = []
     token_rows: list[str] = []
-    efficiency_rows: list[str] = []
-    tool_call_rows: list[str] = []
-    qor_summary_rows: list[str] = []
-    api_outcome_rows: list[str] = []
     provenance_rows: list[str] = []
     campaign_summaries: dict[str, dict[str, int]] = {}
     candidate_events = 0
@@ -217,9 +212,23 @@ def main() -> None:
         completion_tokens_m = aggregate["tokens"]["completion"] / 1_000_000
         tokens_m = aggregate["tokens"]["total"] / 1_000_000
         api_failures = aggregate["failed_api_requests"]
-        api_requests = aggregate["api_requests"]
         retry_count = len(report["retry_task_ids"])
         per_task = report["per_task"]
+        reeval_report_count = sum(
+            1
+            for candidate in (path.parent / "re_eval").glob(
+                "*/run_report.json"
+            )
+        )
+        selected_reeval_score_count = sum(
+            "/re_eval/"
+            in str(record.get("evaluator_report") or "").replace("\\", "/")
+            for record in per_task.values()
+        )
+        if selected_reeval_score_count > reeval_report_count:
+            raise ValueError(
+                f"{path}: selected evaluator reruns exceed available reports"
+            )
         api_affected_task_count = sum(
             (record.get("failed_api_requests") or 0) > 0
             for record in per_task.values()
@@ -242,15 +251,10 @@ def main() -> None:
             and (record.get("api_responses") or 0) == 0
             for record in per_task.values()
         )
-        tokens_per_success = aggregate["tokens"]["total"] / success_count
-        requests_per_success = api_requests / success_count
-        credits_per_success = aggregate["credits_spent"] / success_count
-        api_failure_rate = 100.0 * api_failures / api_requests
-        campaign_wall_hours = (
-            aggregate["parallel_campaign_elapsed_max_shard_s"] / 3600.0
-        )
-        calls_by_tool = aggregate["calls_by_tool"]
-
+        if success_count != run_completed_count:
+            raise ValueError(
+                f"{path}: aggregate success no longer matches completed outcomes"
+            )
         lines.extend(
             [
                 command(f"{prefix}SuccessCount", str(success_count)),
@@ -310,6 +314,14 @@ def main() -> None:
                     f"{prefix}ToolCalls",
                     f"{aggregate['tool_calls']:,}",
                 ),
+                command(
+                    f"{prefix}ReevalReportCount",
+                    str(reeval_report_count),
+                ),
+                command(
+                    f"{prefix}SelectedReevalScoreCount",
+                    str(selected_reeval_score_count),
+                ),
                 "",
             ]
         )
@@ -319,14 +331,9 @@ def main() -> None:
             f"{qor_score:.2f} & {tokens_m:.2f} \\\\"
         )
         headline_rows.append(
-            f"{display} & {success_count}/{task_count} & "
-            f"{run_completed_count}/{task_count} & {score_sum:.2f} & "
-            f"{tokens_m:.2f} & {api_affected_task_count} \\\\"
-        )
-        detail_rows.append(
-            f"{display} & {success_count}/{task_count} & {scored_count} & "
-            f"{scored_mean:.2f} & {all_task_mean:.2f} & "
-            f"{score_sum:.2f} \\\\"
+            f"{display} & {run_completed_count}/{task_count} & "
+            f"{scored_count} & {scored_mean:.2f} & {score_sum:.2f} & "
+            f"{api_failures} \\\\"
         )
         category_values = []
         for category in CATEGORY_ORDER:
@@ -339,36 +346,13 @@ def main() -> None:
                 f"{category_success}/{category_count} ({category_rate}\\%)"
             )
         category_rows.append(
-            f"{display} & " + " & ".join(category_values) + r" \\"
+            f"{display} & "
+            + " & ".join(category_values)
+            + f" & {qor_score:.2f} \\\\"
         )
         token_rows.append(
-            f"{display} & {prompt_tokens_m:.2f} & "
-            f"{completion_tokens_m:.2f} & {tokens_m:.2f} & "
-            f"{aggregate['api_requests']:,} & {aggregate['api_responses']:,} & "
-            f"{api_failures:,} & {aggregate['credits_spent']:,} & "
-            f"{aggregate['tool_calls']:,} \\\\"
-        )
-        efficiency_rows.append(
-            f"{display} & {tokens_per_success:,.1f} & "
-            f"{requests_per_success:.2f} & {credits_per_success:.2f} & "
-            f"{api_failure_rate:.1f}\\% & {campaign_wall_hours:.2f} \\\\"
-        )
-        tool_call_rows.append(
-            f"{display} & {calls_by_tool['csim']:,} & "
-            f"{calls_by_tool['synth']:,} & {calls_by_tool['cosim']:,} & "
-            f"{aggregate['tool_calls']:,} \\\\"
-        )
-        qor_category = categories["qor_optimization"]
-        qor_summary_rows.append(
-            f"{display} & {qor_category['success_count']}/"
-            f"{qor_category['task_count']} & "
-            f"{qor_category['mean_official_score_all_tasks']:.2f} \\\\"
-        )
-        api_outcome_rows.append(
-            f"{display} & {success_count} & {run_completed_count} & "
-            f"{api_affected_task_count} & "
-            f"{api_affected_completed_count} & "
-            f"{zero_response_failed_count} \\\\"
+            f"{display} & {tokens_m:.2f} & "
+            f"{aggregate['credits_spent']:,} \\\\"
         )
         for record in per_task.values():
             submission_path = submission_report_path(
@@ -448,26 +432,11 @@ def main() -> None:
             r"\newcommand{\HeadlineModelResultsRows}{%",
             *headline_rows,
             "}",
-            r"\newcommand{\DetailedModelResultsRows}{%",
-            *detail_rows,
-            "}",
             r"\newcommand{\CategorySuccessRows}{%",
             *category_rows,
             "}",
             r"\newcommand{\TokenAccountingRows}{%",
             *token_rows,
-            "}",
-            r"\newcommand{\EfficiencyRows}{%",
-            *efficiency_rows,
-            "}",
-            r"\newcommand{\ToolCallRows}{%",
-            *tool_call_rows,
-            "}",
-            r"\newcommand{\QorSummaryRows}{%",
-            *qor_summary_rows,
-            "}",
-            r"\newcommand{\ApiOutcomeRows}{%",
-            *api_outcome_rows,
             "}",
             "",
             *provenance_rows,

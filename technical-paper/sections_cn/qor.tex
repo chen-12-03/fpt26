@@ -1,0 +1,41 @@
+\section{统一分数拒绝虚假加速}
+
+评估器选择一个有效的起始方案作为锚点 $a$，若其无效则回退到智能体不可见的
+冻结参考方案。令 $c$ 表示候选方案，$L$ 为其周期延迟，
+$p=\max(p_{\mathrm{target}},p_{\mathrm{estimated}})$ 为其有效周期，
+$II$ 为其启动间隔。仅当任务标记 $II$ 相关且两个值均为正时，分数才使用
+$II$ 分支：
+\begin{align}
+r_L &= \frac{p_aL_a}{p_cL_c}, &
+r_P &=
+\begin{cases}
+r_L^{0.85}(II_a/II_c)^{0.15}, & \text{可靠 }II,\\
+r_L, & \text{仅延迟},
+\end{cases}.
+\label{eq:performance}
+\end{align}
+对锚点资源计数 $A_j$ 和候选资源计数 $C_j$，令 $\mathcal{R}$ 包含查找表
+（LUT）、触发器（FF）、数字信号处理块（DSP）、块 RAM（BRAM）和 UltraRAM
+（URAM）。最差增长定义面积质量：
+\begin{align}
+\mathcal{R}_{+}&=\{j\in\mathcal{R}:A_j>1\lor C_j>1\},\nonumber\\
+\widehat{\mathcal{R}}&=
+\begin{cases}
+\mathcal{R}_{+},&\mathcal{R}_{+}\ne\varnothing,\\
+\mathcal{R},&\mathcal{R}_{+}=\varnothing,
+\end{cases}\nonumber\\
+r_A&=\left[\max_{j\in\widehat{\mathcal{R}}}
+\frac{\max(C_j,1)}{\max(A_j,1)}\right]^{-1}.
+\label{eq:area}
+\end{align}
+评估分数综合有效性、有界硬件效用和预算效率：
+\begin{align}
+h &= r_P^{0.55}r_A^{0.45}, &
+\QHW &= 1-\frac{1}{(1+h)^2}, \label{eq:qhw}\\
+E &= \max\bigl(0.80,\,1-0.10u_{\mathrm{credit}}
+  \nonumber\\[-2pt]
+  &\hspace{4.7em}{}-0.10u_{\mathrm{time}}\bigr), \nonumber\\
+S &= 100V\QHW E. \label{eq:score}
+\end{align}
+其中两项 $u$ 表示消耗比例，截断至 $[0,1]$。提升仅在 $V(c)=1$ 后比较
+\QHW{}，因此剩余预算永远不会将较差的设计变为备选方案。

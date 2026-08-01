@@ -97,8 +97,8 @@ requirement.
     Frequency and U55C capacity gates precede promotion. Reports retain
     latency, $II$, period, LUT, FF, DSP, BRAM, and URAM. \\
     Budget and token accounting &
-    Every report records prompt, completion, and total tokens, API requests,
-    tool calls, credits, and wall time. The campaign limit is
+    Each run report records tokens and credits. Structured reports retain
+    request, tool, and wall-time details. The campaign limit is
     \CampaignCreditLimit{} credits. \\
     Recommended model comparison &
     OpenRouter campaigns cover DeepSeek V4 Pro, Qwen3.5-122B-A10B, and
@@ -114,80 +114,35 @@ requirement.
   \end{tabular}
 \end{table*}
 
-\begin{table*}[t]
-  \caption{\textbf{The public guideline identifies three recommended
-  checkpoints.} Architecture and quantization describe the listed
-  checkpoints; the hosted provider build remains opaque. MoE means
-  mixture-of-experts, FP8 means 8-bit floating point, and AWQ means
-  activation-aware weight quantization.}
-  \label{tab:model-config}
-  \centering
-  \small
-  \begin{tabular}{llllr}
-    \toprule
-    Endpoint & Architecture & Total/active parameters & Quantization &
-    Context \\
-    \midrule
-    DeepSeek V4 Pro & MoE & 1.6T/49B & FP8 & 1,000,000 \\
-    Qwen3.5-122B-A10B & MoE & 122B/10B & AWQ-4bit & 262,144 \\
-    Qwen3.6-27B & Dense & 27B/27B & FP8 & 262,144 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
+The campaigns use the three checkpoints recommended by the public guideline:
+DeepSeek V4 Pro, Qwen3.5-122B-A10B, and Qwen3.6-27B. The guideline records
+their architecture and quantization; the hosted provider build remains opaque.
 
-\section{Detailed Three-Model Results}
+\section{Detailed Three-Endpoint Results}
 \label{app:results}
 
 All campaigns cover the same \CorpusTaskCount{} tasks and share one source
-hash and credit limit. Table~\ref{tab:model-totals} reports audit-clean
-acceptance and optimization quality. The all-task mean assigns zero to a task
-without an evaluator score; the scored mean excludes tasks without a valid QoR
-anchor. A scored task can still fail the audit-clean success gate.
+hash and credit limit. Section~\ref{sec:evaluation} reports completion, score
+coverage, and conditional scores. Submission reruns recover API-affected
+outputs. Evaluator reruns produce \DeepSeekReevalReportCount{} DeepSeek and
+\QwenThreeSixReevalReportCount{} Qwen3.6 reports; the final per-task records
+select \DeepSeekSelectedReevalScoreCount{} and
+\QwenThreeSixSelectedReevalScoreCount{} of them, respectively. The comparison
+retains one selected submission and evaluator record per task.
 
 \begin{table*}[t]
-  \caption{\textbf{Aggregate outcomes separate acceptance, optimization
-  quality, and coverage.}}
-  \label{tab:model-totals}
-  \centering
-  \small
-  \begin{tabular}{lrrrrr}
-    \toprule
-    Model & Audit-clean success & Scored tasks & Scored mean & All-task mean & Score sum \\
-    \midrule
-    \DetailedModelResultsRows
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\begin{table*}[t]
-  \caption{\textbf{QoR tasks expose normalized performance and resource
-  quality.} Each campaign evaluates the same 25 QoR tasks. Their evaluator
-  score combines normalized performance \(r_P\), worst-resource quality
-  \(r_A\), validity, and budget use; the frozen evaluator does not report
-  power, and raw cross-kernel resource counts are not averaged.}
-  \label{tab:qor-summary}
-  \centering
-  \small
-  \begin{tabular}{lrr}
-    \toprule
-    Model & Audit-clean QoR success & QoR score mean (all 25) \\
-    \midrule
-    \QorSummaryRows
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\begin{table*}[t]
-  \caption{\textbf{Endpoint availability shapes the category spread.}
-  Entries give audit-clean successes out of 25 tasks and the corresponding
-  rate.}
+  \caption{\textbf{Category completion and QoR scores expose different endpoint
+  profiles.} Completion entries give tasks out of 25 and the corresponding
+  rate. The QoR mean covers the same 25 tasks and uses
+  Eq.~\eqref{eq:score}.}
   \label{tab:category-success}
   \centering
   \scriptsize
   \resizebox{\textwidth}{!}{%
-  \begin{tabular}{lrrrrrr}
+  \begin{tabular}{lrrrrrrr}
     \toprule
-    Model & Generate & Compile & Synth & Functional & Structural & QoR \\
+    Endpoint & Generate & Compile & Synth & Functional & Structural &
+    QoR completed & QoR mean \\
     \midrule
     \CategorySuccessRows
     \bottomrule
@@ -195,91 +150,30 @@ anchor. A scored task can still fail the audit-clean success gate.
 \end{table*}
 
 \begin{table*}[t]
-  \caption{\textbf{The reports retain model and tool budget costs.}
-  Token counts are in millions; API failures count requests without a usable
-  response.}
+  \caption{\textbf{Selected task records retain token and credit fields.}
+  Token counts are in millions. For a targeted-rerun task, rerun tokens replace
+  the original token value, whereas credits remain from the original task
+  record. The rows therefore neither estimate additive campaign spend nor
+  support cost-efficiency comparisons.}
   \label{tab:costs}
   \centering
   \small
-  \resizebox{\textwidth}{!}{%
-  \begin{tabular}{lrrrrrrrr}
+  \begin{tabular}{lrr}
     \toprule
-    Model & Prompt & Completion & Total & API requests & Responses &
-    API failures & Credits & Tool calls \\
+    Endpoint & Selected-record tokens (M) & Original-record credits \\
     \midrule
     \TokenAccountingRows
     \bottomrule
-  \end{tabular}}
-\end{table*}
-
-\begin{table*}[t]
-  \caption{\textbf{Derived costs use audit-clean success as the denominator.}
-  HTTP failures count raw requests and may cluster within one logical model
-  call. ``Wall span'' measures the parallel campaign span.}
-  \label{tab:efficiency}
-  \centering
-  \small
-  \begin{tabular}{lrrrrr}
-    \toprule
-    Model & Tokens/success & Requests/success & Credits/success &
-    HTTP failure rate & Wall span (h) \\
-    \midrule
-    \EfficiencyRows
-    \bottomrule
   \end{tabular}
 \end{table*}
 
-\begin{table*}[t]
-  \caption{\textbf{Tool calls expose validation effort under the shared
-  budget.}}
-  \label{tab:tool-calls}
-  \centering
-  \small
-  \begin{tabular}{lrrrr}
-    \toprule
-    Model & \CSim & \Synth & \CoSim & Total \\
-    \midrule
-    \ToolCallRows
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\begin{table*}[t]
-  \caption{\textbf{Task-level evidence separates clean success from API
-  exposure.} ``Completed'' records the agent run outcome before the strict API
-  audit. ``API affected'' counts tasks with at least one failed request.}
-  \label{tab:api-outcomes}
-  \centering
-  \small
-  \begin{tabular}{lrrrrr}
-    \toprule
-    Model & Audit-clean success & Completed & API affected &
-    Affected but completed & Failed with zero responses \\
-    \midrule
-    \ApiOutcomeRows
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-DeepSeek fails \DeepSeekFailureCount{} tasks, Qwen3.5 fails
-\QwenThreeFiveFailureCount{}, and Qwen3.6 fails
-\QwenThreeSixFailureCount{}. Failed API requests affect
-\DeepSeekApiAffectedTaskCount{}, \QwenThreeFiveApiAffectedTaskCount{}, and
-\QwenThreeSixApiAffectedTaskCount{} tasks, respectively. DeepSeek has
-\DeepSeekZeroResponseFailedCount{} failed tasks with no API response; Qwen3.6
-has \QwenThreeSixZeroResponseFailedCount{}, including every compile and
-functional task. Qwen3.5 has none. Failed requests cause
-the strict API audit to reject
-\DeepSeekApiAffectedCompletedCount{}, \QwenThreeFiveApiAffectedCompletedCount{},
-and \QwenThreeSixApiAffectedCompletedCount{} otherwise completed runs. We
-therefore attribute the tables to hosted endpoints and avoid a model-weights
-ranking. The evidence leaves counterfactual performance under a healthy
-provider unknown for starved tasks.
-
-Qwen3.6's lower token total and shorter wall span partly reflect early request
-failure, so they do not establish higher efficiency. Table~\ref{tab:efficiency}
-also avoids retry-independence assumptions: its HTTP rate describes requests,
-not the probability that a complete model call fails.
+The category table reveals the residual pattern. DeepSeek completes at least
+24 tasks in every category. Qwen3.5's four misses concentrate in generation
+and functional repair. Qwen3.6 completes every compile, synthesis, and QoR
+task, while structural repair remains lowest at 18/25. Its scored set omits
+\QwenThreeSixUnscoredTaskCount{} tasks and remains smaller
+than both other sets, so score-based comparisons describe a narrower subset
+than completion-based comparisons.
 
 \textbf{Required ablations.} A matched rerun should add one row per agent
 variant and report campaign identifier, success, repeated failures, mean
@@ -305,6 +199,12 @@ table rows. A refreshed campaign updates numerical evidence without
 hand-editing the paper. Evaluator-only tests and references remain outside the
 agent-visible filesystem; report writers redact credentials and sensitive
 paths.
+
+The result generator treats \texttt{per\_task} records and the recomputed
+top-level \texttt{aggregate} as authoritative. The merged DeepSeek and Qwen3.6
+JSON files retain pre-merge \texttt{coverage.outcome\_counts} and
+\texttt{score\_availability} summaries. The generator ignores those two
+summaries; it reads \texttt{coverage} only for the task count and source hash.
 
 The campaigns use source snapshot \ExecutionSourceHash, temperature 0, a
 4,096-token output limit, a 180-second request timeout, and up to two retries

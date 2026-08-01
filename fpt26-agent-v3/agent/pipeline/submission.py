@@ -96,6 +96,11 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "repair", "error": f"ImportError: {exc}",
             })
+        except Exception as exc:
+            state.log(f"repair: RepairAgent crashed: {type(exc).__name__}: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "repair", "error": f"{type(exc).__name__}: {exc}",
+            })
 
     # Stage 3: Synthesis
     if state.csim_ok:
@@ -116,6 +121,11 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "synth_repair", "error": f"ImportError: {exc}",
             })
+        except Exception as exc:
+            state.log(f"synth_repair: RepairAgent crashed: {type(exc).__name__}: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "synth_repair", "error": f"{type(exc).__name__}: {exc}",
+            })
 
     # Stage 4: CoSim (structural only)
     if task.requires_cosim and state.synth_ok:
@@ -134,6 +144,11 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
             state.log(f"structural_repair: StructuralRepairAgent import failed: {exc}")
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "structural_repair", "error": f"ImportError: {exc}",
+            })
+        except Exception as exc:
+            state.log(f"structural_repair: StructuralRepairAgent crashed: {type(exc).__name__}: {exc}")
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "structural_repair", "error": f"{type(exc).__name__}: {exc}",
             })
 
     # Stage 5: Optimization
@@ -187,6 +202,40 @@ def _finalize(state: RunState) -> None:
     elif state.status in ("failed", "budget_exceeded", "infrastructure_error"):
         if getattr(state, "safe_fallback_kernel", None) is not None:
             state.kernel = state.safe_fallback_kernel
+
+    # ── Detect zero-API-response catastrophic failure ─────────────────
+    _token_usage = _get_token_usage_snapshot(state)
+    _all_api_failed = (
+        _token_usage is not None
+        and _token_usage.get("failed_request_count", 0) > 0
+        and _token_usage.get("response_count", 0) == 0
+    )
+    if _all_api_failed:
+        state.log(
+            f"finalize: all {_token_usage['failed_request_count']} API "
+            "requests failed with zero responses — infrastructure error"
+        )
+        state.status = "infrastructure_error"
+        state.stop_reason = "all_api_requests_failed"
+        state.metadata["infrastructure_errors"] = state.metadata.get(
+            "infrastructure_errors", []
+        ) + [
+            {
+                "step": "finalize",
+                "error": (
+                    f"all {_token_usage['failed_request_count']} LLM API "
+                    "requests returned zero responses"
+                ),
+            }
+        ]
+        # For compile_repair tasks, strip the intentional #error so the
+        # reference code at least compiles rather than submitting a
+        # guaranteed-to-fail baseline.
+        if _has_compile_error_baseline(state.kernel):
+            state.kernel = _strip_compile_error_baseline(state.kernel)
+            state.log("finalize: stripped compile-error baseline from fallback kernel")
+            state.metadata["fallback_kernel_stripped_compile_error"] = True
+
     out = Path(state.config.output_root) / state.task.id
     out.mkdir(parents=True, exist_ok=True)
     kernel_path = out / f"final_{state.task.kernel_name}"
@@ -194,6 +243,38 @@ def _finalize(state: RunState) -> None:
     state.log(f"final kernel → {kernel_path}")
     state.metadata["finalized"] = True
     state.metadata["final_kernel_path"] = str(kernel_path)
+
+
+def _get_token_usage_snapshot(state: RunState) -> dict | None:
+    """Extract token usage snapshot from the LLM client if available."""
+    llm = getattr(state, "llm", None)
+    if llm is None:
+        return None
+    token_usage = getattr(llm, "token_usage", None)
+    if token_usage is None:
+        return None
+    try:
+        return token_usage.snapshot()
+    except Exception:
+        return None
+
+
+def _has_compile_error_baseline(kernel: str) -> bool:
+    """Check if kernel source starts with a preprocessor #error directive."""
+    stripped = kernel.lstrip()
+    return stripped.startswith("#error")
+
+
+def _strip_compile_error_baseline(kernel: str) -> str:
+    """Remove the leading #error directive inserted by Track-A task builder.
+
+    Only removes a single ``#error`` line (and its trailing newline) that was
+    injected as the *first* non-whitespace content.  Does NOT strip
+    intentionally faulty functional variants like early-return injections.
+    """
+    import re
+
+    return re.sub(r'^\s*#error\s+TRACK_A_INTENTIONAL_COMPILE_FAILURE\s*\n+', '', kernel, count=1)
 
 
 # ── Backward-compat step functions for workflow.py re-exports ───────────

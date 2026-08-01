@@ -1,0 +1,49 @@
+\section{工具证据控制智能体工作流}
+
+任务接口暴露可编辑的内核、公开测试、目标器件和预算，同时隐藏秘密测试和
+冻结参考。控制器在单个运行状态中记录每个候选方案、门限、度量指标、令牌
+和积分。
+
+\VCL{} 依次运行七个门限：接口（Interface）、\CSim、\Synth、频率（Frequency）、
+容量（Capacity）、所需的 \CoSim{} 以及指标完备性（Metric completeness）。
+频率门强制 100 MHz，容量门强制 U55C 限制，\CoSim{} 仅在任务需要时适用。
+对候选方案 $c$，定义其有效性 $V(c)$ 为各适用门 $G_i\in\{0,1\}$ 的乘积；
+不适用 \CoSim{} 的门贡献为 1：
+\begin{equation}
+V(c)=G_{\mathrm{int}}G_{\mathrm{csim}}G_{\mathrm{syn}}
+  G_{\mathrm{freq}}G_{\mathrm{cap}}G_{\mathrm{cosim}}G_{\mathrm{metric}}.
+\label{eq:validity}
+\end{equation}
+令 $b$ 表示已验证备选。提升规则为
+\begin{equation}
+P(c)=V(c)\land[\QHW(c)>\QHW(b)].
+\label{eq:promotion}
+\end{equation}
+预算准入为所有必需的门保留积分。门失败或预算不足则保留 $b$。QoR-RAG
+提供版本兼容的规则、成功案例和测量失败。失败反思（Failure Reflection）
+将有限的诊断信息转化为下一轮约束，而无需额外的 LLM 请求。重复候选方案
+和重复失败触发停止。隐藏验收仍由评估方检查。
+
+图~\ref{fig:vcl} 总结该回路。三次实验共记录 \CandidateEventCount{}
+次候选接口检查、\CandidateInterfaceRejectCount{} 次接口拒绝、
+\CandidateSynthGateCount{} 次综合门以及 \CandidateCosimGateCount{}
+次 \CoSim{} 门。审计确立了契约执行，但并未隔离各机制的效果。
+
+\begin{figure*}[t]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \fbox{\begin{tabular}{c@{\;\(\rightarrow\)\;}c@{\;\(\rightarrow\)\;}c
+        @{\;\(\rightarrow\)\;}c}
+    任务与预算 & 候选方案与证据 &
+    验证链 & 提升或保留 \\
+    内核与接口 & LLM + QoR-RAG &
+    \shortstack{接口/\CSim/\Synth/频率/容量\\
+    所需\CoSim/指标完备性} &
+    已验证备选 \\
+    & \multicolumn{2}{c}{\(\leftarrow\) 来自测量诊断的失败反思} &
+  \end{tabular}}
+  \caption{\textbf{测量证据控制每次状态转换。}
+  候选方案仅在通过所有适用门且 \QHW{} 提升后方可替代已验证备选。}
+  \label{fig:vcl}
+\end{figure*}

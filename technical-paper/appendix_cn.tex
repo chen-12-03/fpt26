@@ -1,0 +1,178 @@
+\appendices
+
+\section{基准来源与任务组成}
+\label{app:benchmark}
+
+已接受的清单冻结了每条上游路径、提交哈希、任务描述、公开测试、评估方专用
+隐藏测试、参考方案和门限配置。构建器拒绝了未通过验收检查的候选方案，保留
+了 \CorpusTaskCount{} 个无跨类别内核重叠的任务。
+表~\ref{tab:task-composition} 将六种能力分开展示，暴露了被综合成功率隐藏的
+较弱修复模式。
+
+\begin{table*}[t]
+  \caption{\textbf{测试套件平衡六种智能体能力。}
+  每个类别包含 \TasksPerCategory{} 个任务；仅结构类别在已接受清单中要求
+  C/RTL 协同仿真。}
+  \label{tab:task-composition}
+  \centering
+  \small
+  \begin{tabular}{lllrr}
+    \toprule
+    任务类型 & 初始条件 & 所需输出 & 任务数 & \CoSim{} \\
+    \midrule
+    代码生成 & 仅签名桩 & 完整内核 & 25 & 0 \\
+    编译修复 & 编译失败 & 可编译内核 & 25 & 0 \\
+    综合修复 & 综合失败 & 可综合内核 & 25 & 0 \\
+    功能修复 & \CSim{} 失败 & 功能正确内核 & 25 & 0 \\
+    结构修复 & \CoSim{} 失败 & 可执行 RTL 结构 & 25 & 25 \\
+    QoR 优化 & 有效基线 & 更优有效 \QHW{} & 25 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+内核来自两个 AMD 公开仓库的固定提交版本。入门示例贡献了
+\IntroExampleTaskCount{} 个任务（Apache-2.0 许可）；加速示例贡献了
+\AccelExampleTaskCount{} 个（MIT 许可）。受控故障定义了生成和修复条件，
+而冻结的有效起始方案或评估方专用参考方案锚定 QoR 评估。150 个变体重用
+了 \UniqueSourcePathCount{} 个独特源路径。
+源仓库为
+\url{https://github.com/Xilinx/Vitis-HLS-Introductory-Examples} 和
+\url{https://github.com/Xilinx/Vitis_Accel_Examples}。
+
+\begin{table*}[t]
+  \caption{\textbf{固定的源版本使语料库可重建。}}
+  \label{tab:task-sources}
+  \centering
+  \small
+  \begin{tabular}{lllr}
+    \toprule
+    仓库 & 许可 & 上游提交 & 任务数 \\
+    \midrule
+    Xilinx/Vitis-HLS-Introductory-Examples &
+    Apache-2.0 & \texttt{aa5c160faf5d5ebf58674df8f0591f9984ebae0f} &
+    \IntroExampleTaskCount \\
+    Xilinx/Vitis\_Accel\_Examples &
+    MIT & \texttt{81187602355a7c2b666351154c5acca2074cae64} &
+    \AccelExampleTaskCount \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\section{Track-A 需求映射与范围}
+\label{app:compliance}
+
+表~\ref{tab:compliance} 区分运行时输出证据和提交包义务。"严格"指
+fail-closed 强制：适用门缺少证据则拒绝输出。严格强制允许不适用门不执行。
+所有任务都需要 \CSim{} 和 \Synth{}，而清单要求结构类别的
+\RequiredCosimTaskCount{} 个任务进行 \CoSim{}。
+公开指南也要求通过 \CoSim{} 而未定义任务级豁免。因此本报告将 \CoSim{}
+证据限定于结构任务，不为其余 125 个任务声称 \CoSim{} 覆盖。组织者确认或
+更广泛的证据必须填补此提交需求。
+
+\begin{table*}[t]
+  \caption{\textbf{运行契约将适用的 Track-A 评估需求映射到已记录证据。}
+  提交文件和视频仍属于作者侧检查清单事项。}
+  \label{tab:compliance}
+  \centering
+  \small
+  \begin{tabular}{p{0.22\textwidth}p{0.69\textwidth}}
+    \toprule
+    Track-A 需求 & 强制方式与已记录证据 \\
+    \midrule
+    U55C；Vitis 2025.2 &
+    容器固定目标器件和工具版本；报告保留执行源码修订哈希。 \\
+    \CSim, \Synth, 适用 \CoSim &
+    必需门缺少或失败则拒绝候选方案。隐藏测试和冻结参考仅评估方可访问。 \\
+    至少 100 MHz；可行的资源 &
+    频率门和 U55C 容量门在提升前检查。报告保留延迟、$II$、周期、LUT、FF、
+    DSP、BRAM 和 URAM。 \\
+    预算和令牌核算 &
+    每份运行报告记录令牌和积分。结构化报告保留请求、工具调用和挂钟时间
+    明细。实验限制为 \CampaignCreditLimit{} 积分。 \\
+    推荐模型对比 &
+    OpenRouter 实验覆盖 DeepSeek V4 Pro、Qwen3.5-122B-A10B 和 Qwen3.6-27B，
+    使用同一清单和源码修订。模拟、回放和脚本化后端导致结果生成器停止。 \\
+    Docker 和可复现性 &
+    仓库提供 Docker 工作流、公开任务材料、结构化报告和结果生成脚本。 \\
+    PDF、源码存档、视频 &
+    作者另行确认 IEEE 格式、两页正文限制、存档内容和五分钟演示作为包义务。 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+三个实验使用公开指南推荐的检查点：DeepSeek V4 Pro、
+Qwen3.5-122B-A10B 和 Qwen3.6-27B。指南记录其架构和量化方式；云端
+提供商构建仍不透明。
+
+\section{三端点详细结果}
+\label{app:results}
+
+所有实验覆盖相同的 \CorpusTaskCount{} 个任务，共享同一个源码哈希和积分
+限制。第~\ref{sec:evaluation}~节报告完成数、评分覆盖和条件分数。定向重跑
+提高完成数，但没有为每个恢复完成的任务补齐评估分数。比较为每个任务保留
+一条选定记录。
+
+\begin{table*}[t]
+  \caption{\textbf{分类完成率与 QoR 分数揭示不同的端点特征。}
+  完成率条目给出 25 个任务中的完成数及比例；QoR 均分覆盖相同的 25 个任务，
+  并使用公式~\eqref{eq:score}。}
+  \label{tab:category-success}
+  \centering
+  \scriptsize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{lrrrrrrr}
+    \toprule
+    端点 & 代码生成 & 编译修复 & 综合修复 & 功能修复 & 结构修复 &
+    QoR 完成 & QoR 均分 \\
+    \midrule
+    \CategorySuccessRows
+    \bottomrule
+  \end{tabular}}
+\end{table*}
+
+\begin{table*}[t]
+  \caption{\textbf{选中的任务记录保留令牌和积分字段。}
+  令牌数以百万计。对于定向重跑任务，重跑令牌替换原始令牌值，而积分仍来自
+  原始任务记录。因此这些行既不估计原始实验与重跑的累加消耗，也不支持端点
+  成本效率比较。}
+  \label{tab:costs}
+  \centering
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    端点 & 选中记录令牌（百万） & 原始记录积分 \\
+    \midrule
+    \TokenAccountingRows
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+分类表揭示剩余差异。DeepSeek 在每类中至少完成 24 个任务。Qwen3.5 的四个
+未完成任务集中在代码生成和功能修复。Qwen3.6 完成全部编译、综合和 QoR
+任务，但结构修复仅完成 18/25。其 67 个有分任务覆盖不到语料库的一半，
+因此分数比较所描述的任务范围窄于完成率比较。
+
+\textbf{必需的消融实验。} 匹配重跑应为每个智能体变体增加一行，报告实验
+标识、成功数、重复失败、平均 \QHW{}、令牌、调用、积分和挂钟时间。计划
+变体包括完整智能体、无 QoR-RAG、无测量失败检索和无 Failure Reflection。
+在这些运行完成前，本文不填写数值，也不声称任何因果改进。
+
+\section{复现与结果刷新}
+\label{app:reproduction}
+
+已接受的任务清单为
+\texttt{tasks/track\_a\_150/candidate\_manifest.json}。三份源报告路径作为注释
+出现在 \texttt{technical-paper/results\_generated.tex} 末尾。在替换或扩展
+\texttt{runs/} 下的匹配目录后，从仓库根目录执行
+\texttt{python3 technical-paper/scripts/update\_results.py}。
+该脚本选择最新的匹配最终报告，仅在模型标识、任务数、API 客户端、
+执行源码哈希和积分限制一致时才输出宏。
+
+生成的文件提供任务计数、正文结果数值和所有详细表格行。刷新后的实验更新
+数值证据而无需手动编辑论文。评估方专用测试和参考方案保持在智能体可见
+文件系统之外；报告编写者隐去凭据和敏感路径。
+
+实验使用源码快照 \ExecutionSourceHash，temperature 为 0，输出限制 4,096
+令牌，请求超时 180 秒，首次请求后最多两次重试。OpenRouter 标识所请求的
+开放权重模型和许可证映射。云端提供商构建不冻结。运行目录名保留实验
+时间戳。

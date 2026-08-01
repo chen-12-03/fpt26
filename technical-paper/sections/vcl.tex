@@ -4,12 +4,11 @@ The task interface exposes an editable kernel, public tests, target part, and
 budgets while withholding hidden tests and frozen references. The controller
 records every candidate, gate, metric, token, and credit in one run state.
 
-The \VCL{} runs interface checks, C simulation (\CSim), HLS synthesis
-(\Synth), the 100 MHz frequency check, the U55C capacity check, task-required
-C/register-transfer-level (RTL) co-simulation (\CoSim), and
-metric-completeness checks. For candidate $c$, define validity $V(c)$ over
-applicable gates $G_i\in\{0,1\}$; an inapplicable \CoSim{} gate contributes
-one:
+The \VCL{} runs seven gates in order: Interface, \CSim, \Synth, Frequency,
+Capacity, required \CoSim, and Metric completeness. Frequency enforces
+100 MHz, Capacity enforces U55C limits, and \CoSim{} applies only when the task
+requires it. For candidate $c$, define validity $V(c)$ over applicable gates
+$G_i\in\{0,1\}$; an inapplicable \CoSim{} gate contributes one:
 \begin{equation}
 V(c)=G_{\mathrm{int}}G_{\mathrm{csim}}G_{\mathrm{syn}}
   G_{\mathrm{freq}}G_{\mathrm{cap}}G_{\mathrm{cosim}}G_{\mathrm{metric}}.
@@ -43,7 +42,9 @@ execution but does not isolate mechanism effects.
     Task and budget & Candidate and evidence &
     Validation chain & Promote or retain \\
     Kernel and interface & LLM + QoR-RAG &
-    \CSim/\Synth/frequency/capacity/\CoSim & Verified fallback \\
+    \shortstack{Interface/\CSim/\Synth/Frequency/Capacity\\
+    required \CoSim/Metric completeness} &
+    Verified fallback \\
     & \multicolumn{2}{c}{\(\leftarrow\) Failure Reflection from measured diagnostics} &
   \end{tabular}}
   \caption{\textbf{Measured evidence controls every state transition.}
