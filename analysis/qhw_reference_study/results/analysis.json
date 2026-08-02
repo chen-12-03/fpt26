@@ -1,0 +1,6142 @@
+{
+  "alternative_attempt_count": 1,
+  "alternative_weights": {
+    "area": 0.4,
+    "performance": 0.6
+  },
+  "formula_source": "fpt26-agent-v3/scoring/scoring_v3.py",
+  "ii_applied_to_score": false,
+  "production_weights": {
+    "area": 0.45,
+    "performance": 0.55
+  },
+  "purpose": "qhw_starter_reference_study_analysis",
+  "schema_version": 1,
+  "score_mode": "standardized_qor_efficiency_1",
+  "summary": {
+    "all_four_stages_pass_count": 29,
+    "alternative_above_neutral_count": 11,
+    "alternative_pareto_direction_accuracy": 1.0,
+    "alternative_score_mean": 70.54447348440705,
+    "alternative_score_median": 75.0,
+    "api_request_count": 0,
+    "collected_task_count": 36,
+    "current_above_neutral_count": 10,
+    "current_pareto_direction_accuracy": 1.0,
+    "current_score_mean": 69.74156966824678,
+    "current_score_median": 75.0,
+    "pareto_counts": {
+      "identical_metrics": 7,
+      "reference_dominates": 4,
+      "starter_dominates": 6,
+      "tradeoff": 12
+    },
+    "scorable_task_count": 24,
+    "unscorable_task_count": 12
+  },
+  "tasks": [
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.759276536841007,
+        "standardized_score": 75.9276536841007
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.7585103481098705,
+        "standardized_score": 75.85103481098704
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__array_array_partition_block_cyclic/evidence.json",
+      "pareto_class": "reference_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0,
+        "area_ratio": 1.0,
+        "bottleneck_resource": "BRAM_18K",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 0.48091603053435117,
+          "FF": 0.4878432744446388,
+          "LUT": 0.5444316214656665,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0644257703081232,
+        "performance_ratio": 1.0644257703081232,
+        "q_area": 0.75,
+        "q_perf": 0.7653603206368551
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "readA",
+            "target": "matmul_partition/readA"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "readB",
+            "target": "matmul_partition/readB"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "lreorder2",
+            "target": "matmul_partition/lreorder2"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "writeC",
+            "target": "matmul_partition/writeC"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "lreorder1",
+            "target": "matmul_partition/lreorder1"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "loop2",
+            "target": "matmul_partition/loop2"
+          }
+        ],
+        "interval_max": 1072,
+        "interval_min": 536,
+        "latency_avg": 803,
+        "latency_best": 535,
+        "latency_worst": 1071,
+        "loop_metrics": [
+          {
+            "latency": 257,
+            "name": "readA",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 257,
+            "name": "readB",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 259,
+            "name": "loop2_lreorder1_lreorder2",
+            "pipeline_depth": 5,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 257,
+            "name": "writeC",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 63,
+          "FF": 5578,
+          "LUT": 7548,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 0.698,
+          "FF": 0.214,
+          "LUT": 0.579,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "f8262f4eb659b8889061fd7d71dbd9ca1c2431df1ecda24987fb37646d477bb4",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "ARRAY_PARTITION",
+          "line_number": 37,
+          "text": "#pragma HLS ARRAY_PARTITION variable = A dim = 1 cyclic factor = 16"
+        },
+        {
+          "directive": "ARRAY_PARTITION",
+          "line_number": 40,
+          "text": "#pragma HLS ARRAY_PARTITION variable = B dim = 1 block factor = 16"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Array/array_partition_block_cyclic",
+      "source_sha256": "f19625cae10cad2ab205c09369d25464d369f7f27f6fdea459e1069b150f2582",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "readA",
+            "target": "matmul_partition/readA"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "readB",
+            "target": "matmul_partition/readB"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "lreorder2",
+            "target": "matmul_partition/lreorder2"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "writeC",
+            "target": "matmul_partition/writeC"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "lreorder1",
+            "target": "matmul_partition/lreorder1"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "loop2",
+            "target": "matmul_partition/loop2"
+          }
+        ],
+        "interval_max": 1141,
+        "interval_min": 571,
+        "latency_avg": 855,
+        "latency_best": 570,
+        "latency_worst": 1140,
+        "loop_metrics": [
+          {
+            "latency": 257,
+            "name": "readA",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 291,
+            "name": "readB",
+            "pipeline_depth": 37,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 294,
+            "name": "loop2_lreorder1_lreorder2",
+            "pipeline_depth": 40,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 257,
+            "name": "writeC",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 131,
+          "FF": 11434,
+          "LUT": 13864,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 1.452,
+          "FF": 0.439,
+          "LUT": 1.063,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "9f8cc6f00e25688de243932df1adcb4bf679a8be19fcd346a3091b5e848e4a13",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__array_array_partition_block_cyclic",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__array_array_partition_complete/evidence.json",
+      "pareto_class": "identical_metrics",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read_A",
+            "target": "matmul_partition/read_A"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read_B",
+            "target": "matmul_partition/read_B"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "arraypart2",
+            "target": "matmul_partition/arraypart2"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "writeC",
+            "target": "matmul_partition/writeC"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": 257,
+            "name": "read_A",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 257,
+            "name": "read_B",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": null,
+            "name": "loop_count_arraypart1_arraypart2",
+            "pipeline_depth": 5,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": 257,
+            "name": "writeC",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 63,
+          "FF": 5695,
+          "LUT": 7639,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 0.698,
+          "FF": 0.218,
+          "LUT": 0.586,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "e08eda565ba14254fec12baa2e7dcc7f3be4dcaa7a3df00f870c8641aaea52a0",
+      "reference_synth_pass": true,
+      "removed_directive_count": 3,
+      "removed_directives": [
+        {
+          "directive": "ARRAY_PARTITION",
+          "line_number": 39,
+          "text": "#pragma HLS ARRAY_PARTITION variable = B dim = 2 complete"
+        },
+        {
+          "directive": "ARRAY_PARTITION",
+          "line_number": 40,
+          "text": "#pragma HLS ARRAY_PARTITION variable = C dim = 2 complete"
+        },
+        {
+          "directive": "ARRAY_PARTITION",
+          "line_number": 41,
+          "text": "#pragma HLS ARRAY_PARTITION variable = temp_sum dim = 1 complete"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Array/array_partition_complete",
+      "source_sha256": "c2e9f3015bae81d56d00342d8ee8d442d09f5720da89e269f5b35b57ccca9af4",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_complete",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read_A",
+            "target": "matmul_partition/read_A"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read_B",
+            "target": "matmul_partition/read_B"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "arraypart2",
+            "target": "matmul_partition/arraypart2"
+          },
+          {
+            "function": "matmul_partition",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "writeC",
+            "target": "matmul_partition/writeC"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": 257,
+            "name": "read_A",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": 257,
+            "name": "read_B",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          },
+          {
+            "latency": null,
+            "name": "loop_count_arraypart1_arraypart2",
+            "pipeline_depth": 5,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": 257,
+            "name": "writeC",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 63,
+          "FF": 5695,
+          "LUT": 7639,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 0.698,
+          "FF": 0.218,
+          "LUT": 0.586,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "6b0ec8cefbf2a17ed89a8f68b3623fa45b8a73870d0a1b7e393757bf656ba06b",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__array_array_partition_complete",
+      "unscorable_reason": "latency_undef",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.7572644488685333,
+        "standardized_score": 75.72644488685333
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.7566632444788023,
+        "standardized_score": 75.66632444788023
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__dsp_fir_decimator/evidence.json",
+      "pareto_class": "reference_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0,
+        "area_ratio": 1.0,
+        "bottleneck_resource": "DSP",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.9730538922155688,
+          "LUT": 0.9432485322896281,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.05,
+        "performance_ratio": 1.05,
+        "q_area": 0.75,
+        "q_perf": 0.7620464009518144
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.0,
+        "inferred_directives": [],
+        "interval_max": 21,
+        "interval_min": 21,
+        "latency_avg": 20,
+        "latency_best": 20,
+        "latency_worst": 20,
+        "loop_metrics": [
+          {
+            "latency": 10,
+            "name": "VITIS_LOOP_1083_2",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 9,
+            "name": "VITIS_LOOP_939_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 11,
+          "FF": 325,
+          "LUT": 482,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.122,
+          "FF": 0.012,
+          "LUT": 0.037,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "1196cc3705a2e514ca55e48ad7b2e01d358477724aa267c43d884c0bde898da8",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "DATAFLOW",
+          "line_number": 43,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "DSP/fir/decimator",
+      "source_sha256": "f6991ce6dbea75fa94e24e56e910da569702f2f55c247875cbf43e53b06ff471",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/DSP/fir/decimator",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.0,
+        "inferred_directives": [],
+        "interval_max": 22,
+        "interval_min": 22,
+        "latency_avg": 21,
+        "latency_best": 21,
+        "latency_worst": 21,
+        "loop_metrics": [
+          {
+            "latency": 10,
+            "name": "VITIS_LOOP_1083_2",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 10,
+            "name": "VITIS_LOOP_939_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 11,
+          "FF": 334,
+          "LUT": 511,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.122,
+          "FF": 0.013,
+          "LUT": 0.039,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "e592481c91508afc97d62d161702ae4ccf994aa8c69f8f95e3224fe979109dee",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__dsp_fir_decimator",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.6640861609399864,
+        "standardized_score": 66.40861609399865
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.6714595951800995,
+        "standardized_score": 67.14595951800995
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs/evidence.json",
+      "pareto_class": "starter_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0067114093959733,
+        "area_ratio": 0.9933333333333332,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.0067114093959733,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 0.5882352941176471,
+        "performance_ratio": 0.5882352941176471,
+        "q_area": 0.7483249628080222,
+        "q_perf": 0.6035665294924555
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.346,
+        "inferred_directives": [],
+        "interval_max": 16,
+        "interval_min": 16,
+        "latency_avg": 17,
+        "latency_best": 17,
+        "latency_worst": 17,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "top_label0",
+            "pipeline_depth": 2,
+            "pipeline_ii": 2,
+            "trip_count": 8
+          }
+        ],
+        "pipeline_type": "loop auto-rewind stp (delay=0 cycles)",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 10,
+          "LUT": 150,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.012,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "6dd6ab56df0c7cfcfac117828fbb70e90fb714d64e92f344d91b0b8fda546e81",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 32,
+          "text": "#pragma HLS PIPELINE II = 3"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Aggregation_Disaggregation/aggregation_of_nested_structs",
+      "source_sha256": "9d032dfae04268b2e009f308c03f7524ce586f2abb12187ee13aa4716c8d8040",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/aggregation_of_nested_structs",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.346,
+        "inferred_directives": [
+          {
+            "function": "top",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "top_label0",
+            "target": "top/top_label0"
+          }
+        ],
+        "interval_max": 8,
+        "interval_min": 8,
+        "latency_avg": 10,
+        "latency_best": 10,
+        "latency_worst": 10,
+        "loop_metrics": [
+          {
+            "latency": 8,
+            "name": "top_label0",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          }
+        ],
+        "pipeline_type": "loop auto-rewind stp (delay=0 cycles)",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 10,
+          "LUT": 149,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.011,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "b7112ba7db034f0874f67b37cc3d9030d27f442292d0f1f58d640ae4e64eb37a",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.6041320222182679,
+        "standardized_score": 60.413202221826786
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.5846668395388308,
+        "standardized_score": 58.46668395388308
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_aggregation_disaggregation_struct_ii_issue/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 3.75,
+        "area_ratio": 0.26666666666666666,
+        "bottleneck_resource": "BRAM_18K",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 3.75,
+          "DSP": 1.0,
+          "FF": 0.9751338944146901,
+          "LUT": 0.8808419146769265,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.3767313019390581,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "write",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "WRITE",
+            "target": "write/WRITE"
+          },
+          {
+            "function": "compute",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "COMPUTE",
+            "target": "compute/COMPUTE"
+          },
+          {
+            "function": "read",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "READ",
+            "target": "read/READ"
+          }
+        ],
+        "interval_max": 200,
+        "interval_min": 200,
+        "latency_avg": 526,
+        "latency_best": 526,
+        "latency_worst": 526,
+        "loop_metrics": [
+          {
+            "latency": 209,
+            "name": "READ",
+            "pipeline_depth": 12,
+            "pipeline_ii": 2,
+            "trip_count": 100
+          },
+          {
+            "latency": 101,
+            "name": "COMPUTE",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 100
+          },
+          {
+            "latency": 208,
+            "name": "WRITE",
+            "pipeline_depth": 11,
+            "pipeline_ii": 2,
+            "trip_count": 100
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 30,
+          "DSP": 0,
+          "FF": 5098,
+          "LUT": 7784,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.744,
+          "DSP": 0.0,
+          "FF": 0.196,
+          "LUT": 0.597,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "eae88f88a187f6d7fa0b565bf992bb93981969b1db8f5a18392c423864dbd705",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "DATAFLOW",
+          "line_number": 55,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Aggregation_Disaggregation/struct_ii_issue",
+      "source_sha256": "b5e21cbf29d08583ac540baf411ad643b0bf0a17a70dd2ee736017b4acfe496f",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/struct_ii_issue",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "READ",
+            "target": "dut/READ"
+          },
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "COMPUTE",
+            "target": "dut/COMPUTE"
+          },
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "WRITE",
+            "target": "dut/WRITE"
+          }
+        ],
+        "interval_max": 527,
+        "interval_min": 527,
+        "latency_avg": 526,
+        "latency_best": 526,
+        "latency_worst": 526,
+        "loop_metrics": [
+          {
+            "latency": 209,
+            "name": "READ",
+            "pipeline_depth": 12,
+            "pipeline_ii": 2,
+            "trip_count": 100
+          },
+          {
+            "latency": 100,
+            "name": "COMPUTE",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 100
+          },
+          {
+            "latency": 206,
+            "name": "WRITE",
+            "pipeline_depth": 9,
+            "pipeline_ii": 2,
+            "trip_count": 100
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 8,
+          "DSP": 0,
+          "FF": 5228,
+          "LUT": 8837,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.198,
+          "DSP": 0.0,
+          "FF": 0.201,
+          "LUT": 0.678,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "ac837a8d9e4d48e96ef02cb64a7c29eade40a05627efcd8ca90e08dd8ff5dc3d",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_aggregation_disaggregation_struct_ii_issue",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.8305205364681755,
+        "standardized_score": 83.05205364681754
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.8223988287079123,
+        "standardized_score": 82.23988287079122
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_aliasing_axi_master_ports/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.1323928377645143,
+        "area_ratio": 0.8830857690464783,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.1323928377645143,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.969811320754717,
+        "performance_ratio": 1.969811320754717,
+        "q_area": 0.7179930591975345,
+        "q_perf": 0.8866184778379286
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [],
+        "interval_max": 1045,
+        "interval_min": 1045,
+        "latency_avg": 1060,
+        "latency_best": 1060,
+        "latency_worst": 1060,
+        "loop_metrics": [
+          {
+            "latency": 1024,
+            "name": "VITIS_LOOP_27_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 1024,
+            "name": "VITIS_LOOP_49_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 9,
+          "DSP": 0,
+          "FF": 1511,
+          "LUT": 2087,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.223,
+          "DSP": 0.0,
+          "FF": 0.058,
+          "LUT": 0.16,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "reference_synth_pass": true,
+      "removed_directive_count": 5,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 25,
+          "text": "#pragma HLS INLINE OFF"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 28,
+          "text": "    #pragma HLS PIPELINE"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 43,
+          "text": "#pragma HLS INLINE OFF "
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 50,
+          "text": "    #pragma HLS PIPELINE"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 66,
+          "text": "#pragma HLS DATAFLOW"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/aliasing_axi_master_ports",
+      "source_sha256": "6f0c679782ea48c0fc4154658fcb65c69f0d6c910ea40710d986f01c52789f0f",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_26_1",
+            "target": "dut/VITIS_LOOP_26_1"
+          },
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_46_1",
+            "target": "dut/VITIS_LOOP_46_1"
+          }
+        ],
+        "interval_max": 2089,
+        "interval_min": 2089,
+        "latency_avg": 2088,
+        "latency_best": 2088,
+        "latency_worst": 2088,
+        "loop_metrics": [
+          {
+            "latency": 1025,
+            "name": "VITIS_LOOP_26_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 1025,
+            "name": "VITIS_LOOP_46_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 9,
+          "DSP": 0,
+          "FF": 1511,
+          "LUT": 1843,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.223,
+          "DSP": 0.0,
+          "FF": 0.058,
+          "LUT": 0.141,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "6c37822180124a653b1579dee987af56670f75fc4d644ddf571875ed899bb4cb",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_aliasing_axi_master_ports",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_burst_rw/evidence.json",
+      "pareto_class": "identical_metrics",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0,
+        "area_ratio": 1.0,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.0,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.75,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "calc_write",
+            "target": "vadd/calc_write"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_55_1",
+            "target": "vadd/VITIS_LOOP_55_1"
+          }
+        ],
+        "interval_max": 50690,
+        "interval_min": 4,
+        "latency_avg": null,
+        "latency_best": 3,
+        "latency_worst": 50689,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "read_buf",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_55_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "calc_write",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 10,
+          "DSP": 0,
+          "FF": 1472,
+          "LUT": 1898,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.248,
+          "DSP": 0.0,
+          "FF": 0.056,
+          "LUT": 0.146,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "ac5c2a68ac5ef70b1026348d30043c5e303b27ad484530653cabefb964ec3f58",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "LOOP_FLATTEN",
+          "line_number": 57,
+          "text": "#pragma HLS loop_flatten off"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/burst_rw",
+      "source_sha256": "e9899cc632d48391a7d727eeba258717448d64faae13231ac63de35b272db6e5",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/burst_rw",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "calc_write",
+            "target": "vadd/calc_write"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_55_1",
+            "target": "vadd/VITIS_LOOP_55_1"
+          }
+        ],
+        "interval_max": 50690,
+        "interval_min": 4,
+        "latency_avg": null,
+        "latency_best": 3,
+        "latency_worst": 50689,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "read_buf",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_55_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "calc_write",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 10,
+          "DSP": 0,
+          "FF": 1472,
+          "LUT": 1898,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.248,
+          "DSP": 0.0,
+          "FF": 0.056,
+          "LUT": 0.146,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "2895d6db322e12624ec127c2344c4dd3852ffa36cc8b8e17675a824ab984ab9b",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_burst_rw",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_coefficient_filter/evidence.json",
+      "pareto_class": "identical_metrics",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0,
+        "area_ratio": 1.0,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.0,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.75,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.117,
+        "inferred_directives": [],
+        "interval_max": 256,
+        "interval_min": 256,
+        "latency_avg": 258,
+        "latency_best": 258,
+        "latency_worst": 258,
+        "loop_metrics": [
+          {
+            "latency": 256,
+            "name": "process_frame",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          }
+        ],
+        "pipeline_type": "loop auto-rewind stp (delay=0 cycles)",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 1,
+          "FF": 20,
+          "LUT": 75,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.011,
+          "FF": 0.001,
+          "LUT": 0.006,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "8e3d814175bc4d24d0beda2c9f694651e006c86c20a35b57ecb5d4a5482e32a6",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 35,
+          "text": "#pragma HLS pipeline"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/coefficient_filter",
+      "source_sha256": "f0a0e769875763c5e295bd263bfa68acbf64247e3e3da062dbdae3ac48acd729",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/coefficient_filter",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.117,
+        "inferred_directives": [
+          {
+            "function": "hamming_window",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "process_frame",
+            "target": "hamming_window/process_frame"
+          }
+        ],
+        "interval_max": 256,
+        "interval_min": 256,
+        "latency_avg": 258,
+        "latency_best": 258,
+        "latency_worst": 258,
+        "loop_metrics": [
+          {
+            "latency": 256,
+            "name": "process_frame",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 256
+          }
+        ],
+        "pipeline_type": "loop auto-rewind stp (delay=0 cycles)",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 1,
+          "FF": 20,
+          "LUT": 75,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.011,
+          "FF": 0.001,
+          "LUT": 0.006,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "3a81d3818d30bd6b3aeb2f9d5bfa22136e169e181bd3419cc9bf6e2b55ac905b",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_coefficient_filter",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.6734404514268282,
+        "standardized_score": 67.34404514268282
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.6639412390233785,
+        "standardized_score": 66.39412390233785
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_ecc_flags/evidence.json",
+      "pareto_class": "starter_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 2.0,
+        "area_ratio": 0.5,
+        "bottleneck_resource": "URAM",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0185982772122162,
+          "LUT": 1.0413119679519278,
+          "URAM": 2.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 0.9826086956521739,
+        "performance_ratio": 0.9826086956521739,
+        "q_area": 0.5555555555555556,
+        "q_perf": 0.7455947983995075
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.415,
+        "inferred_directives": [
+          {
+            "function": "ecc_flags",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_33_1",
+            "target": "ecc_flags/VITIS_LOOP_33_1"
+          },
+          {
+            "function": "ecc_flags",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_24_1",
+            "target": "ecc_flags/VITIS_LOOP_24_1"
+          },
+          {
+            "function": "ecc_flags",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_42_1",
+            "target": "ecc_flags/VITIS_LOOP_42_1"
+          }
+        ],
+        "interval_max": 116,
+        "interval_min": 116,
+        "latency_avg": 115,
+        "latency_best": 115,
+        "latency_worst": 115,
+        "loop_metrics": [
+          {
+            "latency": 11,
+            "name": "VITIS_LOOP_33_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 46,
+            "name": "VITIS_LOOP_24_1",
+            "pipeline_depth": 38,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 47,
+            "name": "VITIS_LOOP_42_1",
+            "pipeline_depth": 39,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 3,
+          "FF": 5203,
+          "LUT": 4159,
+          "URAM": 2
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.033,
+          "FF": 0.2,
+          "LUT": 0.319,
+          "URAM": 0.208
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "a4ccf3252797495141285ff28e52cdfc6fc60366e4ad75f6b3260a317389bf8c",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "ARRAY_RESHAPE",
+          "line_number": 31,
+          "text": "#pragma HLS ARRAY_RESHAPE variable = res1 dim = 1 factor = 2 block"
+        },
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 32,
+          "text": "#pragma HLS BIND_STORAGE variable = res1 type = ram_s2p impl = uram_ecc"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/ecc_flags",
+      "source_sha256": "49a952e51cae09305b520f2fcb46c70faf96ef7e251d2094acb2d12c1d45ed1a",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/ecc_flags",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.17,
+        "inferred_directives": [
+          {
+            "function": "ecc_flags",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_31_1",
+            "target": "ecc_flags/VITIS_LOOP_31_1"
+          },
+          {
+            "function": "ecc_flags",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_24_1",
+            "target": "ecc_flags/VITIS_LOOP_24_1"
+          },
+          {
+            "function": "ecc_flags",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_40_1",
+            "target": "ecc_flags/VITIS_LOOP_40_1"
+          }
+        ],
+        "interval_max": 114,
+        "interval_min": 114,
+        "latency_avg": 113,
+        "latency_best": 113,
+        "latency_worst": 113,
+        "loop_metrics": [
+          {
+            "latency": 10,
+            "name": "VITIS_LOOP_31_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 45,
+            "name": "VITIS_LOOP_24_1",
+            "pipeline_depth": 37,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 47,
+            "name": "VITIS_LOOP_40_1",
+            "pipeline_depth": 39,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 3,
+          "FF": 5108,
+          "LUT": 3994,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.033,
+          "FF": 0.196,
+          "LUT": 0.306,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "f0c0c70c2461106fa2d67c805a9a8a5a1b7f17a647f36a9df395cb83fdc91c81",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_ecc_flags",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.7633015104824787,
+        "standardized_score": 76.33015104824787
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.7609213412674072,
+        "standardized_score": 76.09213412674072
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_lmem_2rw/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0652879156528792,
+        "area_ratio": 0.9387133612485725,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0128956623681125,
+          "LUT": 1.0652879156528792,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.141192692175112,
+        "performance_ratio": 1.141192692175112,
+        "q_area": 0.733944161856695,
+        "q_perf": 0.7818835126248331
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "write",
+            "target": "vadd/write"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "vadd",
+            "target": "vadd/vadd"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read2",
+            "target": "vadd/read2"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read1",
+            "target": "vadd/read1"
+          }
+        ],
+        "interval_max": 14506,
+        "interval_min": 10,
+        "latency_avg": 7257,
+        "latency_best": 9,
+        "latency_worst": 14505,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_56_1",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": 4
+          },
+          {
+            "latency": 1025,
+            "name": "read1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 1025,
+            "name": "read2",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 513,
+            "name": "vadd",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 512
+          },
+          {
+            "latency": 1025,
+            "name": "write",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 7,
+          "DSP": 0,
+          "FF": 1728,
+          "LUT": 2627,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.174,
+          "DSP": 0.0,
+          "FF": 0.066,
+          "LUT": 0.202,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "a16c1b43bd6da1d9426ce6ed5e99ef32f92c8c2a657c3878c860401751a422de",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "LOOP_FLATTEN",
+          "line_number": 90,
+          "text": "#pragma HLS loop_flatten off"
+        },
+        {
+          "directive": "UNROLL",
+          "line_number": 91,
+          "text": "#pragma HLS UNROLL FACTOR = 2"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/lmem_2rw",
+      "source_sha256": "7b1195b60c6051f76b364d4c9473c4031f960d3807fc04454f0e613b2ebd660f",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/lmem_2rw",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "write",
+            "target": "vadd/write"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "vadd",
+            "target": "vadd/vadd"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read2",
+            "target": "vadd/read2"
+          },
+          {
+            "function": "vadd",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "read1",
+            "target": "vadd/read1"
+          }
+        ],
+        "interval_max": 16554,
+        "interval_min": 10,
+        "latency_avg": 8281,
+        "latency_best": 9,
+        "latency_worst": 16553,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_56_1",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": 4
+          },
+          {
+            "latency": 1025,
+            "name": "read1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 1025,
+            "name": "read2",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 1024,
+            "name": "vadd",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          },
+          {
+            "latency": 1025,
+            "name": "write",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 1024
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 7,
+          "DSP": 0,
+          "FF": 1706,
+          "LUT": 2466,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.174,
+          "DSP": 0.0,
+          "FF": 0.065,
+          "LUT": 0.189,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "19c71fda59d76e282cca4a968ac08853861c3710c9f6fd2ee181f86eb60626a6",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_lmem_2rw",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure/evidence.json",
+      "pareto_class": "identical_metrics",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "krnl_transfer",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_32_2",
+            "target": "krnl_transfer/VITIS_LOOP_32_2"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_27_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_32_2_VITIS_LOOP_33_3",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 17,
+          "DSP": 0,
+          "FF": 1208,
+          "LUT": 1753,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.422,
+          "DSP": 0.0,
+          "FF": 0.046,
+          "LUT": 0.134,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "f263ee576a9433d949e39cb1a22abbdf09205e6ea5265589addc7d84801cd014",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 28,
+          "text": "#pragma HLS PIPELINE II = 1"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 34,
+          "text": "#pragma HLS PIPELINE II = 1"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "source_sha256": "187d6fdfc5c01931f9e3f2d32c79fd93a8a158e669079272d2bc43ce167904c8",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "krnl_transfer",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_27_1",
+            "target": "krnl_transfer/VITIS_LOOP_27_1"
+          },
+          {
+            "function": "krnl_transfer",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_32_3",
+            "target": "krnl_transfer/VITIS_LOOP_32_3"
+          },
+          {
+            "function": "krnl_transfer",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_31_2",
+            "target": "krnl_transfer/VITIS_LOOP_31_2"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_27_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_31_2_VITIS_LOOP_32_3",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 17,
+          "DSP": 0,
+          "FF": 1208,
+          "LUT": 1753,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.422,
+          "DSP": 0.0,
+          "FF": 0.046,
+          "LUT": 0.134,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "f96b029963d744cb113717bb6bdf7f306265c42c8474072ee35d866b4824815c",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "unscorable_reason": "latency_undef",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success/evidence.json",
+      "pareto_class": "identical_metrics",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "transfer_kernel",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_39_2",
+            "target": "transfer_kernel/VITIS_LOOP_39_2"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_32_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_39_2_VITIS_LOOP_40_3",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 17,
+          "DSP": 0,
+          "FF": 1800,
+          "LUT": 2615,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.422,
+          "DSP": 0.0,
+          "FF": 0.069,
+          "LUT": 0.201,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "96134d6be69f0ea0bd27d454a1330d3b168937d94754f92e70a2d6ec6f9fc8b7",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 33,
+          "text": "#pragma HLS PIPELINE II = 1"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 41,
+          "text": "#pragma HLS PIPELINE II = 1"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "source_sha256": "f28fa203b5741c9f203041700d31fa64c20f99adbcc3ac5f329077ca2225e96c",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "transfer_kernel",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_32_1",
+            "target": "transfer_kernel/VITIS_LOOP_32_1"
+          },
+          {
+            "function": "transfer_kernel",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_39_3",
+            "target": "transfer_kernel/VITIS_LOOP_39_3"
+          },
+          {
+            "function": "transfer_kernel",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_38_2",
+            "target": "transfer_kernel/VITIS_LOOP_38_2"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_32_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_38_2_VITIS_LOOP_39_3",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 17,
+          "DSP": 0,
+          "FF": 1800,
+          "LUT": 2615,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.422,
+          "DSP": 0.0,
+          "FF": 0.069,
+          "LUT": 0.201,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "cd37326fddc131986ba4654ca23711ef97cd0be1d173fb851048532c9d280752",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "unscorable_reason": "latency_undef",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_max_widen_port_width/evidence.json",
+      "pareto_class": "identical_metrics",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0,
+        "area_ratio": 1.0,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.0,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.75,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [],
+        "interval_max": 64,
+        "interval_min": 64,
+        "latency_avg": 81,
+        "latency_best": 81,
+        "latency_worst": 81,
+        "loop_metrics": [
+          {
+            "latency": 79,
+            "name": "VITIS_LOOP_29_1",
+            "pipeline_depth": 17,
+            "pipeline_ii": 1,
+            "trip_count": 64
+          }
+        ],
+        "pipeline_type": "loop auto-rewind stp (delay=0 cycles)",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 0,
+          "FF": 1080,
+          "LUT": 1188,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.0,
+          "FF": 0.041,
+          "LUT": 0.091,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "e2689b66cb53647c821ffe1c2dbfb13acc8240cef28dca2f4ef6a63033c03030",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 30,
+          "text": "#pragma HLS PIPELINE II = 1"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/max_widen_port_width",
+      "source_sha256": "4a37920fbdecb6eecf68ab84885a2860c59b7bd8894ae5e3a20929269f9db3f9",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/max_widen_port_width",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "example",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_29_1",
+            "target": "example/VITIS_LOOP_29_1"
+          }
+        ],
+        "interval_max": 64,
+        "interval_min": 64,
+        "latency_avg": 81,
+        "latency_best": 81,
+        "latency_worst": 81,
+        "loop_metrics": [
+          {
+            "latency": 79,
+            "name": "VITIS_LOOP_29_1",
+            "pipeline_depth": 17,
+            "pipeline_ii": 1,
+            "trip_count": 64
+          }
+        ],
+        "pipeline_type": "loop auto-rewind stp (delay=0 cycles)",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 0,
+          "FF": 1080,
+          "LUT": 1188,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.0,
+          "FF": 0.041,
+          "LUT": 0.091,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "cc6a800c11b60d14b19d6f2ecfc56532370d7adeeb5e3d93c3b7ca1c0bd17bbc",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_max_widen_port_width",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.5145666731074418,
+        "standardized_score": 51.45666731074417
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.4841311385979079,
+        "standardized_score": 48.41311385979079
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_ram_uram/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 8.0,
+        "area_ratio": 0.125,
+        "bottleneck_resource": "URAM",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 0.017543859649122806,
+          "DSP": 1.0,
+          "FF": 1.0273972602739727,
+          "LUT": 6.266666666666667,
+          "URAM": 8.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.2098765432098766,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.44,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "yes",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 150,
+          "LUT": 282,
+          "URAM": 8
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.006,
+          "LUT": 0.022,
+          "URAM": 0.833
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "cf9213122394fc90fda33d06c9cf277b6bf9adf25749ef4fa41376e707007c0a",
+      "reference_synth_pass": true,
+      "removed_directive_count": 3,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 25,
+          "text": "#pragma HLS PIPELINE II = 1"
+        },
+        {
+          "directive": "DEPENDENCE",
+          "line_number": 28,
+          "text": "#pragma HLS DEPENDENCE variable = buffer inter WAR false"
+        },
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 29,
+          "text": "#pragma HLS BIND_STORAGE variable = buffer type = ram_2p impl = uram"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Interface/Memory/ram_uram",
+      "source_sha256": "66759d7aaec48048fa6b5bc854559797f2691ac21079b172741dd976499b4ea7",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/ram_uram",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.983,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 57,
+          "DSP": 0,
+          "FF": 146,
+          "LUT": 45,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 1.414,
+          "DSP": 0.0,
+          "FF": 0.006,
+          "LUT": 0.003,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "762bf4f9700ca4091d99313fd97c3e59a70707a9541f1c6fcfeb488c9f58a482",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_memory_ram_uram",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_streaming_axi_stream_to_master/evidence.json",
+      "pareto_class": "starter_dominates",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_43_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_30_2",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_28_1",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 0,
+          "FF": 1822,
+          "LUT": 2221,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 0.0,
+          "FF": 0.07,
+          "LUT": 0.17,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "0c1273bca2b53208be6e16e1422245a95beff2999e85b8912434d98d26a4c275",
+      "reference_synth_pass": true,
+      "removed_directive_count": 3,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 31,
+          "text": "#pragma HLS PIPELINE"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 44,
+          "text": "#pragma HLS PIPELINE"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 63,
+          "text": "#pragma HLS DATAFLOW"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Interface/Streaming/axi_stream_to_master",
+      "source_sha256": "6234d6cfef915265768266b16e638b1b54e868eef11e887894b28707f9c13678",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axi_stream_to_master",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "example",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_42_1",
+            "target": "example/VITIS_LOOP_42_1"
+          },
+          {
+            "function": "example",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_30_2",
+            "target": "example/VITIS_LOOP_30_2"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_28_1",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_42_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_30_2",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 0,
+          "FF": 1813,
+          "LUT": 2056,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 0.0,
+          "FF": 0.07,
+          "LUT": 0.158,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "a6506cc290cbbce208464556dbabd35aa8cd08cc5dbef8791c719e197d5a9a61",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__interface_streaming_axi_stream_to_master",
+      "unscorable_reason": "latency_undef",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.6301818470939855,
+        "standardized_score": 63.018184709398554
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.6141892591494205,
+        "standardized_score": 61.418925914942044
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 3.0,
+        "area_ratio": 0.3333333333333333,
+        "bottleneck_resource": "BRAM_18K",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 3.0,
+          "DSP": 1.0,
+          "FF": 0.1504424778761062,
+          "LUT": 0.6259946949602122,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.4375,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.272,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 3,
+          "DSP": 0,
+          "FF": 17,
+          "LUT": 236,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.074,
+          "DSP": 0.0,
+          "FF": 0.001,
+          "LUT": 0.018,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "cc2b82a27e302fae894f35f84fd0ba01b1f8e2c4d6ef86bf34d4a47f878c8119",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 30,
+          "text": "#pragma HLS BIND_STORAGE variable = ts type = RAM_2P impl = BRAM"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "source_sha256": "c60513a81282605001b157b19d7e686bbe2b800186f90e3cd7a242501e57537b",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.31,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 113,
+          "LUT": 377,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.004,
+          "LUT": 0.029,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "66f8c8a55c9b7226c9ce2f05f4ec260f8fbdc53293c7d136906f1f4a950477f1",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.2961189661721477,
+        "standardized_score": 29.61189661721477
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.3203889201454472,
+        "standardized_score": 32.038892014544714
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_initialization_and_reset_static_array_ram/evidence.json",
+      "pareto_class": "starter_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.4906542056074767,
+        "area_ratio": 0.670846394984326,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.3709677419354838,
+          "LUT": 1.4906542056074767,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 0.08333333333333333,
+        "performance_ratio": 0.08333333333333333,
+        "q_area": 0.6417988728884259,
+        "q_perf": 0.1479289940828401
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.434,
+        "inferred_directives": [],
+        "interval_max": 13,
+        "interval_min": 5,
+        "latency_avg": 8,
+        "latency_best": 4,
+        "latency_worst": 12,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 0,
+          "FF": 85,
+          "LUT": 319,
+          "URAM": 1
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.0,
+          "FF": 0.003,
+          "LUT": 0.024,
+          "URAM": 0.104
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "5f9553c3a72d3a9a9fe4c7eb3a5dcf4b560d5d5ac52b536af6283a1dd6ea718f",
+      "reference_synth_pass": true,
+      "removed_directive_count": 3,
+      "removed_directives": [
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 24,
+          "text": "#pragma HLS BIND_STORAGE variable = A type = RAM_2P impl = BRAM"
+        },
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 26,
+          "text": "#pragma HLS BIND_STORAGE variable = B type = RAM_2P impl = LUTRAM"
+        },
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 28,
+          "text": "#pragma HLS BIND_STORAGE variable = C type = RAM_2P impl = URAM"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Misc/initialization_and_reset/static_array_RAM",
+      "source_sha256": "644bfff735c23426464abf9e1192d71648bb5d7ce33a0363ffbd85ba6cff629c",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_RAM",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.94,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 62,
+          "LUT": 214,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.002,
+          "LUT": 0.016,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "d4a7cd123f55a34c602d4e86b1947bbba1a71bd6756e912a68d70c36d898fb9f",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__misc_initialization_and_reset_static_array_ram",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.764725252863843,
+        "standardized_score": 76.4725252863843
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.7665331985032225,
+        "standardized_score": 76.65331985032225
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_initialization_and_reset_static_array_rom/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 0.8611111111111112,
+        "area_ratio": 1.161290322580645,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.6,
+          "LUT": 0.8611111111111112,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.7859211405658275,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.879,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 0,
+          "FF": 6,
+          "LUT": 31,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.002,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "dd0c0cf9ce29722301775368b89f5c9d70094c20ad448950959fc40b880e33bf",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 24,
+          "text": "#pragma HLS BIND_STORAGE variable = A type = ROM_1P impl = BRAM"
+        },
+        {
+          "directive": "BIND_STORAGE",
+          "line_number": 26,
+          "text": "#pragma HLS BIND_STORAGE variable = B type = ROM_1P impl = LUTRAM"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Misc/initialization_and_reset/static_array_ROM",
+      "source_sha256": "a68d2e6470ea629ef81f10c21b04860e8e92273a06647a558859e409219f0457",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_ROM",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.359,
+        "inferred_directives": [],
+        "interval_max": 2,
+        "interval_min": 2,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 10,
+          "LUT": 36,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.003,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "6e21241711545fa3f1e5c5966d133b138dfc54e165628c07f83fac297832319b",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__misc_initialization_and_reset_static_array_rom",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.7516366875522631,
+        "standardized_score": 75.16366875522631
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.751840893810471,
+        "standardized_score": 75.1840893810471
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_rtl_as_blackbox/evidence.json",
+      "pareto_class": "reference_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 0.983739837398374,
+        "area_ratio": 1.0165289256198347,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 0.983739837398374,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.7540815640956732,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.247,
+        "inferred_directives": [],
+        "interval_max": 1,
+        "interval_min": 1,
+        "latency_avg": 0,
+        "latency_best": 0,
+        "latency_worst": 0,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 121,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.009,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "dd0824663e7fe8b5c66a5bf1d47ed99ec6b41b9e78a59b222924d82e25bcd1cb",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 62,
+          "text": "#pragma HLS inline off"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Misc/rtl_as_blackbox",
+      "source_sha256": "bdab9a1827a6571a2d964a352be92f38c26f4c218ec1de03e9f6083d4be18510",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/rtl_as_blackbox",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.32,
+        "inferred_directives": [],
+        "interval_max": 1,
+        "interval_min": 1,
+        "latency_avg": 0,
+        "latency_best": 0,
+        "latency_worst": 0,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 123,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.009,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "7caa7c34285fd34f33e03f3194528419eda9898629b9acbdbf2c30af3adf8e3f",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__misc_rtl_as_blackbox",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.7651589611944967,
+        "standardized_score": 76.51589611944966
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.7456464439518755,
+        "standardized_score": 74.56464439518756
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__modeling_conditional_control_of_pragmas_using_template_function/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 2.4247104247104247,
+        "area_ratio": 0.4124203821656051,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.5714285714285714,
+          "LUT": 2.4247104247104247,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 2.0,
+        "performance_ratio": 2.0,
+        "q_area": 0.4987296144103289,
+        "q_perf": 0.8888888888888888
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.579,
+        "inferred_directives": [],
+        "interval_max": 18,
+        "interval_min": 18,
+        "latency_avg": 17,
+        "latency_best": 17,
+        "latency_worst": 17,
+        "loop_metrics": [
+          {
+            "latency": 8,
+            "name": "condition",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": 2
+          },
+          {
+            "latency": 5,
+            "name": "condition",
+            "pipeline_depth": 3,
+            "pipeline_ii": 2,
+            "trip_count": 2
+          },
+          {
+            "latency": 8,
+            "name": "condition",
+            "pipeline_depth": 4,
+            "pipeline_ii": null,
+            "trip_count": 2
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 88,
+          "LUT": 628,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.003,
+          "LUT": 0.048,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "8aac9e0b411376cd46ff3c9d904458b4f026280b78279272dbcb49ddc44bb294",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "UNROLL",
+          "line_number": 8,
+          "text": "    #pragma HLS unroll factor=FACTOR"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Modeling/conditional_control_of_pragmas/using_template_function",
+      "source_sha256": "2e80f77215d1470db09195c26d3f85c6af8f5721099770e915098b2653d90ccc",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_template_function",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.579,
+        "inferred_directives": [],
+        "interval_max": 35,
+        "interval_min": 35,
+        "latency_avg": 34,
+        "latency_best": 34,
+        "latency_worst": 34,
+        "loop_metrics": [
+          {
+            "latency": 20,
+            "name": "condition",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": 10
+          },
+          {
+            "latency": 10,
+            "name": "condition",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 10
+          },
+          {
+            "latency": 20,
+            "name": "condition",
+            "pipeline_depth": 2,
+            "pipeline_ii": null,
+            "trip_count": 10
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 56,
+          "LUT": 259,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.002,
+          "LUT": 0.02,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "87fc6896f9390031ca829a4e78e453fefa270689f65d75749969fdbebb0cb2cf",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.8101912453546026,
+        "standardized_score": 81.01912453546026
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.8021308409824774,
+        "standardized_score": 80.21308409824775
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__modeling_free_running_kernel_remerge_ii4to1/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.2056737588652482,
+        "area_ratio": 0.8294117647058824,
+        "bottleneck_resource": "FF",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.2056737588652482,
+          "LUT": 0.925035360678925,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.7435897435897436,
+        "performance_ratio": 1.7435897435897436,
+        "q_area": 0.701202427601038,
+        "q_perf": 0.8671499694296445
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.864,
+        "inferred_directives": [],
+        "interval_max": 75,
+        "interval_min": 75,
+        "latency_avg": 78,
+        "latency_best": 78,
+        "latency_worst": 78,
+        "loop_metrics": [
+          {
+            "latency": 50,
+            "name": "VITIS_LOOP_55_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 50
+          },
+          {
+            "latency": 74,
+            "name": "VITIS_LOOP_31_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 3,
+            "trip_count": 25
+          },
+          {
+            "latency": 50,
+            "name": "VITIS_LOOP_43_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 50
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 170,
+          "LUT": 654,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.007,
+          "LUT": 0.05,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "reference_synth_pass": true,
+      "removed_directive_count": 5,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 32,
+          "text": "#pragma HLS PIPELINE II = 4"
+        },
+        {
+          "directive": "LATENCY",
+          "line_number": 33,
+          "text": "#pragma HLS LATENCY min = 2 max = 2"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 44,
+          "text": "#pragma HLS PIPELINE II = 1"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 56,
+          "text": "#pragma HLS PIPELINE II = 1"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 67,
+          "text": "#pragma HLS DATAFLOW"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Modeling/free_running_kernel_remerge_ii4to1",
+      "source_sha256": "7cf9e5a5f1bec736451a93b0553f74c8e3dc25cba54299b7c19fb27b27b7a66c",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.864,
+        "inferred_directives": [
+          {
+            "function": "example",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_52_1",
+            "target": "example/VITIS_LOOP_52_1"
+          },
+          {
+            "function": "example",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_31_1",
+            "target": "example/VITIS_LOOP_31_1"
+          },
+          {
+            "function": "example",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_41_1",
+            "target": "example/VITIS_LOOP_41_1"
+          }
+        ],
+        "interval_max": 137,
+        "interval_min": 137,
+        "latency_avg": 136,
+        "latency_best": 136,
+        "latency_worst": 136,
+        "loop_metrics": [
+          {
+            "latency": 50,
+            "name": "VITIS_LOOP_52_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 50
+          },
+          {
+            "latency": 25,
+            "name": "VITIS_LOOP_31_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 25
+          },
+          {
+            "latency": 50,
+            "name": "VITIS_LOOP_41_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 50
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 141,
+          "LUT": 707,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.005,
+          "LUT": 0.054,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "4ad863deca5b42917423622073266f75e56407f965e91075d02a9869ada3ac0f",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.9913606217707875,
+        "standardized_score": 99.13606217707876
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.9797941345533547,
+        "standardized_score": 97.97941345533548
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__modeling_using_array_stencil_2d/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 32.75,
+        "area_ratio": 0.030534351145038167,
+        "bottleneck_resource": "DSP",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 32.75,
+          "FF": 3.044350580781415,
+          "LUT": 1.662334593572779,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 456.16878931341824,
+        "performance_ratio": 456.16878931341824,
+        "q_area": 0.05838134430727038,
+        "q_perf": 0.9999952153865953
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "filter2dkernel",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "load_coefs",
+            "target": "filter2dkernel/load_coefs"
+          },
+          {
+            "function": "filter2dkernel",
+            "kind": "loop_flatten",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_426_2",
+            "target": "filter2dkernel/VITIS_LOOP_426_2"
+          }
+        ],
+        "interval_max": 44992,
+        "interval_min": 44992,
+        "latency_avg": 44991,
+        "latency_best": 44991,
+        "latency_worst": 44991,
+        "loop_metrics": [
+          {
+            "latency": 226,
+            "name": "load_coefs_VITIS_LOOP_419_1",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 225
+          },
+          {
+            "latency": 44631,
+            "name": "VITIS_LOOP_426_2_VITIS_LOOP_428_3",
+            "pipeline_depth": 17,
+            "pipeline_ii": 1,
+            "trip_count": 44616
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 15,
+          "DSP": 131,
+          "FF": 11532,
+          "LUT": 14070,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.372,
+          "DSP": 1.452,
+          "FF": 0.442,
+          "LUT": 1.079,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "1b2b6c1486248f2e369984db23e4130b92f95b21b3446e830a8bc971d2d73396",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 420,
+          "text": "#pragma HLS PIPELINE II=1"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 430,
+          "text": "#pragma HLS pipeline II=1"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Modeling/using_array_stencil_2d",
+      "source_sha256": "2d4f2c0964bd3ab1ba6b433c0435cc9f197e6ae33529d0ddcab493f1132e8308",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_array_stencil_2d",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "filter2dkernel",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "load_coefs",
+            "target": "filter2dkernel/load_coefs"
+          },
+          {
+            "function": "filter2dkernel",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_436_5",
+            "target": "filter2dkernel/VITIS_LOOP_436_5"
+          }
+        ],
+        "interval_max": 20523491,
+        "interval_min": 9771035,
+        "latency_avg": 15169570,
+        "latency_best": 9771034,
+        "latency_worst": 20523490,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_425_2",
+            "pipeline_depth": null,
+            "pipeline_ii": null,
+            "trip_count": 44
+          },
+          {
+            "latency": 16,
+            "name": "load_coefs",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": 15
+          },
+          {
+            "latency": 228,
+            "name": "VITIS_LOOP_433_4_VITIS_LOOP_436_5",
+            "pipeline_depth": 5,
+            "pipeline_ii": 1,
+            "trip_count": 225
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 15,
+          "DSP": 4,
+          "FF": 3788,
+          "LUT": 8464,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.372,
+          "DSP": 0.044,
+          "FF": 0.145,
+          "LUT": 0.649,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "871cf1687e3585c7016b43013f6924bdb7866115f06e1d0a2905e87aedc10bf3",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__modeling_using_array_stencil_2d",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.75,
+        "standardized_score": 75.0
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__pipelining_functions_function_instantiate/evidence.json",
+      "pareto_class": "identical_metrics",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0,
+        "area_ratio": 1.0,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0,
+          "LUT": 1.0,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.75,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 0.705,
+        "inferred_directives": [],
+        "interval_max": 1,
+        "interval_min": 1,
+        "latency_avg": 0,
+        "latency_best": 0,
+        "latency_worst": 0,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 30,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.002,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "ad3b69f6ba7da0590ec4e3b195ade533ce1fab320be5ddde89c8757701e62efc",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 22,
+          "text": "#pragma HLS INLINE OFF"
+        },
+        {
+          "directive": "FUNCTION_INSTANTIATE",
+          "line_number": 23,
+          "text": "#pragma HLS FUNCTION_INSTANTIATE variable = incr"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Pipelining/Functions/function_instantiate",
+      "source_sha256": "e8c186d0744d0480629d4abc18f7f1ed1b168375abec0b7b4dc6e577655bb96f",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Functions/function_instantiate",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 0.705,
+        "inferred_directives": [],
+        "interval_max": 1,
+        "interval_min": 1,
+        "latency_avg": 0,
+        "latency_best": 0,
+        "latency_worst": 0,
+        "loop_metrics": [],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 0,
+          "LUT": 30,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.002,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "9a227356ea300f92891fdba21c13afcd47b1342330f84303eeb77f3c589f339a",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__pipelining_functions_function_instantiate",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.6111774586519365,
+        "standardized_score": 61.117745865193655
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.5696054219255481,
+        "standardized_score": 56.96054219255481
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__pipelining_loops_using_free_running_pipeline/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 9.0,
+        "area_ratio": 0.1111111111111111,
+        "bottleneck_resource": "DSP",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 9.0,
+          "FF": 5.557645134914146,
+          "LUT": 3.0611934625617634,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.8658156862745099,
+        "performance_ratio": 1.8658156862745099,
+        "q_area": 0.19000000000000006,
+        "q_perf": 0.8782403225325691
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.61,
+        "inferred_directives": [
+          {
+            "function": "process",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_38_1",
+            "target": "process/VITIS_LOOP_38_1"
+          },
+          {
+            "function": "free_pipe_mult",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_66_1",
+            "target": "free_pipe_mult/VITIS_LOOP_66_1"
+          }
+        ],
+        "interval_max": 8,
+        "interval_min": 8,
+        "latency_avg": 51,
+        "latency_best": 51,
+        "latency_worst": 51,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_66_1",
+            "pipeline_depth": 9,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          },
+          {
+            "latency": 7,
+            "name": "VITIS_LOOP_38_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 27,
+          "FF": 6797,
+          "LUT": 8054,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.299,
+          "FF": 0.261,
+          "LUT": 0.618,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "912f934b53f0dc3c582be77f1268d8e9bd908f257af65c1e7d0c0ca7809c495d",
+      "reference_synth_pass": true,
+      "removed_directive_count": 5,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 25,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 36,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 46,
+          "text": "#pragma HLS pipeline"
+        },
+        {
+          "directive": "ARRAY_PARTITION",
+          "line_number": 50,
+          "text": "#pragma HLS ARRAY_PARTITION variable = regA complete"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 61,
+          "text": "#pragma HLS DATAFLOW"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Pipelining/Loops/using_free_running_pipeline",
+      "source_sha256": "c28b876f27208a0c70179ec4127cbdce7751a1d759859518653f70f4ab171bf3",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/using_free_running_pipeline",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 6.179,
+        "inferred_directives": [
+          {
+            "function": "free_pipe_mult",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_61_1",
+            "target": "free_pipe_mult/VITIS_LOOP_61_1"
+          },
+          {
+            "function": "free_pipe_mult",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_36_1",
+            "target": "free_pipe_mult/VITIS_LOOP_36_1"
+          },
+          {
+            "function": "free_pipe_mult",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_47_1",
+            "target": "free_pipe_mult/VITIS_LOOP_47_1"
+          },
+          {
+            "function": "free_pipe_mult",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_27_1",
+            "target": "free_pipe_mult/VITIS_LOOP_27_1"
+          }
+        ],
+        "interval_max": 78,
+        "interval_min": 78,
+        "latency_avg": 77,
+        "latency_best": 77,
+        "latency_worst": 77,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_61_1",
+            "pipeline_depth": 9,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          },
+          {
+            "latency": 8,
+            "name": "VITIS_LOOP_36_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          },
+          {
+            "latency": 13,
+            "name": "VITIS_LOOP_47_1",
+            "pipeline_depth": 7,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          },
+          {
+            "latency": 33,
+            "name": "VITIS_LOOP_27_1",
+            "pipeline_depth": 6,
+            "pipeline_ii": 4,
+            "trip_count": 8
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 3,
+          "FF": 1223,
+          "LUT": 2631,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.033,
+          "FF": 0.047,
+          "LUT": 0.202,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "b237fee1a2956444a29c6a529e5ad4c6c032fadf7eb45e99b8b3319f42c93186",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__pipelining_loops_using_free_running_pipeline",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_load_balance/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.856,
+        "inferred_directives": [
+          {
+            "function": "consumer1",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_56_1",
+            "target": "consumer1/VITIS_LOOP_56_1"
+          },
+          {
+            "function": "producer4",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_48_1",
+            "target": "producer4/VITIS_LOOP_48_1"
+          },
+          {
+            "function": "producer3",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_40_1",
+            "target": "producer3/VITIS_LOOP_40_1"
+          },
+          {
+            "function": "producer2",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_32_1",
+            "target": "producer2/VITIS_LOOP_32_1"
+          },
+          {
+            "function": "producer1",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_24_1",
+            "target": "producer1/VITIS_LOOP_24_1"
+          }
+        ],
+        "interval_max": 64,
+        "interval_min": 64,
+        "latency_avg": 65,
+        "latency_best": 65,
+        "latency_worst": 65,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_24_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_32_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_40_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_48_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 63,
+            "name": "VITIS_LOOP_56_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 64
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 37,
+          "LUT": 422,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.001,
+          "LUT": 0.032,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "594e00959de2e60add46b56a9277b20af752a5a20693f6a818e493b925f6c06e",
+      "reference_synth_pass": true,
+      "removed_directive_count": 6,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 23,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 31,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 39,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 47,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 55,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 64,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/merge_split/merge_load_balance",
+      "source_sha256": "79fc02ab138d42212fa04474f6afff942169839a7f70a9003370d25ce96dca77",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/merge_split/merge_load_balance",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "26fe78a1694d5b5544014df9b1ca2c4c48ebda7bf7313a5edb9df2d7c6181ad8",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_load_balance",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.856,
+        "inferred_directives": [
+          {
+            "function": "consumer1",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_56_1",
+            "target": "consumer1/VITIS_LOOP_56_1"
+          },
+          {
+            "function": "producer4",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_48_1",
+            "target": "producer4/VITIS_LOOP_48_1"
+          },
+          {
+            "function": "producer3",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_40_1",
+            "target": "producer3/VITIS_LOOP_40_1"
+          },
+          {
+            "function": "producer2",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_32_1",
+            "target": "producer2/VITIS_LOOP_32_1"
+          },
+          {
+            "function": "producer1",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_24_1",
+            "target": "producer1/VITIS_LOOP_24_1"
+          }
+        ],
+        "interval_max": 64,
+        "interval_min": 64,
+        "latency_avg": 65,
+        "latency_best": 65,
+        "latency_worst": 65,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_24_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_32_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_40_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_48_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 63,
+            "name": "VITIS_LOOP_56_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 64
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 37,
+          "LUT": 422,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.001,
+          "LUT": 0.032,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "96a548c2cddcda9164e0062df2cc0fcb038f60e4bc96615e7ab56aa1dad74dbf",
+      "reference_synth_pass": true,
+      "removed_directive_count": 6,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 23,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 31,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 39,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 47,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 55,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 64,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/merge_split/merge_round_robin",
+      "source_sha256": "e82bc01cc6b0773ef3c1e7a472ca22a87d2b648886ed082de68c200986cf80d0",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/merge_split/merge_round_robin",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "1e079df5c40cfd4ead012d07bd33cd52bfd689a04ec54f835a34a28cca38f5a2",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.856,
+        "inferred_directives": [
+          {
+            "function": "consumer4",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_57_1",
+            "target": "consumer4/VITIS_LOOP_57_1"
+          },
+          {
+            "function": "consumer3",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_49_1",
+            "target": "consumer3/VITIS_LOOP_49_1"
+          },
+          {
+            "function": "consumer2",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_41_1",
+            "target": "consumer2/VITIS_LOOP_41_1"
+          },
+          {
+            "function": "consumer1",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_33_1",
+            "target": "consumer1/VITIS_LOOP_33_1"
+          },
+          {
+            "function": "producer",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_25_1",
+            "target": "producer/VITIS_LOOP_25_1"
+          }
+        ],
+        "interval_max": 16,
+        "interval_min": 16,
+        "latency_avg": 17,
+        "latency_best": 17,
+        "latency_worst": 17,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_25_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_33_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_41_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_49_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_57_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 26,
+          "LUT": 350,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.001,
+          "LUT": 0.027,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "4b2ecb194124c04daaeb0da14a86d0266a9c0f5689f6d52eb5929f5abefb71b9",
+      "reference_synth_pass": true,
+      "removed_directive_count": 6,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 23,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 32,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 40,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 48,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 56,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 66,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/merge_split/split_load_balance",
+      "source_sha256": "eaae8423b8cfce6ccddd0d6abd0ffa33418d3dc432aaf314e3554a1b29153f13",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/merge_split/split_load_balance",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "1e25b788fd26a4a50564a85e7c7ebc9e185901eb324aa248da3c29a2f8a9f6fd",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_load_balance",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.856,
+        "inferred_directives": [
+          {
+            "function": "consumer4",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_57_1",
+            "target": "consumer4/VITIS_LOOP_57_1"
+          },
+          {
+            "function": "consumer3",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_49_1",
+            "target": "consumer3/VITIS_LOOP_49_1"
+          },
+          {
+            "function": "consumer2",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_41_1",
+            "target": "consumer2/VITIS_LOOP_41_1"
+          },
+          {
+            "function": "consumer1",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_33_1",
+            "target": "consumer1/VITIS_LOOP_33_1"
+          },
+          {
+            "function": "producer",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_25_1",
+            "target": "producer/VITIS_LOOP_25_1"
+          }
+        ],
+        "interval_max": 16,
+        "interval_min": 16,
+        "latency_avg": 17,
+        "latency_best": 17,
+        "latency_worst": 17,
+        "loop_metrics": [
+          {
+            "latency": 15,
+            "name": "VITIS_LOOP_25_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 16
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_33_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_41_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_49_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          },
+          {
+            "latency": 3,
+            "name": "VITIS_LOOP_57_1",
+            "pipeline_depth": 1,
+            "pipeline_ii": 1,
+            "trip_count": 4
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 26,
+          "LUT": 350,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.001,
+          "LUT": 0.027,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "e8a338c8bb048c990a2858660530085287882942f5528cbad6a5599245e4d41c",
+      "reference_synth_pass": true,
+      "removed_directive_count": 6,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 23,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 32,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 40,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 48,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 56,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 66,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/merge_split/split_round_robin",
+      "source_sha256": "991bdc4f01c0a649c8e26b0e37d0e82be4d4a1e273e74110669d8ed1d4bf645e",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/merge_split/split_round_robin",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "65c773fe7dcb14d8197596e68de57e9a48b8f6e90939a4c919d3258ab0419098",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.7551313095027431,
+        "standardized_score": 75.51313095027432
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.7554694795217489,
+        "standardized_score": 75.54694795217489
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_simple_fifos/evidence.json",
+      "pareto_class": "reference_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 0.9636363636363636,
+        "area_ratio": 1.0377358490566038,
+        "bottleneck_resource": "FF",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 0.9636363636363636,
+          "LUT": 0.8670212765957447,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0097402597402598,
+        "performance_ratio": 1.0097402597402598,
+        "q_area": 0.7591735253772292,
+        "q_perf": 0.7524173911227917
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.843,
+        "inferred_directives": [],
+        "interval_max": 100,
+        "interval_min": 100,
+        "latency_avg": 308,
+        "latency_best": 308,
+        "latency_worst": 308,
+        "loop_metrics": [
+          {
+            "latency": 100,
+            "name": "Loop0",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 100
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 106,
+          "LUT": 489,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.004,
+          "LUT": 0.038,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "reference_synth_pass": true,
+      "removed_directive_count": 9,
+      "removed_directives": [
+        {
+          "directive": "DATAFLOW",
+          "line_number": 25,
+          "text": "#pragma HLS dataflow"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 33,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 36,
+          "text": "#pragma HLS pipeline"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 44,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 47,
+          "text": "#pragma HLS pipeline"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 53,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 56,
+          "text": "#pragma HLS pipeline"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 62,
+          "text": "#pragma HLS inline off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 65,
+          "text": "#pragma HLS pipeline"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "source_sha256": "f5eace3178ddf804cbf16ddf294f502d414176e5079554d1b0062cb49c99732d",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.843,
+        "inferred_directives": [
+          {
+            "function": "diamond",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop0",
+            "target": "diamond/Loop0"
+          }
+        ],
+        "interval_max": 312,
+        "interval_min": 312,
+        "latency_avg": 311,
+        "latency_best": 311,
+        "latency_worst": 311,
+        "loop_metrics": [
+          {
+            "latency": 100,
+            "name": "Loop0",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 100
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 110,
+          "LUT": 564,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.004,
+          "LUT": 0.043,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "9e79f58e5075388d36505715f37c3c503787766597f1cfd509c036f795bf156e",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.8936128614671144,
+        "standardized_score": 89.36128614671144
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.8839883321635791,
+        "standardized_score": 88.39883321635791
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_using_fifos/evidence.json",
+      "pareto_class": "tradeoff",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 1.0554112554112554,
+        "area_ratio": 0.9474979491386383,
+        "bottleneck_resource": "LUT",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 1.0508030431107354,
+          "LUT": 1.0554112554112554,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 3.473684210526316,
+        "performance_ratio": 3.473684210526316,
+        "q_area": 0.7363389471308452,
+        "q_perf": 0.9500346020761246
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "load",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_Ld",
+            "target": "load/Loop_Ld"
+          },
+          {
+            "function": "compute_a",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_A",
+            "target": "compute_a/Loop_A"
+          },
+          {
+            "function": "compute_b",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_B",
+            "target": "compute_b/Loop_B"
+          },
+          {
+            "function": "compute_c",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_C",
+            "target": "compute_c/Loop_C"
+          },
+          {
+            "function": "compute_d",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_D",
+            "target": "compute_d/Loop_D"
+          },
+          {
+            "function": "store",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_St",
+            "target": "store/Loop_St"
+          }
+        ],
+        "interval_max": 44,
+        "interval_min": 11,
+        "latency_avg": 41,
+        "latency_best": 24,
+        "latency_worst": 57,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "Loop_Ld",
+            "pipeline_depth": 11,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_A",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_B",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_C",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_D",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_St",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 8,
+          "DSP": 0,
+          "FF": 12431,
+          "LUT": 9752,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.198,
+          "DSP": 0.0,
+          "FF": 0.477,
+          "LUT": 0.748,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "a92c32f8145b43204c5197ca7e5db5ba739e9a37d8898630edbcea371531265f",
+      "reference_synth_pass": true,
+      "removed_directive_count": 7,
+      "removed_directives": [
+        {
+          "directive": "DATAFLOW",
+          "line_number": 33,
+          "text": "#pragma HLS dataflow"
+        },
+        {
+          "directive": "PERFORMANCE",
+          "line_number": 46,
+          "text": "#pragma HLS performance target_ti = 32"
+        },
+        {
+          "directive": "PERFORMANCE",
+          "line_number": 56,
+          "text": "#pragma HLS performance target_ti = 32"
+        },
+        {
+          "directive": "PERFORMANCE",
+          "line_number": 68,
+          "text": "#pragma HLS performance target_ti = 32"
+        },
+        {
+          "directive": "PERFORMANCE",
+          "line_number": 78,
+          "text": "#pragma HLS performance target_ti = 32"
+        },
+        {
+          "directive": "PERFORMANCE",
+          "line_number": 87,
+          "text": "#pragma HLS performance target_ti = 32"
+        },
+        {
+          "directive": "PERFORMANCE",
+          "line_number": 96,
+          "text": "#pragma HLS performance target_ti = 32"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/using_fifos",
+      "source_sha256": "60f64654b7f6ed0d836adabf54a6cae879a395584338a6e6eaccf0239ac7568f",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/using_fifos",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "compute_d",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_D",
+            "target": "compute_d/Loop_D"
+          },
+          {
+            "function": "compute_c",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_C",
+            "target": "compute_c/Loop_C"
+          },
+          {
+            "function": "compute_b",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_B",
+            "target": "compute_b/Loop_B"
+          },
+          {
+            "function": "compute_a",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_A",
+            "target": "compute_a/Loop_A"
+          },
+          {
+            "function": "diamond",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_Ld",
+            "target": "diamond/Loop_Ld"
+          },
+          {
+            "function": "diamond",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "Loop_St",
+            "target": "diamond/Loop_St"
+          }
+        ],
+        "interval_max": 199,
+        "interval_min": 34,
+        "latency_avg": 118,
+        "latency_best": 33,
+        "latency_worst": 198,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "Loop_Ld",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_A",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_B",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_C",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_D",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "Loop_St",
+            "pipeline_depth": 3,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 8,
+          "DSP": 0,
+          "FF": 11830,
+          "LUT": 9240,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.198,
+          "DSP": 0.0,
+          "FF": 0.454,
+          "LUT": 0.709,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "c1ea040d69c9e7f4d553d9e8da63e453f27192e82f519e646385698f5714085c",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_using_fifos",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.8,
+        "inferred_directives": [],
+        "interval_max": 100,
+        "interval_min": 100,
+        "latency_avg": 258,
+        "latency_best": 258,
+        "latency_worst": 258,
+        "loop_metrics": [
+          {
+            "latency": 99,
+            "name": "funcA_Loop0",
+            "pipeline_depth": 10,
+            "pipeline_ii": 10,
+            "trip_count": 10
+          },
+          {
+            "latency": 51,
+            "name": "funcB_Loop0",
+            "pipeline_depth": 7,
+            "pipeline_ii": 5,
+            "trip_count": 10
+          },
+          {
+            "latency": 51,
+            "name": "Loop0",
+            "pipeline_depth": 7,
+            "pipeline_ii": 5,
+            "trip_count": 10
+          },
+          {
+            "latency": 100,
+            "name": "Loop0",
+            "pipeline_depth": 11,
+            "pipeline_ii": 10,
+            "trip_count": 10
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 253,
+          "LUT": 1791,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.01,
+          "LUT": 0.137,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "0c9ff8254dc0dc8a5d5e7292f25ca844277669bccabce5305e35e185c2c68265",
+      "reference_synth_pass": true,
+      "removed_directive_count": 9,
+      "removed_directives": [
+        {
+          "directive": "DATAFLOW",
+          "line_number": 28,
+          "text": "#pragma HLS dataflow"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 37,
+          "text": "#pragma HLS INLINE off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 41,
+          "text": "#pragma HLS pipeline II = 10"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 59,
+          "text": "#pragma HLS INLINE off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 63,
+          "text": "#pragma HLS pipeline II = 5"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 77,
+          "text": "#pragma HLS INLINE off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 81,
+          "text": "#pragma HLS pipeline II = 5"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 94,
+          "text": "#pragma HLS INLINE off"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 98,
+          "text": "#pragma HLS pipeline II = 10"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Channels/using_stream_of_blocks",
+      "source_sha256": "2838488f132401d7c89aa3ba145f9dfe8043814502d57441fc315ad9b9311ee3",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/using_stream_of_blocks",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "6e2f6a8ec54e87e73ec4943db5c1d5bd306e53e9defd692e113fc0596f158c27",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync/evidence.json",
+      "pareto_class": "tradeoff",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": 16,
+            "name": "VITIS_LOOP_27_1",
+            "pipeline_depth": 11,
+            "pipeline_ii": 3,
+            "trip_count": 3
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_48_1",
+            "pipeline_depth": 16,
+            "pipeline_ii": 3,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 0,
+          "FF": 1812,
+          "LUT": 1955,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.0,
+          "FF": 0.069,
+          "LUT": 0.15,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "0c3b0a44ddbd19be3395a42170d43fb368dd14aa3b04fa8ac87d533640e50ed7",
+      "reference_synth_pass": true,
+      "removed_directive_count": 5,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 25,
+          "text": "#pragma HLS INLINE OFF"
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 28,
+          "text": "#pragma HLS PIPELINE II=3 // move to inner loop "
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 46,
+          "text": "#pragma HLS INLINE OFF "
+        },
+        {
+          "directive": "PIPELINE",
+          "line_number": 49,
+          "text": "#pragma HLS PIPELINE II=3"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 64,
+          "text": "#pragma HLS DATAFLOW"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Control_driven/Patterns/using_stream_as_sync",
+      "source_sha256": "115ec205392626e9fc2d940dfb0b61788e8d6aea4d4ebbbd1368761addee78c4",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Patterns/using_stream_as_sync",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_26_1",
+            "target": "dut/VITIS_LOOP_26_1"
+          },
+          {
+            "function": "dut",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_45_1",
+            "target": "dut/VITIS_LOOP_45_1"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": 16,
+            "name": "VITIS_LOOP_26_1",
+            "pipeline_depth": 11,
+            "pipeline_ii": 3,
+            "trip_count": 3
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_45_1",
+            "pipeline_depth": 13,
+            "pipeline_ii": 3,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 1,
+          "DSP": 0,
+          "FF": 1500,
+          "LUT": 1961,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.025,
+          "DSP": 0.0,
+          "FF": 0.058,
+          "LUT": 0.15,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "c5596aeac62e42fda3672581d8d67f0ff9ca60a1c2069df03a6c57179508ee2e",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+      "unscorable_reason": "latency_undef",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.856,
+        "inferred_directives": [
+          {
+            "function": "write_out",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_35_1",
+            "target": "write_out/VITIS_LOOP_35_1"
+          },
+          {
+            "function": "read_in",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_29_1",
+            "target": "read_in/VITIS_LOOP_29_1"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_29_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": null
+          },
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_35_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": null
+          }
+        ],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 109,
+          "LUT": 402,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.004,
+          "LUT": 0.031,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "84c2e2c2258ea79565e3312b7fcba0fc1ca725724036220d09bcf815bb9f6fdb",
+      "reference_synth_pass": true,
+      "removed_directive_count": 2,
+      "removed_directives": [
+        {
+          "directive": "DATAFLOW",
+          "line_number": 43,
+          "text": "#pragma HLS dataflow"
+        },
+        {
+          "directive": "UNROLL",
+          "line_number": 50,
+          "text": "#pragma HLS unroll"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Data_driven/mixed_control_and_data_driven",
+      "source_sha256": "083f33b7b45b2581a3e9706285bbfea4ea563d29086d1ce3894c1b1bcdab8892",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/mixed_control_and_data_driven",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "9407695544c7889ca3c732ca908547ad5ba0c1a3eb12e5904735012fb76a6f4a",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": false,
+      "api_request_count": 0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_data_driven_unique_task_regions/evidence.json",
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 2.826,
+        "inferred_directives": [
+          {
+            "function": "copy",
+            "kind": "pipeline",
+            "origin": "vitis_inferred",
+            "scope": "VITIS_LOOP_23_1",
+            "target": "copy/VITIS_LOOP_23_1"
+          }
+        ],
+        "interval_max": null,
+        "interval_min": null,
+        "latency_avg": null,
+        "latency_best": null,
+        "latency_worst": null,
+        "loop_metrics": [
+          {
+            "latency": null,
+            "name": "VITIS_LOOP_30_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": null,
+            "trip_count": null
+          },
+          {
+            "latency": 8,
+            "name": "VITIS_LOOP_23_1",
+            "pipeline_depth": 2,
+            "pipeline_ii": 1,
+            "trip_count": 8
+          }
+        ],
+        "pipeline_type": "no",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 887,
+          "LUT": 1722,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.034,
+          "LUT": 0.132,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "9b1bd7b5f3780f48dfa8286f867e4f56ec3766ede9ed88e7a65d9f76fbfa34d4",
+      "reference_synth_pass": true,
+      "removed_directive_count": 3,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 31,
+          "text": "#pragma HLS pipeline off"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 40,
+          "text": "#pragma HLS dataflow"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 57,
+          "text": "#pragma HLS dataflow"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": false,
+      "source_path": "Task_level_Parallelism/Data_driven/unique_task_regions",
+      "source_sha256": "67ea8714b0eaa6298969788250d10b086fc6185361746298e4d9b1b54b5f3ba3",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/unique_task_regions",
+      "starter": null,
+      "starter_csim_pass": true,
+      "starter_sha256": "c8ef6020e53652d5fd4f5d357f8d2383a7f510a78d95c4092d3aa3ea93198618",
+      "starter_synth_pass": false,
+      "task_id": "amd_intro__task_level_parallelism_data_driven_unique_task_regions",
+      "unscorable_reason": "one_or_more_tool_stages_failed",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.41840779433748676,
+        "standardized_score": 41.84077943374868
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.3790336177722806,
+        "standardized_score": 37.90336177722806
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks/evidence.json",
+      "pareto_class": "starter_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 18.5,
+        "area_ratio": 0.05405405405405406,
+        "bottleneck_resource": "FF",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 1.0,
+          "DSP": 1.0,
+          "FF": 18.5,
+          "LUT": 1.1216216216216217,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.09993425378040732,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.76,
+        "inferred_directives": [],
+        "interval_max": 1,
+        "interval_min": 1,
+        "latency_avg": 1,
+        "latency_best": 1,
+        "latency_worst": 1,
+        "loop_metrics": [],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 37,
+          "LUT": 166,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.001,
+          "LUT": 0.013,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "bdc2b542b7a89aba184c186aaae13d370b9de655c82d0752a7bd4f47e5701868",
+      "reference_synth_pass": true,
+      "removed_directive_count": 1,
+      "removed_directives": [
+        {
+          "directive": "PIPELINE",
+          "line_number": 23,
+          "text": "            #pragma HLS pipeline II=1"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "source_sha256": "133fa49b571d511854aa7a2b6cbfbf09aff806072f11bfcd23007e5a62ae6e60",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 1.76,
+        "inferred_directives": [],
+        "interval_max": 1,
+        "interval_min": 1,
+        "latency_avg": 0,
+        "latency_best": 0,
+        "latency_worst": 0,
+        "loop_metrics": [],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 2,
+          "LUT": 148,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.0,
+          "LUT": 0.011,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "5fae0820d8ca9ebd42b0d1585411c4251fa53c77a70ee9e4a82c4bd4d28cdc27",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    },
+    {
+      "all_stages_pass": true,
+      "alternative": {
+        "area_weight": 0.4,
+        "performance_weight": 0.6,
+        "q_hw": 0.6763822899435648,
+        "standardized_score": 67.63822899435648
+      },
+      "api_request_count": 0,
+      "current": {
+        "area_weight": 0.45,
+        "performance_weight": 0.55,
+        "q_hw": 0.6666636029955945,
+        "standardized_score": 66.66636029955944
+      },
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks/evidence.json",
+      "pareto_class": "starter_dominates",
+      "qor_components": {
+        "acceleration_source": "synth",
+        "area_growth": 2.0,
+        "area_ratio": 0.5,
+        "bottleneck_resource": "BRAM_18K",
+        "cosim_latency_used": null,
+        "growth_by_resource": {
+          "BRAM_18K": 2.0,
+          "DSP": 1.0,
+          "FF": 1.0597345132743363,
+          "LUT": 1.0536723163841808,
+          "URAM": 1.0
+        },
+        "ii_applied": false,
+        "ii_ratio": 1.0,
+        "latency_ratio": 1.0,
+        "performance_ratio": 1.0,
+        "q_area": 0.5555555555555556,
+        "q_perf": 0.75
+      },
+      "reference": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [],
+        "interval_max": 8,
+        "interval_min": 8,
+        "latency_avg": 9,
+        "latency_best": 9,
+        "latency_worst": 9,
+        "loop_metrics": [],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 2,
+          "DSP": 0,
+          "FF": 958,
+          "LUT": 1492,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.05,
+          "DSP": 0.0,
+          "FF": 0.037,
+          "LUT": 0.114,
+          "URAM": 0.0
+        }
+      },
+      "reference_csim_pass": true,
+      "reference_sha256": "dde19d0def72fdbf7709a0b523226808a540c12895b32188ad885e83d40b3257",
+      "reference_synth_pass": true,
+      "removed_directive_count": 5,
+      "removed_directives": [
+        {
+          "directive": "INLINE",
+          "line_number": 27,
+          "text": "#pragma HLS INLINE off"
+        },
+        {
+          "directive": "INLINE",
+          "line_number": 37,
+          "text": "#pragma HLS INLINE off"
+        },
+        {
+          "directive": "DATAFLOW",
+          "line_number": 62,
+          "text": "#pragma HLS DATAFLOW"
+        },
+        {
+          "directive": "STREAM",
+          "line_number": 70,
+          "text": "#pragma HLS STREAM depth = 512 type = fifo variable = int_fifo"
+        },
+        {
+          "directive": "STREAM",
+          "line_number": 72,
+          "text": "#pragma HLS STREAM depth = 512 type = fifo variable = int_fifo2"
+        }
+      ],
+      "repo_commit": "aa5c160faf5d5ebf58674df8f0591f9984ebae0f",
+      "scorable": true,
+      "source_path": "Task_level_Parallelism/Data_driven/using_maxi_in_tasks",
+      "source_sha256": "2a35a246d14c48e1e5f460dac902b2882e79206df23dd7b9552120c08839f445",
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_maxi_in_tasks",
+      "starter": {
+        "available": {
+          "BRAM_18K": 4032,
+          "DSP": 9024,
+          "FF": 2607360,
+          "LUT": 1303680,
+          "URAM": 960
+        },
+        "clock_period_ns": 3.65,
+        "inferred_directives": [],
+        "interval_max": 8,
+        "interval_min": 8,
+        "latency_avg": 9,
+        "latency_best": 9,
+        "latency_worst": 9,
+        "loop_metrics": [],
+        "pipeline_type": "dataflow",
+        "resources": {
+          "BRAM_18K": 0,
+          "DSP": 0,
+          "FF": 904,
+          "LUT": 1416,
+          "URAM": 0
+        },
+        "utilization": {
+          "BRAM_18K": 0.0,
+          "DSP": 0.0,
+          "FF": 0.035,
+          "LUT": 0.109,
+          "URAM": 0.0
+        }
+      },
+      "starter_csim_pass": true,
+      "starter_sha256": "9163b53a6395d25888041e4cda7e4b693f0e54fc7bfc9ef442ebd3cb8ebb1575",
+      "starter_synth_pass": true,
+      "task_id": "amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks",
+      "unscorable_reason": "",
+      "upstream_hash_verified": true
+    }
+  ]
+}
