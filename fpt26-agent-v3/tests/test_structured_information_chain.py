@@ -54,7 +54,7 @@ def _normalized(**overrides) -> NormalizedLog:
     return NormalizedLog(**values)
 
 
-def test_cholesky_prompt_adds_dependency_guard_domain_constraint() -> None:
+def test_workload_name_does_not_inject_a_prescribed_directive() -> None:
     prompt = build_prompt(
         task=_task(
             description=(
@@ -84,18 +84,15 @@ def test_cholesky_prompt_adds_dependency_guard_domain_constraint() -> None:
     )
 
     payload = json.loads(prompt)
-    constraints = payload["domain_constraints"]
-    assert constraints["kind"] == "triangular_factorization_dependency_guard"
-    assert constraints["evidence"]["reported_dependency_ii"] == 11
-    assert "#pragma HLS pipeline II=11" in constraints[
-        "required_candidate_shape"
-    ]
-    assert "outer row-order loop" in constraints["required_candidate_shape"]
-    assert any(
-        "PIPELINE II=1" in item
-        for item in constraints["forbidden_candidate_shapes"]
+    assert "domain_constraints" not in payload
+    assert "#pragma HLS pipeline II=11" not in prompt
+    assert payload["bottleneck_diagnosis"].startswith(
+        "Measured loop PipelineII=11>1"
     )
-    assert "If domain_constraints is present" in payload["instruction"]
+    assert "preserve non-pragma source" in payload["instruction"]
+    assert "first statement inside the diagnosed loop body" in payload[
+        "instruction"
+    ]
 
 
 def test_cholesky_domain_optimization_guard_does_not_leak_into_repair() -> None:
@@ -294,7 +291,10 @@ def test_optimization_failure_is_serializable_bounded_and_aggregated() -> None:
     assert history[-1].implicated["pragmas"] == [
         "#pragma HLS UNROLL factor=4"
     ]
-    assert "reduce factor" in history[-1].recommended_next_constraint.lower()
+    assert "correct only the exact synthesis compiler diagnostic" in (
+        history[-1].recommended_next_constraint.lower()
+    )
+    assert "reduce factor" not in history[-1].recommended_next_constraint.lower()
     serialized = history[-1].to_dict()
     assert serialized["candidate_action_diff_summary"]
     assert "failed_candidate_diff" not in serialized

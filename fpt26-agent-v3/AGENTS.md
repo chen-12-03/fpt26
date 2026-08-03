@@ -34,9 +34,10 @@ docker run --rm \
 ```
 ratio_quality(r) = 1 - 1/(1+r)²
 performance_ratio = latency_ratio  # 可靠 II 明确适用时才聚合 II
-area_ratio = 1 / max(growth_by_resource)
-hardware_ratio = performance_ratio^0.55 × area_ratio^0.45
-q_hw     = ratio_quality(hardware_ratio)
+U(x) = Σ resource_x[r] / device_capacity[r]
+area_ratio = U(anchor) / U(candidate)  # 零资源使用显式分段规则
+evidence_ratio = 1.01^D × 2^F × performance_ratio^0.55 × area_ratio^0.45
+q_hw     = ratio_quality(evidence_ratio)
 efficiency = max(0.80, 1 - 0.10×cost_ratio - 0.10×time_ratio)
 score    = 100 × validity × q_hw × efficiency
 ```
@@ -45,8 +46,10 @@ score    = 100 × validity × q_hw × efficiency
 - **无 task type 分支** — task_type 仅为标签，不影响公式
 - **统一 utility** — `1-1/(1+r)²`，baseline(1x)=0.75
 - **Anchor 选择** — starter valid → starter；starter invalid → reference
+- **禁止正式自锚定** — starter/reference 均无效时不可计算 QoR 分数
 - **时钟周期纳入计算** — `anchor_time = clock × latency`
-- **资源瓶颈惩罚** — 以最差资源增长比为 area_growth
+- **综合资源压力** — LUT/FF/DSP/BRAM/URAM 各自除以器件容量后求和，允许资源类型转移
+- **证据因子** — `D` 表示源码相对 starter 改变；`F` 表示有效候选修复无效 starter
 
 ### 2.3 统一提示词 — 禁止 mode/task-type 特定提示词
 
@@ -156,7 +159,7 @@ class RunState:
     cosim_ok: bool
     best_latency: int | None
     results: list[ToolResult]
-    scorecard: Scorecard | None  # V3 Scorecard（schema_version=10）
+    scorecard: Scorecard | None  # V3 Scorecard（核心 schema_version=11）
     status: str           # running | completed | budget_exceeded | error
 ```
 

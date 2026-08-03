@@ -321,8 +321,12 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
 
     candidate_freq = _freq_gate_fn(cand_synth.report, task.clock_ns)
     candidate_res = _res_gate_fn(cand_synth.report)
+    candidate_sha256 = hashlib.sha256(kernel.encode("utf-8")).hexdigest()
+    starter_sha256 = hashlib.sha256(
+        task.kernel_code.encode("utf-8")
+    ).hexdigest()
     candidate_eval = CandidateEvaluation(
-        source_sha256=hashlib.sha256(kernel.encode("utf-8")).hexdigest(),
+        source_sha256=candidate_sha256,
         interface=InterfaceGateEvidence(
             ok=bool(getattr(state, "interface_ok", False)),
             reason=(
@@ -375,8 +379,6 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
         starter_eval,
         ref_eval,
         requires_cosim=task.requires_cosim,
-        candidate_eval=candidate_eval,
-        allow_candidate_self_anchor=True,
     )
 
     # Convert AnchorEvidence → scoring Anchor.
@@ -388,17 +390,33 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
         clock_ns=anchor_evidence.clock_ns,
         resources=dict(anchor_evidence.resources),
         available=dict(anchor_evidence.available),
+        hash=anchor_evidence.source_sha256,
     )
 
+    source_changed = candidate_sha256 != starter_sha256
+    validity_rescue = bool(
+        candidate_eval.accepted and not starter_eval.accepted
+    )
     evidence = QoREvidence(
         candidate_latency=cand_lat, candidate_ii=cand_ii,
         candidate_clock_ns=cand_clock, cosim_latency=cosim_latency,
         candidate_resources=cand_resources,
+        source_changed=source_changed,
+        validity_rescue=validity_rescue,
     )
     gates = ValidityGates(
         hidden_csim_pass=csim.ok, hidden_cosim_pass=cosim_ok,
         synth_pass=cand_synth.ok, resource_capacity_pass=state.resource_ok,
+        interface_pass=bool(getattr(state, "interface_ok", False)),
     )
+    state.metadata["scoring_evidence"] = {
+        "candidate_sha256": candidate_sha256,
+        "starter_sha256": starter_sha256,
+        "source_changed": source_changed,
+        "starter_valid": starter_eval.accepted,
+        "validity_rescue": validity_rescue,
+        "candidate_self_anchor_allowed": False,
+    }
 
     # ── 7. Determine cost/time for efficiency ─────────────────────────────
     if accounting is not None:

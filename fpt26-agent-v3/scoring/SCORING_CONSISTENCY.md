@@ -1,6 +1,6 @@
-# V10 统一评分 — calibrated weighted hardware ratio
+# V11 统一评分 — capacity-normalized aggregate resource ratio
 
-**版本：10.0 | 日期：2026-07-19 | 当前权威 schema：10**
+**版本：11.0-draft | 日期：2026-08-03 | 当前权威 schema：11**
 
 ## 核心公式
 
@@ -13,9 +13,14 @@ performance_ratio = latency_ratio
 # 仅在可靠 II 明确适用时：
 # performance_ratio = latency_ratio**0.85 * ii_ratio**0.15
 
-area_growth = max(growth_by_resource)
-area_ratio = 1 / area_growth
-hardware_ratio = performance_ratio**0.55 * area_ratio**0.45
+resource_footprint(x) = sum(resource_x[r] / device_capacity[r])
+area_ratio = resource_footprint(anchor) / resource_footprint(candidate)
+# 零资源边界：两侧均为 0 时取 1；candidate 为 0 时取 A_max=4
+
+D = int(candidate_hash != starter_hash)
+F = int(candidate_valid and not starter_valid)
+hardware_ratio = 1.01**D * 2**F \
+    * performance_ratio**0.55 * area_ratio**0.45
 
 q_perf = ratio_quality(performance_ratio)  # 诊断字段
 q_area = ratio_quality(area_ratio)         # 诊断字段
@@ -34,13 +39,26 @@ cost/time，两类分数不得混用。
 `validity` 还要求来自冻结 anchor synth report 的完整 device capacity：LUT、FF、DSP、
 BRAM_18K、URAM 五项必须都是正整数。缺失/partial capacity 以
 `required_metric_missing` fail closed；candidate 任一资源超过 total 时以
-`resource_capacity_exceeded` 得 0。Area growth 使用 schema 9 起冻结的统一 1.0 count
-floor；device capacity 只用于完整性与超容量 hard gate，不再改变各资源增长比的尺度。
+`resource_capacity_exceeded` 得 0。Schema 11 还使用这些容量把异构资源归一化到共同的
+器件占比尺度；逐项 growth 与 bottleneck 继续记录为诊断字段，但不再直接决定资源分。
 
 对 `requires_cosim=True` 的 task，`candidate_effective_time` 中的 cycles 必须来自通过的
 RTL co-simulation `latency_max`；synth report 只继续提供 clock、II、resources 与 synth
 gate。Cosim gate 未明确 PASS 时以 `hidden_cosim_fail` 失败；PASS 但缺少 measured latency
 时以 `required_metric_missing` fail closed。非 cosim task 仍使用 synthesis latency。
+
+## V10 → V11 资源与修复证据变更
+
+- 资源质量从“最差单项增长”改为五类资源的容量归一化占用之和，避免资源从 LUT
+  转移到 BRAM/URAM 时因为某一项从 0 变成非零而突变。
+- 零资源情况采用显式三分支规则，不使用 `10^-12` 数值垫片；候选零资源收益以
+  `A_max=4` 有界。
+- `D` 记录候选是否确实不同于 starter，提供 1.01 倍最小源码变化证据。
+- `F` 记录候选是否把无效 starter 修复为有效实现，提供 2 倍有效性跃迁证据。
+- 生产公式不截断 `performance_ratio` 或 `area_ratio` 的退化，因此修复奖励不保证候选
+  自动超过 75 分；严重性能或资源退化仍会被连续惩罚。
+- 正式评分不再允许候选自锚定。starter 无效时只允许使用有效 reference；两者均无效
+  时 fail closed。冻结 reference 数据集可另用 positive-only 验证入口，但不能替代生产排名。
 
 ## V9 → V10 权重校准
 
@@ -113,7 +131,7 @@ V5 → V6 是公式一致性修复；其同产物双评分和 V6 基线记录在
   任一 required gate 失败，score 为 0。
 - Effective latency 使用 `max(task_clock, estimated_clock) * cycles`；required cosim
   可用时以 measured latency 为准。
-- Area 继续使用相对 anchor 的最差显著资源增长，防止单一资源成为实现瓶颈。
+- Area 使用相对 anchor 的容量归一化综合资源比；单项增长继续作为瓶颈诊断和容量硬门控证据。
 - Efficiency 仅对 tool credits 与 grading wall time 做有界扣分。
 - API prompt/completion/total token 以及 provider 可选 cached/reasoning token 继续只作
   可观测性记录，不进入 score，避免抑制合理 reflection/multi-agent；未上报字段必须记
@@ -121,12 +139,11 @@ V5 → V6 是公式一致性修复；其同产物双评分和 V6 基线记录在
 
 ## 版本边界
 
-- `scoring/__init__.py`: `__version__ = "10.0.0"`
+- `scoring/__init__.py`: `__version__ = "11.0.0"`
 - `scoring/scoring_v3.py`: 当前实现文件（文件名为兼容 harness 保持不变）
-- `Scorecard.schema_version = 10`
-- Schema 10 是 0.55/0.45 raw-ratio 加权几何聚合，并增加显式 standardized QoR
-  score mode 与未舍入 QoR 组件入口；schema 9 是相同 validity/resource 语义但 0.5/0.5
-  权重的旧基线。
+- `Scorecard.schema_version = 11`；经显式 profile 包装后 profile schema 为 12。
+- Schema 11 是带 `D/F` 证据因子的 0.55/0.45 raw-ratio 加权几何聚合，并采用容量
+  归一化综合资源比；schema 10 使用相同权重但以最差单项增长定义资源比。
 - Schema 7 是相同公式/capacity 但 required-cosim 仍路由 synth estimate 的旧基线；
   schema 6 是未集成 capacity 的旧基线；schema 5 是更早的 pre-composition 公式。此前
   实验性 token V6/V7 run 与这些权威 schema 无关，不得混用。当前 schema 的识别特征是

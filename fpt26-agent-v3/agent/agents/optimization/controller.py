@@ -7,10 +7,21 @@ import os
 from typing import Any
 
 from agent.agents.base import RunState
-from agent.analysis.action_contract import build_ii_resource_action_contract
+from agent.analysis.action_contract import (
+    augment_action_contract_with_source_architecture,
+    build_bottleneck_action_contract,
+    build_ii_resource_action_contract,
+)
+from agent.analysis.bottleneck_diagnostics import (
+    assess_action_alignment,
+    diagnose_synthesis,
+    load_synthesis_log,
+)
 from agent.analysis.source_metadata import (
     bounded_metadata_payload,
     extract_design_metadata,
+    source_architecture_evidence,
+    source_reduction_parallelism_evidence,
     source_supported_banking_evidence,
 )
 from agent.candidate.validator import (
@@ -52,7 +63,6 @@ from agent.agents.optimization.scoring import (
 from agent.agents.optimization.strategies import (
     _anti_repeat_action_violation,
     _candidate_fingerprint,
-    _is_minimum_unroll_frontier,
     _report_supported_action_violation,
     _strategy_contract_violation,
     _top_function_inline_noop,
@@ -109,22 +119,30 @@ def run_optimization_loop(
     synth_candidates: list[dict] = []
     semantic_current_best_skips = 0
     ii_resource_intent_rejections = 0
-    minimum_factor_convergence = False
     cross_strategy_duplicate_skips = 0
     strategy_contract_rejections = 0
     strategy_contract_rejection_reasons: list[str] = []
     optimization_failures: list[OptimizationFailure] = []
     knowledge_retrievals: list[dict[str, Any]] = []
     source_banking_evidence_history: list[dict[str, Any]] = []
+    source_architecture_evidence_history: list[dict[str, Any]] = []
+    bottleneck_diagnostic_history: list[dict[str, Any]] = []
+    bottleneck_action_alignment: list[dict[str, Any]] = []
     phase1_ab_baseline = (
         os.environ.get("FPT26_QOR_RAG_AB_BASELINE", "").strip() == "1"
     )
     if generalized_qor_rag is None:
-        generalized_qor_rag = _env_flag("FPT26_QOR_RAG_GENERALIZED", False)
+        generalized_qor_rag = _env_flag("FPT26_QOR_RAG_GENERALIZED", True)
     if early_stop_on_qhw_improvement is None:
         early_stop_on_qhw_improvement = _env_flag(
             "FPT26_QOR_RAG_EARLY_STOP", True
         )
+    structured_bottleneck_diagnostics = _env_flag(
+        "FPT26_STRUCTURED_BOTTLENECK_DIAGNOSTICS", True
+    )
+    state.metadata["structured_bottleneck_diagnostics_enabled"] = (
+        structured_bottleneck_diagnostics
+    )
     state.metadata["qor_rag_mode"] = (
         "phase1_keyword_ab_baseline"
         if phase1_ab_baseline
@@ -184,21 +202,43 @@ def run_optimization_loop(
                                            scoring_profile, cosim_latency=best_cosim_latency)
             report_str += (f" ScoreAligned(Q_HW={current_card.q_hw:.4f}, "
                            f"latency_ratio={current_card.latency_ratio:.2f}x, "
-                           f"area_growth={current_card.area_growth:.2f}x, "
-                           f"bottleneck={current_card.bottleneck_resource})")
-        diag = _diagnose(cr)
-        action_contract = build_ii_resource_action_contract(getattr(cr, "log", "") or "")
+                           f"area_ratio={current_card.area_ratio:.2f}x, "
+                           "largest_per_type_growth_diagnostic="
+                           f"{current_card.bottleneck_resource})")
+        structured_diagnosis = None
+        if structured_bottleneck_diagnostics:
+            loaded_synth_log = load_synthesis_log(cr)
+            structured_diagnosis = diagnose_synthesis(cr, loaded_synth_log)
+            diag = structured_diagnosis.summary()
+            diagnosis_prompt = structured_diagnosis.to_prompt_dict()
+            diagnostic_record = structured_diagnosis.to_dict()
+            diagnostic_record["round"] = rnd
+            diagnostic_record["candidate"] = "current_best"
+            action_contract_log = loaded_synth_log.text
+        else:
+            diag = _diagnose(cr)
+            diagnosis_prompt = diag
+            action_contract_log = getattr(cr, "log", "") or ""
+        action_contract = build_ii_resource_action_contract(
+            action_contract_log
+        )
+        if action_contract is None and structured_diagnosis is not None:
+            action_contract = build_bottleneck_action_contract(
+                structured_diagnosis
+            )
         rsrc_trend = _resource_delta(resource_history)
 
         state.log(f"opt r{rnd}: lat={best_lat} | {report_str}")
         for line in diag.split("\n"):
             if line.strip():
                 state.log(f"  {line.strip()}")
-        if action_contract:
-            targets = [t["array"] for t in action_contract["targets"]]
-            state.log(f"opt r{rnd}: measured action contract targets={targets}")
-
         # ── 2. Structured source evidence and knowledge retrieval ───
+        constant_context = "\n".join(
+            str(value)
+            for value in (
+                getattr(task, "headers", {}) or {}
+            ).values()
+        )
         full_source_metadata = extract_design_metadata(
             best,
             loop_metrics=(
@@ -213,16 +253,55 @@ def run_optimization_loop(
                 )
                 or []
             ),
-            constant_context="\n".join(
-                str(value)
-                for value in (
-                    getattr(task, "headers", {}) or {}
-                ).values()
-            ),
+            constant_context=constant_context,
         )
         source_metadata = bounded_metadata_payload(full_source_metadata)
         source_banking_evidence = source_supported_banking_evidence(
             full_source_metadata
+        )
+        top_function = str(getattr(task, "top", "") or "")
+        architecture_evidence = [
+            *source_architecture_evidence(
+                best,
+                top_function=top_function,
+            ),
+            *source_reduction_parallelism_evidence(
+                best,
+                top_function=top_function,
+                constant_context=constant_context,
+            ),
+        ]
+        action_contract = augment_action_contract_with_source_architecture(
+            action_contract,
+            architecture_evidence,
+        )
+        if action_contract:
+            state.log(
+                f"opt r{rnd}: action contract kind="
+                f"{action_contract.get('kind')} actionable="
+                f"{action_contract.get('actionable', True)}"
+            )
+        if architecture_evidence:
+            state.log(
+                f"opt r{rnd}: source architecture opportunities="
+                + ", ".join(
+                    str(item.get("kind") or "unknown")
+                    for item in architecture_evidence
+                )
+            )
+        if structured_diagnosis is not None:
+            diagnostic_record["action_contract"] = action_contract
+            diagnostic_record["source_architecture_evidence"] = [
+                dict(item) for item in architecture_evidence
+            ]
+            bottleneck_diagnostic_history.append(diagnostic_record)
+        source_architecture_evidence_history.append(
+            {
+                "round": rnd,
+                "opportunities": [
+                    dict(item) for item in architecture_evidence
+                ],
+            }
         )
         source_banking_evidence_history.append(
             {
@@ -238,9 +317,7 @@ def run_optimization_loop(
                 f"{rnd}: source-backed banking targets="
                 + ", ".join(
                     f"{item['array']}(dim={item['dimension']},"
-                    f"{item['recommended_trial']['partition_type']},"
-                    f"factor={item['recommended_trial']['factor']},"
-                    "soft)"
+                    f"factor_range=2..{item['factor_limit']})"
                     for item in source_banking_evidence
                 )
             )
@@ -279,15 +356,18 @@ def run_optimization_loop(
                         getattr(cr, "report", None),
                         q_hw=best_q_hw,
                         bottleneck=(
-                            getattr(current_card, "bottleneck_resource", "")
-                            if cr.ok
-                            and cr.report
-                            and anchor_report is not None
+                            structured_diagnosis.primary.cause
+                            if structured_diagnosis is not None
                             else ""
                         ),
                     ),
                     synth_diagnostics={
                         "summary": diag,
+                        "structured": (
+                            diagnosis_prompt
+                            if structured_bottleneck_diagnostics
+                            else {}
+                        ),
                         "measured_action_contract": action_contract or {},
                     },
                     resource_headroom=resource_headroom_from_report(
@@ -302,61 +382,21 @@ def run_optimization_loop(
                 matches = retrieve_knowledge(
                     query, generalized=generalized_qor_rag
                 )
-                from agent.legacy_knowledge import (
-                    format_for_prompt as legacy_format,
-                    lookup_patterns as legacy_lookup,
+                know = format_for_prompt(matches)
+                knowledge_retrievals.append(
+                    {
+                        "round": rnd,
+                        "mode": "phase2a_structured",
+                        "query_signature": query.signature(),
+                        "entry_ids": [entry.id for entry in matches],
+                        "entry_kinds": [entry.kind for entry in matches],
+                        "prompt_chars": len(know),
+                        "prompt_token_upper_bound": (
+                            prompt_token_upper_bound(know)
+                        ),
+                        "sources": [entry.source for entry in matches],
+                    }
                 )
-
-                legacy_matches = legacy_lookup(task.description or "")
-                if not generalized_qor_rag and _prefer_legacy_specialist(
-                    legacy_matches, task.description or ""
-                ):
-                    specialist_matches = legacy_matches[:1]
-                    measured_matches = [
-                        entry for entry in matches if entry.kind != "rule"
-                    ]
-                    know = legacy_format(specialist_matches)
-                    measured_know = format_for_prompt(measured_matches)
-                    if measured_know:
-                        know += "\n\n## Compatible measured cases\n" + measured_know
-                    know = _bounded_knowledge_text(know)
-                    knowledge_retrievals.append(
-                        {
-                            "round": rnd,
-                            "mode": "phase2a_legacy_specialist_fallback",
-                            "query_signature": query.signature(),
-                            "entry_ids": [
-                                str(match.get("family", ""))
-                                for match in specialist_matches
-                            ]
-                            + [entry.id for entry in measured_matches],
-                            "structured_candidate_ids": [
-                                entry.id for entry in matches
-                            ],
-                            "prompt_chars": len(know),
-                            "prompt_token_upper_bound": (
-                                prompt_token_upper_bound(know)
-                            ),
-                            "sources": ["agent.legacy_knowledge"]
-                            + [entry.source for entry in measured_matches],
-                        }
-                    )
-                else:
-                    know = format_for_prompt(matches)
-                    knowledge_retrievals.append(
-                        {
-                            "round": rnd,
-                            "mode": "phase2a_structured",
-                            "query_signature": query.signature(),
-                            "entry_ids": [entry.id for entry in matches],
-                            "entry_kinds": [entry.kind for entry in matches],
-                            "prompt_chars": len(know),
-                            "prompt_token_upper_bound": (
-                                prompt_token_upper_bound(know)
-                            ),
-                            "sources": [entry.source for entry in matches],
-                        }
-                    )
             if know:
                 state.log(
                     f"opt r{rnd}: QoR knowledge "
@@ -369,13 +409,14 @@ def run_optimization_loop(
         prompt = build_prompt(
             task=task, current_kernel=best, best_latency=best_lat,
             csim_result="PASS", synth_result=report_str,
-            bottleneck_hint=diag, knowledge_hint=know,
+            bottleneck_hint=diagnosis_prompt, knowledge_hint=know,
             resource_delta=rsrc_trend,
             rejection_feedback=rejection_feedback,
             action_contract=action_contract,
             search_strategy=search_strategy,
             design_metadata=source_metadata,
             source_banking_evidence=source_banking_evidence,
+            source_architecture_evidence=architecture_evidence,
         )
 
         # ── 4. LLM proposes optimization ────────────────────────────
@@ -396,6 +437,25 @@ def run_optimization_loop(
                 getattr(getattr(cr, "report", None), "loop_metrics", None)
                 or []
             ),
+        )
+        action_alignment = (
+            assess_action_alignment(
+                structured_diagnosis,
+                candidate_action,
+                architecture_evidence,
+            )
+            if structured_diagnosis is not None
+            else {
+                "status": "not_evaluated",
+                "reason": "structured bottleneck diagnostics disabled",
+            }
+        )
+        bottleneck_action_alignment.append(
+            {"round": rnd, **action_alignment}
+        )
+        state.log(
+            f"opt r{rnd}: bottleneck/action alignment="
+            f"{action_alignment['status']} ({action_alignment['reason']})"
         )
         if candidate_fingerprint == _candidate_fingerprint(best):
             semantic_current_best_skips += 1
@@ -652,6 +712,7 @@ def run_optimization_loop(
                     action_contract,
                     candidate_action,
                     source_banking_evidence,
+                    architecture_evidence,
                 )
                 rejection_feedback["distinct_report_supported_alternatives"] = (
                     alternatives
@@ -659,20 +720,27 @@ def run_optimization_loop(
                 if not alternatives:
                     report_supported_convergence = True
                     round_convergence_reason = (
-                        "measured Q_HW rejection closed its family/target and "
-                        "the current report exposes no distinct actionable "
-                        "loop or array target"
+                        "the exact measured action was rejected and the current "
+                        "report/source exposes no distinct evidence-backed "
+                        "action signature"
                     )
             state.log(f"opt r{rnd}: no score-aligned improvement (stag {stag}/{max_stag})")
-            if (cand_card is not None and cr.report is not None
-                    and _is_minimum_unroll_frontier(best, cand, cand_card, cr.report)):
-                minimum_factor_convergence = True
-                rejection_feedback["minimum_unroll_frontier"] = (
-                    "factor=2 lost Q_HW; LOOP_UNROLL family is closed"
-                )
-
         if sr is not None and sr.report is not None:
             report = sr.report
+            candidate_diagnosis = None
+            if structured_bottleneck_diagnostics:
+                candidate_diagnosis = diagnose_synthesis(
+                    sr, load_synthesis_log(sr)
+                )
+                candidate_diagnostic_record = candidate_diagnosis.to_dict()
+                candidate_diagnostic_record["round"] = rnd
+                candidate_diagnostic_record["candidate"] = "measured_trial"
+                candidate_diagnostic_record["decision"] = (
+                    "ACCEPTED" if accepted else "REJECTED"
+                )
+                bottleneck_diagnostic_history.append(
+                    candidate_diagnostic_record
+                )
             hierarchy_delta = inferred_directive_delta(
                 getattr(cr, "report", None), report
             )
@@ -691,6 +759,17 @@ def run_optimization_loop(
                 "round": rnd,
                 "strategy": search_strategy.get("name") if search_strategy else "sequential_default",
                 "action": candidate_action,
+                "bottleneck_action_alignment": action_alignment,
+                "input_bottleneck_diagnosis": (
+                    structured_diagnosis.to_prompt_dict()
+                    if structured_diagnosis is not None
+                    else None
+                ),
+                "output_bottleneck_diagnosis": (
+                    candidate_diagnosis.to_prompt_dict()
+                    if candidate_diagnosis is not None
+                    else None
+                ),
                 "source_metadata": source_metadata,
                 "latency": report.latency_worst, "top_interval": report.interval_max,
                 "loop_ii": loop_ii, "clock_ns": report.clock_period_ns,
@@ -772,7 +851,6 @@ def run_optimization_loop(
     state.metadata["semantic_current_best_skips"] = semantic_current_best_skips
     state.metadata["synth_candidates"] = synth_candidates
     state.metadata["ii_resource_intent_rejections"] = ii_resource_intent_rejections
-    state.metadata["minimum_factor_convergence"] = minimum_factor_convergence
     state.metadata["cross_strategy_duplicate_skips"] = cross_strategy_duplicate_skips
     state.metadata["search_strategy"] = search_strategy.get("name") if search_strategy else "sequential_default"
     state.metadata["strategy_contract_rejections"] = strategy_contract_rejections
@@ -784,39 +862,14 @@ def run_optimization_loop(
     state.metadata["source_banking_evidence"] = (
         source_banking_evidence_history
     )
+    state.metadata["source_architecture_evidence"] = (
+        source_architecture_evidence_history
+    )
+    state.metadata["bottleneck_diagnostics"] = bottleneck_diagnostic_history
+    state.metadata["bottleneck_action_alignment"] = (
+        bottleneck_action_alignment
+    )
     return state
-
-
-def _prefer_legacy_specialist(
-    legacy_matches: list[dict[str, Any]], description: str
-) -> bool:
-    """Keep proven Phase-1 specialists when the new seed is less specific."""
-
-    if not legacy_matches:
-        return False
-    family = str(legacy_matches[0].get("family", ""))
-    lowered = description.lower()
-    if family == "CORDIC / Trigonometric Optimization":
-        return any(
-            token in lowered
-            for token in ("cordic", "trigonometric", "sine", "cosine")
-        )
-    if family == "Reduction / Single-Loop Pipeline":
-        explicit_dot_product = (
-            "dotproduct" in lowered or "dot product" in lowered
-        )
-        specialist_signal = any(
-            token in lowered
-            for token in (
-                "popcount",
-                "accumulate",
-                "accumulation",
-                "reduction",
-                "cumulative sum",
-            )
-        )
-        return specialist_signal and not explicit_dot_product
-    return False
 
 
 def _task_preflight_vitis_version(state: RunState) -> str:

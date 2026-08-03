@@ -193,8 +193,11 @@ def test_cli_defaults_to_balanced_and_accepts_both_speed_variants() -> None:
 
 
 def test_run_report_records_profile_weights_and_effective_area(tmp_path) -> None:
+    evidence = _evidence(latency=125, resources=10)
+    evidence.source_changed = True
+    evidence.validity_rescue = True
     card = grade_with_profile(
-        _cfg(), _anchor(), _evidence(latency=125, resources=10),
+        _cfg(), _anchor(), evidence,
         scoring_profile="extreme_speed_capped", gates=_gates(),
     )
     task = SimpleNamespace(
@@ -226,5 +229,13 @@ def test_run_report_records_profile_weights_and_effective_area(tmp_path) -> None
     assert report["scoring"]["area_reward_capped"] is True
     assert report["scoring"]["area_ratio"] == 10.0
     assert report["scoring"]["effective_area_ratio"] == 1.0
+    assert report["scoring"]["anchor_resource_footprint"] == pytest.approx(0.001)
+    assert report["scoring"]["candidate_resource_footprint"] == pytest.approx(0.0001)
+    assert report["scoring"]["source_changed"] is True
+    assert report["scoring"]["validity_rescue"] is True
+    assert report["scoring"]["source_change_multiplier"] == 1.01
+    assert report["scoring"]["validity_rescue_multiplier"] == 2.0
     assert report["scoring_vs_reference"]["area_ratio"] == 10.0
     assert report["scoring_vs_reference"]["effective_area_ratio"] == 1.0
+    assert report["scoring_vs_reference"]["source_changed"] is True
+    assert report["scoring_vs_reference"]["validity_rescue"] is True

@@ -141,3 +141,13 @@ class ToolServer(HarnessToolServer):
         )
         self._synth = SynthTool(self.executor)
         self._cosim = CoSimTool(self.executor)
+
+    def _record(self, result) -> None:
+        """Record the result and attach its agent-owned persisted artifact path."""
+
+        artifact_dir = self.run_root / f"{result.kind}_{self._n + 1}"
+        super()._record(result)
+        # ToolResult is a harness dataclass without slots.  The agent-owned
+        # attribute lets analysis read the complete log instead of the harness'
+        # deliberately truncated public excerpt, without changing the harness.
+        result._artifact_dir = str(artifact_dir)

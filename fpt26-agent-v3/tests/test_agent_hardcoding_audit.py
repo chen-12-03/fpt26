@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from tools.audit_agent_hardcoding import build_audit, scan_occurrences
@@ -84,3 +85,45 @@ def test_scan_occurrences_classifies_task_ids_and_workload_literals(
         ("task_id_literal", "machsuite__aes_aes", "agent_runtime"),
         ("workload_literal", "stencil", "agent_runtime"),
     }
+
+
+def test_optimize_policy_has_no_default_factor_or_family_wide_rejection() -> None:
+    root = Path(__file__).parents[1]
+    runtime_paths = [
+        root / "agent/prompts.py",
+        root / "agent/analysis/action_contract.py",
+        root / "agent/agents/optimization/controller.py",
+        root / "agent/agents/optimization/feedback.py",
+        root / "agent/agents/optimization/strategies.py",
+    ]
+    runtime = "\n".join(
+        path.read_text(encoding="utf-8") for path in runtime_paths
+    )
+    for prohibited in (
+        "recommended_minimal_trial",
+        "minimum_factor_convergence",
+        "conservative_loop_parallelism",
+        "speed_first_parallel_architecture",
+        "forbidden_optimization_families",
+        "forbidden_targets",
+    ):
+        assert prohibited not in runtime
+
+    raw = json.loads(
+        (root / "agent/knowledge_assets/hls_generator_seeds.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    seed_policy = "\n".join(
+        str(entry.get(field, ""))
+        for entry in raw["entries"]
+        for field in ("id", "action", "expected_signal")
+    )
+    for prohibited in (
+        "factor=2",
+        "smallest useful factor",
+        "II around 8-12",
+        "II near the reported dependency II",
+        "unroll.conservative_partial",
+    ):
+        assert prohibited not in seed_policy

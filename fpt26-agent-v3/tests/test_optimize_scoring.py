@@ -8,7 +8,6 @@ from agent.agents.optimize import (
     _csim_failure_feedback,
     _diagnose,
     _ii_resource_intent_feedback,
-    _is_minimum_unroll_frontier,
     _latest_successful_synth,
     _rejection_feedback,
     _report_supported_action_violation,
@@ -68,7 +67,7 @@ def test_scorer_aligned_quality_rejects_cycle_only_area_explosion() -> None:
     extreme_card = _score_candidate(task, starter, extreme)
 
     assert starter_card.q_hw == 0.75
-    assert extreme_card.q_hw == 0.4431
+    assert 0.0 < extreme_card.q_hw < 0.75
     assert extreme_card.q_hw < starter_card.q_hw
 
 
@@ -155,31 +154,33 @@ def test_rejection_feedback_contains_metrics_and_pragma_evidence() -> None:
     feedback = _rejection_feedback(card, rejected, code, best_q_hw=0.75)
 
     assert feedback["status"] == "REJECTED_BY_SCORING_V3_Q_HW"
-    assert feedback["candidate_q_hw"] == 0.1325
+    assert feedback["candidate_q_hw"] == card.q_hw
+    assert feedback["candidate_q_hw"] < feedback["current_best_q_hw"]
     assert feedback["current_best_q_hw"] == 0.75
     assert feedback["bottleneck_resource"] in {"LUT", "FF"}
     assert feedback["candidate_pragmas"] == [
         "#pragma HLS ARRAY_PARTITION variable=a complete",
         "#pragma HLS UNROLL factor=64",
     ]
-    assert "Increasing any UNROLL or ARRAY_PARTITION factor" in feedback[
+    assert "For this exact candidate" in feedback[
         "directional_constraint"
     ]
-    assert "Do not repeat any forbidden optimization family or target" in feedback[
+    assert "Do not extrapolate this result to an entire family" in feedback[
+        "directional_constraint"
+    ]
+    assert "Do not repeat the exact rejected action signature" in feedback[
         "required_next_action"
     ]
-    assert "return the current editable kernel unchanged" in feedback[
+    assert "must state a new report/source-supported hypothesis" in feedback[
         "required_next_action"
     ]
-    assert feedback["forbidden_optimization_families"] == [
-        "LOOP_UNROLL",
-        "MEMORY_BANKING",
-    ]
-    assert feedback["forbidden_targets"]["arrays"] == ["a"]
+    assert "forbidden_optimization_families" not in feedback
+    assert "forbidden_targets" not in feedback
+    assert feedback["rejected_action_signatures"]
     assert feedback["anti_repeat_priority"].startswith("Measured Q_HW")
 
 
-def test_action_guard_blocks_same_family_target_and_pipeline_ii_one_guesses() -> None:
+def test_action_guard_blocks_exact_signature_not_family_and_keeps_report_guard() -> None:
     prior = {
         "action": {
             "families": ["LOOP_UNROLL"],
@@ -190,7 +191,9 @@ def test_action_guard_blocks_same_family_target_and_pipeline_ii_one_guesses() ->
             },
             "source_changed": False,
             "semantic_signature": (
-                "families=LOOP_UNROLL|targets=loop:reduce|source_changed=False"
+                "families=LOOP_UNROLL|targets=loop:reduce|"
+                "added_pragmas=#pragma hls unroll factor=2|"
+                "removed_pragmas=|source_changed=False"
             ),
         }
     }
@@ -205,11 +208,63 @@ def test_action_guard_blocks_same_family_target_and_pipeline_ii_one_guesses() ->
         "source_changed": False,
     }
 
-    assert "optimization family already measured" in (
-        _anti_repeat_action_violation(same_family_other_loop, [prior]) or ""
+    assert _anti_repeat_action_violation(same_family_other_loop, [prior]) is None
+    assert _anti_repeat_action_violation(different_family_same_loop, [prior]) is None
+    exact_repeat = {
+        "families": ["LOOP_UNROLL"],
+        "targets": {"loops": ["reduce"], "arrays": [], "functions": []},
+        "added_pragmas": ["#pragma HLS UNROLL factor=2"],
+        "source_changed": False,
+    }
+    changed_factor = {
+        **exact_repeat,
+        "added_pragmas": ["#pragma HLS UNROLL factor=4"],
+    }
+    assert "semantic equivalent" in (
+        _anti_repeat_action_violation(exact_repeat, [prior]) or ""
     )
-    assert "optimization target already measured" in (
-        _anti_repeat_action_violation(different_family_same_loop, [prior]) or ""
+    assert _anti_repeat_action_violation(changed_factor, [prior]) is None
+
+    unmapped_unroll = {
+        "families": ["LOOP_UNROLL"],
+        "targets": {"loops": [], "arrays": [], "functions": []},
+        "added_pragmas": ["#pragma HLS UNROLL factor=32"],
+        "source_changed": False,
+    }
+    diagnosed_loop_contract = {
+        "kind": "diagnosis_guided_optimization",
+        "target": {"loop": "reduce"},
+    }
+    assert "could not be mapped to the diagnosed loop" in (
+        _report_supported_action_violation(
+            unmapped_unroll,
+            SimpleNamespace(loop_metrics=[]),
+            diagnosed_loop_contract,
+        )
+        or ""
+    )
+    mixed_action = {
+        "families": ["LOOP_UNROLL", "SOURCE_RESTRUCTURE"],
+        "targets": {
+            "loops": ["reduce"],
+            "arrays": [],
+            "functions": ["top"],
+        },
+        "added_pragmas": ["#pragma HLS UNROLL factor=2"],
+        "source_changed": True,
+    }
+    diagnosed_loop_contract["actionable"] = True
+    diagnosed_loop_contract["candidate_families"] = [
+        "LOOP_UNROLL",
+        "SOURCE_RESTRUCTURE",
+    ]
+    assert "combines multiple optimization families" in (
+        _report_supported_action_violation(
+            mixed_action,
+            SimpleNamespace(loop_metrics=[]),
+            diagnosed_loop_contract,
+        )
+        or ""
     )
 
     ii_one_report = SimpleNamespace(
@@ -387,8 +442,8 @@ def test_diagnosis_uses_loop_ii_not_top_function_interval() -> None:
 
     assert "PipelineII=1 is already optimal" in diagnosis
     assert "TopInterval=1025 is the function transaction interval" in diagnosis
-    assert "does not by itself justify UNROLL" in diagnosis
-    assert "otherwise keep the kernel unchanged" in diagnosis
+    assert "UNROLL" not in diagnosis
+    assert "not evidence of a loop-II or memory-port problem" in diagnosis
     assert "II=1025>1" not in diagnosis
 
 
@@ -523,10 +578,11 @@ inner:
             }
             assert set(evidence) == {"A", "B"}
             assert evidence["A"]["factor_limit"] == 16
-            assert evidence["A"]["recommended_trial"]["priority"] == (
-                "soft_minimal_trial"
-            )
-            assert evidence["B"]["recommended_trial"]["partition_type"] == "block"
+            assert evidence["A"]["banking_option_space"]["factor_min"] == 2
+            assert evidence["A"]["banking_option_space"]["factor_max"] == 16
+            assert evidence["B"]["banking_option_space"][
+                "partition_types"
+            ] == ["cyclic", "block"]
             if self.calls == 1:
                 return forbidden_unroll
             assert payload["previous_candidate_feedback"]["status"] == (
@@ -618,7 +674,7 @@ def test_diagnosis_extracts_vitis_memory_port_ii_limit() -> None:
     assert "another PIPELINE directive alone cannot lower II" in diagnosis
 
 
-def test_action_contract_targets_measured_array_with_one_bounded_trial() -> None:
+def test_action_contract_targets_measured_array_without_prescribing_factor() -> None:
     warning = (
         "WARNING: [HLS 200-448] Lower bound of II is 5 due to multiple "
         "'load' operation 32 bit ('orig_load', stencil.cpp:20) on array "
@@ -633,16 +689,14 @@ def test_action_contract_targets_measured_array_with_one_bounded_trial() -> None
     target = contract["targets"][0]
     assert target["array"] == "orig"
     assert target["observed_ii_lower_bound"] == 5
-    assert target["recommended_minimal_trial"] == {
-        "pragma_class": "ARRAY_PARTITION",
+    assert target["candidate_parameter_space"] == {
+        "pragma_classes": ["ARRAY_PARTITION", "ARRAY_RESHAPE"],
         "variable": "orig",
-        "style": "derive_from_source_bank_mapping",
-        "factor": 5,
-        "factor_is_soft_hint": True,
+        "partition_type": "derive_from_source_bank_mapping",
         "factor_policy": (
-            "Choose the smallest factor whose cyclic/block bank mapping "
-            "increases usable ports for the reported accesses. The observed "
-            "II lower bound is a search hint, not a mandatory factor."
+            "Derive candidate factors from the number and affine mapping of "
+            "concurrent accesses. The observed II lower bound describes the "
+            "bottleneck and is not a factor."
         ),
         "dimension_policy": (
             "Choose only the dimension indexed by concurrent loop "
@@ -726,9 +780,10 @@ def test_ii_resource_intent_gate_requires_evidence_matched_banking() -> None:
     assert "expected exactly one" in " ".join(
         multi_action_feedback["contract_violations"]
     )
-    assert "pragma class must be ARRAY_PARTITION" in multi_action_feedback[
-        "contract_violations"
-    ]
+    assert all(
+        "pragma class must be ARRAY_PARTITION" not in item
+        for item in multi_action_feedback["contract_violations"]
+    )
     assert (
         _ii_resource_intent_feedback(synth_result, best, matched_block)
         is None
@@ -813,9 +868,14 @@ def test_optimize_reflects_ii_intent_rejection_without_candidate_tools() -> None
             if self.calls == 1:
                 contract = json.loads(prompt)["measured_action_contract"]
                 assert contract["targets"][0]["array"] == "orig"
-                assert contract["targets"][0]["recommended_minimal_trial"][
-                    "factor"
-                ] == 5
+                parameter_space = contract["targets"][0][
+                    "candidate_parameter_space"
+                ]
+                assert parameter_space["pragma_classes"] == [
+                    "ARRAY_PARTITION",
+                    "ARRAY_RESHAPE",
+                ]
+                assert "factor" not in parameter_space
                 return unmatched_banking
             payload = json.loads(prompt)
             feedback = payload["previous_candidate_feedback"]
@@ -989,7 +1049,7 @@ def test_optimize_skips_tools_for_semantically_repeated_rejection() -> None:
     assert result.metadata["semantic_duplicate_skips"] == 1
 
 
-def test_qhw_rejection_blocks_same_action_family_before_next_synth() -> None:
+def test_qhw_rejection_allows_a_distinct_parameter_hypothesis() -> None:
     task = SimpleNamespace(
         id="anti_repeat_qhw",
         type="optimize",
@@ -1052,8 +1112,7 @@ def test_qhw_rejection_blocks_same_action_family_before_next_synth() -> None:
         "    sum += a[i];",
         "    #pragma HLS UNROLL factor=4\n    sum += a[i];",
     )
-    # Different source fingerprint and factor, but the same optimization family
-    # and loop target as the already measured Q_HW loser.
+    # A changed factor is a distinct hypothesis even when family and target match.
     factor_eight = factor_four.replace("factor=4", "factor=8").replace(
         "int sum = 0;", "int sum = 0; // layout-only semantic variant"
     )
@@ -1066,7 +1125,7 @@ def test_qhw_rejection_blocks_same_action_family_before_next_synth() -> None:
     )
     assert first_action["families"] == ["LOOP_UNROLL"]
     assert first_action["targets"]["loops"] == ["loop_0"]
-    assert first_action["semantic_signature"] == second_action[
+    assert first_action["semantic_signature"] != second_action[
         "semantic_signature"
     ]
     assert _candidate_fingerprint(factor_four) != _candidate_fingerprint(
@@ -1083,20 +1142,16 @@ def test_qhw_rejection_blocks_same_action_family_before_next_synth() -> None:
             if self.calls == 1:
                 return factor_four
             contract = payload["anti_repeat_contract"]
-            assert contract["forbidden_optimization_families"] == [
-                "LOOP_UNROLL"
+            assert first_action["semantic_signature"] in contract[
+                "rejected_action_signatures"
             ]
-            assert contract["forbidden_targets"]["loops"] == ["loop_0"]
+            assert "forbidden_optimization_families" not in contract
+            assert "forbidden_targets" not in contract
             assert "overrides optimization_patterns" in contract["priority"]
-            if self.calls == 2:
-                assert payload["previous_candidate_feedback"]["status"] == (
-                    "REJECTED_BY_SCORING_V3_Q_HW"
-                )
-                return factor_eight
             assert payload["previous_candidate_feedback"]["status"] == (
-                "REJECTED_BY_MEASURED_ACTION_ANTI_REPEAT"
+                "REJECTED_BY_SCORING_V3_Q_HW"
             )
-            return starter
+            return factor_eight
 
     class Server:
         def __init__(self) -> None:
@@ -1129,17 +1184,14 @@ def test_qhw_rejection_blocks_same_action_family_before_next_synth() -> None:
         log=lambda message: None,
     )
 
-    result = OptimizeAgent(llm, max_rounds=3).run(state)
+    result = OptimizeAgent(llm, max_rounds=2).run(state)
 
     assert result.kernel == starter
-    assert llm.calls == 3
-    assert server.csim_calls == 1
-    assert server.synth_calls == 1
-    assert result.metadata["anti_repeat_action_rejections"] == 1
-    assert len(result.metadata["measured_rejected_actions"]) == 1
-    assert "semantic equivalent" in result.metadata[
-        "action_guard_rejection_reasons"
-    ][0]
+    assert llm.calls == 2
+    assert server.csim_calls == 2
+    assert server.synth_calls == 2
+    assert result.metadata["anti_repeat_action_rejections"] == 0
+    assert len(result.metadata["measured_rejected_actions"]) == 2
 
 
 def test_reordered_pipeline_on_unknown_ii_loop_is_measured_once_then_blocked() -> None:
@@ -1259,7 +1311,7 @@ read_buf:
     assert result.metadata["report_evidence_action_rejections"] == 0
     assert result.metadata["anti_repeat_action_rejections"] == 0
     assert result.metadata["report_supported_convergence"] is True
-    assert "no distinct actionable" in result.metadata[
+    assert "no distinct evidence-backed action signature" in result.metadata[
         "optimization_convergence_reason"
     ]
     assert "semantic equivalent" in (
@@ -1268,43 +1320,6 @@ read_buf:
             [{"action": first_action}],
         )
         or ""
-    )
-
-
-def test_minimum_unroll_frontier_requires_only_factor_two_and_loop_ii_one() -> None:
-    best = """int top(int *a) {
-  int sum = 0;
-  for (int i = 0; i < 1024; ++i) {
-    sum += a[i];
-  }
-  return sum;
-}
-"""
-    candidate = best.replace(
-        "    sum += a[i];",
-        "    #pragma HLS UNROLL factor=2\n    sum += a[i];",
-    )
-    card = SimpleNamespace(latency_ratio=1.99, area_growth=2.0)
-    report = SimpleNamespace(loop_metrics=[{"pipeline_ii": 1}])
-
-    assert _is_minimum_unroll_frontier(best, candidate, card, report)
-    assert not _is_minimum_unroll_frontier(
-        best,
-        candidate.replace("factor=2", "factor=4"),
-        card,
-        report,
-    )
-    assert not _is_minimum_unroll_frontier(
-        best,
-        candidate.replace("sum += a[i];", "sum += 2 * a[i];"),
-        card,
-        report,
-    )
-    assert not _is_minimum_unroll_frontier(
-        best,
-        candidate,
-        card,
-        SimpleNamespace(loop_metrics=[{"pipeline_ii": 2}]),
     )
 
 
@@ -1408,7 +1423,6 @@ def test_optimize_accepts_minimum_unroll_then_converges_on_no_change() -> None:
     assert llm.calls == 2
     assert server.csim_calls == 1
     assert server.synth_calls == 1
-    assert result.metadata["minimum_factor_convergence"] is False
     assert result.metadata["semantic_current_best_skips"] == 0
 
 

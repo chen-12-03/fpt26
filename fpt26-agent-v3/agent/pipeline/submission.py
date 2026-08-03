@@ -157,11 +157,26 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
                 and (not task.requires_cosim or state.cosim_ok))
     if mode in ("auto", "optimize", "full") and gates_ok:
         try:
-            from agent.agents.optimize import OptimizeAgent
-            agent = OptimizeAgent(
-                llm=llm, max_rounds=config.max_optimization_rounds,
-                scoring_profile=getattr(config, "scoring_profile", "balanced"),
-            )
+            if config.competition:
+                from agent.agents.competition import DiverseOptimizationStage
+
+                agent = DiverseOptimizationStage(
+                    llm=llm,
+                    max_candidates=min(3, config.max_optimization_rounds),
+                    scoring_profile=getattr(
+                        config, "scoring_profile", "balanced"
+                    ),
+                )
+            else:
+                from agent.agents.optimize import OptimizeAgent
+
+                agent = OptimizeAgent(
+                    llm=llm,
+                    max_rounds=config.max_optimization_rounds,
+                    scoring_profile=getattr(
+                        config, "scoring_profile", "balanced"
+                    ),
+                )
             agent.run(state)
         except ImportError as exc:
             state.log(f"optimize: OptimizeAgent import failed: {exc}")

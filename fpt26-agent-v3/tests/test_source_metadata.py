@@ -6,6 +6,8 @@ from agent.analysis.source_metadata import (
     bounded_metadata_payload,
     evaluate_source_banking_trial,
     extract_design_metadata,
+    source_architecture_evidence,
+    source_reduction_parallelism_evidence,
     source_supported_banking_evidence,
 )
 
@@ -209,6 +211,126 @@ def test_empty_or_non_text_source_returns_empty_metadata() -> None:
     assert empty["parse_status"] == "empty"
 
 
+def test_source_architecture_evidence_detects_connected_helper_stages() -> None:
+    source = """
+void load(int *in, int tmp[64]) {
+  for (int i = 0; i < 64; ++i) tmp[i] = in[i];
+}
+void compute(int tmp[64], int out[64]) {
+  for (int i = 0; i < 64; ++i) out[i] = tmp[i] + 1;
+}
+void top(int *in, int *out) {
+  int tmp[64];
+  load(in, tmp);
+  compute(tmp, out);
+}
+"""
+
+    evidence = source_architecture_evidence(source, top_function="top")
+
+    assert len(evidence) == 1
+    assert evidence[0]["kind"] == "source_connected_task_pipeline"
+    assert evidence[0]["stage_calls"] == ["load", "compute"]
+    assert evidence[0]["connectors"] == ["tmp"]
+    assert evidence[0]["connector_kinds"] == {"tmp": "local_array"}
+    assert evidence[0]["candidate_families"] == [
+        "TASK_PIPELINE",
+        "SOURCE_RESTRUCTURE",
+    ]
+
+
+def test_source_architecture_evidence_detects_stream_connectors() -> None:
+    source = """
+#include <hls_stream.h>
+void produce(int *in, hls::stream<int> &s) { s.write(*in); }
+void consume(hls::stream<int> &s, int *out) { *out = s.read(); }
+void top(int *in, int *out) {
+  hls::stream<int> channel;
+  produce(in, channel);
+  consume(channel, out);
+}
+"""
+
+    evidence = source_architecture_evidence(source, top_function="top")
+
+    assert evidence[0]["connectors"] == ["channel"]
+    assert evidence[0]["connector_kinds"] == {"channel": "stream"}
+
+
+def test_source_architecture_evidence_requires_connection_and_missing_dataflow() -> None:
+    disconnected = """
+void a(int *x) { *x += 1; }
+void b(int *y) { *y += 1; }
+void top(int *x, int *y) { a(x); b(y); }
+"""
+    already_dataflow = """
+void a(int x[4], int t[4]) { t[0] = x[0]; }
+void b(int t[4], int y[4]) { y[0] = t[0]; }
+void top(int x[4], int y[4]) {
+  int t[4];
+#pragma HLS DATAFLOW
+  a(x, t); b(t, y);
+}
+"""
+
+    assert source_architecture_evidence(
+        disconnected, top_function="top"
+    ) == []
+    assert source_architecture_evidence(
+        already_dataflow, top_function="top"
+    ) == []
+
+
+def test_reduction_parallelism_uses_only_named_source_factor_candidates() -> None:
+    source = """
+float top(float a[SIZE], float b[SIZE]) {
+  float sum = 0;
+REDUCE:
+  for (int i = 0; i < SIZE; ++i) {
+    sum += a[i] * b[i];
+  }
+  return sum;
+}
+"""
+    header = """
+const int SIZE = 1024;
+#define DATA_WIDTH 16
+#define PAR_FACTOR 32
+"""
+
+    evidence = source_reduction_parallelism_evidence(
+        source,
+        top_function="top",
+        constant_context=header,
+    )
+
+    assert len(evidence) == 1
+    assert evidence[0]["kind"] == "source_affine_reduction_parallelism"
+    assert evidence[0]["loop"] == "REDUCE"
+    assert evidence[0]["accumulator"] == "sum"
+    assert evidence[0]["input_arrays"] == ["a", "b"]
+    assert evidence[0]["factor_candidates"] == [
+        {"name": "PAR_FACTOR", "value": 32}
+    ]
+    assert evidence[0]["composite_family"] == "REDUCTION_PARALLELISM"
+
+
+def test_reduction_parallelism_does_not_invent_an_unlisted_factor() -> None:
+    source = """
+float top(float a[64]) {
+  float sum = 0;
+  for (int i = 0; i < 64; ++i) sum += a[i];
+  return sum;
+}
+"""
+
+    assert source_reduction_parallelism_evidence(
+        source,
+        top_function="top",
+        constant_context="const int SIZE = 64;",
+    ) == []
+
+
 def test_source_evidence_respects_inferred_hierarchy_and_affine_banking() -> None:
     source = """
 void top(int *in1, int *in2, int *out) {
@@ -269,14 +391,17 @@ inner:
         "array_extent": 256,
         "concurrent_lanes": 16,
         "factor_limit": 16,
-        "recommended_trial": {
-            "pragma_class": "ARRAY_PARTITION",
-            "partition_type": "cyclic",
-            "factor": 2,
+        "banking_option_space": {
+            "pragma_classes": ["ARRAY_PARTITION", "ARRAY_RESHAPE"],
+            "partition_types": ["cyclic"],
+            "factor_min": 2,
+            "factor_max": 16,
             "dimension": 1,
-            "expected_distinct_banks": 2,
-            "collision_free": False,
-            "priority": "soft_minimal_trial",
+            "selection_rule": (
+                "Select a factor/type only when evaluate_source_banking_trial "
+                "proves more than one distinct bank for the affine access map; "
+                "compare every selected point by measured Q_HW."
+            ),
         },
         "reshape_eligible": True,
         "banking_model": {
@@ -294,14 +419,17 @@ inner:
     assert evidence["B"]["array_extent"] == 256
     assert evidence["B"]["factor_limit"] == 16
     assert evidence["B"]["reshape_eligible"] is False
-    assert evidence["B"]["recommended_trial"] == {
-        "pragma_class": "ARRAY_PARTITION",
-        "partition_type": "block",
-        "factor": 16,
+    assert evidence["B"]["banking_option_space"] == {
+        "pragma_classes": ["ARRAY_PARTITION"],
+        "partition_types": ["cyclic", "block"],
+        "factor_min": 2,
+        "factor_max": 16,
         "dimension": 1,
-        "expected_distinct_banks": 16,
-        "collision_free": True,
-        "priority": "soft_bank_mapping_trial",
+        "selection_rule": (
+            "Select a factor/type only when evaluate_source_banking_trial "
+            "proves more than one distinct bank for the affine access map; "
+            "compare every selected point by measured Q_HW."
+        ),
     }
     assert all(item["array"] not in {"in1", "in2"} for item in evidence.values())
 

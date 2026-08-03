@@ -52,7 +52,7 @@
       "vitis_version": "2022.2+"
     },
     {
-      "action": "Apply ARRAY_PARTITION to the measured array and access dimension, using the minimum factor that can satisfy the required ports.",
+      "action": "Apply ARRAY_PARTITION only to the measured array and access dimension. Derive candidate type/factor points from the concurrent affine accesses and compare the selected points by measured Q_HW.",
       "confidence": "medium",
       "contraindications": [
         "Do not partition unrelated top-level arrays speculatively.",
@@ -404,7 +404,7 @@
       "vitis_version": "2022.2+"
     },
     {
-      "action": "Preserve the existing blocked/tiled GEMM architecture and local reuse. If the source already has local tiles, keep the tile shape and try only one small loop-local UNROLL factor=2; add minimum banking only on the local tile dimension that feeds concurrent K/lane reads. Do not regress to a scalar fallback or introduce unrelated new tiles/buffers in this phase.",
+      "action": "Preserve an existing blocked/tiled GEMM architecture and local reuse unless measurements identify it as the bottleneck. Derive any loop parallelism and local-tile banking candidates from the compute lanes, affine access mapping, and device headroom; measure each selected action signature by Q_HW.",
       "confidence": "medium",
       "contraindications": [
         "Do not copy template interfaces or fixed tile sizes into an existing kernel.",
@@ -432,20 +432,20 @@
         "local_buffer",
         "blocked",
         "k_dimension",
-        "minimum_banking"
+        "evidence_banking"
       ],
       "vitis_version": "2022.2+"
     },
     {
-      "action": "For triangular matrix factorization, preserve row/column dependency order. If baseline synthesis already reports floating-point carried-dependence loops with II around 8-12 and high DSP/LUT pressure, first measure a conservative outer-loop PIPELINE with an II near the reported dependency II before trying II=1 or loop flattening. Otherwise optimize one inner accumulation or update loop at a time with measured pipeline or small-dimension partitioning.",
+      "action": "For triangular matrix factorization, preserve proved row/column dependency order. Use the reported dependence/resource evidence to identify one legal loop or storage transformation, derive its parameters from the source and schedule, and measure it without prescribing a target II from the workload name.",
       "confidence": "medium",
       "contraindications": [
         "Do not interchange or flatten loops across triangular data dependencies unless dependence evidence proves it safe.",
         "Do not fully partition the whole matrix when only one row, column, or local accumulation window needs ports.",
         "Do not change floating-point operation order aggressively unless the task contract allows numeric drift.",
-        "Do not force II=1 on floating-point triangular update loops when the report shows dependency-limited II near 10; this often trades a small latency gain for a frequency failure."
+        "Do not prescribe II=1, the reported II, or any other target II until dependence and timing evidence establish that it is feasible."
       ],
-      "expected_signal": "The selected triangular update, accumulation, or conservative outer-loop pipeline improves Q_HW by reducing latency or floating-point resource replication without changing factorization semantics or causing broad matrix storage growth.",
+      "expected_signal": "The selected legal transformation improves measured Q_HW without changing factorization semantics or causing unaccounted storage/resource growth.",
       "family": "linear_algebra_factorization",
       "id": "hlsgen.linear_algebra.factorization_dependency_guard",
       "kind": "rule",
@@ -879,7 +879,7 @@
       "vitis_version": "2022.2+"
     },
     {
-      "action": "For a statically bounded associative integer reduction, first try only a loop-local partial UNROLL factor=2; preserve the accumulator and numeric contract. Do not introduce a new tree architecture in this phase.",
+      "action": "For a statically bounded associative integer reduction, preserve the numeric contract and compare evidence-backed loop-unroll and source-level reduction structures. Derive any factor or tree shape from the bound, operator cost, dependencies, and resource headroom.",
       "confidence": "medium",
       "contraindications": [
         "Do not restructure non-associative floating-point operations without permission.",
@@ -1116,7 +1116,7 @@
       "vitis_version": "2022.2+"
     },
     {
-      "action": "Preserve the existing stencil architecture and boundary behavior. First try only a small UNROLL factor=2 on a statically bounded filter loop; do not introduce a new line buffer in this phase.",
+      "action": "Preserve stencil boundary behavior. Compare evidence-backed filter-loop parallelism, reuse, and line/window-buffer hypotheses; derive dimensions and factors from the neighborhood accesses and measure the selected action signatures.",
       "confidence": "medium",
       "contraindications": [
         "Do not change the boundary policy.",
@@ -1222,15 +1222,15 @@
       "vitis_version": "2022.2+"
     },
     {
-      "action": "Try one loop-local partial UNROLL with the smallest useful factor, then measure latency, clock, and worst-resource growth.",
+      "action": "When source analysis proves independent iterations on the measured loop, derive bounded UNROLL factor candidates from trip count, operator cost, memory bandwidth, and resource headroom; measure selected points without a default factor.",
       "confidence": "medium",
       "contraindications": [
-        "Do not fully unroll a long or dynamically bounded loop.",
-        "Do not increase a factor after measured resource growth outweighed speedup."
+        "Do not fully unroll a dynamically bounded loop or one lacking a resource estimate.",
+        "Do not assume factor response is monotonic; treat each changed factor as a separately justified and measured hypothesis."
       ],
       "expected_signal": "Effective latency improves more than the worst proportional resource growth.",
       "family": "unroll",
-      "id": "hlsgen.unroll.conservative_partial",
+      "id": "hlsgen.unroll.evidence_bounded",
       "kind": "rule",
       "preconditions": [
         "A statically bounded loop dominates latency.",
@@ -1250,7 +1250,7 @@
       "vitis_version": "2022.2+"
     },
     {
-      "action": "Stop increasing the unroll factor once worst-resource growth exceeds effective latency improvement.",
+      "action": "Reject the exact unroll action whose measured worst-resource growth outweighs effective latency improvement. Do not infer the result of unmeasured factors without a resource/schedule model.",
       "confidence": "medium",
       "contraindications": [
         "Do not compare cycle latency alone.",

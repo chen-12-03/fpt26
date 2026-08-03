@@ -1,6 +1,6 @@
-"""Explicit scoring profiles layered on the frozen schema-10 kernel.
+"""Explicit scoring profiles layered on the schema-11 scoring kernel.
 
-The balanced profile is numerically identical to schema 10.  Experimental
+The balanced profile is numerically identical to schema 11.  Experimental
 speed profiles change only the performance/area aggregation; validity gates,
 raw PPA evidence, efficiency, and the ratio-quality mapping remain shared.
 """
@@ -17,15 +17,15 @@ from scoring.scoring_v3 import (
     TaskScoringConfig,
     ValidityGates,
     calculate_qor_components,
+    combined_evidence_ratio,
     combine_score,
     efficiency_factor,
     grade as grade_balanced,
-    hardware_ratio,
     ratio_quality,
 )
 
 
-PROFILE_SCHEMA_VERSION = 11
+PROFILE_SCHEMA_VERSION = 12
 DEFAULT_SCORING_PROFILE = "balanced"
 
 
@@ -94,9 +94,9 @@ def grade_with_profile(
     ii_applicable: bool = False,
     accounting: Any = None,  # EvaluationAccounting | None
 ) -> Any:
-    """Grade through schema 10, then apply the declared profile aggregation.
+    """Grade through schema 11, then apply the declared profile aggregation.
 
-    The authoritative schema-10 grader owns all gates and efficiency.  Only a
+    The authoritative schema-11 grader owns all gates and efficiency.  Only a
     valid card reaches the profile calculation, preventing a profile from
     bypassing correctness, synthesis, cosim, metric, or capacity failures.
 
@@ -137,7 +137,7 @@ def grade_with_profile(
     if not card.valid:
         return card
     if profile.name == DEFAULT_SCORING_PROFILE:
-        # Preserve schema-10 production arithmetic exactly, including its use
+        # Preserve schema-11 production arithmetic exactly, including its use
         # of unrounded efficiency when producing the final score.
         return card
 
@@ -151,9 +151,11 @@ def grade_with_profile(
     if profile.cap_area_reward:
         effective_area_ratio = min(effective_area_ratio, 1.0)
 
-    composite = hardware_ratio(
+    composite = combined_evidence_ratio(
         components.performance_ratio,
         effective_area_ratio,
+        source_changed=evidence.source_changed,
+        validity_rescue=evidence.validity_rescue,
         performance_weight=profile.performance_weight,
     )
     q_hw = ratio_quality(composite)

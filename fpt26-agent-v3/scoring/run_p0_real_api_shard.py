@@ -12,6 +12,7 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import math
 import os
 import subprocess
 import sys
@@ -36,6 +37,63 @@ REAL_API_CLIENTS = {
     "custom": "OpenAICompatClient",
     "openrouter": "OpenRouterClient",
 }
+
+TRACK_A_150_TOOL_TIMEOUT_DEFAULTS_S = {
+    "csim": 30.0,
+    "synth": 180.0,
+    "cosim": 240.0,
+}
+
+TOOL_TIMEOUT_ENV = {
+    "csim": "LLM4HLS_CSIM_TIMEOUT_S",
+    "synth": "LLM4HLS_SYNTH_TIMEOUT_S",
+    "cosim": "LLM4HLS_COSIM_TIMEOUT_S",
+}
+
+
+def resolve_tool_timeout_policy(task_root: Path) -> dict[str, Any] | None:
+    """Resolve the corpus-scoped tool timeout policy for one shard.
+
+    The tighter defaults are intentionally limited to the frozen Track-A 150
+    corpus. Explicit environment values remain an escape hatch for controlled
+    experiments, and the resolved values are recorded in the shard summary.
+    """
+
+    if task_root.name != "track_a_150":
+        return None
+
+    values_s: dict[str, float] = {}
+    env_overrides: dict[str, str] = {}
+    explicit_overrides: list[str] = []
+    for tool, default_s in TRACK_A_150_TOOL_TIMEOUT_DEFAULTS_S.items():
+        env_name = TOOL_TIMEOUT_ENV[tool]
+        raw_value = os.environ.get(env_name)
+        try:
+            value_s = default_s if raw_value is None else float(raw_value)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"{env_name} must be a positive number, got {raw_value!r}"
+            ) from exc
+        if not math.isfinite(value_s) or value_s <= 0:
+            raise RuntimeError(
+                f"{env_name} must be positive, got {value_s!r}"
+            )
+        values_s[tool] = value_s
+        env_overrides[env_name] = str(value_s)
+        if raw_value is not None:
+            explicit_overrides.append(env_name)
+
+    return {
+        "scope": "track_a_150",
+        "source": (
+            "environment_override"
+            if explicit_overrides
+            else "track_a_150_runner_defaults"
+        ),
+        "values_s": values_s,
+        "env_overrides": env_overrides,
+        "explicit_override_names": sorted(explicit_overrides),
+    }
 
 
 def resolve_llm_run_contract(
@@ -457,6 +515,36 @@ def build_evaluator_command(
     ]
 
 
+def build_submission_command(
+    *,
+    task_dir: Path,
+    backend: str,
+    output_root: Path,
+    competition: bool,
+) -> list[str]:
+    """Build the submission command and preserve the requested search mode."""
+
+    command = [
+        sys.executable,
+        "-m",
+        "agent.main",
+        "--task",
+        str(task_dir),
+        "--mode",
+        "auto",
+        "--run-role",
+        "submission",
+        "--backend",
+        backend,
+        "--output-root",
+        str(output_root),
+        "--quiet",
+    ]
+    if competition:
+        command.append("--competition")
+    return command
+
+
 def submission_requires_evaluator(
     submission: dict[str, Any] | None,
     final_kernel: Path | None,
@@ -482,6 +570,7 @@ def _summary(
     source_current: dict[str, Any],
     quarantine: dict[str, Any] | None = None,
     llm_run_contract: dict[str, Any] | None = None,
+    tool_timeout_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     outcomes: dict[str, int] = {}
     for record in records:
@@ -515,6 +604,8 @@ def _summary(
     }
     if llm_run_contract is not None:
         summary["llm_run_contract"] = llm_run_contract
+    if tool_timeout_policy is not None:
+        summary["tool_timeout_policy"] = tool_timeout_policy
     if quarantine is not None:
         summary["task_quarantine"] = quarantine
     return summary
@@ -542,10 +633,21 @@ def run_shard(
     excluded_task_source: str | None = None,
     backend: str = "custom",
     model: str | None = None,
+    competition: bool = False,
 ) -> dict[str, Any]:
-    llm_run_contract = resolve_llm_run_contract(backend, model)
+    llm_run_contract = {
+        **resolve_llm_run_contract(backend, model),
+        "competition": bool(competition),
+    }
     model_env = "LLM4HLS_MODEL" if backend == "openrouter" else "FPT26_LLM_MODEL"
     submission_env = {model_env: llm_run_contract["model"]}
+    tool_timeout_policy = resolve_tool_timeout_policy(task_root)
+    tool_timeout_env = (
+        dict(tool_timeout_policy["env_overrides"])
+        if tool_timeout_policy is not None
+        else {}
+    )
+    submission_env.update(tool_timeout_env)
     tasks = discover_tasks(task_root, excluded_task_ids=excluded_task_ids)
     quarantine = None
     if excluded_task_ids:
@@ -584,6 +686,10 @@ def run_shard(
             raise RuntimeError(
                 "refusing to resume shard after LLM run contract drift"
             )
+        if previous.get("tool_timeout_policy") != tool_timeout_policy:
+            raise RuntimeError(
+                "refusing to resume shard after tool timeout policy drift"
+            )
         previous_source = (
             (previous.get("execution_source") or {}).get("start") or {}
         )
@@ -609,6 +715,7 @@ def run_shard(
                 source_current=source_start,
                 quarantine=quarantine,
                 llm_run_contract=llm_run_contract,
+                tool_timeout_policy=tool_timeout_policy,
             ),
         )
     selected_ids = {task.name for task in selected}
@@ -634,6 +741,7 @@ def run_shard(
             source_current=source_start,
             quarantine=quarantine,
             llm_run_contract=llm_run_contract,
+            tool_timeout_policy=tool_timeout_policy,
         ),
     )
 
@@ -660,22 +768,12 @@ def run_shard(
         submission_log = attempt_root / "submission.log"
         evaluator_log = attempt_root / "evaluator.log"
 
-        submission_command = [
-            sys.executable,
-            "-m",
-            "agent.main",
-            "--task",
-            str(task_dir),
-            "--mode",
-            "auto",
-            "--run-role",
-            "submission",
-            "--backend",
-            backend,
-            "--output-root",
-            str(submission_root),
-            "--quiet",
-        ]
+        submission_command = build_submission_command(
+            task_dir=task_dir,
+            backend=backend,
+            output_root=submission_root,
+            competition=competition,
+        )
         submission_rc, launcher_error, submission_elapsed = _run(
             submission_command,
             submission_log,
@@ -721,7 +819,10 @@ def run_shard(
                 output_root=evaluator_root,
             )
             evaluator_rc, evaluator_launcher_error, evaluator_elapsed = _run(
-                evaluator_command, evaluator_log, timeout_s
+                evaluator_command,
+                evaluator_log,
+                timeout_s,
+                env_overrides=tool_timeout_env,
             )
             if evaluator_launcher_error:
                 launcher_error = evaluator_launcher_error
@@ -864,6 +965,7 @@ def run_shard(
                 source_current=source_current,
                 quarantine=quarantine,
                 llm_run_contract=llm_run_contract,
+                tool_timeout_policy=tool_timeout_policy,
             ),
         )
         if source_current.get("tree_sha256") != source_start.get(
@@ -911,6 +1013,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--task-id", action="append", default=[])
     parser.add_argument(
+        "--competition",
+        action="store_true",
+        help="Use independent measured optimization strategy lanes",
+    )
+    parser.add_argument(
         "--exclude-task-ids",
         type=Path,
         default=None,
@@ -957,6 +1064,7 @@ def main() -> int:
         ),
         backend=args.backend,
         model=args.model,
+        competition=args.competition,
     )
     return 0 if result["completed_record_count"] == result[
         "selected_task_count"

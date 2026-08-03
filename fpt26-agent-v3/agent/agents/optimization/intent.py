@@ -62,13 +62,20 @@ def ii_resource_intent_feedback(
         if len(added_pragmas) != 1:
             contract_violations.append("expected exactly one newly added HLS pragma")
         if len(banking_actions) != 1:
-            contract_violations.append("the single action must be ARRAY_PARTITION")
+            contract_violations.append(
+                "the single action must be ARRAY_PARTITION or ARRAY_RESHAPE"
+            )
         else:
             action = banking_actions[0]
             variable = action["variable"]
             rank = _source_array_rank(best, variable)
-            if action["pragma_class"] != "ARRAY_PARTITION":
-                contract_violations.append("pragma class must be ARRAY_PARTITION")
+            if action["pragma_class"] not in {
+                "ARRAY_PARTITION",
+                "ARRAY_RESHAPE",
+            }:
+                contract_violations.append(
+                    "pragma class must be ARRAY_PARTITION or ARRAY_RESHAPE"
+                )
             if variable.lower() not in evidence_arrays:
                 contract_violations.append(f"variable '{variable}' is not a reported target")
             if action["style"] not in {"cyclic", "block", "complete"}:
@@ -115,7 +122,8 @@ def ii_resource_intent_feedback(
             "tool was run."
         ),
         "required_next_action": (
-            f"Apply exactly one evidence-matched ARRAY_PARTITION to reported "
+            f"Apply exactly one evidence-matched ARRAY_PARTITION or "
+            f"ARRAY_RESHAPE to reported "
             f"array(s) {arrays}, with an explicit source-supported dimension "
             "and a cyclic/block/complete mapping justified by its accesses; or make "
             "a real code-locality change such as a line buffer/cache that "

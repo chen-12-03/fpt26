@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "campaign": "optimize25_qwen_20260802_v3",
+  "purpose": "Exploratory real-Qwen and real-Vitis evaluation of the frozen 25-task Track A optimize cohort",
+  "task_manifest": "evals/optimize25_qwen_20260802.json",
+  "task_root": "/workspace/tasks/track_a_150",
+  "run_root": "/workspace/runs/optimize25_qwen_20260802_v3",
+  "backend": {
+    "client": "OpenAICompatClient",
+    "provider_host": "dashscope.aliyuncs.com",
+    "model": "qwen3-coder-plus"
+  },
+  "excluded_attempts": [
+    {
+      "run_root": "/workspace/runs/optimize25_qwen_20260802",
+      "reason": "runner was initially sharded over all 150 tasks instead of the frozen optimize IDs; stopped before any API request"
+    },
+    {
+      "run_root": "/workspace/runs/optimize25_qwen_20260802_v2",
+      "reason": "invalid container LOCPATH caused Vitis version preflight failure; no API request was made"
+    }
+  ],
+  "completion": {
+    "tasks": 25,
+    "submission_completed": 25,
+    "evaluator_completed": 25,
+    "valid_evaluator_results": 25,
+    "failed_api_requests": 0,
+    "parallel_campaign_seconds": 1804.8055
+  },
+  "api_usage": {
+    "requests": 48,
+    "responses": 48,
+    "prompt_tokens": 343237,
+    "completion_tokens": 33305,
+    "total_tokens": 376542,
+    "tasks_with_one_request": 2,
+    "tasks_with_two_requests": 23
+  },
+  "tool_usage": {
+    "submission_tool_calls": 58,
+    "csim_attempts": 29,
+    "synth_attempts": 29,
+    "cosim_attempts": 0,
+    "tasks_with_two_tool_calls": 21,
+    "tasks_with_four_tool_calls": 4
+  },
+  "optimization_outcome": {
+    "tasks_with_measured_nonbaseline_candidate": 4,
+    "measured_nonbaseline_candidates": 4,
+    "accepted_candidates": 1,
+    "rejected_candidates": 3,
+    "baseline_only_tasks": 21,
+    "tasks_with_q_hw_improvement": 1,
+    "tasks_with_final_source_change": 1,
+    "improvement_rate_over_all_tasks": 0.04,
+    "measured_candidate_coverage": 0.16,
+    "mean_evaluator_q_hw": 0.75034,
+    "min_evaluator_q_hw": 0.75,
+    "max_evaluator_q_hw": 0.7585,
+    "mean_evaluator_score": 74.854
+  },
+  "diagnosis": {
+    "primary_cause_counts": {
+      "serial_loop_latency": 14,
+      "m_axi_widening_limit": 11
+    },
+    "diagnostic_state_counts": {
+      "conditional_bottleneck": 14,
+      "confirmed_bottleneck": 11
+    },
+    "action_alignment_records": {
+      "aligned": 12,
+      "contradicted": 23,
+      "unknown": 13
+    },
+    "measured_candidate_alignment": {
+      "aligned": 0,
+      "contradicted": 1,
+      "unknown": 3
+    },
+    "tasks_with_pretool_guard_rejection": 22,
+    "pretool_guard_rejection_count": 36,
+    "guard_rejection_groups": {
+      "family_outside_diagnosis_contract": 22,
+      "auto_pipeline_or_hierarchy_conflict": 6,
+      "multiple_optimization_families": 5,
+      "unsupported_affine_bank_mapping": 2,
+      "unmapped_loop_target": 1
+    }
+  },
+  "accepted_candidate": {
+    "task_id": "qor_optimization__23__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin",
+    "action": [
+      "#pragma HLS ARRAY_PARTITION variable=A cyclic factor=16 dim=1",
+      "#pragma HLS ARRAY_PARTITION variable=B block factor=16 dim=1"
+    ],
+    "recorded_alignment_to_primary_diagnosis": "contradicted",
+    "primary_diagnosis": "m_axi_widening_limit",
+    "baseline": {
+      "q_hw": 0.75,
+      "latency": 1140,
+      "top_interval": 1141,
+      "clock_ns": 3.65,
+      "resources": {
+        "LUT": 13864,
+        "FF": 11434,
+        "DSP": 131,
+        "BRAM_18K": 2,
+        "URAM": 0
+      }
+    },
+    "final": {
+      "q_hw": 0.7585,
+      "latency": 1071,
+      "top_interval": 1072,
+      "clock_ns": 3.65,
+      "resources": {
+        "LUT": 7548,
+        "FF": 5578,
+        "DSP": 63,
+        "BRAM_18K": 2,
+        "URAM": 0
+      },
+      "evaluator_score": 75.73
+    }
+  },
+  "observed_design_issues": [
+    {
+      "issue": "low measured-candidate coverage",
+      "evidence": "Only 4 of 25 tasks measured a non-baseline candidate; 21 tasks returned the baseline after candidate generation or pretool gating."
+    },
+    {
+      "issue": "diagnosis-to-action alignment is not yet effective",
+      "evidence": "None of the four measured candidates was recorded as aligned; the sole accepted improvement was recorded as contradicted to the selected primary diagnosis."
+    },
+    {
+      "issue": "RAG creates a factor=2 anchor",
+      "evidence": "All three measured UNROLL candidates used factor=2. Their actual retrieval context included submission.polybench__jacobi_2d.r1.e4d742be1914 and submission.polybench__gemver.r1.negative.1786d15f90dd, both of which contain literal factor=2 actions. This is data-level anchoring rather than a fixed strategy branch."
+    },
+    {
+      "issue": "the cohort has limited primary-diagnosis diversity",
+      "evidence": "Actual baseline reports produced only serial_loop_latency and m_axi_widening_limit as primary causes, so this campaign does not establish performance on other bottleneck classes."
+    }
+  ],
+  "acceptance_interpretation": {
+    "infrastructure_and_safety": "pass",
+    "optimization_effectiveness": "fail",
+    "reason": "The campaign is reliable and fully auditable, but 4% task improvement and 16% measured-candidate coverage are not sufficient for an optimize-agent acceptance claim."
+  }
+}

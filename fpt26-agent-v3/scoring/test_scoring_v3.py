@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V10 calibrated-weight, measured-cosim scoring engine — test suite.
+"""V11 aggregate-resource, repair-aware scoring engine test suite.
 
 All tasks use the single ``valid_then_optimize`` objective.
 Task type labels do not affect scoring.
@@ -31,22 +31,26 @@ from scoring_v3 import (
     TaskScoringConfig,
     ValidityGates,
     aggregate_performance_ratio,
+    aggregate_resource_ratio,
     area_quality,
     calculate_qor_components,
     check_capacity,
     combine_score,
+    combined_evidence_ratio,
     efficiency_factor,
     grade,
     grade_standardized_qor,
     hardware_ratio,
     hardware_qor,
+    normalized_resource_footprint,
     performance_quality,
     ratio_quality,
+    reference_validation_ratio,
     select_anchor,
     verified_available_resources,
 )
 
-U55C = {"LUT": 872640, "FF": 1745280, "DSP": 9024, "BRAM_18K": 2016, "URAM": 960}
+U55C = {"LUT": 1303680, "FF": 2607360, "DSP": 9024, "BRAM_18K": 4032, "URAM": 960}
 BASE_RES = {"LUT": 100, "FF": 100, "DSP": 10, "BRAM_18K": 0, "URAM": 0}
 
 
@@ -108,7 +112,7 @@ class TestRatioQuality:
 
 
 class TestWeightedHardwareRatio:
-    """Schema 10 gives performance a frozen, modest log-domain priority."""
+    """Schema 11 keeps a modest log-domain performance priority."""
 
     def test_weights_sum_to_one_and_performance_has_stable_priority(self):
         assert W_PERFORMANCE + W_AREA == pytest.approx(1.0)
@@ -140,6 +144,109 @@ class TestWeightedHardwareRatio:
     def test_no_finite_resource_growth_creates_performance_ceiling(self):
         for growth in (2.0, 4.0, 10.0, 1000.0):
             assert hardware_qor(growth * 2.0, 1.0 / growth) > 0.75
+
+
+class TestAggregateResourceScoring:
+    def test_footprint_uses_device_capacity_fractions(self):
+        resources = {
+            "LUT": 87264,
+            "FF": 174528,
+            "DSP": 902,
+            "BRAM_18K": 202,
+            "URAM": 96,
+        }
+        footprint = normalized_resource_footprint(resources, U55C)
+        assert footprint == pytest.approx(
+            sum(resources[key] / U55C[key] for key in RESOURCES)
+        )
+
+    def test_lut_to_bram_transfer_is_finite_and_capacity_aware(self):
+        anchor = {key: 0 for key in RESOURCES}
+        candidate = dict(anchor)
+        anchor["LUT"] = 8
+        candidate["BRAM_18K"] = 8
+        ratio, anchor_u, candidate_u = aggregate_resource_ratio(
+            candidate, anchor, U55C
+        )
+        assert anchor_u == pytest.approx(8 / U55C["LUT"])
+        assert candidate_u == pytest.approx(8 / U55C["BRAM_18K"])
+        assert ratio == pytest.approx(
+            U55C["BRAM_18K"] / U55C["LUT"]
+        )
+        assert 0.0 < ratio < 1.0
+
+    def test_real_bram_to_uram_transfer_gets_one_aggregate_ratio(self):
+        anchor = {
+            "LUT": 45, "FF": 146, "DSP": 0,
+            "BRAM_18K": 57, "URAM": 0,
+        }
+        candidate = {
+            "LUT": 282, "FF": 150, "DSP": 0,
+            "BRAM_18K": 0, "URAM": 8,
+        }
+        ratio, _, _ = aggregate_resource_ratio(candidate, anchor, U55C)
+        assert ratio == pytest.approx(1.653, abs=0.002)
+
+    def test_zero_resource_cases_are_explicit_and_bounded(self):
+        zero = {key: 0 for key in RESOURCES}
+        nonzero = dict(zero)
+        nonzero["LUT"] = 8
+        both_zero, _, _ = aggregate_resource_ratio(zero, zero, U55C)
+        eliminated, _, _ = aggregate_resource_ratio(zero, nonzero, U55C)
+        assert both_zero == 1.0
+        assert eliminated == 4.0
+
+
+class TestEvidenceMultipliers:
+    def test_source_change_provides_minimal_uplift(self):
+        ratio = combined_evidence_ratio(
+            1.0, 1.0, source_changed=True
+        )
+        assert ratio == pytest.approx(1.01)
+        assert 100 * ratio_quality(ratio) == pytest.approx(75.2481374)
+
+    def test_validity_rescue_is_explicit_and_label_independent(self):
+        ratio = combined_evidence_ratio(
+            1.0,
+            1.0,
+            source_changed=True,
+            validity_rescue=True,
+        )
+        assert ratio == pytest.approx(2.02)
+        assert 100 * ratio_quality(ratio) == pytest.approx(89.0355686)
+
+    def test_production_keeps_signed_repair_regressions(self):
+        signed = combined_evidence_ratio(
+            0.25,
+            1.0,
+            source_changed=True,
+            validity_rescue=True,
+        )
+        positive_only = reference_validation_ratio(
+            0.25,
+            1.0,
+            source_changed=True,
+            validity_rescue=True,
+        )
+        assert signed < 1.0
+        assert positive_only == pytest.approx(2.02)
+        assert ratio_quality(signed) < 0.75
+
+    def test_scorecard_records_both_evidence_bits(self):
+        evidence = _ev(lat=100, res=BASE_RES)
+        evidence.source_changed = True
+        evidence.validity_rescue = True
+        card = grade(
+            TaskScoringConfig(task_id="repair_evidence", task_type="repair"),
+            _anchor(lat=100, res=BASE_RES),
+            evidence,
+            gates=_gates(),
+        )
+        assert card.source_changed is True
+        assert card.validity_rescue is True
+        assert card.source_change_multiplier == pytest.approx(1.01)
+        assert card.validity_rescue_multiplier == pytest.approx(2.0)
+        assert card.score == pytest.approx(89.04, abs=0.01)
 
 
 class TestCapacityEvidence:
@@ -481,7 +588,7 @@ class TestScoreRange:
 
     def test_scorecard_audit_fields(self):
         card = grade(TaskScoringConfig(task_id="audit"), _anchor(), _ev(), gates=_gates())
-        assert card.schema_version == 10
+        assert card.schema_version == 11
         assert card.score_mode == "production"
         assert card.performance_weight == pytest.approx(0.55)
         assert card.area_weight == pytest.approx(0.45)
@@ -490,6 +597,8 @@ class TestScoreRange:
         assert card.q_perf > 0
         assert card.q_area > 0
         assert card.area_ratio > 0
+        assert card.anchor_resource_footprint > 0
+        assert card.candidate_resource_footprint > 0
         assert card.hardware_ratio > 0
         assert card.bottleneck_resource in RESOURCES
         assert len(card.growth_by_resource) == len(RESOURCES)
@@ -579,8 +688,13 @@ class TestStandardizedQoR:
         )
         assert components.performance_ratio == pytest.approx(1027 / 36)
         assert components.bottleneck_resource == "DSP"
-        assert components.area_growth == pytest.approx(32.0)
-        assert components.area_ratio == pytest.approx(1 / 32)
+        expected_area_ratio, _, _ = aggregate_resource_ratio(
+            evidence.candidate_resources,
+            anchor.resources,
+            U55C,
+        )
+        assert components.area_ratio == pytest.approx(expected_area_ratio)
+        assert components.area_growth == pytest.approx(1 / expected_area_ratio)
         assert components.ii_applied is False
 
     def test_zero_latency_identity_preserves_one_cycle_normalization(self):
@@ -620,26 +734,27 @@ class TestStandardizedQoR:
 
 class TestRealTasks:
     def test_projection_bugfix(self):
-        """Repair label: fix passes, no regression, 10/20 credits.
-        ratio_quality(1)=0.75, Q_HW=0.75, E=0.95, score=71.25."""
+        """A valid repair matches its reference and earns explicit rescue evidence."""
         cfg = TaskScoringConfig(task_id="projection_bugfix", task_type="repair",
                                  difficulty=2, budget_limit=20)
-        a = Anchor(source="starter", valid=True, latency=135, ii=1, clock_ns=5.0,
+        a = Anchor(source="reference", valid=True, latency=135, ii=1, clock_ns=5.0,
                     resources={"LUT": 406, "FF": 231, "DSP": 0, "BRAM_18K": 0, "URAM": 0},
                     available=dict(U55C), hash="abc")
         ev = QoREvidence(candidate_latency=135, candidate_ii=1,
-                         candidate_resources={"LUT": 406, "FF": 231, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
+                         candidate_resources={"LUT": 406, "FF": 231, "DSP": 0, "BRAM_18K": 0, "URAM": 0},
+                         source_changed=True, validity_rescue=True)
         card = grade(cfg, a, ev, cost_spent=10, gates=_gates())
 
-        print(f"\nprojection_bugfix V10:")
+        print(f"\nprojection_bugfix V11:")
         print(card.render())
 
         assert card.valid
-        # Baseline match: q_perf=0.75, q_area=0.75, Q_HW=0.75, E=0.95
+        # Hardware match plus D/F evidence: R=2.02, Q_HW≈0.8904, E=0.95.
         assert card.q_perf == pytest.approx(0.75, abs=0.01)
         assert card.q_area == pytest.approx(0.75, abs=0.01)
         assert card.efficiency == pytest.approx(0.95, abs=0.01)
-        assert 68 < card.score < 75
+        assert card.validity_rescue is True
+        assert 84 < card.score < 86
 
     def test_dotProduct_optimize(self):
         """Optimize label: 27x speedup, massive area bloat."""
@@ -652,7 +767,7 @@ class TestRealTasks:
                          candidate_resources={"LUT": 13189, "FF": 54194, "DSP": 64, "BRAM_18K": 0, "URAM": 0})
         card = grade(cfg, a, ev, cost_spent=15, gates=_gates())
 
-        print(f"\ndotProduct_optimize V10:")
+        print(f"\ndotProduct_optimize V11:")
         print(card.render())
 
         assert card.valid
@@ -660,9 +775,9 @@ class TestRealTasks:
         # Good perf, terrible area
         assert card.q_perf > 0.95
         assert card.bottleneck_resource == "FF"
-        assert card.area_growth > 500
-        assert card.q_area < 0.01
-        assert 40 < card.score < 50
+        assert 100 < card.area_growth < 130
+        assert card.q_area < 0.02
+        assert 60 < card.score < 66
 
     def test_dotProduct_four_candidates(self):
         """Ranking follows measured speedup/worst-growth, not labels."""
@@ -681,19 +796,18 @@ class TestRealTasks:
         cc = c(68, 68, 2000, 800, 8)            # C: balanced
         cd = c(10, 10, 50000, 200000, 200)      # D: extreme
 
-        print(f"\ndotProduct V10 — 4 candidates:")
+        print(f"\ndotProduct V11 — 4 candidates:")
         for name, card in [("A", ca), ("B", cb), ("C", cc), ("D", cd)]:
             print(f"  {name}: score={card.score:.2f}  q_perf={card.q_perf:.4f}  "
                   f"q_area={card.q_area:.4f}  bottleneck={card.bottleneck_resource}")
 
-        # D is far larger than A, but its 102.7x speedup / 2150x worst growth
-        # is slightly better than A's 27x / 583x. Both remain far below the
-        # 1x baseline; the weighted raw-ratio formula preserves this order.
+        # Aggregate capacity pressure keeps the measured order while the
+        # per-resource growth table remains available for diagnostics.
         assert cb.score > cc.score > cd.score > ca.score, (
             f"B={cb.score:.2f} C={cc.score:.2f} A={ca.score:.2f} D={cd.score:.2f}"
         )
-        assert ca.q_hw < 0.5
-        assert cd.q_hw < 0.5
+        assert ca.q_hw < 0.75
+        assert cd.q_hw < 0.75
 
     def test_residual_stream_deadlock(self):
         """Structural: cosim pass, modest speedup, area improved."""
@@ -708,7 +822,7 @@ class TestRealTasks:
         gates = ValidityGates(hidden_csim_pass=True, synth_pass=True, hidden_cosim_pass=True)
         card = grade(cfg, a, ev, cost_spent=66, gates=gates)
 
-        print(f"\nresidual_stream_deadlock V10:")
+        print(f"\nresidual_stream_deadlock V11:")
         print(card.render())
 
         assert card.valid
@@ -855,7 +969,7 @@ class TestExtremeRatios:
 
 
 class TestMultiResourceGrowth:
-    """Bottleneck = max growth among significant resources."""
+    """Per-resource bottlenecks remain diagnostic under aggregate scoring."""
 
     def test_bottleneck_is_worst_resource(self):
         """LUT 3x, FF 2x, DSP 1x → bottleneck = LUT at 3x."""
@@ -863,7 +977,11 @@ class TestMultiResourceGrowth:
         ev = _ev(res={"LUT": 300, "FF": 200, "DSP": 5, "BRAM_18K": 0, "URAM": 0})
         card = grade(TaskScoringConfig(task_id="multi1"), a, ev, cost_spent=0, gates=_gates())
         assert card.bottleneck_resource == "LUT"
-        assert card.area_growth == pytest.approx(3.0, abs=0.01)
+        assert card.area_growth == pytest.approx(
+            card.candidate_resource_footprint
+            / card.anchor_resource_footprint,
+            abs=0.01,
+        )
         assert card.growth_by_resource["LUT"] == pytest.approx(3.0, abs=0.01)
         assert card.growth_by_resource["FF"] == pytest.approx(2.0, abs=0.01)
 
@@ -873,8 +991,8 @@ class TestMultiResourceGrowth:
         ev = _ev(res={"LUT": 300, "FF": 290, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(TaskScoringConfig(task_id="multi2"), a, ev, cost_spent=0, gates=_gates())
         assert card.bottleneck_resource == "LUT"
-        # FF at 2.9x doesn't matter — only LUT at 3.0x drives area_quality
-        assert card.area_growth == pytest.approx(3.0, abs=0.01)
+        # LUT remains the diagnostic bottleneck; aggregate growth includes FF.
+        assert card.area_growth == pytest.approx(2.97, abs=0.01)
 
     def test_all_zero_resources_with_floor(self):
         """All resources zero → floor=1.0 → all growth=1.0."""
@@ -890,18 +1008,18 @@ class TestMultiResourceGrowth:
         a = _anchor(res={"LUT": 0, "FF": 100, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         ev = _ev(res={"LUT": 1, "FF": 100, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(TaskScoringConfig(task_id="multi4"), a, ev, cost_spent=0, gates=_gates())
-        # Going from 0→1 LUT with floor=1.0 means both normalized to 1.0 → growth=1.0
+        # The diagnostic floor stays finite; the aggregate score counts the LUT.
         assert card.growth_by_resource["LUT"] == pytest.approx(1.0, abs=0.01)
-        assert card.area_growth == pytest.approx(1.0, abs=0.01)
+        assert card.area_growth == pytest.approx(1.02, abs=0.01)
 
     def test_zero_to_many_is_count_ratio(self):
         """V9: 0→5 of any resource = 5.0x growth (natural count ratio)."""
         a = _anchor(res={"LUT": 0, "FF": 100, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         ev = _ev(res={"LUT": 5, "FF": 100, "DSP": 0, "BRAM_18K": 0, "URAM": 0})
         card = grade(TaskScoringConfig(task_id="multi5"), a, ev, cost_spent=0, gates=_gates())
-        # anchor LUT → max(0,1.0)=1.0, candidate LUT → max(5,1.0)=5.0, ratio=5.0
+        # The per-resource table records 5x; the score uses total capacity pressure.
         assert card.growth_by_resource["LUT"] == pytest.approx(5.0, abs=0.01)
-        assert card.area_growth == pytest.approx(5.0, abs=0.01)
+        assert card.area_growth == pytest.approx(1.10, abs=0.01)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -910,7 +1028,7 @@ class TestMultiResourceGrowth:
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("  FPT26 V10 Calibrated-Weight Scoring Engine — Test Suite")
+    print("  FPT26 V11 Aggregate-Resource Scoring Engine — Test Suite")
     print("=" * 70)
 
     trt = TestRealTasks()

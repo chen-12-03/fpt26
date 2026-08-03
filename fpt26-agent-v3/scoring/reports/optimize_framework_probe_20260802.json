@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "purpose": "small_real_api_probe_of_synth_diagnosis_to_optimization_chain",
+  "task_scope": [
+    "dotProduct_optimize"
+  ],
+  "provider": {
+    "client": "OpenAICompatClient",
+    "model": "qwen3-coder-plus",
+    "temperature": 0.0
+  },
+  "runs_are_sequential_framework_revisions_not_independent_replicates": true,
+  "aggregate_usage": {
+    "fresh_runs": 5,
+    "real_api_requests": 9,
+    "total_tokens": 55590,
+    "launcher_elapsed_seconds": 600.0
+  },
+  "runs": [
+    {
+      "id": "dotproduct",
+      "requests": 2,
+      "tokens": 12509,
+      "elapsed_seconds": 110.7,
+      "observed_result": "serial_loop_latency diagnosed; two contract-violating candidates rejected before candidate tools; baseline retained",
+      "q_hw_final": 0.75
+    },
+    {
+      "id": "dotproduct_v2",
+      "requests": 1,
+      "tokens": 5749,
+      "elapsed_seconds": 125.3,
+      "observed_result": "factorization RAG contamination removed; UNROLL factor=32 was placed outside the recognized loop scope, synthesized with no hardware effect, and rejected",
+      "q_hw_candidate": 0.75,
+      "q_hw_final": 0.75
+    },
+    {
+      "id": "dotproduct_v3",
+      "requests": 2,
+      "tokens": 12073,
+      "elapsed_seconds": 129.1,
+      "observed_result": "unmapped loop directive rejected before tools; mixed manual expansion plus UNROLL factor=2 measured and rejected",
+      "candidate": {
+        "latency_worst": 515,
+        "clock_period_ns": 3.17,
+        "resources": {
+          "LUT": 446,
+          "FF": 179,
+          "DSP": 4,
+          "BRAM_18K": 0,
+          "URAM": 0
+        },
+        "q_hw": 0.7262
+      },
+      "q_hw_final": 0.75
+    },
+    {
+      "id": "dotproduct_v4",
+      "requests": 2,
+      "tokens": 12052,
+      "elapsed_seconds": 104.8,
+      "observed_result": "unmapped directive and out-of-contract PIPELINE proposals rejected before candidate tools; baseline retained",
+      "q_hw_final": 0.75
+    },
+    {
+      "id": "dotproduct_v5",
+      "current_framework_revision": true,
+      "requests": 2,
+      "tokens": 13207,
+      "elapsed_seconds": 130.1,
+      "diagnosis": {
+        "state": "conditional_bottleneck",
+        "primary": "serial_loop_latency",
+        "loop": "VITIS_LOOP_7_1",
+        "confidence": "probable",
+        "evidence": [
+          "loop trip_count=1024 latency=1025 PipelineII=1; top latency=1027",
+          "HLS 200-2250 write-after-read rewind dependence on result"
+        ]
+      },
+      "measured_candidate": {
+        "action": "#pragma HLS UNROLL factor=32 on the diagnosed loop",
+        "latency_worst": 515,
+        "clock_period_ns": 3.269,
+        "resources": {
+          "LUT": 2495,
+          "FF": 714,
+          "DSP": 4,
+          "BRAM_18K": 0,
+          "URAM": 0
+        },
+        "q_hw_before": 0.75,
+        "q_hw_after": 0.504,
+        "decision": "REJECTED"
+      },
+      "pretool_rejection": "MEMORY_BANKING outside the diagnosis/source-evidence contract",
+      "final": {
+        "kernel": "starter_unchanged",
+        "latency_worst": 1027,
+        "clock_period_ns": 3.17,
+        "resources": {
+          "LUT": 156,
+          "FF": 93,
+          "DSP": 2,
+          "BRAM_18K": 0,
+          "URAM": 0
+        },
+        "q_hw": 0.75,
+        "submission_status": "completed",
+        "evaluator_status": "completed"
+      }
+    }
+  ],
+  "acceptance": {
+    "starts_from_real_synth_log": true,
+    "structured_bottleneck_and_action_contract_recorded": true,
+    "invalid_or_unsupported_actions_fail_closed": true,
+    "measured_q_hw_regression_preserves_baseline": true,
+    "q_hw_improvement_demonstrated": false,
+    "ready_for_generated_task_expansion": false
+  },
+  "conclusion": "Diagnosis and safety gates work on the official optimize task, but LLM parameter selection remains weak. A source- and cost-derived bounded parameter planner is required before broader generated-task API spending."
+}

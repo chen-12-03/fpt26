@@ -7,7 +7,6 @@ from types import SimpleNamespace
 import pytest
 
 from agent.agents.optimization.controller import (
-    _prefer_legacy_specialist,
     _task_preflight_vitis_version,
     run_optimization_loop,
 )
@@ -215,6 +214,26 @@ def test_dot_product_case_is_not_injected_into_unrelated_ii_loop() -> None:
     assert all(entry.kind == "rule" for entry in matches)
 
 
+def test_dot_product_does_not_retrieve_factorization_rule() -> None:
+    matches = retrieve_knowledge(
+        _query(
+            description="Optimize a correct dot product reduction.",
+            synth_diagnostics={
+                "summary": (
+                    "A long II=1 loop contributes most measured latency; "
+                    "inspect reduction legality."
+                )
+            },
+        ),
+        generalized=True,
+    )
+
+    assert all(
+        entry.id != "hlsgen.linear_algebra.factorization_dependency_guard"
+        for entry in matches
+    )
+
+
 @pytest.mark.parametrize(
     ("source_task", "description"),
     [
@@ -301,25 +320,6 @@ def test_popcount_cases_are_structure_limited() -> None:
     assert all("popcount" not in entry.tags for entry in unrelated)
 
 
-def test_legacy_specialist_is_incremental_fallback_not_dot_override() -> None:
-    reduction = [{"family": "Reduction / Single-Loop Pipeline"}]
-    cordic = [{"family": "CORDIC / Trigonometric Optimization"}]
-
-    assert _prefer_legacy_specialist(reduction, "Compute a popcount reduction.")
-    assert not _prefer_legacy_specialist(
-        reduction, "Optimize a vector loop."
-    )
-    assert not _prefer_legacy_specialist(
-        reduction, "Compute a dot product reduction."
-    )
-    assert _prefer_legacy_specialist(
-        cordic, "Compute sine and cosine using CORDIC."
-    )
-    assert not _prefer_legacy_specialist(
-        cordic, "A cipher contains a bit rotation."
-    )
-
-
 @pytest.mark.parametrize(
     ("description", "expected"),
     [
@@ -391,9 +391,10 @@ def test_gemm_tiled_reuse_rule_preserves_blocked_local_architecture() -> None:
 
     assert matches[0].id == "hlsgen.gemm.tiled_reuse"
     action = matches[0].action.lower()
-    assert "preserve the existing blocked/tiled gemm architecture" in action
-    assert "minimum banking" in action
-    assert "scalar fallback" in action
+    assert "preserve an existing blocked/tiled gemm architecture" in action
+    assert "derive any loop parallelism" in action
+    assert "measure each selected action signature" in action
+    assert "factor=2" not in action
 
 
 def test_crypto_lookup_architecture_outranks_generic_baseline_rule() -> None:
@@ -463,9 +464,9 @@ def test_linear_factorization_architecture_outranks_generic_baseline_rule() -> N
     assert matches[0].id == "hlsgen.linear_algebra.factorization_dependency_guard"
     assert all(not entry.source.startswith("submission:polybench__cholesky") for entry in matches)
     prompt = format_for_prompt([matches[0]])
-    assert "conservative outer-loop PIPELINE" in prompt
-    assert "II near the reported dependency II" in prompt
-    assert "Do not force II=1" in prompt
+    assert "preserve proved row/column dependency order" in prompt
+    assert "without prescribing a target II from the workload name" in prompt
+    assert "PIPELINE II=11" not in prompt
 
 
 def test_description_only_retrieval_cannot_bypass_structured_inputs() -> None:
@@ -582,7 +583,7 @@ def test_prompt_injection_is_bounded_and_marks_seed_as_advisory() -> None:
     assert any("advisory" in line for line in payload["policy"])
 
 
-def test_report_loop_metrics_override_missing_source_ii_for_retrieval() -> None:
+def test_report_loop_metrics_do_not_force_a_default_unroll_rule() -> None:
     query = _query(
         source_metadata={
             "loops": [{"trip_count": "unknown", "pipeline_ii": "none"}],
@@ -602,7 +603,8 @@ def test_report_loop_metrics_override_missing_source_ii_for_retrieval() -> None:
 
     matches = retrieve_knowledge(query)
 
-    assert matches[0].id == "hlsgen.unroll.conservative_partial"
+    assert matches
+    assert matches[0].id != "hlsgen.unroll.evidence_bounded"
 
 
 def test_labeled_retrieval_gate_has_30_cases_and_recall_at_least_85_percent() -> None:
@@ -707,6 +709,8 @@ def test_optimizer_uses_structured_qor_rag_without_an_extra_llm_call() -> None:
     assert llm.calls == 1
     assert prompt["source_design_metadata"]
     assert retrieved["entries"][0]["status"] == "unverified_seed"
+    assert result.metadata["qor_rag_generalized"] is True
+    assert result.metadata["qor_rag_mode"] == "phase2a_hybrid_generalized"
     assert result.metadata["knowledge_retrievals"][0]["entry_ids"]
     assert (
         result.metadata["knowledge_retrievals"][0][

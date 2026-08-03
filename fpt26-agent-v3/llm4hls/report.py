@@ -38,6 +38,7 @@ class SynthReport:
     pipeline_type: str | None = None
     loop_metrics: list[dict] = field(default_factory=list)
     inferred_directives: list[dict] = field(default_factory=list)
+    burst_accesses: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -161,6 +162,41 @@ def parse_csynth_xml(
                 seen_loop_metrics.add(fingerprint)
                 loop_metrics.append(metric)
 
+    # Vitis records the reason for missed/widen-failed M_AXI bursts in a
+    # machine-readable table.  The HLS 200-1603 log line is only a summary and
+    # deliberately does not identify the port or failure mechanism.
+    burst_accesses = []
+    seen_burst_accesses: set[tuple] = set()
+    burst_tables = root.findall(
+        ".//ReportBurst//item[@name='All M_AXI Variable Accesses']/table"
+    )
+    for table in burst_tables:
+        keys_text = table.findtext("keys") or ""
+        keys = [key.strip() for key in keys_text.split(",") if key.strip()]
+        if not keys:
+            continue
+        for column in table.findall("column"):
+            # The first key is stored in the column name; split only the
+            # remaining fixed columns so a comma in Problem is preserved.
+            values = [column.get("name", "")]
+            remaining = len(keys) - 1
+            values.extend(
+                part.strip()
+                for part in (column.text or "").split(", ", remaining - 1)
+            )
+            values.extend([""] * (len(keys) - len(values)))
+            access = {
+                key.lower().replace(" ", "_"): values[index]
+                for index, key in enumerate(keys)
+            }
+            fingerprint = tuple(
+                access.get(key.lower().replace(" ", "_"), "")
+                for key in keys
+            )
+            if fingerprint not in seen_burst_accesses:
+                seen_burst_accesses.add(fingerprint)
+                burst_accesses.append(access)
+
     return SynthReport(
         clock_period_ns=clock,
         latency_best=lat("Best-caseLatency"),
@@ -176,6 +212,7 @@ def parse_csynth_xml(
         inferred_directives=parse_inferred_directives(
             inferred_directives_fp
         ),
+        burst_accesses=burst_accesses,
     )
 
 

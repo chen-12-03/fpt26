@@ -4883,3 +4883,142 @@ fixture 行为；随后依次 fresh 运行三个 official task 的真实 API + V
     运行 failed-task 1-3 task sample、保持 freeze 不变。
 - 边界：rem2 是 2-task small-sample evidence，不是 formal A/B；GEMM 改善明显，
   但 Cholesky 仍退化，所以 generalized QoR repair 还不能声称完成。
+
+## 2026-08-02 — Track-A 150 工具超时收紧
+
+### 适用范围与数据依据
+
+- 后续运行范围暂时固定为冻结的 `tasks/track_a_150`；该语料 150 个 task
+  均为 difficulty 3，不将本轮阈值外推到 MachSuite、PolyBench、Rosetta 等
+  difficulty 4/5 语料。
+- 对三组权威 150-task campaign 的 978 份可读 `run_report.json` 统计全部尝试：
+  CSim 1,526 次、Synth 1,420 次、CoSim 225 次。
+- 成功调用耗时上沿：CSim 最大 `14.843 s`、P99 `12.745 s`；Synth 最大
+  `124.298 s`、P99 `36.320 s`；CoSim 最大 `175.227 s`、P99
+  `54.484 s`。
+- Synth 的 `124.298 s` 是单次候选资源膨胀至 LUT `471,039`、FF
+  `215,597` 的离群点；同一 task 的正常 Synth 为约 `14–19 s`。CoSim 的
+  `175.227 s` 也属于工具链抖动，同一 kernel 的其他成功运行约
+  `34–56 s`。
+- 观测到一次 CoSim 在旧 `900 s` 阈值结束；同一 task family 后续约
+  `34.8 s` 通过。将 CoSim 阈值降至 `240 s`，单次卡死可最多减少约
+  `660 s` 等待。
+
+### 修改
+
+- `scoring/run_p0_real_api_shard.py` 为且仅为 task root 名为
+  `track_a_150` 的 campaign 注入以下默认值：
+  - `LLM4HLS_CSIM_TIMEOUT_S=30`
+  - `LLM4HLS_SYNTH_TIMEOUT_S=180`
+  - `LLM4HLS_COSIM_TIMEOUT_S=240`
+- 同一有效值同时传给 submission 与 evaluator 子进程；未修改
+  `fpt26-harness/` 及其他 corpus 的 harness 默认值。
+- 显式环境变量可覆盖上述 scoped defaults。解析后的有效值、来源和显式覆盖名
+  写入 `shard_summary.json.tool_timeout_policy`；resume 时若策略漂移则拒绝混合
+  证据。
+
+### 验证与边界
+
+- 新增单测覆盖 Track-A 150 默认值、非 Track-A corpus 不受影响，以及显式
+  Synth timeout override、非法非有限值拒绝；Docker 内运行
+  `python3 -m pytest -q tests/test_p0_batch_runner.py` 为 **25 passed**。
+- Docker 内 `py_compile` 通过；本轮相关文件 `git diff --check` clean。
+- 本轮仅修改并验证 timeout 接线，没有运行真实 API/Vitis，也不声明 Agent
+  QoR、正确率或分数提升。
+- 若后续恢复运行 difficulty 4/5 语料，应先重新采集其逐工具耗时，再单独设定
+  阈值；不得直接复用本轮 Track-A 150 策略。
+
+## 2026-08-02 — Optimize 参数硬编码与策略倾向清理
+
+### 实际问题
+
+- 复核当前实现和既有 dotProduct 实测记录后确认：`UNROLL factor=2` 曾由 LLM
+  输出且在该任务上实测改善，但 Optimize 运行时、RAG 种子和测试契约又通过
+  “最保守/最小 factor”、`II=1 + 长循环 -> UNROLL`、`II lower bound -> factor`
+  等规则强化了这个选择，不能把它视为纯粹由当前证据独立推导的结论。
+- 一次 Q_HW 失败还会封禁整个优化 family/target，并把 factor=2 失败视为 UNROLL
+  搜索前沿；这会错误外推未测参数点。
+- Cholesky 工作负载名曾直接生成固定范围依赖判断和 `PIPELINE II=<reported>`
+  候选形状，属于算法名到具体 pragma 的越权映射。
+
+### 修改
+
+- 参数选择改为证据约束的候选空间：memory banking 只给出由 affine access、
+  concurrent lanes、array extent 推导的合法 type/factor 范围，不再推荐 factor=2，
+  也不再把 II lower bound 当作 factor。
+- anti-repeat 改为参数敏感的精确 action signature；同 family/target 的不同 factor
+  是新的假设，只有具备当前 report/source 依据时才允许进入真实测量。
+- 删除 minimum-factor frontier、conservative/speed-first lane 和按算法名注入固定
+  pragma；三个 competition lane 改为 evidence-backed directive、source architecture
+  change、independent alternative。
+- 清理 seed knowledge 中 GEMM、reduction、stencil、triangular factorization 和
+  unroll 的 factor=2、固定 II 区间及“先试最小因子”措辞；历史 verified case 中的
+  factor=2 仍作为带 task/target/tool/Q_HW 证据的事实保留，不升级为通用规则。
+- Optimize 默认启用 generalized RAG，避免默认回灌同 task 的历史 recipe；可通过
+  显式环境变量关闭，用于受控 A/B。
+
+### 验证与边界
+
+- Optimize 相关回归：`109 passed`（含硬编码残留守卫；此前分组运行 108 passed，
+  后续增加 1 个策略守卫）。
+- QoR-RAG 离线门禁：32 cases，Recall@3=`0.875`，deterministic=`true`，最大 prompt
+  token upper bound=`1795`，整体 `passed=true`。标签中的 UNROLL 正例现在必须显式
+  提供 independent-iteration、operator-cost、memory-bandwidth 证据。
+- 全量 pytest：`558 passed, 4 skipped, 10 failed`。失败项包括既有 freeze
+  manifest/保留验收证据不一致、当前 shell 未正确加载 Vitis version probe，及
+  1 个 P0 workflow 异常状态预期；与本轮 Optimize 定向回归无重叠，未修改 freeze
+  manifest 来掩盖失败。
+- 本轮没有运行新真实 API/Vitis QoR campaign，因此只声明策略硬编码清理和离线
+  契约通过，不声明实际任务 Q_HW 或成功率提升。
+
+## 2026-08-02 — Optimize 框架 official 真实 API/Vitis 小样本探测
+
+### 范围
+
+- 遵守 `AGENTS.md` 的 official-first 规则，仅运行 official optimize task
+  `dotProduct_optimize`；没有在 official 尚未产生改善时扩展 generated task。
+- 5 次 fresh run 对应逐步修正后的不同框架版本，不作为独立重复实验合并成功率。
+- 共发生 9 次真实 API 请求、55,590 tokens；submission/evaluator 均使用真实
+  Vitis 2025.2。完整结构化摘要：
+  `fpt26-agent-v3/scoring/reports/optimize_framework_probe_20260802.json`。
+
+### 从实际运行发现并修正的问题
+
+- 首次运行正确诊断 `serial_loop_latency`，但 RAG 错检索 triangular-factorization
+  规则；增加 architecture-specific rule 的语义兼容过滤。
+- LLM 曾把 UNROLL pragma 放在无法映射到目标 loop 的 scope；增加 pre-tool target
+  mapping gate，避免为无效 directive 消耗 CSim/Synth。
+- LLM 曾把手工循环展开、UNROLL、LOOP_TRIPCOUNT 混成一个候选；source 非 pragma
+  变化现在始终计为 `SOURCE_RESTRUCTURE`，诊断合同强制一次只选一个硬件优化 family。
+- 一次精确 UNROLL action 失败后仍应允许不同参数或 SOURCE_RESTRUCTURE 假设；修复
+  `distinct_report_supported_alternatives`，不再错误输出 family/target 已关闭。
+- 提示词增加通用可归因约束：directive trial 保持非 pragma 源码不变并把 directive
+  放入目标 loop body；source-restructure trial 不混加优化 pragma。
+
+### 当前版本真实结果（dotproduct_v5）
+
+- 输入诊断：`conditional_bottleneck / serial_loop_latency / probable`；证据为
+  loop `VITIS_LOOP_7_1` trip=`1024`、latency=`1025`、II=`1`、top latency=`1027`，
+  以及 HLS 200-2250 对 `result` 的 write-after-read rewind dependence。
+- LLM 提出合法作用域的 `UNROLL factor=32`：
+  - latency `1027 -> 515`
+  - clock `3.17 -> 3.269 ns`
+  - LUT `156 -> 2495`
+  - FF `93 -> 714`
+  - DSP `2 -> 4`
+  - Q_HW `0.75 -> 0.504`
+  - decision=`REJECTED`
+- 第二个 MEMORY_BANKING 候选没有 diagnosis/source banking 证据，在工具调用前被拒绝。
+- 最终 submission/evaluator 均 completed，保留 starter：latency=`1027`、Q_HW=`0.75`。
+
+### 结论与边界
+
+- 可以确认 Optimize 已从真实 Synth 日志进入结构化瓶颈诊断，并给出受证据约束的
+  方向；非法/无依据候选和 Q_HW 退化候选能够 fail closed，不污染最终 kernel。
+- 尚不能确认“优化方向提出有效”：当前 LLM 从合法方向选择具体参数的能力较弱，
+  去除 factor=2 偏置后选择了 factor=32，真实 Q_HW 明显下降。
+- 因 official optimize 尚未改善，本轮停止 generated task API 扩展。下一步应实现
+  基于 trip count、operator cost、memory bandwidth、resource headroom 的有限参数候选
+  planner，再重新通过 official gate。
+- 最新相关 Docker 回归为 `110 passed`；QoR-RAG 离线门禁仍为 32 cases、
+  Recall@3=`0.875`、deterministic=`true`、passed=`true`。

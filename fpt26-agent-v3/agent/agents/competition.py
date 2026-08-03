@@ -20,8 +20,8 @@ from agent.agents.base import RunState
 
 DIVERSE_OPTIMIZATION_STRATEGIES: tuple[dict[str, Any], ...] = (
     {
-        "name": "conservative_loop_parallelism",
-        "objective": "Test the lowest-risk local action supported by measured report or deterministic source evidence.",
+        "name": "evidence_backed_directive",
+        "objective": "Test one directive action supported by measured report or deterministic source evidence.",
         "required_family": (
             "Preserve source arithmetic and apply one directive family whose exact "
             "target is supported by measured II/port evidence or source banking evidence."
@@ -34,36 +34,40 @@ DIVERSE_OPTIMIZATION_STRATEGIES: tuple[dict[str, Any], ...] = (
         ],
     },
     {
-        "name": "source_reduction_restructure",
+        "name": "task_pipeline_architecture",
         "objective": (
-            "Explore a source-level reduction architecture such as independent "
-            "partial accumulators or a balanced combine step."
+            "Test one coherent task-pipeline architecture when deterministic "
+            "source evidence proves connected helper stages."
         ),
         "required_family": (
-            "Change the reduction data-dependency structure in C/C++ while "
-            "preserving exact functional behavior and the top interface."
+            "Use TASK_PIPELINE only when source_architecture_evidence names "
+            "the top, connected stage calls, and connectors. A coherent trial "
+            "may combine DATAFLOW with stage-boundary INLINE OFF and stage-local "
+            "PIPELINE/LATENCY directives, but remains one architecture family."
         ),
         "forbidden_changes": [
-            "adding UNROLL, PIPELINE, ARRAY_PARTITION, or ARRAY_RESHAPE pragmas",
-            "copying the conservative pragma-only candidate",
-            "changing numeric types or observable arithmetic semantics",
+            "DATAFLOW without source-proven connected stages",
+            "ARRAY_PARTITION, ARRAY_RESHAPE, UNROLL, interface changes, or arithmetic changes",
+            "changing the top signature or connector semantics",
         ],
     },
     {
-        "name": "speed_first_parallel_architecture",
+        "name": "source_parallel_architecture",
         "objective": (
-            "Test a materially more parallel speed-first architecture than the "
-            "conservative lane, while remaining within device capacity."
+            "Explore one source-level parallel architecture derived from "
+            "deterministic loop/access evidence."
         ),
         "required_family": (
-            "Use either a bounded parallel factor materially above the conservative "
-            "trial or an explicit multi-lane/chunked compute architecture. Matching "
-            "banking may be used in this speed-first lane and must be judged by "
-            "measured capacity and Q_HW."
+            "Change C/C++ structure while preserving numeric behavior and the "
+            "top interface. When source_architecture_evidence exposes a "
+            "composite family such as REDUCTION_PARALLELISM, use only its named "
+            "loop, arrays, and finite factor candidates; otherwise make a "
+            "pragma-free SOURCE_RESTRUCTURE trial."
         ),
         "forbidden_changes": [
-            "reusing the conservative action unchanged",
-            "full unroll of an unbounded or very long loop",
+            "inventing an unlisted factor, loop, array, or composite family",
+            "copying either directive lane",
+            "changing numeric types or observable arithmetic semantics",
         ],
     },
 )
@@ -332,10 +336,6 @@ class DiverseOptimizationStage:
         )
         state.metadata["ii_resource_intent_rejections"] = sum(
             child.metadata.get("ii_resource_intent_rejections", 0)
-            for child in children
-        )
-        state.metadata["minimum_factor_convergence"] = any(
-            child.metadata.get("minimum_factor_convergence", False)
             for child in children
         )
         state.metadata["strategy_contract_rejections"] = sum(

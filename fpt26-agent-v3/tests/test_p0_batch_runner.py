@@ -4,17 +4,76 @@ import pytest
 
 from scoring.run_p0_real_api_shard import (
     EXPECTED_TASK_COUNT,
+    TRACK_A_150_TOOL_TIMEOUT_DEFAULTS_S,
     _summary,
     build_evaluator_command,
+    build_submission_command,
     classify_outcome,
     discover_tasks,
     execution_source_snapshot,
     load_excluded_task_ids,
     resolve_llm_run_contract,
+    resolve_tool_timeout_policy,
     submission_requires_evaluator,
     validate_evaluator,
     validate_submission,
 )
+
+
+def test_track_a_150_uses_scoped_tool_timeout_defaults(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    for env_name in (
+        "LLM4HLS_CSIM_TIMEOUT_S",
+        "LLM4HLS_SYNTH_TIMEOUT_S",
+        "LLM4HLS_COSIM_TIMEOUT_S",
+    ):
+        monkeypatch.delenv(env_name, raising=False)
+
+    policy = resolve_tool_timeout_policy(tmp_path / "track_a_150")
+
+    assert policy is not None
+    assert policy["scope"] == "track_a_150"
+    assert policy["source"] == "track_a_150_runner_defaults"
+    assert policy["values_s"] == TRACK_A_150_TOOL_TIMEOUT_DEFAULTS_S
+    assert policy["env_overrides"] == {
+        "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+        "LLM4HLS_SYNTH_TIMEOUT_S": "180.0",
+        "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+    }
+
+
+def test_tool_timeout_policy_does_not_affect_other_corpora(
+    tmp_path: Path,
+) -> None:
+    assert resolve_tool_timeout_policy(tmp_path / "generated") is None
+
+
+def test_track_a_150_tool_timeout_allows_explicit_override(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("LLM4HLS_SYNTH_TIMEOUT_S", "210")
+
+    policy = resolve_tool_timeout_policy(tmp_path / "track_a_150")
+
+    assert policy is not None
+    assert policy["source"] == "environment_override"
+    assert policy["values_s"]["synth"] == 210.0
+    assert policy["explicit_override_names"] == [
+        "LLM4HLS_SYNTH_TIMEOUT_S"
+    ]
+
+
+def test_track_a_150_tool_timeout_rejects_non_finite_value(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("LLM4HLS_COSIM_TIMEOUT_S", "nan")
+
+    with pytest.raises(RuntimeError, match="must be positive"):
+        resolve_tool_timeout_policy(tmp_path / "track_a_150")
 
 
 def test_discovery_is_exactly_expected_unique_tasks() -> None:
@@ -221,6 +280,25 @@ def test_formal_evaluator_command_always_links_submission_evidence() -> None:
     evidence_index = command.index("--submission-evidence")
     assert command[evidence_index + 1].endswith("submission_evidence.json")
     assert command[command.index("--run-role") + 1] == "evaluator"
+
+
+@pytest.mark.parametrize(
+    ("competition", "expected"),
+    [(False, False), (True, True)],
+)
+def test_submission_command_preserves_competition_mode(
+    competition: bool,
+    expected: bool,
+) -> None:
+    command = build_submission_command(
+        task_dir=Path("/workspace/tasks/generated/task_001"),
+        backend="custom",
+        output_root=Path("/workspace/runs/submission"),
+        competition=competition,
+    )
+
+    assert ("--competition" in command) is expected
+    assert command[command.index("--run-role") + 1] == "submission"
 
 
 def test_official_fresh_launcher_links_submission_evidence() -> None:

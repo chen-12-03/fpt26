@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-08-03",
+  "scoring_version": "11.0.0",
+  "scoring_schema": 11,
+  "formula": {
+    "hardware_ratio": "1.01**D * 2**F * performance_ratio**0.55 * aggregate_resource_ratio**0.45",
+    "resource_footprint": "sum(resource_count[resource] / device_capacity[resource])",
+    "performance_weight": 0.55,
+    "area_weight": 0.45,
+    "weight_sum": 1.0,
+    "source_change_ratio": 1.01,
+    "validity_rescue_ratio": 2.0,
+    "zero_candidate_resource_reward": 4.0,
+    "standardized_reference_validation": "positive_only_opt_in",
+    "production_regressions": "signed",
+    "production_efficiency": "measured_cost_time",
+    "candidate_self_anchor_allowed": false
+  },
+  "policy": "Schema 11 production freeze. Changes require a regression test and fresh real-API/Vitis revalidation.",
+  "validation": {
+    "image": "fpt26-agent-v3:latest",
+    "vitis_hls": "2025.2 build 6295257",
+    "real_api_model": "qwen3-coder-plus",
+    "real_api_task_count": 10,
+    "real_api_completed_count": 10,
+    "real_api_requests": 23,
+    "real_api_total_tokens": 158073,
+    "real_api_audit_errors": 0,
+    "execution_source_file_count": 85,
+    "execution_source_tree_sha256": "7fd2ef0c3340d53f12f7b6ca21c71c3511287ac7fabf019fed1057449ec8f74e",
+    "execution_source_stable": true,
+    "pre_run_scoped_tests": "175 passed; 0 failed",
+    "final_scoped_tests": "171 passed in 1.93s; 0 failed"
+  },
+  "files": {
+    "fpt26-agent-v3/scoring/__init__.py": "a0d7877402298fc95430797473fa077142f310de5c56342b0c17c57d9ae9aa4f",
+    "fpt26-agent-v3/scoring/scoring_v3.py": "37f5918350aec7ab75aa823135f3d1e7ac692b875eefd50a990910f8532f5b0c",
+    "fpt26-agent-v3/scoring/profiles.py": "0455a6d855c8ed16cc6c7d2aecd90679dc232d0b8451a094bef155ef5d65f70a",
+    "fpt26-agent-v3/scoring/evaluator.py": "128c27f959eaed826cadfa7ac6f164af64f773c012e9c013551dc9672426633f",
+    "fpt26-agent-v3/agent/reporting/builder.py": "0876e2e1373649f01628429bdc103e4deffab4f545b20d39a2b8526a201928b9",
+    "fpt26-agent-v3/agent/reporting/schema.py": "dd1a6455bb6377be24f6797a06f74472845a7be6fad47be5401c7eb2876d2bb5",
+    "fpt26-agent-v3/scoring/SCORING_CONSISTENCY.md": "b3f527aaee47cd85068c90bccf696e11942023a5b77d573f3dc895cd4a5a06fa",
+    "fpt26-agent-v3/scoring/test_scoring_v3.py": "ce341d00c4f7367fd26a201ac17135b7fce90cb807450e24b6079b20f7e9fc4d",
+    "fpt26-agent-v3/tests/test_scoring_profiles.py": "295f09237cf291b78a32967230992a62bc4c9a3f5148f6dabe479fce9b887432",
+    "fpt26-agent-v3/tests/test_candidate_pipeline.py": "4e3b1b1cba59ab82572b213e7f06237bfd9a2d5d2af6f519c413e89da1ed4d7d"
+  },
+  "evidence": {
+    "real_api_summary": {
+      "path": "runs/schema11_ali_qwen3coder_real10_20260803/shard_summary.json",
+      "sha256": "23f99f51b5da80e4ee4fc555cc0e5d1d7abccc4f79eb058149647bc74f493445"
+    },
+    "experiment_plan": {
+      "path": "analysis/schema11_ali_real10/experiment_plan.md",
+      "sha256": "4331af08aa9fe26428ac544e7b826a337aff14277b0e0afd3df13f8f09fc6c53"
+    },
+    "experiment_report": {
+      "path": "analysis/schema11_ali_real10/results.md",
+      "sha256": "25f52465ead32e7117498ff13608960bd5feed0b99aea5c1f908ff366b541ecb"
+    },
+    "formula_logic": {
+      "path": "analysis/qhw_reference_study/scoring_schema11_formula_logic.md",
+      "sha256": "1f7e4bbd9f7a10ffb1d5bc28d7d03f41b81e1032a2ba42987b4b0bc31545b479"
+    }
+  }
+}

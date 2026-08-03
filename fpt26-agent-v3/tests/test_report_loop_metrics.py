@@ -159,3 +159,49 @@ syn.directive.unroll=top/inner
     assert parse_csynth_xml(
         report_path, inferred_directives_fp=inferred_path
     ).inferred_directives == expected
+
+
+def test_parse_csynth_xml_exposes_m_axi_burst_failure_details(tmp_path) -> None:
+    report_path = tmp_path / "csynth.xml"
+    report_path.write_text(
+        """<profile>
+<ReportBurst>
+  <section name="M_AXI Burst Information">
+    <item name="All M_AXI Variable Accesses"><table>
+      <keys size="10">HW Interface, Variable, Access Location, Direction, Burst Status, Length, Loop, Loop Location, Resolution, Problem</keys>
+      <column name="m_axi_gmem">a, example.cpp:40:5, read, Widen Fail, , read_loop, example.cpp:40:5, 214-353, Could not widen since type i32 size is greater than or equal to the max_widen_bitwidth threshold of 0</column>
+      <column name="m_axi_gmem">a, example.cpp:40:5, read, Inferred, 50, read_loop, example.cpp:40:5, , </column>
+    </table></item>
+  </section>
+</ReportBurst>
+</profile>"""
+    )
+
+    report = parse_csynth_xml(report_path)
+
+    assert report.burst_accesses == [
+        {
+            "hw_interface": "m_axi_gmem",
+            "variable": "a",
+            "access_location": "example.cpp:40:5",
+            "direction": "read",
+            "burst_status": "Widen Fail",
+            "length": "",
+            "loop": "read_loop",
+            "loop_location": "example.cpp:40:5",
+            "resolution": "214-353",
+            "problem": "Could not widen since type i32 size is greater than or equal to the max_widen_bitwidth threshold of 0",
+        },
+        {
+            "hw_interface": "m_axi_gmem",
+            "variable": "a",
+            "access_location": "example.cpp:40:5",
+            "direction": "read",
+            "burst_status": "Inferred",
+            "length": "50",
+            "loop": "read_loop",
+            "loop_location": "example.cpp:40:5",
+            "resolution": "",
+            "problem": "",
+        },
+    ]

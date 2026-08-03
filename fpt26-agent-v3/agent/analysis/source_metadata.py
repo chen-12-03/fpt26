@@ -48,6 +48,10 @@ _PRAGMA_RE = re.compile(
 _FUNCTION_PARAMS_RE = re.compile(
     r"\b[A-Za-z_]\w*\s*\((?P<params>[^(){};]*)\)\s*(?:const\s*)?\{"
 )
+_FUNCTION_DEFINITION_RE = re.compile(
+    r"\b(?P<name>[A-Za-z_]\w*)\s*"
+    r"(?:<[^;{}()]*>)?\s*\([^;{}]*\)\s*(?:const\s*)?\{"
+)
 _POINTER_PARAM_RE = re.compile(
     r"^\s*(?P<type>"
     r"(?:(?:const|volatile|unsigned|signed|long|short)\s+)*"
@@ -584,6 +588,272 @@ def _pointer_parameters(source: str) -> list[dict[str, Any]]:
     return pointers
 
 
+def source_architecture_evidence(
+    source: Any,
+    *,
+    top_function: str,
+) -> list[dict[str, Any]]:
+    """Return source-proven task-pipeline opportunities.
+
+    The recognizer is deliberately structural: it does not inspect task IDs,
+    descriptions, benchmark names, or reference code.  An opportunity exists
+    only when the editable top function calls at least two locally defined
+    stages and those calls share a local array/stream connector.  This is the
+    minimum source evidence required to make DATAFLOW-style task overlap a
+    measurable hypothesis instead of a workload-specific guess.
+    """
+
+    text = _safe_text(source)
+    top = str(top_function or "").strip()
+    if not text.strip() or not re.fullmatch(r"[A-Za-z_]\w*", top):
+        return []
+    try:
+        clean = _mask_comments_and_strings(text)
+        definitions: dict[str, tuple[int, int]] = {}
+        for match in _FUNCTION_DEFINITION_RE.finditer(clean):
+            name = match.group("name")
+            if name in {"if", "for", "while", "switch", "catch"}:
+                continue
+            opening = clean.find("{", match.start(), match.end())
+            closing = _matching_brace(clean, opening)
+            if opening >= 0 and closing is not None:
+                definitions.setdefault(name, (opening, closing))
+        if top not in definitions:
+            return []
+
+        opening, closing = definitions[top]
+        body = clean[opening + 1 : closing]
+        helper_names = set(definitions) - {top}
+        calls: list[dict[str, Any]] = []
+        call_re = re.compile(
+            r"\b(?P<name>[A-Za-z_]\w*)\s*"
+            r"(?:<[^;{}()]*>)?\s*\((?P<args>[^;{}()]*)\)\s*;"
+        )
+        for match in call_re.finditer(body):
+            name = match.group("name")
+            if name not in helper_names:
+                continue
+            arguments = [
+                token
+                for token in re.findall(r"\b[A-Za-z_]\w*\b", match.group("args"))
+                if token not in {"true", "false", "nullptr"}
+            ]
+            calls.append({"stage": name, "arguments": arguments})
+            if len(calls) >= 16:
+                break
+        if len(calls) < 2:
+            return []
+
+        local_arrays = {
+            match.group("name")
+            for match in _ARRAY_DECL_RE.finditer(body)
+        }
+        local_streams = {
+            match.group(1)
+            for match in re.finditer(
+                r"\b(?:hls::)?stream\s*<[^;{}>]+(?:>[^;{}>]*)?>\s*"
+                r"(?:\(&?\s*)?([A-Za-z_]\w*)",
+                body,
+            )
+        }
+        local_connectors = local_arrays | local_streams
+        use_counts: dict[str, int] = {}
+        for call in calls:
+            for token in set(call["arguments"]):
+                if token in local_connectors:
+                    use_counts[token] = use_counts.get(token, 0) + 1
+        connectors = sorted(
+            token for token, count in use_counts.items() if count >= 2
+        )
+        if not connectors:
+            return []
+
+        pragmas = _directive_pragmas(body)
+        existing_dataflow = any(
+            pragma["directive"] == "DATAFLOW" for pragma in pragmas
+        )
+        if existing_dataflow:
+            return []
+        return [
+            {
+                "kind": "source_connected_task_pipeline",
+                "top_function": top,
+                "stage_calls": [call["stage"] for call in calls],
+                "connectors": connectors[:12],
+                "connector_kinds": {
+                    connector: (
+                        "stream" if connector in local_streams else "local_array"
+                    )
+                    for connector in connectors[:12]
+                },
+                "existing_dataflow": False,
+                "candidate_families": [
+                    "TASK_PIPELINE",
+                    "SOURCE_RESTRUCTURE",
+                ],
+                "candidate_scheme": (
+                    "Treat the connected helper calls as stages: preserve the "
+                    "top interface and arithmetic, establish explicit stage "
+                    "boundaries, and test task overlap as one coherent candidate."
+                ),
+                "verification": [
+                    "C-simulation preserves behavior",
+                    "synthesis changes top-level schedule or interval",
+                    "capacity-normalized scoring_v3 Q_HW exceeds baseline",
+                ],
+            }
+        ]
+    except Exception:
+        return []
+
+
+def source_reduction_parallelism_evidence(
+    source: Any,
+    *,
+    top_function: str,
+    constant_context: Any = "",
+) -> list[dict[str, Any]]:
+    """Return source-proven affine reduction opportunities.
+
+    A finding requires an accumulator update inside a statically bounded loop,
+    affine input-array reads indexed by that loop, and at least one named source
+    constant that is a valid divisor of the trip count.  The named constants
+    become a finite parameter space; this function never invents a factor.
+    """
+
+    text = _safe_text(source)
+    top = str(top_function or "").strip()
+    if not text.strip() or not re.fullmatch(r"[A-Za-z_]\w*", top):
+        return []
+    try:
+        clean = _mask_comments_and_strings(text)
+        top_body = ""
+        for match in _FUNCTION_DEFINITION_RE.finditer(clean):
+            if match.group("name") != top:
+                continue
+            opening = clean.find("{", match.start(), match.end())
+            closing = _matching_brace(clean, opening)
+            if opening >= 0 and closing is not None:
+                top_body = clean[opening + 1 : closing]
+                break
+        if not top_body:
+            return []
+
+        constants = _constant_values(
+            _mask_comments_and_strings(_safe_text(constant_context))
+            + "\n"
+            + clean
+        )
+        findings: list[dict[str, Any]] = []
+        for loop_index, match in enumerate(_FOR_RE.finditer(top_body)):
+            after = match.end()
+            while after < len(top_body) and top_body[after].isspace():
+                after += 1
+            if after >= len(top_body) or top_body[after] != "{":
+                continue
+            closing = _matching_brace(top_body, after)
+            if closing is None:
+                continue
+            header = _loop_header(
+                match.group("init"),
+                match.group("condition"),
+                match.group("increment"),
+            )
+            induction = str(header.get("induction_variable") or UNKNOWN)
+            if induction == UNKNOWN:
+                continue
+            trip_count = header.get("trip_count")
+            upper = str(header.get("upper_bound") or "")
+            if (
+                trip_count == UNKNOWN
+                and header.get("lower_bound") == "0"
+                and header.get("step") == "1"
+                and upper in constants
+            ):
+                trip_count = constants[upper]
+            if not isinstance(trip_count, int) or trip_count < 2:
+                continue
+
+            loop_body = top_body[after + 1 : closing]
+            for reduction in re.finditer(
+                r"\b(?P<acc>[A-Za-z_]\w*)\s*\+=\s*"
+                r"(?P<rhs>[^;]+);",
+                loop_body,
+            ):
+                rhs = reduction.group("rhs")
+                input_arrays = sorted(
+                    {
+                        array_match.group("name")
+                        for array_match in re.finditer(
+                            r"\b(?P<name>[A-Za-z_]\w*)\s*\[\s*"
+                            r"(?P<index>[^\]\n]+)\s*\]",
+                            rhs,
+                        )
+                        if re.search(
+                            rf"(?<![A-Za-z0-9_]){re.escape(induction)}"
+                            rf"(?![A-Za-z0-9_])",
+                            array_match.group("index"),
+                        )
+                    }
+                )
+                if not input_arrays:
+                    continue
+                factor_candidates = [
+                    {"name": name, "value": value}
+                    for name, value in sorted(constants.items())
+                    if name != upper
+                    and re.search(
+                        r"(?:^|_)(?:PAR|PARALLEL|FACTOR|LANES?|TILE|BLOCK|UNROLL)(?:_|$)",
+                        name,
+                        re.IGNORECASE,
+                    )
+                    and 2 <= value <= trip_count
+                    and trip_count % value == 0
+                ][:8]
+                if not factor_candidates:
+                    continue
+                findings.append(
+                    {
+                        "kind": "source_affine_reduction_parallelism",
+                        "top_function": top,
+                        "loop": match.group("label") or f"loop_{loop_index}",
+                        "induction_variable": induction,
+                        "trip_count": trip_count,
+                        "accumulator": reduction.group("acc"),
+                        "input_arrays": input_arrays,
+                        "factor_candidates": factor_candidates,
+                        "candidate_families": [
+                            "REDUCTION_PARALLELISM",
+                            "SOURCE_RESTRUCTURE",
+                        ],
+                        "composite_family": "REDUCTION_PARALLELISM",
+                        "composite_family_members": [
+                            "SOURCE_RESTRUCTURE",
+                            "MEMORY_BANKING",
+                            "PIPELINE",
+                            "LOOP_UNROLL",
+                            "LATENCY",
+                        ],
+                        "candidate_scheme": (
+                            "Tile or lane the proven affine reduction using "
+                            "one named factor candidate; bank only the named "
+                            "input arrays consistently with that factor and "
+                            "preserve the accumulator's numeric semantics."
+                        ),
+                        "verification": [
+                            "C-simulation preserves numeric tolerance",
+                            "synthesis measures the chosen factor",
+                            "capacity-normalized scoring_v3 Q_HW exceeds baseline",
+                        ],
+                    }
+                )
+                if len(findings) >= 4:
+                    return findings
+        return findings
+    except Exception:
+        return []
+
+
 @dataclass(frozen=True)
 class DesignMetadata:
     loops: tuple[dict[str, Any], ...]
@@ -904,82 +1174,54 @@ def _block_distinct_bank_lower_bound(
     return min(concurrent_lanes, factor, 1 + lane_span // block_size)
 
 
-def _recommended_banking_trial(
+def _banking_option_space(
     *,
     dimension: int,
     array_extent: int,
     concurrent_lanes: int,
     lane_stride: int,
 ) -> dict[str, Any] | None:
-    """Rank a small evidence-derived trial without constraining later trials."""
+    """Describe evidence-supported banking parameters without ranking a trial."""
     factor_limit = min(array_extent, concurrent_lanes)
     if factor_limit < 2:
         return None
-    if lane_stride == 1:
-        factor = 2
-        return {
-            "pragma_class": "ARRAY_PARTITION",
-            "partition_type": "cyclic",
-            "factor": factor,
-            "dimension": dimension,
-            "expected_distinct_banks": _cyclic_distinct_banks(
-                concurrent_lanes, lane_stride, factor
-            ),
-            "collision_free": factor >= concurrent_lanes,
-            "priority": "soft_minimal_trial",
-        }
-
-    block_factor = min(
-        factor_limit,
-        max(2, math.ceil(array_extent / lane_stride)),
-    )
-    candidates = [
-        (
-            "block",
-            block_factor,
-            _block_distinct_bank_lower_bound(
-                array_extent,
-                concurrent_lanes,
-                lane_stride,
-                block_factor,
-            ),
-        )
-    ]
-    for factor in {
-        2,
-        min(factor_limit, lane_stride + 1),
-        factor_limit,
-    }:
-        if factor < 2:
-            continue
-        candidates.append(
+    valid_types = []
+    for partition_type in ("cyclic", "block"):
+        useful = any(
             (
-                "cyclic",
-                factor,
                 _cyclic_distinct_banks(
                     concurrent_lanes, lane_stride, factor
-                ),
+                )
+                if partition_type == "cyclic"
+                else _block_distinct_bank_lower_bound(
+                    array_extent,
+                    concurrent_lanes,
+                    lane_stride,
+                    factor,
+                )
             )
+            > 1
+            for factor in range(2, factor_limit + 1)
         )
-    useful = [item for item in candidates if item[2] > 1]
-    if not useful:
+        if useful:
+            valid_types.append(partition_type)
+    if not valid_types:
         return None
-    partition_type, factor, distinct_banks = min(
-        useful,
-        key=lambda item: (
-            -item[2],
-            item[1],
-            item[0],
-        ),
-    )
     return {
-        "pragma_class": "ARRAY_PARTITION",
-        "partition_type": partition_type,
-        "factor": factor,
+        "pragma_classes": (
+            ["ARRAY_PARTITION", "ARRAY_RESHAPE"]
+            if lane_stride == 1
+            else ["ARRAY_PARTITION"]
+        ),
+        "partition_types": valid_types,
+        "factor_min": 2,
+        "factor_max": factor_limit,
         "dimension": dimension,
-        "expected_distinct_banks": distinct_banks,
-        "collision_free": distinct_banks >= concurrent_lanes,
-        "priority": "soft_bank_mapping_trial",
+        "selection_rule": (
+            "Select a factor/type only when evaluate_source_banking_trial "
+            "proves more than one distinct bank for the affine access map; "
+            "compare every selected point by measured Q_HW."
+        ),
     }
 
 
@@ -1091,12 +1333,12 @@ def evaluate_source_banking_trial(
 def source_supported_banking_evidence(
     metadata: DesignMetadata,
 ) -> list[dict[str, Any]]:
-    """Infer conservative local-array banking trials from affine source access.
+    """Describe local-array banking option spaces from affine source access.
 
     Evidence is emitted only for local arrays read by a source-bounded,
     Vitis-auto-parallel loop with a provable affine lane displacement and
-    extent.  Type and factor recommendations remain soft: the synthesis gate
-    separately validates the bank mapping of any proposed trial.
+    extent.  No type or factor is preferred; the synthesis gate separately
+    validates the bank mapping of any proposed trial.
     """
     loops = {
         str(loop.get("label") or loop.get("name") or ""): loop
@@ -1192,13 +1434,13 @@ def source_supported_banking_evidence(
             if array_extent is None:
                 continue
             factor_limit = min(array_extent, trip_count)
-            recommended_trial = _recommended_banking_trial(
+            banking_option_space = _banking_option_space(
                 dimension=dimension,
                 array_extent=array_extent,
                 concurrent_lanes=trip_count,
                 lane_stride=stride,
             )
-            if factor_limit < 2 or recommended_trial is None:
+            if factor_limit < 2 or banking_option_space is None:
                 continue
             evidence.append(
                 {
@@ -1211,7 +1453,7 @@ def source_supported_banking_evidence(
                     "array_extent": array_extent,
                     "concurrent_lanes": trip_count,
                     "factor_limit": factor_limit,
-                    "recommended_trial": recommended_trial,
+                    "banking_option_space": banking_option_space,
                     "reshape_eligible": stride == 1,
                     "banking_model": {
                         "cyclic": "bank=index mod factor",

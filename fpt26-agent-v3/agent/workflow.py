@@ -123,8 +123,17 @@ def step_structural_repair(state):
     return StructuralRepairAgent(llm=state.llm, max_attempts=state.config.max_structural_attempts).run(state)
 
 def step_optimize(state):
-    from agent.agents.optimize import OptimizeAgent
     if state.llm is None: state.status = "failed"; state.stop_reason = "optimize_no_llm"; return state
+    if state.config.competition:
+        from agent.agents.competition import DiverseOptimizationStage
+        return DiverseOptimizationStage(
+            llm=state.llm,
+            max_candidates=min(3, state.config.max_optimization_rounds),
+            scoring_profile=getattr(
+                state.config, "scoring_profile", "balanced"
+            ),
+        ).run(state)
+    from agent.agents.optimize import OptimizeAgent
     return OptimizeAgent(llm=state.llm, max_rounds=state.config.max_optimization_rounds,
                          scoring_profile=getattr(state.config, "scoring_profile", "balanced")).run(state)
 

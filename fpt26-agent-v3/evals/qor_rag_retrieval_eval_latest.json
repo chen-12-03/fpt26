@@ -7,18 +7,18 @@
     "prompt_budget": true,
     "recall_at_3": true
   },
-  "hits_at_3": 29,
-  "labels_path": "fpt26-agent-v3/evals/qor_rag_retrieval_labels.json",
-  "max_prompt_token_upper_bound": 1791,
+  "hits_at_3": 28,
+  "labels_path": "evals/qor_rag_retrieval_labels.json",
+  "max_prompt_token_upper_bound": 1795,
   "passed": true,
-  "recall_at_3": 0.90625,
+  "recall_at_3": 0.875,
   "results": [
     {
       "deterministic": true,
       "expected_id": "hlsgen.report_driven.baseline_first",
       "hit_at_3": true,
       "id": "baseline-01",
-      "prompt_token_upper_bound": 902,
+      "prompt_token_upper_bound": 912,
       "retrieved_ids": [
         "hlsgen.report_driven.baseline_first",
         "submission.polybench__doitgen.r2.5c5237d8b23a",
@@ -30,11 +30,11 @@
       "expected_id": "hlsgen.report_driven.baseline_first",
       "hit_at_3": true,
       "id": "baseline-02",
-      "prompt_token_upper_bound": 871,
+      "prompt_token_upper_bound": 1792,
       "retrieved_ids": [
         "hlsgen.report_driven.baseline_first",
         "submission.polybench__doitgen.r2.5c5237d8b23a",
-        "submission.polybench__3mm.r1.negative.d52c92a0f5ca"
+        "submission.c2hlsc__add_round_key.r1.negative.2ad293c6e804"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "expected_id": "hlsgen.report_driven.ii_triage",
       "hit_at_3": true,
       "id": "ii-01",
-      "prompt_token_upper_bound": 902,
+      "prompt_token_upper_bound": 912,
       "retrieved_ids": [
         "hlsgen.report_driven.ii_triage",
         "submission.polybench__cholesky.r1.a2afe08ae3f0",
@@ -54,7 +54,7 @@
       "expected_id": "hlsgen.report_driven.ii_triage",
       "hit_at_3": true,
       "id": "ii-02",
-      "prompt_token_upper_bound": 1036,
+      "prompt_token_upper_bound": 1046,
       "retrieved_ids": [
         "hlsgen.report_driven.ii_triage",
         "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
@@ -66,7 +66,7 @@
       "expected_id": "hlsgen.report_driven.ii_triage",
       "hit_at_3": true,
       "id": "ii-03",
-      "prompt_token_upper_bound": 901,
+      "prompt_token_upper_bound": 911,
       "retrieved_ids": [
         "hlsgen.report_driven.ii_triage",
         "submission.polybench__doitgen.r2.5c5237d8b23a",
@@ -78,7 +78,7 @@
       "expected_id": "hlsgen.pipeline.measured_scope",
       "hit_at_3": true,
       "id": "pipeline-01",
-      "prompt_token_upper_bound": 877,
+      "prompt_token_upper_bound": 887,
       "retrieved_ids": [
         "hlsgen.pipeline.measured_scope",
         "submission.polybench__cholesky.r1.a2afe08ae3f0",
@@ -88,49 +88,49 @@
     {
       "deterministic": true,
       "expected_id": "hlsgen.pipeline.measured_scope",
-      "hit_at_3": true,
+      "hit_at_3": false,
       "id": "pipeline-02",
-      "prompt_token_upper_bound": 876,
+      "prompt_token_upper_bound": 912,
       "retrieved_ids": [
-        "hlsgen.pipeline.measured_scope",
+        "hlsgen.report_driven.baseline_first",
         "submission.polybench__doitgen.r2.5c5237d8b23a",
-        "submission.polybench__2mm.r2.negative.598efb8ef81e"
+        "submission.polybench__correlation.r1.negative.62d6f96c1307"
       ]
     },
     {
       "deterministic": true,
-      "expected_id": "hlsgen.unroll.conservative_partial",
+      "expected_id": "hlsgen.unroll.evidence_bounded",
       "hit_at_3": true,
       "id": "unroll-01",
-      "prompt_token_upper_bound": 883,
+      "prompt_token_upper_bound": 984,
       "retrieved_ids": [
-        "hlsgen.unroll.conservative_partial",
-        "submission.c2hlsc__cusums.r1.9af53c02274b",
-        "submission.machsuite__aes_aes.r1.negative.4fb7c78e9259"
+        "hlsgen.unroll.evidence_bounded",
+        "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
+        "submission.machsuite__md_knn.r1.negative.91877d942f13"
       ]
     },
     {
       "deterministic": true,
-      "expected_id": "hlsgen.unroll.conservative_partial",
+      "expected_id": "hlsgen.unroll.evidence_bounded",
       "hit_at_3": true,
       "id": "unroll-02",
-      "prompt_token_upper_bound": 872,
+      "prompt_token_upper_bound": 944,
       "retrieved_ids": [
-        "hlsgen.unroll.conservative_partial",
-        "submission.c2hlsc__cusums.r1.9af53c02274b",
-        "submission.pp4fpga__block_mm.r1.negative.949f22d857c7"
+        "hlsgen.unroll.evidence_bounded",
+        "submission.polybench__doitgen.r2.5c5237d8b23a",
+        "submission.polybench__mvt.r1.negative.c38dcfd53f0a"
       ]
     },
     {
       "deterministic": true,
-      "expected_id": "hlsgen.unroll.conservative_partial",
+      "expected_id": "hlsgen.unroll.evidence_bounded",
       "hit_at_3": true,
       "id": "unroll-03",
-      "prompt_token_upper_bound": 1784,
+      "prompt_token_upper_bound": 1795,
       "retrieved_ids": [
-        "hlsgen.unroll.conservative_partial",
-        "submission.c2hlsc__cusums.r1.9af53c02274b",
-        "submission.c2hlsc__runs.r1.negative.43c80a1df4fa"
+        "hlsgen.unroll.evidence_bounded",
+        "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
+        "submission.rosetta__spam_filter__computeGradient.r1.negative.f8303c58d978"
       ]
     },
     {
@@ -138,7 +138,7 @@
       "expected_id": "hlsgen.array_partition.measured_ports",
       "hit_at_3": true,
       "id": "partition-01",
-      "prompt_token_upper_bound": 1762,
+      "prompt_token_upper_bound": 1793,
       "retrieved_ids": [
         "hlsgen.array_partition.measured_ports",
         "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
@@ -150,7 +150,7 @@
       "expected_id": "hlsgen.array_partition.measured_ports",
       "hit_at_3": true,
       "id": "partition-02",
-      "prompt_token_upper_bound": 960,
+      "prompt_token_upper_bound": 991,
       "retrieved_ids": [
         "hlsgen.array_partition.measured_ports",
         "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
@@ -162,7 +162,7 @@
       "expected_id": "hlsgen.array_partition.measured_ports",
       "hit_at_3": true,
       "id": "partition-03",
-      "prompt_token_upper_bound": 960,
+      "prompt_token_upper_bound": 991,
       "retrieved_ids": [
         "hlsgen.array_partition.measured_ports",
         "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
@@ -174,7 +174,7 @@
       "expected_id": "hlsgen.array_reshape.adjacent_width",
       "hit_at_3": true,
       "id": "reshape-01",
-      "prompt_token_upper_bound": 1791,
+      "prompt_token_upper_bound": 883,
       "retrieved_ids": [
         "hlsgen.array_reshape.adjacent_width",
         "submission.polybench__cholesky.r1.a2afe08ae3f0",
@@ -186,11 +186,11 @@
       "expected_id": "hlsgen.array_reshape.adjacent_width",
       "hit_at_3": true,
       "id": "reshape-02",
-      "prompt_token_upper_bound": 1760,
+      "prompt_token_upper_bound": 903,
       "retrieved_ids": [
         "hlsgen.array_reshape.adjacent_width",
         "submission.polybench__doitgen.r2.5c5237d8b23a",
-        "submission.gnnbuilder__gather_node_neighbors.r1.negative.960879d2364b"
+        "submission.machsuite__md_knn.r1.negative.91877d942f13"
       ]
     },
     {
@@ -198,7 +198,7 @@
       "expected_id": "hlsgen.reduction.explicit_tree",
       "hit_at_3": true,
       "id": "reduction-01",
-      "prompt_token_upper_bound": 949,
+      "prompt_token_upper_bound": 976,
       "retrieved_ids": [
         "hlsgen.reduction.explicit_tree",
         "submission.gnnbuilder__compute_neighbor_tables.r1.5a94bf00485c",
@@ -210,7 +210,7 @@
       "expected_id": "hlsgen.reduction.explicit_tree",
       "hit_at_3": true,
       "id": "reduction-02",
-      "prompt_token_upper_bound": 1436,
+      "prompt_token_upper_bound": 1464,
       "retrieved_ids": [
         "hlsgen.reduction.explicit_tree",
         "submission.dotProduct_optimize.r1.d74b60fce148",
@@ -222,7 +222,7 @@
       "expected_id": "hlsgen.reduction.explicit_tree",
       "hit_at_3": false,
       "id": "reduction-03",
-      "prompt_token_upper_bound": 908,
+      "prompt_token_upper_bound": 918,
       "retrieved_ids": [
         "hlsgen.report_driven.ii_triage",
         "submission.polybench__doitgen.r2.5c5237d8b23a",
@@ -234,7 +234,7 @@
       "expected_id": "hlsgen.gemm.tiled_reuse",
       "hit_at_3": true,
       "id": "gemm-01",
-      "prompt_token_upper_bound": 521,
+      "prompt_token_upper_bound": 509,
       "retrieved_ids": [
         "hlsgen.gemm.tiled_reuse"
       ]
@@ -244,7 +244,7 @@
       "expected_id": "hlsgen.gemm.tiled_reuse",
       "hit_at_3": true,
       "id": "gemm-02",
-      "prompt_token_upper_bound": 521,
+      "prompt_token_upper_bound": 509,
       "retrieved_ids": [
         "hlsgen.gemm.tiled_reuse"
       ]
@@ -254,11 +254,11 @@
       "expected_id": "hlsgen.gemm.tiled_reuse",
       "hit_at_3": true,
       "id": "gemm-03",
-      "prompt_token_upper_bound": 990,
+      "prompt_token_upper_bound": 995,
       "retrieved_ids": [
         "hlsgen.gemm.tiled_reuse",
-        "submission.gnnbuilder__compute_neighbor_tables.r1.5a94bf00485c",
-        "submission.polybench__covariance.r2.negative.cc7df219ec24"
+        "submission.c2hlsc__present.r1.916a0064dd9f",
+        "submission.polybench__correlation.r1.negative.62d6f96c1307"
       ]
     },
     {
@@ -266,7 +266,7 @@
       "expected_id": "hlsgen.stencil.line_buffer",
       "hit_at_3": true,
       "id": "stencil-01",
-      "prompt_token_upper_bound": 1092,
+      "prompt_token_upper_bound": 1116,
       "retrieved_ids": [
         "hlsgen.stencil.line_buffer",
         "submission.machsuite__stencil_stencil2d.r1.b1c154e707fc"
@@ -277,7 +277,7 @@
       "expected_id": "hlsgen.stencil.line_buffer",
       "hit_at_3": true,
       "id": "stencil-02",
-      "prompt_token_upper_bound": 1092,
+      "prompt_token_upper_bound": 1116,
       "retrieved_ids": [
         "hlsgen.stencil.line_buffer",
         "submission.machsuite__stencil_stencil2d.r1.b1c154e707fc"
@@ -288,11 +288,11 @@
       "expected_id": "hlsgen.dataflow.stage_boundaries",
       "hit_at_3": true,
       "id": "dataflow-stage-01",
-      "prompt_token_upper_bound": 931,
+      "prompt_token_upper_bound": 946,
       "retrieved_ids": [
         "hlsgen.dataflow.stage_boundaries",
-        "submission.gnnbuilder__compute_neighbor_tables.r1.5a94bf00485c",
-        "submission.machsuite__nw_nw.r1.negative.b2746e552d16"
+        "submission.c2hlsc__cusums.r1.9af53c02274b",
+        "submission.polybench__correlation.r1.negative.62d6f96c1307"
       ]
     },
     {
@@ -300,10 +300,10 @@
       "expected_id": "hlsgen.dataflow.stage_boundaries",
       "hit_at_3": false,
       "id": "dataflow-stage-02",
-      "prompt_token_upper_bound": 867,
+      "prompt_token_upper_bound": 1747,
       "retrieved_ids": [
         "hlsgen.dataflow.shared_state_guard",
-        "submission.gnnbuilder__compute_neighbor_tables.r1.5a94bf00485c",
+        "submission.c2hlsc__cusums.r1.9af53c02274b",
         "submission.polybench__mvt.r1.negative.c38dcfd53f0a"
       ]
     },
@@ -312,7 +312,7 @@
       "expected_id": "hlsgen.dataflow.explicit_depth",
       "hit_at_3": false,
       "id": "dataflow-depth-01",
-      "prompt_token_upper_bound": 1390,
+      "prompt_token_upper_bound": 1400,
       "retrieved_ids": [
         "hlsgen.stream_fifo.depth_from_burst",
         "submission.polybench__cholesky.r1.a2afe08ae3f0",
@@ -324,7 +324,7 @@
       "expected_id": "hlsgen.dataflow.explicit_depth",
       "hit_at_3": true,
       "id": "dataflow-depth-02",
-      "prompt_token_upper_bound": 1520,
+      "prompt_token_upper_bound": 1530,
       "retrieved_ids": [
         "hlsgen.dataflow.explicit_depth",
         "submission.c2hlsc__present.r1.916a0064dd9f",
@@ -336,10 +336,10 @@
       "expected_id": "hlsgen.pipeline.outer_concurrency",
       "hit_at_3": true,
       "id": "outer-pipeline-01",
-      "prompt_token_upper_bound": 1776,
+      "prompt_token_upper_bound": 1795,
       "retrieved_ids": [
         "hlsgen.pipeline.outer_concurrency",
-        "submission.polybench__doitgen.r2.5c5237d8b23a",
+        "submission.rosetta__optical_flow__outer_product.r1.b46a76432ad7",
         "submission.machsuite__fft_strided.r1.negative.15a58e8393b9"
       ]
     },
@@ -348,11 +348,11 @@
       "expected_id": "hlsgen.pipeline.outer_concurrency",
       "hit_at_3": true,
       "id": "outer-pipeline-02",
-      "prompt_token_upper_bound": 900,
+      "prompt_token_upper_bound": 935,
       "retrieved_ids": [
         "hlsgen.pipeline.outer_concurrency",
-        "submission.gnnbuilder__compute_neighbor_tables.r1.5a94bf00485c",
-        "submission.machsuite__fft_strided.r1.negative.15a58e8393b9"
+        "submission.rosetta__optical_flow__outer_product.r1.b46a76432ad7",
+        "submission.polybench__heat_3d.r1.negative.2218d9ed22e0"
       ]
     },
     {
@@ -360,7 +360,7 @@
       "expected_id": "hlsgen.pipeline.outer_concurrency",
       "hit_at_3": true,
       "id": "outer-pipeline-03",
-      "prompt_token_upper_bound": 946,
+      "prompt_token_upper_bound": 956,
       "retrieved_ids": [
         "hlsgen.pipeline.outer_concurrency",
         "submission.c2hlsc__mix_columns.r1.c3a6352cf1ff",
@@ -372,7 +372,7 @@
       "expected_id": "hlsgen.crypto.lookup_round_guard",
       "hit_at_3": true,
       "id": "crypto-lookup-01",
-      "prompt_token_upper_bound": 509,
+      "prompt_token_upper_bound": 519,
       "retrieved_ids": [
         "hlsgen.crypto.lookup_round_guard"
       ]
@@ -382,7 +382,7 @@
       "expected_id": "hlsgen.linear_algebra.factorization_dependency_guard",
       "hit_at_3": true,
       "id": "linear-factorization-01",
-      "prompt_token_upper_bound": 1115,
+      "prompt_token_upper_bound": 1046,
       "retrieved_ids": [
         "hlsgen.linear_algebra.factorization_dependency_guard",
         "submission.polybench__lu.r1.4b801a729ce2",

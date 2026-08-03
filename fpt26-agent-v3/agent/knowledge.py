@@ -293,10 +293,11 @@ def format_for_prompt(
     )
     payload = {
         "policy": [
-            "Retrieved knowledge is advisory; real CSim/Synth/required CoSim and Q_HW decide acceptance.",
-            "unverified_seed entries are hypotheses, not measured speedup claims.",
-            "Check every precondition and contraindication against current evidence.",
-            "Apply at most one optimization family in this candidate.",
+            "Retrieved knowledge is advisory; validation and measured Q_HW decide acceptance.",
+            "Seeds are unverified hypotheses; check preconditions.",
+            "Historical parameters are observations, not defaults; derive current values from evidence.",
+            "Failures reject only exact signatures absent causal evidence.",
+            "Use one family per candidate.",
         ],
         "entries": [entry.prompt_record() for entry in matches[:3]],
     }
@@ -619,11 +620,6 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
         for loop in all_loops
         if isinstance(loop.get("pipeline_ii"), (int, float))
     ]
-    trip_counts = [
-        loop.get("trip_count")
-        for loop in all_loops
-        if isinstance(loop.get("trip_count"), (int, float))
-    ]
     nesting = [
         loop.get("nesting_depth")
         for loop in loops
@@ -782,10 +778,12 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
             or "448" in diagnostic
         ):
             signals["pipeline"] = 0.75
-    elif loop_iis and max(loop_iis) == 1 and max(trip_counts, default=0) > 32:
-        signals["unroll"] = 0.9
     elif loops:
-        signals["pipeline"] = 0.6
+        # Loop length and PipelineII=1 are observations, not evidence for a
+        # particular transformation family.
+        signals["report_driven"] = max(
+            signals.get("report_driven", 0.0), 0.6
+        )
 
     if any(
         isinstance(array, Mapping)
@@ -923,7 +921,29 @@ def _case_structure_compatible(
     """Reject measured examples whose workload semantics are not compatible."""
 
     if entry.kind == "rule":
-        return True
+        description = _tokens(query.description)
+        architecture_requirements = {
+            "gemm": {"gemm", "matmul", "matrix", "multiplication"},
+            "stencil": {"stencil", "neighborhood", "window", "grid"},
+            "crypto_lookup": {
+                "aes",
+                "cipher",
+                "crypto",
+                "encrypt",
+                "encryption",
+                "sbox",
+                "substitution",
+            },
+            "linear_algebra_factorization": {
+                "cholesky",
+                "lu",
+                "factorization",
+                "decomposition",
+                "triangular",
+            },
+        }
+        required = architecture_requirements.get(entry.family)
+        return required is None or bool(required & description)
     if generalized and _source_matches_task_id(entry.source, query.task_id):
         return False
     description = _tokens(query.description)

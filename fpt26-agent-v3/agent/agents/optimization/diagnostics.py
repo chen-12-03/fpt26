@@ -93,57 +93,16 @@ def _diagnose(r: Any) -> str:
             "Do not infer memory-port pressure from TopInterval alone."
         )
 
-    lat = rp.latency_worst or rp.latency_avg or 0
-    dominant_loop = max(loop_metrics, key=lambda l: l.get("latency") or 0, default=None)
-    if (lat > 500 and dominant_loop is not None
-            and dominant_loop.get("pipeline_ii") == 1
-            and (dominant_loop.get("trip_count") or 0) > 32):
-        inferred = list(getattr(rp, "inferred_directives", None) or [])
-        inferred_text = ", ".join(
-            f"{item.get('kind')}:{item.get('target')}"
-            for item in inferred[:8]
-            if isinstance(item, dict)
-        )
-        issues.append(
-            f"High latency is dominated by {dominant_loop.get('name')} "
-            f"(trip={dominant_loop.get('trip_count')}, "
-            f"lat={dominant_loop.get('latency')}, PipelineII=1). Do NOT add "
-            "another PIPELINE. PipelineII=1 does not by itself justify UNROLL "
-            "or rule out source-proven local-array banking. Preserve Vitis "
-            "auto-pipeline/unroll/flatten boundaries; choose a different action "
-            "only from measured evidence or affine concurrent-access evidence, "
-            "otherwise keep the kernel unchanged."
-        )
-        if inferred_text:
-            issues.append(
-                "Vitis inferred directives already shape this hierarchy: "
-                f"{inferred_text}. An explicit inner-loop directive that moves "
-                "these targets is a regression risk."
-            )
-    elif lat > 1000:
-        issues.append(
-            f"High latency ({lat} cycles): identify the dominant loop from "
-            "loop-level evidence before selecting PIPELINE, UNROLL, or banking."
-        )
-
-    lut = rp.resources.get('LUT', 0) or 0
-    ff = rp.resources.get('FF', 0) or 0
-    dsp = rp.resources.get('DSP', 0) or 0
-    if ff > 0 and lut > 100 and ff / max(lut, 1) > 5:
-        issues.append(f"FF/LUT={ff/max(lut,1):.1f}x — over-unrolling.")
-    if dsp > 0 and lut > 1000 and dsp > lut * 0.5:
-        issues.append(f"High DSP ({dsp}) vs LUT ({lut}) — consider resource sharing.")
-
-    clock = rp.clock_period_ns or 5.0
     if hasattr(rp, 'timing_slack_ns') and rp.timing_slack_ns is not None:
         slack = rp.timing_slack_ns
         if slack < 0:
-            issues.append(f"NEGATIVE slack ({slack:.2f}ns) at {clock}ns clock.")
-        elif slack < clock * 0.1:
-            issues.append(f"Tight slack ({slack:.2f}ns) — near timing limit.")
+            issues.append(f"Measured negative timing slack ({slack:.2f}ns).")
 
     if not issues:
-        issues.append("No obvious bottleneck. Try DATAFLOW or consider optimization complete.")
+        issues.append(
+            "No evidence-backed bottleneck cause is available. Do not select a "
+            "directive until report/source evidence identifies a target."
+        )
     return "\n".join(f"• {i}" for i in issues)
 
 
@@ -154,7 +113,7 @@ def _resource_delta(history: list[dict]) -> str:
     first = history[0]
     last = history[-1]
     lines = ["Resource trend (first→last):"]
-    for key in ("LUT", "FF", "DSP", "BRAM_18K"):
+    for key in ("LUT", "FF", "DSP", "BRAM_18K", "URAM"):
         fv, lv = first.get(key, 0) or 0, last.get(key, 0) or 0
         if fv > 0:
             change = (lv - fv) / fv * 100
@@ -162,6 +121,13 @@ def _resource_delta(history: list[dict]) -> str:
             lines.append(f"  {key}: {fv} → {lv} ({change:+.0f}% {arrow})")
         elif lv > 0:
             lines.append(f"  {key}: 0 → {lv} (NEW)")
-    lines.append("V9 scoring: equal proportional speedup & resource growth = neutral (Q_HW=0.75).")
-    lines.append("Goal: speedup > worst resource growth to exceed baseline.")
+    lines.append(
+        "Schema 11 scores the sum of each resource count divided by its "
+        "device capacity; per-type changes above are diagnostics, not the "
+        "area objective."
+    )
+    lines.append(
+        "Goal: improve effective latency and/or reduce aggregate "
+        "capacity-normalized resource pressure."
+    )
     return "\n".join(lines)

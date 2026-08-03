@@ -1,0 +1,1456 @@
+{
+  "candidate_formula": {
+    "area_growth": "(tau + U_reference) / (tau + U_starter)",
+    "area_ratio": "1 / area_growth",
+    "area_weight": 0.45,
+    "normalized_footprint": "sum(R_r / C_r)",
+    "performance_weight": 0.55,
+    "significant_growth_threshold": 1.25
+  },
+  "candidate_formula_attempt_count": 1,
+  "current_area_direction_disagreements": [
+    "amd_intro__array_array_partition_block_cyclic",
+    "amd_intro__dsp_fir_decimator",
+    "amd_intro__interface_memory_ram_uram",
+    "amd_intro__misc_initialization_and_reset_static_array_rom",
+    "amd_intro__modeling_free_running_kernel_remerge_ii4to1"
+  ],
+  "external_api_calls": 0,
+  "production_formula_modified": false,
+  "purpose": "capacity_normalized_resource_aggregation_validation",
+  "schema_version": 1,
+  "summary": {
+    "acceptance": {
+      "pareto_direction_preserved": true,
+      "score_distribution_not_collapsed": true,
+      "significant_resource_growth_still_penalized": true,
+      "zero_boundary_cliff_resolved": true
+    },
+    "all_acceptance_checks_pass": true,
+    "api_request_count": 0,
+    "collected_task_count": 36,
+    "cross_resource_tradeoff_task_count": 6,
+    "current_pareto_correct_count": 9,
+    "current_scores": {
+      "above_neutral": 10,
+      "at_neutral": 4,
+      "below_neutral": 10,
+      "maximum": 97.97941345533548,
+      "mean": 69.74156966824678,
+      "median": 75.0,
+      "minimum": 32.038892014544714,
+      "population_stddev": 14.50037335784994
+    },
+    "current_vs_aggregate_area_direction_disagreement_count": 5,
+    "largest_score_changes": [
+      {
+        "current_score": 37.90336177722806,
+        "proposed_score": 74.87508087078156,
+        "score_delta": 36.971719093553496,
+        "task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks"
+      },
+      {
+        "current_score": 48.41311385979079,
+        "proposed_score": 79.43592728342206,
+        "score_delta": 31.02281342363127,
+        "task_id": "amd_intro__interface_memory_ram_uram"
+      },
+      {
+        "current_score": 56.96054219255481,
+        "proposed_score": 72.16199827973489,
+        "score_delta": 15.201456087180077,
+        "task_id": "amd_intro__pipelining_loops_using_free_running_pipeline"
+      },
+      {
+        "current_score": 58.46668395388308,
+        "proposed_score": 71.5048662053424,
+        "score_delta": 13.038182251459318,
+        "task_id": "amd_intro__interface_aggregation_disaggregation_struct_ii_issue"
+      },
+      {
+        "current_score": 61.418925914942044,
+        "proposed_score": 72.66441073290818,
+        "score_delta": 11.245484817966137,
+        "task_id": "amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram"
+      }
+    ],
+    "paired_score_delta": {
+      "maximum_absolute": 36.971719093553496,
+      "mean": 5.643718268829375,
+      "mean_absolute": 5.937430908658783,
+      "median": 0.6753952396615617
+    },
+    "pareto_directed_task_count": 9,
+    "proposed_pareto_correct_count": 9,
+    "proposed_scores": {
+      "above_neutral": 11,
+      "at_neutral": 4,
+      "below_neutral": 9,
+      "maximum": 99.75688546880825,
+      "mean": 75.38528793707617,
+      "median": 75.0,
+      "minimum": 31.63345678678422,
+      "population_stddev": 11.213485857742317
+    },
+    "qhw_scorable_task_count": 24,
+    "resource_valid_task_count": 29,
+    "significant_resource_increase_nonimproving_performance_count": 3,
+    "smoothing_tau": 0.0023275139093438062,
+    "spearman_rank_correlation": 0.731004366812227,
+    "tau_source": "median normalized footprint of all resource-valid starters",
+    "zero_boundary_task_count": 6
+  },
+  "tasks": [
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "BRAM_18K",
+      "current_score": 75.85103481098704,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__array_array_partition_block_cyclic/evidence.json",
+      "footprint_ratio_reference_over_starter": 0.5129916814764269,
+      "pareto_class": "reference_dominates",
+      "performance_ratio": 1.0644257703081232,
+      "proposed_area_growth": 0.5480198748842547,
+      "proposed_area_ratio": 1.8247513380992,
+      "proposed_score": 81.9937014990354,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.015406507753719312,
+      "reference_resources": {
+        "BRAM_18K": 2,
+        "DSP": 63,
+        "FF": 5578,
+        "LUT": 7548,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT",
+        "FF",
+        "DSP"
+      ],
+      "resource_increases": [],
+      "score_delta": 6.142666688048351,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_block_cyclic",
+      "starter_normalized_footprint": 0.03003266585021082,
+      "starter_resources": {
+        "BRAM_18K": 2,
+        "DSP": 131,
+        "FF": 11434,
+        "LUT": 13864,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__array_array_partition_block_cyclic",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__array_array_partition_complete/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "qhw_scorable": false,
+      "reference_normalized_footprint": 0.015521183134180775,
+      "reference_resources": {
+        "BRAM_18K": 2,
+        "DSP": 63,
+        "FF": 5695,
+        "LUT": 7639,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Array/array_partition_complete",
+      "starter_normalized_footprint": 0.015521183134180775,
+      "starter_resources": {
+        "BRAM_18K": 2,
+        "DSP": 63,
+        "FF": 5695,
+        "LUT": 7639,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__array_array_partition_complete",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "DSP",
+      "current_score": 75.66632444788023,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__dsp_fir_decimator/evidence.json",
+      "footprint_ratio_reference_over_starter": 0.9852237321220767,
+      "pareto_class": "reference_dominates",
+      "performance_ratio": 1.05,
+      "proposed_area_growth": 0.9936810125363039,
+      "proposed_area_ratio": 1.0063591709854325,
+      "proposed_score": 75.73661693075007,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0017133414152017464,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 11,
+        "FF": 325,
+        "LUT": 482,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT",
+        "FF"
+      ],
+      "resource_increases": [],
+      "score_delta": 0.07029248286984568,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/DSP/fir/decimator",
+      "starter_normalized_footprint": 0.001739037905137927,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 11,
+        "FF": 334,
+        "LUT": 511,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__dsp_fir_decimator",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0067114093959733,
+      "current_area_ratio": 0.9933333333333332,
+      "current_bottleneck": "LUT",
+      "current_score": 67.14595951800995,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0064935064935066,
+      "pareto_class": "starter_dominates",
+      "performance_ratio": 0.5882352941176471,
+      "proposed_area_growth": 1.0003136434918976,
+      "proposed_area_ratio": 0.9996864548494984,
+      "proposed_score": 67.22638680494914,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.00011889420716740304,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 10,
+        "LUT": 150,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT"
+      ],
+      "score_delta": 0.08042728693919798,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/aggregation_of_nested_structs",
+      "starter_normalized_footprint": 0.00011812714776632302,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 10,
+        "LUT": 149,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_aggregation_disaggregation_aggregation_of_nested_structs",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": true,
+      "current_area_growth": 3.75,
+      "current_area_ratio": 0.26666666666666666,
+      "current_bottleneck": "BRAM_18K",
+      "current_score": 58.46668395388308,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_aggregation_disaggregation_struct_ii_issue/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.4270890223921353,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.351179318962824,
+      "proposed_area_ratio": 0.7400942169301465,
+      "proposed_score": 71.5048662053424,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.015366500981836033,
+      "reference_resources": {
+        "BRAM_18K": 30,
+        "DSP": 0,
+        "FF": 5098,
+        "LUT": 7784,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT",
+        "FF"
+      ],
+      "resource_increases": [
+        "BRAM_18K"
+      ],
+      "score_delta": 13.038182251459318,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/struct_ii_issue",
+      "starter_normalized_footprint": 0.010767724185894289,
+      "starter_resources": {
+        "BRAM_18K": 8,
+        "DSP": 0,
+        "FF": 5228,
+        "LUT": 8837,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_aggregation_disaggregation_struct_ii_issue",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.1323928377645143,
+      "current_area_ratio": 0.8830857690464783,
+      "current_bottleneck": "LUT",
+      "current_score": 82.23988287079122,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_aliasing_axi_master_ports/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0442951801760916,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.969811320754717,
+      "proposed_area_growth": 1.0285619525138032,
+      "proposed_area_ratio": 0.9722311792264939,
+      "proposed_score": 83.11506362823758,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.004412509204712813,
+      "reference_resources": {
+        "BRAM_18K": 9,
+        "DSP": 0,
+        "FF": 1511,
+        "LUT": 2087,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT"
+      ],
+      "score_delta": 0.8751807574463584,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/aliasing_axi_master_ports",
+      "starter_normalized_footprint": 0.004225346710849288,
+      "starter_resources": {
+        "BRAM_18K": 9,
+        "DSP": 0,
+        "FF": 1511,
+        "LUT": 1843,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_aliasing_axi_master_ports",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "current_score": 75.0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_burst_rw/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "proposed_score": 75.0,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0045005931926035015,
+      "reference_resources": {
+        "BRAM_18K": 10,
+        "DSP": 0,
+        "FF": 1472,
+        "LUT": 1898,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "score_delta": 0.0,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/burst_rw",
+      "starter_normalized_footprint": 0.0045005931926035015,
+      "starter_resources": {
+        "BRAM_18K": 10,
+        "DSP": 0,
+        "FF": 1472,
+        "LUT": 1898,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_burst_rw",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "current_score": 75.0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_coefficient_filter/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "proposed_score": 75.0,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0004240315249445541,
+      "reference_resources": {
+        "BRAM_18K": 1,
+        "DSP": 1,
+        "FF": 20,
+        "LUT": 75,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "score_delta": 0.0,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/coefficient_filter",
+      "starter_normalized_footprint": 0.0004240315249445541,
+      "starter_resources": {
+        "BRAM_18K": 1,
+        "DSP": 1,
+        "FF": 20,
+        "LUT": 75,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_coefficient_filter",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 2.0,
+      "current_area_ratio": 0.5,
+      "current_bottleneck": "URAM",
+      "current_score": 66.39412390233785,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_ecc_flags/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.419471483515479,
+      "pareto_class": "starter_dominates",
+      "performance_ratio": 0.9826086956521739,
+      "proposed_area_growth": 1.2923898488832115,
+      "proposed_area_ratio": 0.7737603331255863,
+      "proposed_score": 71.77977466583216,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.007601485222845443,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 3,
+        "FF": 5203,
+        "LUT": 4159,
+        "URAM": 2
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF",
+        "URAM"
+      ],
+      "score_delta": 5.385650763494311,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/ecc_flags",
+      "starter_normalized_footprint": 0.005355151766782606,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 3,
+        "FF": 5108,
+        "LUT": 3994,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_ecc_flags",
+      "zero_boundary_resources": [
+        "URAM"
+      ]
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0652879156528792,
+      "current_area_ratio": 0.9387133612485725,
+      "current_bottleneck": "LUT",
+      "current_score": 76.09213412674072,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_lmem_2rw/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0308114886248283,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.141192692175112,
+      "proposed_area_growth": 1.019961315280464,
+      "proposed_area_ratio": 0.9804293408177199,
+      "proposed_score": 76.56774384861748,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.00441391548028146,
+      "reference_resources": {
+        "BRAM_18K": 7,
+        "DSP": 0,
+        "FF": 1728,
+        "LUT": 2627,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF"
+      ],
+      "score_delta": 0.475609721876765,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/lmem_2rw",
+      "starter_normalized_footprint": 0.004281981263295697,
+      "starter_resources": {
+        "BRAM_18K": 7,
+        "DSP": 0,
+        "FF": 1706,
+        "LUT": 2466,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_lmem_2rw",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "qhw_scorable": false,
+      "reference_normalized_footprint": 0.006024228849615447,
+      "reference_resources": {
+        "BRAM_18K": 17,
+        "DSP": 0,
+        "FF": 1208,
+        "LUT": 1753,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/auto_burst_inference_failure",
+      "starter_normalized_footprint": 0.006024228849615447,
+      "starter_resources": {
+        "BRAM_18K": 17,
+        "DSP": 0,
+        "FF": 1208,
+        "LUT": 1753,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_auto_burst_inference_failure",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "qhw_scorable": false,
+      "reference_normalized_footprint": 0.00691248363606611,
+      "reference_resources": {
+        "BRAM_18K": 17,
+        "DSP": 0,
+        "FF": 1800,
+        "LUT": 2615,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/manual_burst/manual_burst_example/manual_burst_inference_success",
+      "starter_normalized_footprint": 0.00691248363606611,
+      "starter_resources": {
+        "BRAM_18K": 17,
+        "DSP": 0,
+        "FF": 1800,
+        "LUT": 2615,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_manual_burst_manual_burst_example_manual_burst_inference_success",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "current_score": 75.0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_max_widen_port_width/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "proposed_score": 75.0,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.001573494518082147,
+      "reference_resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 1080,
+        "LUT": 1188,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "score_delta": 0.0,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/max_widen_port_width",
+      "starter_normalized_footprint": 0.001573494518082147,
+      "starter_resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 1080,
+        "LUT": 1188,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_max_widen_port_width",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": true,
+      "current_area_growth": 8.0,
+      "current_area_ratio": 0.125,
+      "current_bottleneck": "URAM",
+      "current_score": 48.41311385979079,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_memory_ram_uram/evidence.json",
+      "footprint_ratio_reference_over_starter": 0.6049708863489326,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 0.6605093672293697,
+      "proposed_area_ratio": 1.5139830706636113,
+      "proposed_score": 79.43592728342206,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.008607173539518901,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 150,
+        "LUT": 282,
+        "URAM": 8
+      },
+      "resource_decreases": [
+        "BRAM_18K"
+      ],
+      "resource_increases": [
+        "LUT",
+        "FF",
+        "URAM"
+      ],
+      "score_delta": 31.02281342363127,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/ram_uram",
+      "starter_normalized_footprint": 0.014227417771232204,
+      "starter_resources": {
+        "BRAM_18K": 57,
+        "DSP": 0,
+        "FF": 146,
+        "LUT": 45,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_memory_ram_uram",
+      "zero_boundary_resources": [
+        "BRAM_18K",
+        "URAM"
+      ]
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0802529182879377,
+      "current_area_ratio": 0.9257091400270149,
+      "current_bottleneck": "LUT",
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__interface_streaming_axi_stream_to_master/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.046963749711383,
+      "pareto_class": "starter_dominates",
+      "proposed_area_growth": 1.0255136599683903,
+      "proposed_area_ratio": 0.9751210920299427,
+      "qhw_scorable": false,
+      "reference_normalized_footprint": 0.0028984617902143676,
+      "reference_resources": {
+        "BRAM_18K": 2,
+        "DSP": 0,
+        "FF": 1822,
+        "LUT": 2221,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF"
+      ],
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axi_stream_to_master",
+      "starter_normalized_footprint": 0.0027684452217313043,
+      "starter_resources": {
+        "BRAM_18K": 2,
+        "DSP": 0,
+        "FF": 1813,
+        "LUT": 2056,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__interface_streaming_axi_stream_to_master",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": true,
+      "current_area_growth": 3.0,
+      "current_area_ratio": 0.3333333333333333,
+      "current_bottleneck": "BRAM_18K",
+      "current_score": 61.418925914942044,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram/evidence.json",
+      "footprint_ratio_reference_over_starter": 2.8016147635524797,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.22521266881338,
+      "proposed_area_ratio": 0.8161848350527596,
+      "proposed_score": 72.66441073290818,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0009315936426116838,
+      "reference_resources": {
+        "BRAM_18K": 3,
+        "DSP": 0,
+        "FF": 17,
+        "LUT": 236,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT",
+        "FF"
+      ],
+      "resource_increases": [
+        "BRAM_18K"
+      ],
+      "score_delta": 11.245484817966137,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_of_struct_with_array_RAM",
+      "starter_normalized_footprint": 0.0003325202503681885,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 113,
+        "LUT": 377,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+      "zero_boundary_resources": [
+        "BRAM_18K"
+      ]
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.4906542056074767,
+      "current_area_ratio": 0.670846394984326,
+      "current_bottleneck": "LUT",
+      "current_score": 32.038892014544714,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_initialization_and_reset_static_array_ram/evidence.json",
+      "footprint_ratio_reference_over_starter": 8.338095238095239,
+      "pareto_class": "starter_dominates",
+      "performance_ratio": 0.08333333333333333,
+      "proposed_area_growth": 1.5482313478349257,
+      "proposed_area_ratio": 0.6458983028592064,
+      "proposed_score": 31.63345678678422,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0015669745131729669,
+      "reference_resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 85,
+        "LUT": 319,
+        "URAM": 1
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF",
+        "BRAM_18K",
+        "URAM"
+      ],
+      "score_delta": -0.40543522776049556,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_RAM",
+      "starter_normalized_footprint": 0.00018792955326460482,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 62,
+        "LUT": 214,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__misc_initialization_and_reset_static_array_ram",
+      "zero_boundary_resources": [
+        "BRAM_18K",
+        "URAM"
+      ]
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": true,
+      "current_area_growth": 0.8611111111111112,
+      "current_area_ratio": 1.161290322580645,
+      "current_bottleneck": "LUT",
+      "current_score": 76.65331985032225,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_initialization_and_reset_static_array_rom/evidence.json",
+      "footprint_ratio_reference_over_starter": 8.715447154471546,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.1028614784305224,
+      "proposed_area_ratio": 0.9067321867321868,
+      "proposed_score": 73.88658313457599,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0002740958926525937,
+      "reference_resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 6,
+        "LUT": 31,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT",
+        "FF"
+      ],
+      "resource_increases": [
+        "BRAM_18K"
+      ],
+      "score_delta": -2.766736715746262,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/initialization_and_reset/static_array_ROM",
+      "starter_normalized_footprint": 3.14494354442808e-05,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 10,
+        "LUT": 36,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__misc_initialization_and_reset_static_array_rom",
+      "zero_boundary_resources": [
+        "BRAM_18K"
+      ]
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 0.983739837398374,
+      "current_area_ratio": 1.0165289256198347,
+      "current_bottleneck": "LUT",
+      "current_score": 75.1840893810471,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__misc_rtl_as_blackbox/evidence.json",
+      "footprint_ratio_reference_over_starter": 0.9837398373983739,
+      "pareto_class": "reference_dominates",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 0.9993665540540541,
+      "proposed_area_ratio": 1.0006338474540462,
+      "proposed_score": 75.00712801669096,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 9.281418753068237e-05,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 0,
+        "LUT": 121,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT"
+      ],
+      "resource_increases": [],
+      "score_delta": -0.17696136435614562,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Misc/rtl_as_blackbox",
+      "starter_normalized_footprint": 9.434830633284242e-05,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 0,
+        "LUT": 123,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__misc_rtl_as_blackbox",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 2.4247104247104247,
+      "current_area_ratio": 0.4124203821656051,
+      "current_bottleneck": "LUT",
+      "current_score": 74.56464439518756,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__modeling_conditional_control_of_pragmas_using_template_function/evidence.json",
+      "footprint_ratio_reference_over_starter": 2.341463414634146,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 2.0,
+      "proposed_area_growth": 1.1159173022882376,
+      "proposed_area_ratio": 0.8961237521359835,
+      "proposed_score": 82.54564170045965,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0005154639175257732,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 88,
+        "LUT": 628,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF"
+      ],
+      "score_delta": 7.980997305272098,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/conditional_control_of_pragmas/using_template_function",
+      "starter_normalized_footprint": 0.00022014604810996564,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 56,
+        "LUT": 259,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__modeling_conditional_control_of_pragmas_using_template_function",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": true,
+      "current_area_growth": 1.2056737588652482,
+      "current_area_ratio": 0.8294117647058824,
+      "current_bottleneck": "FF",
+      "current_score": 80.21308409824775,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__modeling_free_running_kernel_remerge_ii4to1/evidence.json",
+      "footprint_ratio_reference_over_starter": 0.95048231511254,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.7435897435897436,
+      "proposed_area_growth": 0.9898998732018714,
+      "proposed_area_ratio": 1.010203180212014,
+      "proposed_score": 82.1043827585127,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0005668568973981344,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 170,
+        "LUT": 654,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT"
+      ],
+      "resource_increases": [
+        "FF"
+      ],
+      "score_delta": 1.891298660264951,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/free_running_kernel_remerge_ii4to1",
+      "starter_normalized_footprint": 0.0005963886843397153,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 141,
+        "LUT": 707,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__modeling_free_running_kernel_remerge_ii4to1",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 32.75,
+      "current_area_ratio": 0.030534351145038167,
+      "current_bottleneck": "DSP",
+      "current_score": 97.97941345533548,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__modeling_using_array_stencil_2d/evidence.json",
+      "footprint_ratio_reference_over_starter": 2.762680339004981,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 456.16878931341824,
+      "proposed_area_growth": 2.4784879236100927,
+      "proposed_area_ratio": 0.4034718065292928,
+      "proposed_score": 99.75688546880825,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.03345247234669257,
+      "reference_resources": {
+        "BRAM_18K": 15,
+        "DSP": 131,
+        "FF": 11532,
+        "LUT": 14070,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF",
+        "DSP"
+      ],
+      "score_delta": 1.7774720134727744,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/using_array_stencil_2d",
+      "starter_normalized_footprint": 0.012108701782972457,
+      "starter_resources": {
+        "BRAM_18K": 15,
+        "DSP": 4,
+        "FF": 3788,
+        "LUT": 8464,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__modeling_using_array_stencil_2d",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0,
+      "current_area_ratio": 1.0,
+      "current_bottleneck": "LUT",
+      "current_score": 75.0,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__pipelining_functions_function_instantiate/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0,
+      "pareto_class": "identical_metrics",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.0,
+      "proposed_area_ratio": 1.0,
+      "proposed_score": 75.0,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 2.301178203240059e-05,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 0,
+        "LUT": 30,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [],
+      "score_delta": 0.0,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Functions/function_instantiate",
+      "starter_normalized_footprint": 2.301178203240059e-05,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 0,
+        "LUT": 30,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__pipelining_functions_function_instantiate",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 9.0,
+      "current_area_ratio": 0.1111111111111111,
+      "current_bottleneck": "DSP",
+      "current_score": 56.96054219255481,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__pipelining_loops_using_free_running_pipeline/evidence.json",
+      "footprint_ratio_reference_over_starter": 4.1766970060920015,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 1.8658156862745099,
+      "proposed_area_growth": 2.7402117120711598,
+      "proposed_area_ratio": 0.36493530612791986,
+      "proposed_score": 72.16199827973489,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.011776769067464669,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 27,
+        "FF": 6797,
+        "LUT": 8054,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF",
+        "DSP"
+      ],
+      "score_delta": 15.201456087180077,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/using_free_running_pipeline",
+      "starter_normalized_footprint": 0.0028196369165126023,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 3,
+        "FF": 1223,
+        "LUT": 2631,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__pipelining_loops_using_free_running_pipeline",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 0.9636363636363636,
+      "current_area_ratio": 1.0377358490566038,
+      "current_bottleneck": "FF",
+      "current_score": 75.54694795217489,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_simple_fifos/evidence.json",
+      "footprint_ratio_reference_over_starter": 0.8756058158319872,
+      "pareto_class": "reference_dominates",
+      "performance_ratio": 1.0097402597402598,
+      "proposed_area_growth": 0.9789233576642336,
+      "proposed_area_ratio": 1.0215304315406841,
+      "proposed_score": 75.3715295820849,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0004157461953853707,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 106,
+        "LUT": 489,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT",
+        "FF"
+      ],
+      "resource_increases": [],
+      "score_delta": -0.17541837008998584,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/simple_fifos",
+      "starter_normalized_footprint": 0.00047480976926853215,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 110,
+        "LUT": 564,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_simple_fifos",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 1.0554112554112554,
+      "current_area_ratio": 0.9474979491386383,
+      "current_bottleneck": "LUT",
+      "current_score": 88.39883321635791,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_channels_using_fifos/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0457961484264915,
+      "pareto_class": "tradeoff",
+      "performance_ratio": 3.473684210526316,
+      "proposed_area_growth": 1.0391076241817483,
+      "proposed_area_ratio": 0.9623642216921044,
+      "proposed_score": 88.50564991113892,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0142321479708722,
+      "reference_resources": {
+        "BRAM_18K": 8,
+        "DSP": 0,
+        "FF": 12431,
+        "LUT": 9752,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF"
+      ],
+      "score_delta": 0.10681669478100275,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/using_fifos",
+      "starter_normalized_footprint": 0.013608912207494682,
+      "starter_resources": {
+        "BRAM_18K": 8,
+        "DSP": 0,
+        "FF": 11830,
+        "LUT": 9240,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__task_level_parallelism_control_driven_channels_using_fifos",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": true,
+      "current_area_growth": 1.208,
+      "current_area_ratio": 0.8278145695364238,
+      "current_bottleneck": "FF",
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.0494342524442493,
+      "pareto_class": "tradeoff",
+      "proposed_area_growth": 1.0247171262221246,
+      "proposed_area_ratio": 0.9758790737564322,
+      "qhw_scorable": false,
+      "reference_normalized_footprint": 0.002442572819505809,
+      "reference_resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 1812,
+        "LUT": 1955,
+        "URAM": 0
+      },
+      "resource_decreases": [
+        "LUT"
+      ],
+      "resource_increases": [
+        "FF"
+      ],
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Patterns/using_stream_as_sync",
+      "starter_normalized_footprint": 0.0023275139093438062,
+      "starter_resources": {
+        "BRAM_18K": 1,
+        "DSP": 0,
+        "FF": 1500,
+        "LUT": 1961,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__task_level_parallelism_control_driven_patterns_using_stream_as_sync",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 18.5,
+      "current_area_ratio": 0.05405405405405406,
+      "current_bottleneck": "FF",
+      "current_score": 37.90336177722806,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.238255033557047,
+      "pareto_class": "starter_dominates",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.011151832460733,
+      "proposed_area_ratio": 0.988971159322736,
+      "proposed_score": 74.87508087078156,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.00014152245949926364,
+      "reference_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 37,
+        "LUT": 166,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF"
+      ],
+      "score_delta": 36.971719093553496,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_directio_none_in_tasks",
+      "starter_normalized_footprint": 0.00011429185076092293,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 2,
+        "LUT": 148,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__task_level_parallelism_data_driven_using_directio_none_in_tasks",
+      "zero_boundary_resources": []
+    },
+    {
+      "available_resources": {
+        "BRAM_18K": 4032,
+        "DSP": 9024,
+        "FF": 2607360,
+        "LUT": 1303680,
+        "URAM": 960
+      },
+      "cross_resource_tradeoff": false,
+      "current_area_growth": 2.0,
+      "current_area_ratio": 0.5,
+      "current_bottleneck": "BRAM_18K",
+      "current_score": 66.66636029955944,
+      "evidence": "runs/qhw_reference_study_20260801/raw/amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks/evidence.json",
+      "footprint_ratio_reference_over_starter": 1.4013204853675942,
+      "pareto_class": "starter_dominates",
+      "performance_ratio": 1.0,
+      "proposed_area_growth": 1.1529203780512682,
+      "proposed_area_ratio": 0.8673625855154516,
+      "proposed_score": 73.3740823811614,
+      "qhw_scorable": true,
+      "reference_normalized_footprint": 0.0020079058255604645,
+      "reference_resources": {
+        "BRAM_18K": 2,
+        "DSP": 0,
+        "FF": 958,
+        "LUT": 1492,
+        "URAM": 0
+      },
+      "resource_decreases": [],
+      "resource_increases": [
+        "LUT",
+        "FF",
+        "BRAM_18K"
+      ],
+      "score_delta": 6.707722081601958,
+      "source_url": "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/using_maxi_in_tasks",
+      "starter_normalized_footprint": 0.0014328669612174768,
+      "starter_resources": {
+        "BRAM_18K": 0,
+        "DSP": 0,
+        "FF": 904,
+        "LUT": 1416,
+        "URAM": 0
+      },
+      "task_id": "amd_intro__task_level_parallelism_data_driven_using_maxi_in_tasks",
+      "zero_boundary_resources": [
+        "BRAM_18K"
+      ]
+    }
+  ]
+}

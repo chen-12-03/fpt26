@@ -10,8 +10,19 @@ from agent.agents.competition import (
     DIVERSE_OPTIMIZATION_STRATEGIES,
     DiverseOptimizationStage,
 )
-from agent.agents.optimize import _strategy_contract_violation
+from agent.agents.optimize import (
+    _report_supported_action_violation,
+    _strategy_contract_violation,
+    candidate_action_summary,
+)
+from agent.analysis.action_contract import (
+    augment_action_contract_with_source_architecture,
+)
+from agent.analysis.source_metadata import (
+    source_reduction_parallelism_evidence,
+)
 from agent.prompts import build_prompt
+from agent.pipeline.submission import _run_pipeline
 
 
 _AVAILABLE = {
@@ -49,30 +60,53 @@ def _report(*, latency: int, resources: int) -> SimpleNamespace:
     )
 
 
-_STARTER = """int top(int *a) {
-  int sum = 0;
+_STARTER = """void stage1(int *a, int tmp[100]) {
   for (int i = 0; i < 100; ++i) {
-    sum += a[i];
+    tmp[i] = a[i];
   }
-  return sum;
+}
+void stage2(int tmp[100], int *out) {
+  int sum = 0;
+  for (int i = 0; i < 100; ++i) sum += tmp[i];
+  *out = sum;
+}
+void top(int *a, int *out) {
+  int tmp[100];
+  stage1(a, tmp);
+  stage2(tmp, out);
 }
 """
 _CONSERVATIVE = _STARTER.replace(
-    "    sum += a[i];",
-    "#pragma HLS UNROLL factor=2\n    sum += a[i];",
+    "    tmp[i] = a[i];",
+    "#pragma HLS UNROLL factor=2\n    tmp[i] = a[i];",
 )
-_RESTRUCTURED = """int top(int *a) {
+_TASK_PIPELINE = _STARTER.replace(
+    "void top(int *a, int *out) {",
+    "void top(int *a, int *out) {\n#pragma HLS DATAFLOW",
+)
+_RESTRUCTURED = """void stage1(int *a, int tmp[100]) {
+  for (int i = 0; i < 100; i += 2) {
+    tmp[i] = a[i];
+    tmp[i + 1] = a[i + 1];
+  }
+}
+void stage2(int tmp[100], int *out) {
   int even = 0;
   int odd = 0;
   for (int i = 0; i < 100; i += 2) {
-    even += a[i];
-    odd += a[i + 1];
+    even += tmp[i];
+    odd += tmp[i + 1];
   }
-  return even + odd;
+  *out = even + odd;
+}
+void top(int *a, int *out) {
+  int tmp[100];
+  stage1(a, tmp);
+  stage2(tmp, out);
 }
 """
 _AGGRESSIVE = _CONSERVATIVE.replace("factor=2", "factor=8")
-_BROKEN = _STARTER.replace("return sum;", "return missing;")
+_BROKEN = _STARTER.replace("*out = sum;", "*out = missing;")
 
 
 def _task() -> SimpleNamespace:
@@ -122,7 +156,9 @@ class _Server:
 
     def synth(self, kernel: str) -> SimpleNamespace:
         self.synth_calls.append(kernel)
-        if "factor=2" in kernel:
+        if "HLS DATAFLOW" in kernel:
+            report = _report(latency=45, resources=110)
+        elif "factor=2" in kernel:
             report = _report(latency=50, resources=200)
         elif "factor=8" in kernel:
             report = _report(latency=20, resources=1_000)
@@ -164,42 +200,108 @@ def test_strategy_prompt_is_explicit_and_mutually_constrained() -> None:
         search_strategy=strategy,
     )
     payload = json.loads(prompt)
-    assert payload["search_strategy"]["name"] == "source_reduction_restructure"
-    assert "source-level reduction" in payload["search_strategy"]["objective"]
+    assert payload["search_strategy"]["name"] == "task_pipeline_architecture"
+    assert "task-pipeline architecture" in payload["search_strategy"]["objective"]
     assert "Do not copy another lane's action" in payload["instruction"]
 
 
 def test_strategy_contracts_enforce_distinct_candidate_families() -> None:
-    conservative, restructure, speed = DIVERSE_OPTIMIZATION_STRATEGIES
+    directive, task_pipeline, restructure = DIVERSE_OPTIMIZATION_STRATEGIES
     assert _strategy_contract_violation(
-        _STARTER, _CONSERVATIVE, conservative
+        _STARTER, _CONSERVATIVE, directive
+    ) is None
+    assert _strategy_contract_violation(
+        _STARTER, _TASK_PIPELINE, task_pipeline
     ) is None
     assert _strategy_contract_violation(
         _STARTER, _RESTRUCTURED, restructure
     ) is None
-    assert _strategy_contract_violation(_STARTER, _AGGRESSIVE, speed) is None
-    banked_speed = _AGGRESSIVE.replace(
-        "  for (int i = 0;",
-        "#pragma HLS ARRAY_PARTITION variable=a cyclic factor=8 dim=1\n"
-        "  for (int i = 0;",
-    )
-    assert _strategy_contract_violation(_STARTER, banked_speed, speed) is None
     assert "preserve non-pragma" in _strategy_contract_violation(
-        _STARTER, _RESTRUCTURED, conservative
+        _STARTER, _RESTRUCTURED, directive
     )
-    assert "cannot add HLS pragmas" in _strategy_contract_violation(
-        _STARTER, _CONSERVATIVE, restructure
+    assert "must change the non-pragma architecture" in _strategy_contract_violation(
+        _STARTER, _TASK_PIPELINE, restructure
     )
-    assert "factor<=2" in _strategy_contract_violation(
-        _STARTER, _CONSERVATIVE, speed
+    assert "requires one DATAFLOW" in _strategy_contract_violation(
+        _STARTER, _CONSERVATIVE, task_pipeline
     )
+
+
+def test_task_pipeline_directives_form_one_coherent_action_family() -> None:
+    candidate = _TASK_PIPELINE.replace(
+        "void stage1(int *a, int tmp[100]) {",
+        "void stage1(int *a, int tmp[100]) {\n#pragma HLS INLINE OFF",
+    ).replace(
+        "for (int i = 0; i < 100; ++i) {",
+        "for (int i = 0; i < 100; ++i) {\n#pragma HLS PIPELINE",
+        1,
+    )
+
+    action = candidate_action_summary(
+        _STARTER, candidate, top_function="top"
+    )
+
+    assert action["families"] == ["TASK_PIPELINE"]
+
+
+def test_source_proven_reduction_composite_passes_action_guard() -> None:
+    starter = """
+float top(float a[SIZE], float b[SIZE]) {
+  float sum = 0;
+  for (int i = 0; i < SIZE; ++i) {
+    sum += a[i] * b[i];
+  }
+  return sum;
+}
+"""
+    candidate = """
+float top(float a[SIZE], float b[SIZE]) {
+#pragma HLS ARRAY_PARTITION variable=a cyclic factor=PAR_FACTOR
+#pragma HLS ARRAY_PARTITION variable=b cyclic factor=PAR_FACTOR
+  float sum = 0;
+  for (int i = 0; i < SIZE / PAR_FACTOR; ++i) {
+#pragma HLS PIPELINE II=1
+    for (int j = 0; j < PAR_FACTOR; ++j)
+      sum += a[i * PAR_FACTOR + j] * b[i * PAR_FACTOR + j];
+  }
+  return sum;
+}
+"""
+    evidence = source_reduction_parallelism_evidence(
+        starter,
+        top_function="top",
+        constant_context=(
+            "const int SIZE = 1024;\n#define PAR_FACTOR 32\n"
+        ),
+    )
+    contract = augment_action_contract_with_source_architecture(
+        None, evidence
+    )
+    action = candidate_action_summary(
+        starter, candidate, top_function="top"
+    )
+
+    violation = _report_supported_action_violation(
+        action,
+        _report(latency=100, resources=100),
+        contract,
+        source_banking_evidence=[],
+        source_metadata={},
+    )
+
+    assert set(action["families"]) == {
+        "MEMORY_BANKING",
+        "PIPELINE",
+        "SOURCE_RESTRUCTURE",
+    }
+    assert violation is None
 
 
 def test_diverse_search_measures_all_lanes_and_selects_highest_q_hw() -> None:
     responses = {
-        "conservative_loop_parallelism": _CONSERVATIVE,
-        "source_reduction_restructure": _RESTRUCTURED,
-        "speed_first_parallel_architecture": _AGGRESSIVE,
+        "evidence_backed_directive": _CONSERVATIVE,
+        "task_pipeline_architecture": _TASK_PIPELINE,
+        "source_parallel_architecture": _RESTRUCTURED,
     }
     llm = _LaneLlm(responses)
     server = _Server()
@@ -211,32 +313,28 @@ def test_diverse_search_measures_all_lanes_and_selects_highest_q_hw() -> None:
     assert llm.strategies == [s["name"] for s in DIVERSE_OPTIMIZATION_STRATEGIES]
     assert len(server.csim_calls) == 3
     assert len(server.synth_calls) == 3
-    # The aggressive candidate has the lowest cycles, but its area explosion
-    # loses Q_HW.  The source-level rewrite must win the measured selection.
-    assert result.kernel == _RESTRUCTURED
+    assert result.kernel == _TASK_PIPELINE
     search = result.metadata["optimization_search"]
     assert search["selector"] == "highest_measured_q_hw"
     assert search["qor_rag_generalized"] is True
     assert "exact-source" in search["qor_rag_policy"]
-    assert search["winner"] == "source_reduction_restructure"
+    assert search["winner"] == "task_pipeline_architecture"
     assert [s["selected"] for s in search["strategies"]] == [False, True, False]
     decisions = {
         c.get("strategy"): c["decision"]
         for c in result.metadata["synth_candidates"]
         if not c.get("is_baseline")
     }
-    assert decisions["conservative_loop_parallelism"] == "VALID_NOT_SELECTED"
-    assert decisions["source_reduction_restructure"] == "SELECTED"
-    assert decisions["speed_first_parallel_architecture"] == "REJECTED"
+    assert decisions["evidence_backed_directive"] == "VALID_NOT_SELECTED"
+    assert decisions["task_pipeline_architecture"] == "SELECTED"
+    assert decisions["source_parallel_architecture"] == "VALID_NOT_SELECTED"
 
 
-def test_cross_strategy_duplicate_skips_tools_but_not_other_llm_lanes() -> None:
+def test_lane_contract_retry_does_not_stop_other_measurements() -> None:
     responses = {
-        "conservative_loop_parallelism": _CONSERVATIVE,
-        "source_reduction_restructure": _RESTRUCTURED,
-        # A source rewrite is also structurally admissible in the speed-first
-        # lane, so this duplicate reaches the shared semantic de-duplicator.
-        "speed_first_parallel_architecture": [_RESTRUCTURED, _AGGRESSIVE],
+        "evidence_backed_directive": _CONSERVATIVE,
+        "task_pipeline_architecture": [_CONSERVATIVE, _TASK_PIPELINE],
+        "source_parallel_architecture": _RESTRUCTURED,
     }
     llm = _LaneLlm(responses)
     server = _Server()
@@ -248,14 +346,14 @@ def test_cross_strategy_duplicate_skips_tools_but_not_other_llm_lanes() -> None:
     assert len(llm.strategies) == 4
     assert len(server.csim_calls) == 3
     assert len(server.synth_calls) == 3
-    assert result.metadata["cross_strategy_duplicate_skips"] == 1
+    assert result.metadata["strategy_contract_rejections"] == 1
 
 
 def test_failed_lane_does_not_stop_remaining_strategy_measurements() -> None:
     responses = {
-        "conservative_loop_parallelism": _CONSERVATIVE,
-        "source_reduction_restructure": [_BROKEN, _RESTRUCTURED],
-        "speed_first_parallel_architecture": _AGGRESSIVE,
+        "evidence_backed_directive": _CONSERVATIVE,
+        "task_pipeline_architecture": _TASK_PIPELINE,
+        "source_parallel_architecture": [_BROKEN, _RESTRUCTURED],
     }
     llm = _LaneLlm(responses)
     server = _Server()
@@ -267,17 +365,17 @@ def test_failed_lane_does_not_stop_remaining_strategy_measurements() -> None:
     assert len(llm.strategies) == 4
     assert len(server.csim_calls) == 4
     assert len(server.synth_calls) == 3
-    assert result.kernel == _RESTRUCTURED
+    assert result.kernel == _TASK_PIPELINE
     assert result.metadata["optimization_search"]["winner"] == (
-        "source_reduction_restructure"
+        "task_pipeline_architecture"
     )
 
 
 def test_strategy_contract_rejection_is_reflected_once_then_measured() -> None:
     responses = {
-        "conservative_loop_parallelism": _CONSERVATIVE,
-        "source_reduction_restructure": _RESTRUCTURED,
-        "speed_first_parallel_architecture": [_CONSERVATIVE, _AGGRESSIVE],
+        "evidence_backed_directive": _CONSERVATIVE,
+        "task_pipeline_architecture": [_CONSERVATIVE, _TASK_PIPELINE],
+        "source_parallel_architecture": _RESTRUCTURED,
     }
     llm = _LaneLlm(responses)
     server = _Server()
@@ -289,9 +387,96 @@ def test_strategy_contract_rejection_is_reflected_once_then_measured() -> None:
     assert len(llm.strategies) == 4
     assert len(server.csim_calls) == 3
     assert len(server.synth_calls) == 3
-    speed = result.metadata["optimization_search"]["strategies"][2]
-    assert speed["strategy_contract_rejections"] == 1
-    assert speed["strategy_contract_rejection_reasons"] == [
-        "speed-first lane cannot reuse conservative factor<=2"
+    source_lane = result.metadata["optimization_search"]["strategies"][1]
+    assert source_lane["strategy_contract_rejections"] == 1
+    assert source_lane["strategy_contract_rejection_reasons"] == [
+        "task-pipeline lane requires one DATAFLOW region"
     ]
-    assert speed["measured_candidate"] is True
+    assert source_lane["measured_candidate"] is True
+
+
+def test_submission_pipeline_honors_competition_configuration(
+    monkeypatch,
+) -> None:
+    import agent.candidate.validator as validator
+
+    called: dict[str, object] = {}
+
+    def validate(state, code, *, stage, current_best=True):
+        state.interface_ok = True
+        return True
+
+    def synth_gates(state, result, *, stage, current_best=True):
+        state.synth_ok = True
+        state.frequency_ok = True
+        state.resource_ok = True
+        state.best_synth_result = result
+        state.last_verified_kernel = state.kernel
+        return True
+
+    def run_competition(self, state):
+        called["max_candidates"] = self.max_candidates
+        called["scoring_profile"] = self.scoring_profile
+        return state
+
+    monkeypatch.setattr(validator, "validate_candidate", validate)
+    monkeypatch.setattr(validator, "record_synth_gates", synth_gates)
+    monkeypatch.setattr(validator, "mark_fully_verified", lambda state: None)
+    monkeypatch.setattr(DiverseOptimizationStage, "run", run_competition)
+
+    baseline = SimpleNamespace(
+        kind="synth",
+        ok=True,
+        report=_report(latency=100, resources=100),
+        log="",
+        phase="pass",
+        elapsed_s=0.0,
+        brief=lambda: "synth: PASS",
+    )
+
+    class PipelineServer:
+        budget = SimpleNamespace(total=40)
+
+        @staticmethod
+        def csim(kernel):
+            return SimpleNamespace(
+                kind="csim",
+                ok=True,
+                report=None,
+                log="",
+                phase="pass",
+                elapsed_s=0.0,
+                brief=lambda: "csim: PASS",
+            )
+
+        @staticmethod
+        def synth(kernel):
+            return baseline
+
+    config = AgentConfig(
+        mode="optimize",
+        competition=True,
+        verbose=False,
+        max_optimization_rounds=5,
+        scoring_profile="balanced",
+    )
+    state = RunState(
+        task=_task(),
+        server=PipelineServer(),
+        llm=object(),
+        config=config,
+        kernel=_STARTER,
+    )
+
+    _run_pipeline(
+        state,
+        config,
+        state.task,
+        state.server,
+        state.llm,
+    )
+
+    assert called == {
+        "max_candidates": 3,
+        "scoring_profile": "balanced",
+    }

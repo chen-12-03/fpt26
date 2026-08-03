@@ -13,4 +13,4 @@ use it as a package name. Import modules directly by adding this directory
 to sys.path, or set PYTHONPATH.
 """
 
-__version__ = "10.0.0"
+__version__ = "11.0.0"

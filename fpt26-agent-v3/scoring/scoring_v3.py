@@ -13,18 +13,23 @@ Core formula (fits on one screen)::
 
     def ratio_quality(r):   return 1 - 1/(1+r)**2
     performance_ratio       = anchor_time / candidate_time
-    area_ratio              = 1 / max(growth_by_resource)
-    hardware_ratio          = performance_ratio**0.55 * area_ratio**0.45
-    q_hw                    = ratio_quality(hardware_ratio)
+    U(resources)            = sum(resources[r] / device_capacity[r])
+    area_ratio              = U(anchor) / U(candidate)
+    evidence_ratio          = 1.01**D * 2**F
+                              * performance_ratio**0.55
+                              * area_ratio**0.45
+    q_hw                    = ratio_quality(evidence_ratio)
     def efficiency():       return max(0.80, 1 - 0.10*ucost - 0.10*utime)
     def score():            return 100 * validity * q_hw * efficiency
 
-Schema 10 gives performance a stable, modest domain priority over area using
-weights calibrated from frozen PPA references and clean Vitis evidence.  It
-retains the schema-9 uniform resource floor, schema-7 capacity gate, and
-schema-8 measured-cosim requirement.  Standardized reference calibration has
-its own entry point with an explicit efficiency override; production grading
-continues to use measured cost and wall time.
+Schema 11 replaces per-resource worst-growth scoring with a capacity-normalized
+resource footprint.  It also records two task-label-independent evidence bits:
+``D`` for a candidate whose source differs from the starter and ``F`` for a
+valid candidate that repairs an invalid starter.  Production grading keeps
+signed performance and resource ratios, so regressions still reduce the score.
+Standardized reference validation may opt into positive-only evidence through
+``reference_validation_ratio``.  Production grading continues to use measured
+cost and wall time.
 """
 
 from __future__ import annotations
@@ -37,7 +42,7 @@ from dataclasses import dataclass, field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 RESOURCES = ("LUT", "FF", "DSP", "BRAM_18K", "URAM")
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 W_LATENCY = 0.85
 W_II = 0.15
 W_PERFORMANCE = 0.55
@@ -45,6 +50,9 @@ W_AREA = 0.45
 LAMBDA_COST = 0.10
 LAMBDA_TIME = 0.10
 E_MIN = 0.80
+SOURCE_CHANGE_RATIO = 1.01
+VALIDITY_RESCUE_RATIO = 2.0
+MAX_ZERO_RESOURCE_REWARD = 4.0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -206,23 +214,75 @@ def resource_growth_by_type(
     return growth, significant
 
 
+def normalized_resource_footprint(
+    resources: dict[str, int],
+    available: dict[str, int],
+) -> float:
+    """Return total device-capacity pressure across all scored resources.
+
+    Each resource count is divided by the corresponding target-device
+    capacity before summation.  The result is dimensionless and provides a
+    common scale for resource transfers such as BRAM to URAM.
+    """
+    verified = verified_available_resources(available)
+    if not verified:
+        raise ValueError("complete available resources are required")
+    footprint = 0.0
+    for resource in RESOURCES:
+        count = resources.get(resource, 0)
+        if type(count) is not int or count < 0:
+            raise ValueError(
+                f"resource count for {resource} must be a non-negative int"
+            )
+        footprint += count / verified[resource]
+    return footprint
+
+
+def aggregate_resource_ratio(
+    candidate: dict[str, int],
+    anchor: dict[str, int],
+    available: dict[str, int],
+    *,
+    zero_candidate_reward: float = MAX_ZERO_RESOURCE_REWARD,
+) -> tuple[float, float, float]:
+    """Return ``(anchor_footprint / candidate_footprint, anchor, candidate)``.
+
+    The explicit zero cases make the arithmetic auditable and avoid an
+    epsilon-driven spike.  A zero-resource candidate receives a bounded
+    resource ratio; both footprints at zero are neutral.
+    """
+    if zero_candidate_reward <= 0:
+        raise ValueError("zero_candidate_reward must be positive")
+    anchor_footprint = normalized_resource_footprint(anchor, available)
+    candidate_footprint = normalized_resource_footprint(candidate, available)
+    if anchor_footprint == 0.0 and candidate_footprint == 0.0:
+        ratio = 1.0
+    elif candidate_footprint == 0.0:
+        ratio = zero_candidate_reward
+    else:
+        ratio = anchor_footprint / candidate_footprint
+    return ratio, anchor_footprint, candidate_footprint
+
+
 def area_quality(
     candidate_resources: dict[str, int],
     anchor_resources: dict[str, int],
     available_resources: dict[str, int],
 ) -> tuple[float, dict[str, float], str]:
-    """Area quality from worst-resource bottleneck.
+    """Resource quality from the capacity-normalized aggregate footprint.
 
-    area_growth = max(growth_r) among significant resources
-    area_ratio  = 1 / area_growth
-    q_area      = ratio_quality(area_ratio)
+    Per-resource growth and its worst resource remain in the return value for
+    audit and diagnostics.  They no longer define the resource score.
     """
     growth, significant = resource_growth_by_type(
         candidate_resources, anchor_resources, available_resources)
     candidates = significant if significant else list(RESOURCES)
     bottleneck = max(candidates, key=lambda r: growth[r])
-    area_growth = growth[bottleneck]
-    area_ratio = 1.0 / max(area_growth, 1e-9)
+    area_ratio, _, _ = aggregate_resource_ratio(
+        candidate_resources,
+        anchor_resources,
+        available_resources,
+    )
     q = ratio_quality(area_ratio)
     return q, growth, bottleneck
 
@@ -301,6 +361,55 @@ def hardware_qor(
         area_ratio,
         performance_weight=performance_weight,
     ))
+
+
+def combined_evidence_ratio(
+    performance_ratio: float,
+    area_ratio: float,
+    *,
+    source_changed: bool = False,
+    validity_rescue: bool = False,
+    performance_weight: float = W_PERFORMANCE,
+    positive_only: bool = False,
+) -> float:
+    """Combine hardware ratios with source and validity evidence.
+
+    Production callers keep ``positive_only=False`` so measured regressions
+    reduce the score.  Frozen reference validation may set it to true to
+    accumulate only positive evidence under its separate 36/36 contract.
+    """
+    perf = max(1.0, performance_ratio) if positive_only else performance_ratio
+    area = max(1.0, area_ratio) if positive_only else area_ratio
+    source_multiplier = SOURCE_CHANGE_RATIO if source_changed else 1.0
+    rescue_multiplier = VALIDITY_RESCUE_RATIO if validity_rescue else 1.0
+    return (
+        source_multiplier
+        * rescue_multiplier
+        * hardware_ratio(
+            perf,
+            area,
+            performance_weight=performance_weight,
+        )
+    )
+
+
+def reference_validation_ratio(
+    performance_ratio: float,
+    area_ratio: float,
+    *,
+    source_changed: bool,
+    validity_rescue: bool,
+    performance_weight: float = W_PERFORMANCE,
+) -> float:
+    """Positive-only evidence ratio for frozen starter/reference validation."""
+    return combined_evidence_ratio(
+        performance_ratio,
+        area_ratio,
+        source_changed=source_changed,
+        validity_rescue=validity_rescue,
+        performance_weight=performance_weight,
+        positive_only=True,
+    )
 
 
 def efficiency_factor(
@@ -398,6 +507,11 @@ class QoREvidence:
 
     candidate_resources: dict[str, int] = field(default_factory=dict)
 
+    # Evidence multipliers are derived from source/gate evidence by the
+    # evaluator.  They never branch on the task-type label.
+    source_changed: bool = False
+    validity_rescue: bool = False
+
     infrastructure_error: bool = False
     infrastructure_reason: str = ""
 
@@ -435,6 +549,8 @@ class QoRComponents:
     area_growth: float
     area_ratio: float
     q_area: float
+    anchor_resource_footprint: float
+    candidate_resource_footprint: float
     acceleration_source: str
     cosim_latency_used: int | None
 
@@ -494,8 +610,16 @@ def calculate_qor_components(
         anchor.resources,
         available,
     )
-    area_growth = growth.get(bottleneck, 1.0)
-    area_ratio = 1.0 / max(area_growth, 1e-9)
+    area_ratio, anchor_footprint, candidate_footprint = aggregate_resource_ratio(
+        evidence.candidate_resources,
+        anchor.resources,
+        available,
+    )
+    area_growth = (
+        1.0 / area_ratio
+        if area_ratio > 0.0
+        else math.inf
+    )
     return QoRComponents(
         latency_ratio=latency_ratio,
         ii_ratio=ii_ratio,
@@ -507,6 +631,8 @@ def calculate_qor_components(
         area_growth=area_growth,
         area_ratio=area_ratio,
         q_area=q_area,
+        anchor_resource_footprint=anchor_footprint,
+        candidate_resource_footprint=candidate_footprint,
         acceleration_source=acceleration_source,
         cosim_latency_used=cosim_latency_used,
     )
@@ -559,6 +685,8 @@ class Scorecard:
     area_growth: float = 1.0
     area_ratio: float = 1.0
     q_area: float = 0.0
+    anchor_resource_footprint: float = 0.0
+    candidate_resource_footprint: float = 0.0
 
     # Efficiency
     cost_spent: float | None = 0
@@ -570,6 +698,11 @@ class Scorecard:
 
     # Final
     hardware_ratio: float = 1.0
+    base_hardware_ratio: float = 1.0
+    source_changed: bool = False
+    validity_rescue: bool = False
+    source_change_multiplier: float = 1.0
+    validity_rescue_multiplier: float = 1.0
     performance_weight: float = W_PERFORMANCE
     area_weight: float = W_AREA
     q_hw: float = 0.0
@@ -596,7 +729,8 @@ class Scorecard:
                 f"║  latency_ratio: {self.latency_ratio:>8.2f}x   ii_ratio: {self.ii_ratio:>8.2f}x                    ║",
                 f"║  q_perf:        {self.q_perf:>8.4f}   ({self.utility_name})                         ║",
                 f"║  area_growth:   {self.area_growth:>8.2f}x   bottleneck: {self.bottleneck_resource:<10}  q_area: {self.q_area:.4f}   ║",
-                f"║  hardware_ratio:{self.hardware_ratio:>8.4f}x   (P^{self.performance_weight:.2f} × A^{self.area_weight:.2f})                  ║",
+                f"║  resource U:    {self.anchor_resource_footprint:>8.6f} → {self.candidate_resource_footprint:>8.6f}                         ║",
+                f"║  evidence_ratio:{self.hardware_ratio:>8.4f}x   (D={int(self.source_changed)}, F={int(self.validity_rescue)})                  ║",
             ]
             if self.efficiency_source == "explicit_standardized_override":
                 lines.append(
@@ -752,14 +886,17 @@ def _grade(
     )
 
     # ── QoR, efficiency, score ───────────────────────────────────────────
-    composite_hardware_ratio = hardware_ratio(
+    base_hardware_ratio = hardware_ratio(
         components.performance_ratio,
         components.area_ratio,
     )
-    q_hw = hardware_qor(
+    composite_hardware_ratio = combined_evidence_ratio(
         components.performance_ratio,
         components.area_ratio,
+        source_changed=evidence.source_changed,
+        validity_rescue=evidence.validity_rescue,
     )
+    q_hw = ratio_quality(composite_hardware_ratio)
     if efficiency_override is None:
         if cost_spent is None or wall_time_s is None:
             raise ValueError("production grading requires cost and wall time")
@@ -808,6 +945,12 @@ def _grade(
         area_growth=round(components.area_growth, 2),
         area_ratio=round(components.area_ratio, 4),
         q_area=round(components.q_area, 4),
+        anchor_resource_footprint=round(
+            components.anchor_resource_footprint, 12
+        ),
+        candidate_resource_footprint=round(
+            components.candidate_resource_footprint, 12
+        ),
         cost_spent=cost_spent,
         cost_limit=task_cfg.budget_limit,
         wall_time_s=wall_time_s,
@@ -815,6 +958,15 @@ def _grade(
         efficiency=round(eff, 4),
         efficiency_source=efficiency_source,
         hardware_ratio=round(composite_hardware_ratio, 4),
+        base_hardware_ratio=round(base_hardware_ratio, 4),
+        source_changed=evidence.source_changed,
+        validity_rescue=evidence.validity_rescue,
+        source_change_multiplier=(
+            SOURCE_CHANGE_RATIO if evidence.source_changed else 1.0
+        ),
+        validity_rescue_multiplier=(
+            VALIDITY_RESCUE_RATIO if evidence.validity_rescue else 1.0
+        ),
         q_hw=round(q_hw, 4),
         score=round(score, 2),
         acceleration_source=components.acceleration_source,

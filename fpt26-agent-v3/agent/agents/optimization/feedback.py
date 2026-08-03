@@ -114,17 +114,7 @@ def build_synth_failure(
     issue = IssueClassifier().classify(result, normalized)
     candidate_diff = _candidate_diff(best, candidate)
     implicated = _implicated_source_elements(result, candidate_diff)
-    has_factor = any(
-        re.search(r"\bfactor\s*=\s*\d+", pragma, re.IGNORECASE)
-        for pragma in implicated["pragmas"]
-    )
-    if has_factor:
-        constraint = (
-            "Roll back the failed candidate, reduce factor before any retry, "
-            "and do not repeat the same pragma combination. If synthesis "
-            "evidence does not justify a smaller factor, avoid this pattern."
-        )
-    elif phase == "compile_error":
+    if phase == "compile_error":
         constraint = (
             "Roll back the failed candidate and correct only the exact "
             "synthesis compiler diagnostic. Do not repeat the unsupported "
@@ -132,9 +122,10 @@ def build_synth_failure(
         )
     else:
         constraint = (
-            "Roll back the failed candidate and avoid the implicated pattern. "
-            "Use a materially different report-supported action, or return the "
-            "current best unchanged."
+            "Roll back the exact failed candidate and inspect its synthesis "
+            "diagnostics before selecting a response. A changed factor, target, "
+            "or architecture is allowed only as a new report/source-supported "
+            "hypothesis; otherwise return the current best unchanged."
         )
     return OptimizationFailure(
         stage="synth",
@@ -299,65 +290,29 @@ def _action_guard_feedback(
     measured_rejected_actions: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """Preserve measured anti-repeat history after a pre-tool action rejection."""
-    forbidden_families = {
-        str(family)
+    rejected_signatures = [
+        str(entry.get("action", entry).get("semantic_signature") or "")
         for entry in measured_rejected_actions
-        for family in (
-            entry.get("action", entry).get("families", [])
-            if isinstance(entry.get("action", entry), dict)
-            else []
-        )
-        if str(family)
-    }
-    forbidden_targets = {
-        kind: {
-            str(target)
-            for entry in measured_rejected_actions
-            for target in (
-                entry.get("action", entry).get("targets", {}).get(kind, [])
-                if isinstance(entry.get("action", entry), dict)
-                and isinstance(
-                    entry.get("action", entry).get("targets", {}), dict
-                )
-                else []
-            )
-            if str(target)
-        }
-        for kind in ("loops", "arrays", "functions")
-    }
-    # The report-evidence gate itself is also a hard prohibition for the next
-    # reflection, even when no Q_HW candidate has yet been measured.
-    if status == "REJECTED_BY_REPORT_EVIDENCE":
-        forbidden_families.update(
-            str(value)
-            for value in candidate_action.get("families", [])
-            if str(value)
-        )
-        candidate_targets = candidate_action.get("targets", {})
-        if isinstance(candidate_targets, dict):
-            for kind in forbidden_targets:
-                forbidden_targets[kind].update(
-                    str(value)
-                    for value in candidate_targets.get(kind, [])
-                    if str(value)
-                )
+        if isinstance(entry.get("action", entry), dict)
+    ]
+    candidate_signature = str(
+        candidate_action.get("semantic_signature") or ""
+    )
+    if candidate_signature:
+        rejected_signatures.append(candidate_signature)
     return {
         "status": status,
         "reason": reason,
         "no_candidate_tools_run": True,
         "candidate_action": candidate_action,
         "measured_rejected_actions": measured_rejected_actions[-4:],
-        "forbidden_optimization_families": sorted(forbidden_families),
-        "forbidden_targets": {
-            kind: sorted(values)
-            for kind, values in forbidden_targets.items()
-        },
+        "rejected_action_signatures": sorted(
+            {value for value in rejected_signatures if value}
+        ),
         "required_next_action": (
-            "Do not retry the rejected family or target through a different "
-            "factor, spelling, source layout, or fingerprint. Propose only a "
-            "different-family, different-target action explicitly supported by "
-            "the current synthesis report. If none exists, return the current "
-            "editable kernel unchanged."
+            "Do not repeat the exact rejected action signature. A different "
+            "parameter, target, or architecture is a new hypothesis only when "
+            "the current report/source evidence supports it."
         ),
     }
 
@@ -387,66 +342,31 @@ def _rejection_feedback(
                 "current_best_q_hw": best_q_hw,
             }
         )
-    forbidden_families = sorted(
+    rejected_signatures = sorted(
         {
-            str(family)
+            str(entry.get("action", entry).get("semantic_signature") or "")
             for entry in rejected_actions
-            for family in (
-                entry.get("action", entry).get("families", [])
-                if isinstance(entry.get("action", entry), dict)
-                else []
-            )
-            if str(family)
+            if isinstance(entry.get("action", entry), dict)
+            and entry.get("action", entry).get("semantic_signature")
         }
     )
-    forbidden_targets = {
-        kind: sorted(
-            {
-                str(target)
-                for entry in rejected_actions
-                for target in (
-                    entry.get("action", entry)
-                    .get("targets", {})
-                    .get(kind, [])
-                    if isinstance(entry.get("action", entry), dict)
-                    and isinstance(
-                        entry.get("action", entry).get("targets", {}), dict
-                    )
-                    else []
-                )
-                if str(target)
-            }
-        )
-        for kind in ("loops", "arrays", "functions")
-    }
     bottleneck = card.bottleneck_resource
     growth = card.growth_by_resource
 
-    resource_hint = ""
-    if bottleneck == "DSP" and growth.get("DSP", 1.0) > 2.0:
-        resource_hint = (
-            f"DSP grew {growth['DSP']:.1f}x — retire the measured "
-            "UNROLL/PIPELINE family."
-        )
-    elif bottleneck == "LUT" and growth.get("LUT", 1.0) > 3.0:
-        resource_hint = (
-            f"LUT grew {growth['LUT']:.1f}x — do not retry that "
-            "parallelism family with a different factor."
-        )
-    elif bottleneck == "FF" and growth.get("FF", 1.0) > 3.0:
-        resource_hint = (
-            f"FF grew {growth['FF']:.1f}x — retire that UNROLL or "
-            "memory-banking family."
-        )
-    elif bottleneck == "BRAM_18K":
-        resource_hint = (
-            "BRAM growth detected — do not retry memory banking on that array."
-        )
+    resource_hint = (
+        "Measured aggregate capacity-normalized resource pressure is "
+        f"U_baseline={card.anchor_resource_footprint:.8f}, "
+        f"U_candidate={card.candidate_resource_footprint:.8f}, "
+        f"area_ratio={card.area_ratio:.3f}x. The largest per-type growth "
+        f"diagnostic is {bottleneck}={growth.get(bottleneck, 1.0):.3f}x."
+    )
 
     cand_clk = getattr(report, "clock_period_ns", None)
-    clock_hint = ""
-    if cand_clk and cand_clk > 7.0:
-        clock_hint = f"Candidate clock={cand_clk:.1f}ns is very slow."
+    clock_hint = (
+        f"Measured candidate clock={cand_clk:.3f}ns."
+        if isinstance(cand_clk, (int, float))
+        else "Candidate clock is unavailable."
+    )
 
     feedback = {
         "status": "REJECTED_BY_SCORING_V3_Q_HW",
@@ -455,13 +375,15 @@ def _rejection_feedback(
         "current_best_q_hw": best_q_hw,
         "candidate_latency_ratio": card.latency_ratio,
         "candidate_area_growth": card.area_growth,
+        "candidate_area_ratio": card.area_ratio,
+        "anchor_resource_footprint": card.anchor_resource_footprint,
+        "candidate_resource_footprint": card.candidate_resource_footprint,
         "bottleneck_resource": bottleneck,
         "growth_by_resource": growth,
         "candidate_pragmas": pragmas,
         "candidate_action": action,
         "measured_rejected_actions": rejected_actions[-4:],
-        "forbidden_optimization_families": forbidden_families,
-        "forbidden_targets": forbidden_targets,
+        "rejected_action_signatures": rejected_signatures,
         "anti_repeat_priority": (
             "Measured Q_HW rejection overrides repeated RAG suggestions."
         ),
@@ -471,28 +393,20 @@ def _rejection_feedback(
     }
     if card.latency_ratio > 1.0 and card.area_growth > 1.0:
         feedback["directional_constraint"] = (
-            "The measured speedup was outweighed by worst-resource growth. "
-            "Increasing any UNROLL or ARRAY_PARTITION factor from this candidate "
-            "moves in the wrong direction and is forbidden."
+            "For this exact candidate, measured speedup was outweighed by "
+            "aggregate capacity-normalized resource growth. Do not extrapolate "
+            "this result to an entire family without another measurement."
         )
         feedback["required_next_action"] = (
-            "Do not repeat any forbidden optimization family or target, even "
-            "with a different factor, pragma spelling, source layout, or "
-            "fingerprint. "
-            f"{resource_hint + ' ' if resource_hint else ''}"
-            f"{clock_hint + ' ' if clock_hint else ''}"
-            "Use only a different-family, different-target, report-supported "
-            "resource-neutral/resource-reducing idea. If no such evidence-based "
-            "alternative exists, return the current editable kernel unchanged to stop."
+            "Do not repeat the exact rejected action signature. "
+            f"{resource_hint} {clock_hint} "
+            "A changed parameter, target, or architecture must state a new "
+            "report/source-supported hypothesis and be measured independently."
         ).strip()
     else:
         feedback["required_next_action"] = (
-            f"{resource_hint + ' ' if resource_hint else ''}"
-            f"{clock_hint + ' ' if clock_hint else ''}"
-            "Do not repeat any forbidden optimization family or loop/array/function "
-            "target, including semantic variants with different fingerprints. "
-            "Use only a different-family, different-target, report-supported "
-            "alternative. If none exists, return the current editable kernel "
-            "unchanged to stop."
+            f"{resource_hint} {clock_hint} Do not repeat the exact rejected "
+            "action signature. Any next hypothesis must be report/source-supported "
+            "and measured independently."
         ).strip()
     return feedback

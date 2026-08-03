@@ -14,7 +14,7 @@ _PATTERNS = [
             "4. If multiple independent accumulations exist: separate them into parallel paths.",
         ],
         "signal": "Achieved II=1, latency ≈ trip_count + pipeline depth.",
-        "warning": "Do NOT fully unroll if trip_count > 64. UNROLL on long vectors causes massive FF/LUT explosion.",
+        "warning": "Full UNROLL requires a static bound plus an operator, memory-bandwidth, and resource estimate; loop length alone is not a decision threshold.",
     },
     {
         "keywords": ["nested loop", "double loop", "2d", "matrix", "row", "column", "grid"],
@@ -33,7 +33,7 @@ _PATTERNS = [
         "family": "Array Partition for Memory Bandwidth",
         "steps": [
             "1. Identify the loop dimension that performs multiple reads/writes per iteration.",
-            "2. Derive cyclic/block bank mapping from array extent, lane stride, and concurrent lanes; use the smallest factor that provably creates useful distinct banks.",
+            "2. Derive cyclic/block bank mapping from array extent, lane stride, and concurrent lanes; compare evidence-supported factor/type points by measured Q_HW.",
             "3. Couple UNROLL to banking only when the same measured loop actually creates those concurrent accesses.",
             "4. Check synthesized LUT/FF/BRAM growth for the selected type, dimension, and factor.",
         ],
@@ -77,7 +77,7 @@ _PATTERNS = [
             "4. For large matrices: tile into local buffers + DATAFLOW between tile load/compute/store.",
         ],
         "signal": "Dramatic latency reduction (10-100x); DSP usage = unroll factor.",
-        "warning": "O(N²) resource growth with tile size. Start with factor=2 and measure before scaling.",
+        "warning": "O(N²) resource growth with tile size. Derive each tested factor from source structure and compare measured Q_HW.",
     },
     {
         "keywords": ["fir", "filter", "tap", "coefficient", "symmetric", "convolution"],

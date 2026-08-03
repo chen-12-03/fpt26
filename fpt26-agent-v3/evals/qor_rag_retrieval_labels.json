@@ -87,38 +87,38 @@
     },
     {
       "id": "unroll-01",
-      "expected_id": "hlsgen.unroll.conservative_partial",
+      "expected_id": "hlsgen.unroll.evidence_bounded",
       "query": {
-        "source_metadata": {"loops": [{"trip_count": 256, "pipeline_ii": 1, "nesting_depth": 0}], "arrays": []},
+        "source_metadata": {"loops": [{"trip_count": 256, "pipeline_ii": 1, "nesting_depth": 0, "independent_iterations": true, "operator_cost_estimated": true, "memory_bandwidth_estimated": true}], "arrays": []},
         "baseline_qor": {"latency_worst": 260, "loop_metrics": [{"trip_count": 256, "pipeline_ii": 1}]},
-        "synth_diagnostics": {"summary": "Long loop is already II=1 and trip-count dominated."},
+        "synth_diagnostics": {"summary": "Source analysis proves independent iterations on the measured loop; operator cost, memory bandwidth, and resource headroom are available."},
         "resource_headroom": {"LUT": 0.95, "DSP": 0.9},
         "history": [],
-        "description": "Try conservative partial loop unroll."
+        "description": "Derive bounded UNROLL factor candidates without a default factor."
       }
     },
     {
       "id": "unroll-02",
-      "expected_id": "hlsgen.unroll.conservative_partial",
+      "expected_id": "hlsgen.unroll.evidence_bounded",
       "query": {
         "source_metadata": {"loops": [{"trip_count": 64, "pipeline_ii": 1}], "arrays": []},
         "baseline_qor": {"latency_worst": 70, "q_hw": 0.75},
         "synth_diagnostics": {"summary": "Independent iterations remain after an effective pipeline."},
         "resource_headroom": {"LUT": 0.8, "DSP": 0.8},
         "history": [],
-        "description": "Small partial UNROLL factor with measurement."
+        "description": "Derive and measure a partial UNROLL factor from source and resource evidence."
       }
     },
     {
       "id": "unroll-03",
-      "expected_id": "hlsgen.unroll.conservative_partial",
+      "expected_id": "hlsgen.unroll.evidence_bounded",
       "query": {
-        "source_metadata": {"loops": [{"trip_count": 1024, "pipeline_ii": 1}], "arrays": []},
+        "source_metadata": {"loops": [{"trip_count": 1024, "pipeline_ii": 1, "independent_iterations": true, "operator_cost_estimated": true, "memory_bandwidth_estimated": true}], "arrays": []},
         "baseline_qor": {"latency_worst": 1030, "area_growth": 1.0},
-        "synth_diagnostics": {"summary": "Latency is dominated by a long II=1 loop."},
+        "synth_diagnostics": {"summary": "Source analysis proves independent iterations on the measured loop; operator cost, memory bandwidth, and resource headroom are available."},
         "resource_headroom": {"LUT": 0.7, "FF": 0.7},
         "history": [{"status": "BASELINE"}],
-        "description": "Measure a minimum partial factor, never full unroll."
+        "description": "Derive bounded UNROLL factor candidates without a default factor."
       }
     },
     {
