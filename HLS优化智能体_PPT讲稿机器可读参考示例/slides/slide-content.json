@@ -1,0 +1,482 @@
+{
+  "schema": "ppt-visible-content/v1",
+  "dimensions": {
+    "cx_emu": 12192000,
+    "cy_emu": 6858000,
+    "width_inches": 13.3333,
+    "height_inches": 7.5,
+    "aspect_ratio": 1.7778
+  },
+  "slides": [
+    {
+      "slide": 1,
+      "title": "面向 FPT Track A 的工具验证型 HLS 优化智能体",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "3",
+          "shape_name": "文本占位符 2",
+          "text": "面向\nFPT Track A\n的工具验证型\nHLS\n优化智能体"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "日期占位符 1",
+          "text": "止于至善"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "9",
+          "shape_name": "文本框 8",
+          "text": "成\n员：\n陈际舟  文皓玉\n胡笑歌"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "5",
+          "shape_name": "文本框 4",
+          "text": "A Tool-Verified HLS Optimization Agent for FPT Track A"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "6",
+          "shape_name": "文本框 5",
+          "text": "Verified-Candidate Loop（VCL）"
+        }
+      ],
+      "visible_text": "面向\nFPT Track A\n的工具验证型\nHLS\n优化智能体\n止于至善\n成\n员：\n陈际舟  文皓玉\n胡笑歌\nA Tool-Verified HLS Optimization Agent for FPT Track A\nVerified-Candidate Loop（VCL）",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 2,
+      "title": "Track A 是带硬门控和预算约束的候选搜索",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "7",
+          "shape_name": "文本占位符 6",
+          "text": "Track A 是带硬门控和预算约束的候选搜索"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "36",
+          "shape_name": "文本框 35",
+          "text": "预算\n约束"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "39",
+          "shape_name": "文本框 38",
+          "text": "要解决的问题\n是什么"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "41",
+          "shape_name": "文本框 40",
+          "text": "硬\n门控"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "日期占位符 1",
+          "text": "止于至善"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "35",
+          "shape_name": "文本框 34",
+          "text": "接口类型、顶层函数、输入类型；\nC\n仿真；\nHLS\n综合；频率\n≥100MHz\n；资源使用未超限；\n联合仿真"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "53",
+          "shape_name": "文本框 52",
+          "text": "1.Agent\n得到什么输入？"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "4",
+          "shape_name": "文本框 3",
+          "text": "2.\n搜\n索什\n么？\n修复类任务：正确且相对优秀的结果\n优化类任务：相较初始更为优秀的\n结果"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "5",
+          "shape_name": "文本框 4",
+          "text": "3.\n什么情况下允许更新结果？\n满足硬性要求\n且\n量化结果\n更优"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "49",
+          "shape_name": "文本框 48",
+          "text": "硬件质量评分\nQHW"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "54",
+          "shape_name": "文本框 53",
+          "text": "门控通过后，候选才进入QHW比较\n如何同时度量性能改善与资源代价？"
+        }
+      ],
+      "visible_text": "Track A 是带硬门控和预算约束的候选搜索\n预算\n约束\n要解决的问题\n是什么\n硬\n门控\n止于至善\n接口类型、顶层函数、输入类型；\nC\n仿真；\nHLS\n综合；频率\n≥100MHz\n；资源使用未超限；\n联合仿真\n1.Agent\n得到什么输入？\n2.\n搜\n索什\n么？\n修复类任务：正确且相对优秀的结果\n优化类任务：相较初始更为优秀的\n结果\n3.\n什么情况下允许更新结果？\n满足硬性要求\n且\n量化结果\n更优\n硬件质量评分\nQHW\n门控通过后，候选才进入QHW比较\n如何同时度量性能改善与资源代价？",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 3,
+      "title": "QHW：更快不等于更优",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "QHW：\n更快不等于更优"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "8",
+          "shape_name": "文本框 7",
+          "text": "PPA=Power\n（功耗）\n+Performance\n（性能）\n+Area\n（面积）"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "10",
+          "shape_name": "文本框 9",
+          "text": "参考文献：\n1.https://docs.amd.com/r/2024.1-English/ug1399-vitis-hls/Synthesis-Summary\n2.https://arxiv.org/abs/2207.07917"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "70",
+          "shape_name": "TextBox 52",
+          "text": "rP\n：\n≈3.1×"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "71",
+          "shape_name": "文本框 70",
+          "text": "Candidate 1 更快，但 LUT≈12×、FF≈22×，且时钟变差，因此 Q_HW从 0.7500 降至 0.5333。"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "72",
+          "shape_name": "Group 60",
+          "text": "FINAL EVALUATOR SCORE\n95.72\nCandidate 2 promoted"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "77",
+          "shape_name": "文本框 76",
+          "text": "硬件质量如何\n计算？"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "78",
+          "shape_name": "文本框 77",
+          "text": "3.1× 延迟改善仍可能是更差的硬件解"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "52",
+          "shape_name": "Group 50",
+          "text": "Metric\nBaseline b\nCandidate 1\nCandidate 2\nLatency\n311\n99\n102\nClock\n1.843 ns\n2.115 ns\n1.480 ns\nLUT\n564\n6791\n106\nFF\n110\n2457\n18\nQ_HW\n0.7500\n0.5333\n0.9586\nDecision\nretain\nreject\npromote"
+        }
+      ],
+      "visible_text": "QHW：\n更快不等于更优\nPPA=Power\n（功耗）\n+Performance\n（性能）\n+Area\n（面积）\n参考文献：\n1.https://docs.amd.com/r/2024.1-English/ug1399-vitis-hls/Synthesis-Summary\n2.https://arxiv.org/abs/2207.07917\nrP\n：\n≈3.1×\nCandidate 1 更快，但 LUT≈12×、FF≈22×，且时钟变差，因此 Q_HW从 0.7500 降至 0.5333。\nFINAL EVALUATOR SCORE\n95.72\nCandidate 2 promoted\n硬件质量如何\n计算？\n3.1× 延迟改善仍可能是更差的硬件解\nMetric\nBaseline b\nCandidate 1\nCandidate 2\nLatency\n311\n99\n102\nClock\n1.843 ns\n2.115 ns\n1.480 ns\nLUT\n564\n6791\n106\nFF\n110\n2457\n18\nQ_HW\n0.7500\n0.5333\n0.9586\nDecision\nretain\nreject\npromote",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 4,
+      "title": "候选先证明有效，再证明优于当前最优",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "候选先证明“有效”，再证明“优于当前最优”"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "40",
+          "shape_name": "组合 39",
+          "text": "预算不足、门控失败或\nQHW\n未提升，都不会覆盖当前最佳\n；\n只有\nPromote\n才能更新\nb。"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "77",
+          "shape_name": "文本框 76",
+          "text": "晋升条件：候选通过全部适用门控，且 Q_HW 严格优于当前 verified fallback"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "64",
+          "shape_name": "文本框 63",
+          "text": "Budget\n决定“是否继续”｜\nValidity\n决定“能否比较”｜\nQ_HW\n决定“能否晋升”\n|"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "105",
+          "shape_name": "Group 49",
+          "text": "DECISION TREE\nBudget\nadmit?\nyes\ncandidate c\nV(c)\nall gates?\nV=0\nreject candidate\nScore=0 · baseline unchanged\nV=1\nQ_HW(c)\n> Q_HW(b)?\nno\nretain baseline\nmeasured, but not better\nyes\npromote c → b\nverified fallback updated\nno · insufficient credits\nstop search\nemit current verified fallback"
+        }
+      ],
+      "visible_text": "候选先证明“有效”，再证明“优于当前最优”\n预算不足、门控失败或\nQHW\n未提升，都不会覆盖当前最佳\n；\n只有\nPromote\n才能更新\nb。\n晋升条件：候选通过全部适用门控，且 Q_HW 严格优于当前 verified fallback\nBudget\n决定“是否继续”｜\nValidity\n决定“能否比较”｜\nQ_HW\n决定“能否晋升”\n|\nDECISION TREE\nBudget\nadmit?\nyes\ncandidate c\nV(c)\nall gates?\nV=0\nreject candidate\nScore=0 · baseline unchanged\nV=1\nQ_HW(c)\n> Q_HW(b)?\nno\nretain baseline\nmeasured, but not better\nyes\npromote c → b\nverified fallback updated\nno · insufficient credits\nstop search\nemit current verified fallback",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 5,
+      "title": "Verified-Candidate Loop（VCL）工作流",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "Verified-Candidate Loop（VCL）\n工作流"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "151",
+          "shape_name": "组合 150",
+          "text": "Agent\n在预算约束下生成候选，通过完整验证与\nQHW\n比较决定是否更新最优结果，并将失败证据反馈至下一轮优化。"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "232",
+          "shape_name": "Group 32",
+          "text": "MEASURED EVIDENCE CONTROLS PROMOTION AND THE NEXT OPTIMIZATION ROUND\nCANDIDATE GENERATION\nCOMPLETE VALIDATION\nROLE-SPECIFIC PROMOTION\nTask\n+ starter\nLLM\nfull-source candidate\nBudget\nadmit?\nAll applicable gates must pass\nInterface → CSim → Synth → target gates\nCoSim（if required）→ metric completeness\nCandidate\nrole?"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "260",
+          "shape_name": "Group 58",
+          "text": "validity restoration\nRepair / Structural\nestablish\nVerified fallback\nbest-so-far\nOptimize\nQ_HW\nimproves?\nYES · update\nstop\nOutput\nfallback + evidence"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "286",
+          "shape_name": "Group 74",
+          "text": "QoR-RAG\nrules · verified success / failure cases bounded context for the next proposal\nFailure Reflection\ntool diagnostics · measured QoR rejection diff → next optimization constraint\nany failed validation gate\nNO · measured QoR evidence\nupdate retrieval evidence\nnext-round Optimize context"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "302",
+          "shape_name": "Group 77",
+          "text": "insufficient credits → emit the current verified fallback before partial validation"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "305",
+          "shape_name": "TextBox 36",
+          "text": "Repair / Structural\nAgent"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "306",
+          "shape_name": "TextBox 46",
+          "text": "Optimize Agent"
+        }
+      ],
+      "visible_text": "Verified-Candidate Loop（VCL）\n工作流\nAgent\n在预算约束下生成候选，通过完整验证与\nQHW\n比较决定是否更新最优结果，并将失败证据反馈至下一轮优化。\nMEASURED EVIDENCE CONTROLS PROMOTION AND THE NEXT OPTIMIZATION ROUND\nCANDIDATE GENERATION\nCOMPLETE VALIDATION\nROLE-SPECIFIC PROMOTION\nTask\n+ starter\nLLM\nfull-source candidate\nBudget\nadmit?\nAll applicable gates must pass\nInterface → CSim → Synth → target gates\nCoSim（if required）→ metric completeness\nCandidate\nrole?\nvalidity restoration\nRepair / Structural\nestablish\nVerified fallback\nbest-so-far\nOptimize\nQ_HW\nimproves?\nYES · update\nstop\nOutput\nfallback + evidence\nQoR-RAG\nrules · verified success / failure cases bounded context for the next proposal\nFailure Reflection\ntool diagnostics · measured QoR rejection diff → next optimization constraint\nany failed validation gate\nNO · measured QoR evidence\nupdate retrieval evidence\nnext-round Optimize context\ninsufficient credits → emit the current verified fallback before partial validation\nRepair / Structural\nAgent\nOptimize Agent",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 6,
+      "title": "测试集构成与评测模型选择",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "测试集构成与评测\n模型选择"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "98",
+          "shape_name": "文本框 97",
+          "text": "测试数据来源于\nAMD/Xilinx\n的两个公开\nGitHub\n仓库：\nXilinx/Vitis-HLS-Introductory-Examples（109\n个任务）和\nXilinx/Vitis_Accel_Examples（41\n个任务）。"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "101",
+          "shape_name": "文本框 100",
+          "text": "功能正确未经优化"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "103",
+          "shape_name": "文本框 102",
+          "text": "编译失败\nor\n综合失败"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "104",
+          "shape_name": "文本框 103",
+          "text": "csim\n失败\nor cosim\n失败"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "105",
+          "shape_name": "文本框 104",
+          "text": "存在死锁等结构性问题"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "110",
+          "shape_name": "文本框 109",
+          "text": "150 个任务覆盖六类\nHLS\n能力"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "111",
+          "shape_name": "文本框 110",
+          "text": "3\n种\n模型覆盖不同参数规模与架构"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "3",
+          "shape_name": "Group 69",
+          "text": "能力类别\n初始状态\n要求输出\n任务数\nCoSim\n代码生成\n仅含函数签名的 stub\n完整 kernel\n25\n0\n编译修复\n编译失败\n可编译 kernel\n25\n0\n综合修复\n综合失败\n可综合 kernel\n25\n0\n功能修复\nCSim 失败\n功能正确 kernel\n25\n0\n结构修复\nCoSim 失败\n可执行 RTL 结构\n25\n25\nQoR 优化\n有效 baseline\n更优且有效的 Q_HW\n25\n0"
+        }
+      ],
+      "visible_text": "测试集构成与评测\n模型选择\n测试数据来源于\nAMD/Xilinx\n的两个公开\nGitHub\n仓库：\nXilinx/Vitis-HLS-Introductory-Examples（109\n个任务）和\nXilinx/Vitis_Accel_Examples（41\n个任务）。\n功能正确未经优化\n编译失败\nor\n综合失败\ncsim\n失败\nor cosim\n失败\n存在死锁等结构性问题\n150 个任务覆盖六类\nHLS\n能力\n3\n种\n模型覆盖不同参数规模与架构\n能力类别\n初始状态\n要求输出\n任务数\nCoSim\n代码生成\n仅含函数签名的 stub\n完整 kernel\n25\n0\n编译修复\n编译失败\n可编译 kernel\n25\n0\n综合修复\n综合失败\n可综合 kernel\n25\n0\n功能修复\nCSim 失败\n功能正确 kernel\n25\n0\n结构修复\nCoSim 失败\n可执行 RTL 结构\n25\n25\nQoR 优化\n有效 baseline\n更优且有效的 Q_HW\n25\n0",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 7,
+      "title": "类别差距主要集中在生成与结构修复",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "类别差距主要集中在生成与结构修复"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "5",
+          "shape_name": "文本框 4",
+          "text": "每类 25 个任务；单元格表示成功完成任务数 / 25。此处\nQoR 100%\n表示该类别 25/25 完成，不代表\nQHW\n得分为 100"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "74",
+          "shape_name": "Group 74",
+          "text": "COMPLETION BY CATEGORY · 25 TASKS EACH\nGenerate\nCompile\nSynth\nFunctional\nStructural\nQoR\nDeepSeek V4 Pro\nQwen3.5-122B-A10B\nQwen3.6-27B\n96%\n24 / 25\n100%\n25 / 25\n100%\n25 / 25\n96%\n24 / 25\n96%\n24 / 25\n100%\n25 / 25\n88%\n22 / 25\n100%\n25 / 25\n100%\n25 / 25\n96%\n24 / 25\n100%\n25 / 25\n100%\n25 / 25\n84%\n21 / 25\n100%\n25 / 25\n100%\n25 / 25\n96%\n24 / 25\n72%\n18 / 25\n100%\n25 / 25"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "84",
+          "shape_name": "Group 84",
+          "text": "COMMON STRENGTH\nCompile、Synth、QoR 全部 100%；Functional 全部 96%\nMOST BALANCED\nDeepSeek 每类至少 24 / 25\nRESIDUAL GAP\nQwen3.6：Generate 84%\nStructural 72%"
+        }
+      ],
+      "visible_text": "类别差距主要集中在生成与结构修复\n每类 25 个任务；单元格表示成功完成任务数 / 25。此处\nQoR 100%\n表示该类别 25/25 完成，不代表\nQHW\n得分为 100\nCOMPLETION BY CATEGORY · 25 TASKS EACH\nGenerate\nCompile\nSynth\nFunctional\nStructural\nQoR\nDeepSeek V4 Pro\nQwen3.5-122B-A10B\nQwen3.6-27B\n96%\n24 / 25\n100%\n25 / 25\n100%\n25 / 25\n96%\n24 / 25\n96%\n24 / 25\n100%\n25 / 25\n88%\n22 / 25\n100%\n25 / 25\n100%\n25 / 25\n96%\n24 / 25\n100%\n25 / 25\n100%\n25 / 25\n84%\n21 / 25\n100%\n25 / 25\n100%\n25 / 25\n96%\n24 / 25\n72%\n18 / 25\n100%\n25 / 25\nCOMMON STRENGTH\nCompile、Synth、QoR 全部 100%；Functional 全部 96%\nMOST BALANCED\nDeepSeek 每类至少 24 / 25\nRESIDUAL GAP\nQwen3.6：Generate 84%\nStructural 72%",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 8,
+      "title": "完成率均超过 92%，但结构修复均分仅 40–45",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "完成率均超过 92%，但结构修复均分仅 40–45"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "23",
+          "shape_name": "Group 23",
+          "text": "任务完成率 · 每个端点 150 个任务\nDeepSeek V4 Pro\nQwen3.5-122B\nQwen3.6-27B\n98.0%\n97.3%\n92.0%\n0\n50\n100%"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "28",
+          "shape_name": "Group 25",
+          "text": "有分任务的总体质量 · Score 0–100"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "59",
+          "shape_name": "Group 59",
+          "text": "Model\nScored N\nMean\nMedian\nMin–Max\nDeepSeek V4 Pro\n114\n70.27\n74.91\n10.03–99.88\nQwen3.5-122B\n115\n68.26\n74.90\n0.00–99.77\nQwen3.6-27B\n108\n70.06\n74.89\n10.04–99.88"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "64",
+          "shape_name": "Group 61",
+          "text": "类别质量画像 · 单元格为 Mean（实际有分样本 N）"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "112",
+          "shape_name": "Group 112",
+          "text": "Model\n代码生成\n编译修复\n综合修复\n功能修复\n结构修复\nQoR 优化\nDeepSeek V4 Pro\n88.16 (N=4)\n77.84 (N=17)\n75.19 (N=20)\n74.91 (N=24)\n42.53 (N=24)\n80.49 (N=25)\nQwen3.5-122B\n63.20 (N=4)\n74.91 (N=17)\n74.91 (N=20)\n74.91 (N=24)\n44.57 (N=25)\n76.55 (N=25)\nQwen3.6-27B\n88.16 (N=4)\n74.89 (N=17)\n74.90 (N=20)\n75.47 (N=24)\n40.05 (N=18)\n76.43 (N=25)"
+        }
+      ],
+      "visible_text": "完成率均超过 92%，但结构修复均分仅 40–45\n任务完成率 · 每个端点 150 个任务\nDeepSeek V4 Pro\nQwen3.5-122B\nQwen3.6-27B\n98.0%\n97.3%\n92.0%\n0\n50\n100%\n有分任务的总体质量 · Score 0–100\nModel\nScored N\nMean\nMedian\nMin–Max\nDeepSeek V4 Pro\n114\n70.27\n74.91\n10.03–99.88\nQwen3.5-122B\n115\n68.26\n74.90\n0.00–99.77\nQwen3.6-27B\n108\n70.06\n74.89\n10.04–99.88\n类别质量画像 · 单元格为 Mean（实际有分样本 N）\nModel\n代码生成\n编译修复\n综合修复\n功能修复\n结构修复\nQoR 优化\nDeepSeek V4 Pro\n88.16 (N=4)\n77.84 (N=17)\n75.19 (N=20)\n74.91 (N=24)\n42.53 (N=24)\n80.49 (N=25)\nQwen3.5-122B\n63.20 (N=4)\n74.91 (N=17)\n74.91 (N=20)\n74.91 (N=24)\n44.57 (N=25)\n76.55 (N=25)\nQwen3.6-27B\n88.16 (N=4)\n74.89 (N=17)\n74.90 (N=20)\n75.47 (N=24)\n40.05 (N=18)\n76.43 (N=25)",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 9,
+      "title": "创新点与局限性",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "文本占位符 1",
+          "text": "创新点与\n局限性"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "73",
+          "shape_name": "组合 72",
+          "text": "COVERAGE\n证据来自\n2 个 AMD\nrepo、单工具、单器件、单时钟；暂无 power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；\n目标平台\nAlveo U55C\n。\nVALIDATED / REQUIRED INPUTS\nAgent\n当前依赖成熟的工程输入，\n跨工具与跨器件能力尚未完成验证。\n01\n公开\ntestbench\n与\nbuild script；\n明确接口、容差和\ntarget\n02\n提供有效\nbaseline / reference，\n支持候选的相对质量比较\n03\n任务明确是否需要\nCoSim，\n并使用固定任务清单与工具预算\n局限性"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "55",
+          "shape_name": "组合 54",
+          "text": "创新点\nKEY CONTRIBUTIONS\n把“生成候选”变成“验证后晋升”\n，\n让硬件证据而不是模型置信度控制迭代。\n01\n提出综合有效性能与最坏资源质量的\nQHW\n指标\n02\n将\nQHW\n嵌入\nVCL，\n控制\nOptimize\n候选是否更新\nbest-so-far\n03\n复用工具诊断与实测退化证据，约束下一轮候选生成\n04\n通过预算准入与\nverified fallback，\n避免不完整验证污染结果"
+        },
+        {
+          "object_type": "grpSp",
+          "shape_id": "56",
+          "shape_name": "组合 55",
+          "text": "下一步计划\nNEXT ITERATION\n先提高\nOptimize\n的质量上限，\n再扩展任务输入、工具链与器件边界。\n01\n增强循环、访存、流水线与\nDataflow\n的定向优化策略\n02\n扩展均衡、速度优先和面积优先的\nQHW\n配置\n03\n增加工程输入与\ntestbench\n的完整性诊断和辅助修复"
+        }
+      ],
+      "visible_text": "创新点与\n局限性\nCOVERAGE\n证据来自\n2 个 AMD\nrepo、单工具、单器件、单时钟；暂无 power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；\n目标平台\nAlveo U55C\n。\nVALIDATED / REQUIRED INPUTS\nAgent\n当前依赖成熟的工程输入，\n跨工具与跨器件能力尚未完成验证。\n01\n公开\ntestbench\n与\nbuild script；\n明确接口、容差和\ntarget\n02\n提供有效\nbaseline / reference，\n支持候选的相对质量比较\n03\n任务明确是否需要\nCoSim，\n并使用固定任务清单与工具预算\n局限性\n创新点\nKEY CONTRIBUTIONS\n把“生成候选”变成“验证后晋升”\n，\n让硬件证据而不是模型置信度控制迭代。\n01\n提出综合有效性能与最坏资源质量的\nQHW\n指标\n02\n将\nQHW\n嵌入\nVCL，\n控制\nOptimize\n候选是否更新\nbest-so-far\n03\n复用工具诊断与实测退化证据，约束下一轮候选生成\n04\n通过预算准入与\nverified fallback，\n避免不完整验证污染结果\n下一步计划\nNEXT ITERATION\n先提高\nOptimize\n的质量上限，\n再扩展任务输入、工具链与器件边界。\n01\n增强循环、访存、流水线与\nDataflow\n的定向优化策略\n02\n扩展均衡、速度优先和面积优先的\nQHW\n配置\n03\n增加工程输入与\ntestbench\n的完整性诊断和辅助修复",
+      "embedded_speaker_notes": []
+    },
+    {
+      "slide": 10,
+      "title": "感谢观看",
+      "objects": [
+        {
+          "object_type": "sp",
+          "shape_id": "3",
+          "shape_name": "文本占位符 2",
+          "text": "感谢观看！"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "2",
+          "shape_name": "日期占位符 1",
+          "text": "止于至善"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "7",
+          "shape_name": "文本框 6",
+          "text": "Thanks for watching!"
+        },
+        {
+          "object_type": "sp",
+          "shape_id": "10",
+          "shape_name": "文本框 9",
+          "text": "成\n员：\n陈际舟  文皓玉\n胡笑歌"
+        }
+      ],
+      "visible_text": "感谢观看！\n止于至善\nThanks for watching!\n成\n员：\n陈际舟  文皓玉\n胡笑歌",
+      "embedded_speaker_notes": []
+    }
+  ]
+}

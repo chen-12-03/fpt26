@@ -128,10 +128,16 @@ class _LaneLlm:
     def __init__(self, responses: dict[str, str | list[str]]) -> None:
         self.responses = responses
         self.strategies: list[str] = []
+        self.refinement_calls = 0
 
     def complete(self, system: str, prompt: str) -> str:
         payload = json.loads(prompt)
-        strategy = payload["search_strategy"]["name"]
+        strategy_payload = payload.get("search_strategy")
+        if strategy_payload is None:
+            # Refinement phase — return the kernel unchanged to converge.
+            self.refinement_calls += 1
+            return payload.get("editable_kernel", "")
+        strategy = strategy_payload["name"]
         self.strategies.append(strategy)
         assert "hard independent-lane contract" in payload["instruction"]
         response = self.responses[strategy]

@@ -1,0 +1,3115 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/udsvah03",
+    "id": "udsvah03",
+    "slide": 9,
+    "layoutId": "/ppt/slideLayouts/slideLayout9.xml",
+    "layoutName": "仅标题（无主副标题）",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "SEU",
+    "colors": {
+      "accent1": "#445437",
+      "accent2": "#FFCC00",
+      "accent3": "#2872A1",
+      "accent4": "#FCB322",
+      "accent5": "#EA6C00",
+      "accent6": "#70AD47",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#44546A",
+      "lt2": "#E3E1DD",
+      "hlink": "#0563C1",
+      "folHlink": "#954F72"
+    },
+    "fontScheme": {
+      "name": "htvr4vcz",
+      "majorFont": {
+        "latinTypeface": "Arial",
+        "eastAsianTypeface": "Microsoft YaHei"
+      },
+      "minorFont": {
+        "latinTypeface": "Arial",
+        "eastAsianTypeface": "Microsoft YaHei"
+      }
+    },
+    "typefaces": [
+      "Arial",
+      "Consolas",
+      "Microsoft YaHei",
+      "仿宋"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout9.xml",
+      "name": "仅标题（无主副标题）",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": [
+        {
+          "order": 1,
+          "kind": "image",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/27",
+          "id": "27",
+          "name": "ͼƬ 10",
+          "bbox": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "contentType": "image/jpeg",
+          "imageCrop": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "asset": {
+            "assetId": "/ppt/media/image4.jpeg",
+            "contentType": "image/jpeg",
+            "byteLength": 239022
+          },
+          "fillImage": {
+            "assetId": "/ppt/media/image4.jpeg",
+            "contentType": "image/jpeg",
+            "byteLength": 239022
+          }
+        },
+        {
+          "order": 2,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/25",
+          "id": "25",
+          "name": "文本占位符 67",
+          "bbox": [
+            127.76,
+            36.46,
+            936.49,
+            42.24
+          ],
+          "geometry": "rect",
+          "text": "请输入你的章节标题",
+          "textPreview": "请输入你的章节标题",
+          "resolvedTextStyle": {
+            "autoFit": "resizeShapeToFitText",
+            "insets": {
+              "bottom": 4.91,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "请输入你的章节标题",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "请输入你的章节标题"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/17",
+          "id": "17",
+          "name": "íṥļîḓê",
+          "bbox": [
+            69.33,
+            36.19,
+            40.4,
+            40.4
+          ],
+          "rotation": 0,
+          "geometry": "ellipse",
+          "resolvedTextStyle": {
+            "anchor": 2,
+            "vertical": 1,
+            "rotation": 0,
+            "verticalAlignment": "middle",
+            "wrap": "square",
+            "autoFit": "shrinkText",
+            "autoFitScale": 0.78,
+            "autoFitLineSpaceReduction": 20000,
+            "insets": {
+              "top": 4.8,
+              "right": 9.6,
+              "bottom": 4.8,
+              "left": 9.6
+            }
+          },
+          "lineColor": {
+            "type": "theme",
+            "value": "accent1",
+            "transform": {
+              "lighten": 0.4
+            }
+          },
+          "lineWidth": 1.33
+        },
+        {
+          "order": 4,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/18",
+          "id": "18",
+          "name": "íṥlíḓê",
+          "bbox": [
+            73.07,
+            39.92,
+            32.93,
+            32.93
+          ],
+          "rotation": 0,
+          "geometry": "ellipse",
+          "resolvedTextStyle": {
+            "anchor": 2,
+            "verticalAlignment": "middle",
+            "wrap": "square",
+            "autoFit": "shrinkText",
+            "autoFitScale": 0.55,
+            "autoFitLineSpaceReduction": 20000,
+            "insets": {
+              "top": 4.8,
+              "right": 9.6,
+              "bottom": 4.8,
+              "left": 9.6
+            }
+          },
+          "fillColor": {
+            "type": "theme",
+            "value": "accent1",
+            "transform": {
+              "lighten": 0.4
+            }
+          },
+          "lineWidth": 3
+        },
+        {
+          "order": 5,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/26",
+          "id": "26",
+          "name": "ïśļiḑé",
+          "bbox": [
+            79.41,
+            46.27,
+            20.25,
+            20.22
+          ],
+          "rotation": 0,
+          "geometry": "custom",
+          "resolvedTextStyle": {
+            "anchor": 2,
+            "vertical": 1,
+            "rotation": 0,
+            "verticalAlignment": "middle",
+            "wrap": "square",
+            "autoFit": "shrinkText",
+            "autoFitScale": 0.4,
+            "autoFitLineSpaceReduction": 20000,
+            "insets": {
+              "top": 4.8,
+              "right": 9.6,
+              "bottom": 4.8,
+              "left": 9.6
+            }
+          },
+          "fillColor": "bg1",
+          "lineWidth": 3
+        },
+        {
+          "order": 6,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/4",
+          "id": "4",
+          "name": "日期占位符 3",
+          "bbox": [
+            69.33,
+            654.67,
+            350.93,
+            38.33
+          ],
+          "geometry": "rect",
+          "text": "止于至善",
+          "textPreview": "止于至善",
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "止于至善",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "止于至善",
+                  "typeface": "Microsoft YaHei",
+                  "color": "accent1",
+                  "italic": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 7,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/7",
+          "id": "7",
+          "name": "灯片编号占位符 6",
+          "bbox": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "order": 8,
+          "kind": "shape",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/12",
+          "id": "12",
+          "name": "直接连接符 11",
+          "bbox": [
+            68.34,
+            89.52,
+            1140.99,
+            0
+          ],
+          "geometry": "line",
+          "lineColor": {
+            "type": "theme",
+            "value": "bg1",
+            "transform": {
+              "darken": 0.25
+            }
+          },
+          "lineWidth": 1.33
+        },
+        {
+          "order": 9,
+          "kind": "image",
+          "scope": "layout",
+          "aid": "template/layout//ppt/slideLayouts/slideLayout9.xml/28",
+          "id": "28",
+          "name": "ͼƬ 12",
+          "bbox": [
+            1064.25,
+            30.7,
+            144.43,
+            45.91
+          ],
+          "contentType": "image/png",
+          "asset": {
+            "assetId": "/ppt/media/image3.png",
+            "contentType": "image/png",
+            "byteLength": 5760
+          },
+          "fillImage": {
+            "assetId": "/ppt/media/image3.png",
+            "contentType": "image/png",
+            "byteLength": 5760
+          }
+        }
+      ]
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "type": "master",
+      "elements": [
+        {
+          "order": 1,
+          "kind": "shape",
+          "scope": "master",
+          "aid": "template/master//ppt/slideMasters/slideMaster1.xml/2",
+          "id": "2",
+          "name": "标题占位符 1",
+          "bbox": [
+            70.33,
+            0,
+            1139.01,
+            78.67
+          ],
+          "geometry": "rect",
+          "text": "单击此处编辑母版标题样式",
+          "textPreview": "单击此处编辑母版标题样式",
+          "resolvedTextStyle": {
+            "anchor": 3,
+            "vertical": 1,
+            "verticalAlignment": "bottom",
+            "autoFit": "none",
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "单击此处编辑母版标题样式",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "单击此处编辑母版标题样式"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 2,
+          "kind": "shape",
+          "scope": "master",
+          "aid": "template/master//ppt/slideMasters/slideMaster1.xml/3",
+          "id": "3",
+          "name": "文本占位符 2",
+          "bbox": [
+            70.33,
+            89.33,
+            1139.01,
+            554.67
+          ],
+          "geometry": "rect",
+          "text": "编辑母版文本样式\n第二级\n第三级\n第四级\n第五级",
+          "textPreview": "编辑母版文本样式 | 第二级 | 第三级 | 第四级 | 第五级",
+          "resolvedTextStyle": {
+            "vertical": 1,
+            "autoFit": "none",
+            "insets": {
+              "top": 4.8,
+              "right": 9.6,
+              "bottom": 4.8,
+              "left": 9.6
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "编辑母版文本样式",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "编辑母版文本样式"
+                }
+              ]
+            },
+            {
+              "index": 2,
+              "text": "第二级",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "第二级"
+                }
+              ]
+            },
+            {
+              "index": 3,
+              "text": "第三级",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "第三级"
+                }
+              ]
+            },
+            {
+              "index": 4,
+              "text": "第四级",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "第四级"
+                }
+              ]
+            },
+            {
+              "index": 5,
+              "text": "第五级",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "第五级"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "shape",
+          "scope": "master",
+          "aid": "template/master//ppt/slideMasters/slideMaster1.xml/15",
+          "id": "15",
+          "name": "日期占位符 3",
+          "bbox": [
+            69.33,
+            654.67,
+            350.93,
+            38.33
+          ],
+          "geometry": "rect",
+          "text": "止于至善",
+          "textPreview": "止于至善",
+          "resolvedTextStyle": {
+            "anchor": 2,
+            "vertical": 1,
+            "verticalAlignment": "middle",
+            "insets": {
+              "top": 4.8,
+              "right": 9.6,
+              "bottom": 4.8,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "止于至善",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "止于至善",
+                  "typeface": "Microsoft YaHei",
+                  "color": "accent1",
+                  "italic": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 4,
+          "kind": "shape",
+          "scope": "master",
+          "aid": "template/master//ppt/slideMasters/slideMaster1.xml/16",
+          "id": "16",
+          "name": "页脚占位符 4",
+          "bbox": [
+            485.33,
+            654.67,
+            309.33,
+            38.33
+          ],
+          "geometry": "rect",
+          "resolvedTextStyle": {
+            "anchor": 2,
+            "vertical": 1,
+            "verticalAlignment": "middle",
+            "insets": {
+              "top": 4.8,
+              "right": 9.6,
+              "bottom": 4.8,
+              "left": 9.6
+            }
+          }
+        },
+        {
+          "order": 5,
+          "kind": "shape",
+          "scope": "master",
+          "aid": "template/master//ppt/slideMasters/slideMaster1.xml/4",
+          "id": "4",
+          "name": "灯片编号占位符 3",
+          "bbox": [
+            921.33,
+            654.67,
+            288,
+            38.33
+          ],
+          "geometry": "rect",
+          "resolvedTextStyle": {
+            "anchor": 2,
+            "vertical": 1,
+            "verticalAlignment": "middle",
+            "insets": {
+              "top": 4.8,
+              "right": 0,
+              "bottom": 4.8,
+              "left": 9.6
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1cfmhgne",
+      "id": "2",
+      "name": "文本占位符 1",
+      "bbox": [
+        120.93,
+        22.53,
+        560.2,
+        61.33
+      ],
+      "text": "创新点与局限性",
+      "textPreview": "创新点与局限性",
+      "resolvedFontSize": 26.67,
+      "resolvedTextStyle": {
+        "vertical": 1,
+        "fontSize": 26.67,
+        "typeface": "Microsoft YaHei",
+        "color": "accent1",
+        "bold": true,
+        "alignment": "left",
+        "wrap": "square",
+        "autoFit": "none",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.91,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "创新点与局限性"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "创新点与局限性",
+          "runs": [
+            {
+              "index": 1,
+              "text": "创新点与",
+              "fontSize": 42.67,
+              "color": "#385723"
+            },
+            {
+              "index": 2,
+              "text": "局限性",
+              "fontSize": 42.67,
+              "color": "#385723"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0,
+          "indent": 0,
+          "lineSpacingPercent": 100000
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xgzitk76",
+      "id": "28",
+      "name": "TextBox 28",
+      "bbox": [
+        631.73,
+        378.07,
+        91.53,
+        19.33
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "COVERAGE",
+      "textPreview": "COVERAGE",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "COVERAGE"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "COVERAGE",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "COVERAGE",
+              "fontSize": 16,
+              "typeface": "Arial",
+              "color": "#35562A",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cf6h0fql",
+      "id": "29",
+      "name": "TextBox 29",
+      "bbox": [
+        631.67,
+        399.67,
+        542.33,
+        56.73
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "证据来自 2 个 AMD repo、单工具、单器件、单时钟；暂无 power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；目标平台Alveo U55C。",
+      "textPreview": "证据来自 2 个 AMD repo、单工具、单器件、单时钟；暂无 power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；目标平台Alveo U55C。",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "square",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "证据来自 2 个 AMD repo、单工具、单器件、单时钟；暂无"
+          },
+          {
+            "index": 2,
+            "text": "power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；"
+          },
+          {
+            "index": 3,
+            "text": "目标平台Alveo U55C。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "证据来自 2 个 AMD repo、单工具、单器件、单时钟；暂无 power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；目标平台Alveo U55C。",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "证据来自 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "2 个 AMD ",
+              "fontSize": 18.67,
+              "typeface": "仿宋"
+            },
+            {
+              "index": 3,
+              "text": "repo、单工具、单器件、单时钟；暂无 power。CoSim 只覆盖 manifest 中 25 个 Structural tasks；",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 4,
+              "text": "目标平台",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 5,
+              "text": "Alveo U55C",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 6,
+              "text": "。",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ah8nu54b",
+      "id": "9",
+      "name": "TextBox 9",
+      "bbox": [
+        632.23,
+        150.61,
+        256.24,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "VALIDATED / REQUIRED INPUTS",
+      "textPreview": "VALIDATED / REQUIRED INPUTS",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "VALIDATED / REQUIRED INPUTS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "VALIDATED / REQUIRED INPUTS",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "VALIDATED / REQUIRED INPUTS",
+              "fontSize": 16,
+              "typeface": "Arial",
+              "color": "#35562A",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/oza1gfyh",
+      "id": "10",
+      "name": "TextBox 10",
+      "bbox": [
+        631.75,
+        174.22,
+        448,
+        67.81
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "Agent 当前依赖成熟的工程输入，\n跨工具与跨器件能力尚未完成验证。",
+      "textPreview": "Agent 当前依赖成熟的工程输入， | 跨工具与跨器件能力尚未完成验证。",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Agent 当前依赖成熟的工程输入，"
+          },
+          {
+            "index": 2,
+            "text": "跨工具与跨器件能力尚未完成验证。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Agent 当前依赖成熟的工程输入，",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Agent ",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": "当前依赖成熟的工程输入，",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "跨工具与跨器件能力尚未完成验证。",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "跨工具与跨器件能力尚未完成验证。",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/2xsjepgb",
+      "id": "12",
+      "name": "Line 12",
+      "bbox": [
+        632.87,
+        253.02,
+        438,
+        1
+      ],
+      "rotation": 0,
+      "geometry": "custom",
+      "lineColor": "#D6DCCF",
+      "lineWidth": 2
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3y107axw",
+      "id": "13",
+      "name": "TextBox 13",
+      "bbox": [
+        632.23,
+        276.43,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "01",
+      "textPreview": "01",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "01"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "01",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "01",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cnu1kzyd",
+      "id": "14",
+      "name": "TextBox 14",
+      "bbox": [
+        678.15,
+        274.73,
+        513.33,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "公开 testbench 与 build script；明确接口、容差和 target",
+      "textPreview": "公开 testbench 与 build script；明确接口、容差和 target",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "公开 testbench 与 build script；明确接口、容差和 target"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "公开 testbench 与 build script；明确接口、容差和 target",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "公开 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "testbench ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "与 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 4,
+              "text": "build script；",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 5,
+              "text": "明确接口、容差和 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 6,
+              "text": "target",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/do3id4fy",
+      "id": "15",
+      "name": "TextBox 15",
+      "bbox": [
+        632.23,
+        308.43,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "02",
+      "textPreview": "02",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "02"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "02",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "02",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qlcjipgn",
+      "id": "16",
+      "name": "TextBox 16",
+      "bbox": [
+        678.15,
+        306.73,
+        494.67,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "提供有效 baseline / reference，支持候选的相对质量比较",
+      "textPreview": "提供有效 baseline / reference，支持候选的相对质量比较",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "提供有效 baseline / reference，支持候选的相对质量比较"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "提供有效 baseline / reference，支持候选的相对质量比较",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "提供有效 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "baseline / reference，",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "支持候选的相对质量比较",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/bml0buxs",
+      "id": "17",
+      "name": "TextBox 17",
+      "bbox": [
+        632.23,
+        342.43,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "03",
+      "textPreview": "03",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "03"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "03",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "03",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0ru1ozyp",
+      "id": "18",
+      "name": "TextBox 18",
+      "bbox": [
+        678.15,
+        340.73,
+        485.33,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "任务明确是否需要 CoSim，并使用固定任务清单与工具预算",
+      "textPreview": "任务明确是否需要 CoSim，并使用固定任务清单与工具预算",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "任务明确是否需要 CoSim，并使用固定任务清单与工具预算"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "任务明确是否需要 CoSim，并使用固定任务清单与工具预算",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "任务明确是否需要 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "CoSim，",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "并使用固定任务清单与工具预算",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/dcryxgzu",
+      "id": "77",
+      "name": "文本框 76",
+      "bbox": [
+        631.67,
+        98.13,
+        124.6,
+        48.33
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "局限性",
+      "textPreview": "局限性",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 4.8,
+          "right": 0,
+          "bottom": 4.8,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "局限性"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "局限性",
+          "runs": [
+            {
+              "index": 1,
+              "text": "局限性",
+              "fontSize": 32,
+              "typeface": "Arial",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/rutwv65w",
+      "id": "39",
+      "name": "文本框 38",
+      "bbox": [
+        49.67,
+        103.87,
+        129.27,
+        48.33
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "创新点",
+      "textPreview": "创新点",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 4.8,
+          "right": 0,
+          "bottom": 4.8,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "创新点"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "创新点",
+          "runs": [
+            {
+              "index": 1,
+              "text": "创新点",
+              "fontSize": 32,
+              "typeface": "Arial",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/mdsnatcn",
+      "id": "41",
+      "name": "TextBox 9",
+      "bbox": [
+        49.03,
+        153.82,
+        170.33,
+        19.34
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "KEY CONTRIBUTIONS",
+      "textPreview": "KEY CONTRIBUTIONS",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "KEY CONTRIBUTIONS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "KEY CONTRIBUTIONS",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "KEY CONTRIBUTIONS",
+              "fontSize": 16,
+              "typeface": "Arial",
+              "color": "#35562A",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/903ml8be",
+      "id": "42",
+      "name": "TextBox 10",
+      "bbox": [
+        48.55,
+        178.96,
+        476,
+        33.87
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "把“生成候选”变成“验证后晋升”，",
+      "textPreview": "把“生成候选”变成“验证后晋升”，",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "把“生成候选”变成“验证后晋升”，"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "把“生成候选”变成“验证后晋升”，",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "把“生成候选”变成“验证后晋升”",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": "，",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8zu5c3ut",
+      "id": "43",
+      "name": "TextBox 11",
+      "bbox": [
+        48.79,
+        221.06,
+        396,
+        26.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "让硬件证据而不是模型置信度控制迭代。",
+      "textPreview": "让硬件证据而不是模型置信度控制迭代。",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "让硬件证据而不是模型置信度控制迭代。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "让硬件证据而不是模型置信度控制迭代。",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "让硬件证据而不是模型置信度控制迭代。",
+              "fontSize": 22,
+              "typeface": "Arial",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/v2l4nitk",
+      "id": "44",
+      "name": "Line 12",
+      "bbox": [
+        49.67,
+        258.43,
+        438,
+        1
+      ],
+      "rotation": 0,
+      "geometry": "custom",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": ""
+          }
+        ]
+      },
+      "lineColor": "#D6DCCF",
+      "lineWidth": 2
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/u1cnedcz",
+      "id": "45",
+      "name": "TextBox 13",
+      "bbox": [
+        49.03,
+        281.83,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "01",
+      "textPreview": "01",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "01"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "01",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "01",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/h43mp8ba",
+      "id": "46",
+      "name": "TextBox 14",
+      "bbox": [
+        94.95,
+        280.13,
+        364,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "提出综合有效性能与最坏资源质量的QHW指标",
+      "textPreview": "提出综合有效性能与最坏资源质量的QHW指标",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "提出综合有效性能与最坏资源质量的QHW指标"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "提出综合有效性能与最坏资源质量的QHW指标",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "提出综合有效性能与最坏资源质量的",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "QHW",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "指标",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w3u5g3u5",
+      "id": "47",
+      "name": "TextBox 15",
+      "bbox": [
+        49.03,
+        314.5,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "02",
+      "textPreview": "02",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "02"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "02",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "02",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/j6l4ritg",
+      "id": "48",
+      "name": "TextBox 16",
+      "bbox": [
+        94.95,
+        312.8,
+        457.33,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "将QHW嵌入VCL，控制Optimize候选是否更新best-so-far",
+      "textPreview": "将QHW嵌入VCL，控制Optimize候选是否更新best-so-far",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "将QHW嵌入VCL，控制Optimize候选是否更新best-so-far"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "将QHW嵌入VCL，控制Optimize候选是否更新best-so-far",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "将",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "QHW",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "嵌入",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 4,
+              "text": "VCL，",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 5,
+              "text": "控制",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 6,
+              "text": "Optimize",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 7,
+              "text": "候选是否更新",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 8,
+              "text": "best-so-far",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/i5cnidcv",
+      "id": "49",
+      "name": "TextBox 17",
+      "bbox": [
+        49.03,
+        346.51,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "03",
+      "textPreview": "03",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "03"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "03",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "03",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0bel8na9",
+      "id": "50",
+      "name": "TextBox 18",
+      "bbox": [
+        94.95,
+        344.81,
+        429.33,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "复用工具诊断与实测退化证据，约束下一轮候选生成",
+      "textPreview": "复用工具诊断与实测退化证据，约束下一轮候选生成",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "复用工具诊断与实测退化证据，约束下一轮候选生成"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "复用工具诊断与实测退化证据，约束下一轮候选生成",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "复用工具诊断与实测退化证据，约束下一轮候选生成",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1wnm1sru",
+      "id": "51",
+      "name": "TextBox 19",
+      "bbox": [
+        49.03,
+        379.84,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "04",
+      "textPreview": "04",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "04"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "04",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "04",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e9w36ds3",
+      "id": "52",
+      "name": "TextBox 20",
+      "bbox": [
+        94.95,
+        378.14,
+        513.33,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "通过预算准入与verified fallback，避免不完整验证污染结果",
+      "textPreview": "通过预算准入与verified fallback，避免不完整验证污染结果",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "通过预算准入与verified fallback，避免不完整验证污染结果"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "通过预算准入与verified fallback，避免不完整验证污染结果",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "通过预算准入与",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "verified fallback，",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "避免不完整验证污染结果",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 27,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/r654vi9c",
+      "id": "57",
+      "name": "文本框 56",
+      "bbox": [
+        333.67,
+        423.13,
+        233.27,
+        48.33
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "下一步计划",
+      "textPreview": "下一步计划",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 4.8,
+          "right": 0,
+          "bottom": 4.8,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "下一步计划"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "下一步计划",
+          "runs": [
+            {
+              "index": 1,
+              "text": "下一步计划",
+              "fontSize": 32,
+              "typeface": "Arial",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 28,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/5432t8rm",
+      "id": "59",
+      "name": "TextBox 9",
+      "bbox": [
+        333.03,
+        473.09,
+        132.2,
+        19.33
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "NEXT ITERATION",
+      "textPreview": "NEXT ITERATION",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "NEXT ITERATION"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "NEXT ITERATION",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "NEXT ITERATION",
+              "fontSize": 16,
+              "typeface": "Arial",
+              "color": "#35562A",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 29,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/l0v2x4ja",
+      "id": "60",
+      "name": "TextBox 10",
+      "bbox": [
+        332.55,
+        498.22,
+        385.93,
+        33.87
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "先提高 Optimize 的质量上限，",
+      "textPreview": "先提高 Optimize 的质量上限，",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "先提高 Optimize 的质量上限，"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "先提高 Optimize 的质量上限，",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "先提高 ",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": "Optimize ",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "的质量上限，",
+              "fontSize": 28,
+              "typeface": "Arial",
+              "color": "dk1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 30,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/kzm14z2p",
+      "id": "61",
+      "name": "TextBox 11",
+      "bbox": [
+        332.79,
+        540.33,
+        374,
+        26.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "再扩展任务输入、工具链与器件边界。",
+      "textPreview": "再扩展任务输入、工具链与器件边界。",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "再扩展任务输入、工具链与器件边界。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "再扩展任务输入、工具链与器件边界。",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "再扩展任务输入、工具链与器件边界。",
+              "fontSize": 22,
+              "typeface": "Arial",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 31,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/jyd0vu14",
+      "id": "62",
+      "name": "Line 12",
+      "bbox": [
+        333.67,
+        577.7,
+        438,
+        1
+      ],
+      "rotation": 0,
+      "geometry": "custom",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": ""
+          }
+        ]
+      },
+      "lineColor": "#D6DCCF",
+      "lineWidth": 2
+    },
+    {
+      "order": 32,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/yx4j2pkj",
+      "id": "63",
+      "name": "TextBox 13",
+      "bbox": [
+        333.03,
+        601.1,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "01",
+      "textPreview": "01",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "01"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "01",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "01",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 33,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xwvitkje",
+      "id": "64",
+      "name": "TextBox 14",
+      "bbox": [
+        378.95,
+        599.4,
+        448,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "增强循环、访存、流水线与 Dataflow 的定向优化策略",
+      "textPreview": "增强循环、访存、流水线与 Dataflow 的定向优化策略",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "增强循环、访存、流水线与 Dataflow 的定向优化策略"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "增强循环、访存、流水线与 Dataflow 的定向优化策略",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "增强循环、访存、流水线与 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "Dataflow ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "的定向优化策略",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 34,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wvm10f2t",
+      "id": "65",
+      "name": "TextBox 15",
+      "bbox": [
+        333.03,
+        633.77,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "02",
+      "textPreview": "02",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "02"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "02",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "02",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 35,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/but0ra18",
+      "id": "66",
+      "name": "TextBox 16",
+      "bbox": [
+        378.95,
+        632.07,
+        364,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "扩展均衡、速度优先和面积优先的 QHW 配置",
+      "textPreview": "扩展均衡、速度优先和面积优先的 QHW 配置",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "扩展均衡、速度优先和面积优先的 QHW 配置"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "扩展均衡、速度优先和面积优先的 QHW 配置",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "扩展均衡、速度优先和面积优先的",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": " QHW ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "配置",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 36,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/atkjypkn",
+      "id": "67",
+      "name": "TextBox 17",
+      "bbox": [
+        333.03,
+        665.78,
+        20.87,
+        24.64
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "03",
+      "textPreview": "03",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "03"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "03",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "03",
+              "fontSize": 16,
+              "typeface": "Consolas",
+              "color": "accent1",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 37,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hsf25oji",
+      "id": "68",
+      "name": "TextBox 18",
+      "bbox": [
+        378.95,
+        664.08,
+        438.67,
+        22.6
+      ],
+      "rotation": 0,
+      "geometry": "rect",
+      "text": "增加工程输入与 testbench 的完整性诊断和辅助修复",
+      "textPreview": "增加工程输入与 testbench 的完整性诊断和辅助修复",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 1,
+        "fontSize": 24,
+        "typeface": "Arial",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "top",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "增加工程输入与 testbench 的完整性诊断和辅助修复"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "增加工程输入与 testbench 的完整性诊断和辅助修复",
+          "resolvedTextStyle": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "增加工程输入与 ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 2,
+              "text": "testbench ",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            },
+            {
+              "index": 3,
+              "text": "的完整性诊断和辅助修复",
+              "fontSize": 18.67,
+              "typeface": "仿宋",
+              "color": "dk1"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

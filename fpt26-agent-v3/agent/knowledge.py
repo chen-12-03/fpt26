@@ -579,13 +579,15 @@ def _entry_score(
     score = 0.0
     score += 3.0 * len(entry_tokens & _tokens(query.source_metadata))
     score += 2.0 * len(entry_tokens & _tokens(query.baseline_qor))
-    score += 4.0 * len(entry_tokens & _tokens(query.synth_diagnostics))
+    score += 6.0 * len(entry_tokens & _tokens(query.synth_diagnostics))
     score += 2.0 * len(entry_tokens & _tokens(query.resource_headroom))
-    score += 3.0 * len(entry_tokens & _tokens(list(query.history)))
+    score += 4.0 * len(entry_tokens & _tokens(list(query.history)))
     score += 1.0 * len(entry_tokens & _tokens(query.description))
 
     signals = _family_signals(query)
     score += 24.0 * signals.get(entry.family, 0.0)
+    # Boost the entry whose family matches the structured diagnosis cause.
+    score += _diagnosis_cause_boost(entry, query)
     score += _entry_specific_boost(entry, query, generalized=generalized)
     if entry.kind == "verified_case":
         score += 3.0
@@ -793,6 +795,69 @@ def _family_signals(query: KnowledgeQuery) -> dict[str, float]:
     ) and {"lane", "packed", "adjacent"} & combined:
         signals["array_reshape"] = 1.0
     return signals
+
+
+_DIAGNOSIS_CAUSE_TO_FAMILIES: dict[str, tuple[str, ...]] = {
+    "memory_port": ("array_partition", "array_reshape", "memory_banking"),
+    "carried_dependency": ("reduction",),
+    "shared_resource_conflict": ("memory_banking", "array_partition"),
+    "timing_critical_path": ("pipeline", "resource_binding"),
+    "serial_loop_latency": ("loop_unroll", "pipeline", "loop_fission", "loop_fusion"),
+    "pipeline_structure": ("loop_unroll", "loop_flatten", "loop_fission"),
+    "variable_trip_count": ("loop_fission",),
+    "dataflow_noncanonical": ("dataflow", "task_pipeline"),
+    "stream_depth_risk": ("stream_fifo", "dataflow"),
+    "rewind_dependency": ("loop_fusion", "interface"),
+    "rewind_synchronization": ("interface",),
+    "m_axi_widening_limit": ("interface",),
+    "m_axi_conditional_access": ("interface",),
+    "m_axi_alignment_limit": ("interface",),
+    "m_axi_width_mismatch": ("interface",),
+    "m_axi_bundle_write_conflict": ("interface",),
+}
+
+
+def _diagnosis_cause_boost(
+    entry: KnowledgeEntry,
+    query: KnowledgeQuery,
+) -> float:
+    """Boost knowledge entries whose family matches the structured diagnosis cause.
+
+    The structured diagnosis assigns a causal category (e.g. ``memory_port``,
+    ``carried_dependency``) to the bottleneck.  When the retrieved entry's
+    family maps to that cause the candidate is demonstrably more relevant.
+    """
+    diagnostics = query.synth_diagnostics
+    if not isinstance(diagnostics, dict):
+        return 0.0
+    structured = diagnostics.get("structured")
+    if not isinstance(structured, dict):
+        return 0.0
+    primary = structured.get("primary_finding")
+    findings = structured.get("findings")
+    if isinstance(primary, int) and isinstance(findings, list):
+        try:
+            primary_finding = findings[primary]
+        except (IndexError, TypeError):
+            primary_finding = {}
+    elif isinstance(findings, list) and findings:
+        primary_finding = findings[0]
+    else:
+        return 0.0
+    if not isinstance(primary_finding, dict):
+        return 0.0
+    cause = str(primary_finding.get("cause") or "").strip().lower()
+    if not cause:
+        return 0.0
+    confidence = str(primary_finding.get("confidence") or "").strip().lower()
+    matched_families = _DIAGNOSIS_CAUSE_TO_FAMILIES.get(cause, ())
+    if entry.family in matched_families:
+        if confidence == "confirmed":
+            return 30.0
+        if confidence == "probable":
+            return 18.0
+        return 9.0
+    return 0.0
 
 
 def _entry_specific_boost(

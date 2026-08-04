@@ -317,6 +317,42 @@ def _action_guard_feedback(
     }
 
 
+def _parameter_adjustment_hint(card: Any, action: dict[str, Any]) -> str:
+    """Suggest which parameter axis to adjust when a candidate fails by area.
+
+    The hint is evidence-driven: it only mentions axes that the rejected
+    action touched, so the LLM receives a concrete alternative instead of
+    a blanket prohibition.
+    """
+    parts: list[str] = []
+    for pragma in action.get("added_pragmas", []):
+        factor_match = re.search(r"\bfactor\s*=\s*(\d+)", pragma, re.IGNORECASE)
+        if factor_match and int(factor_match.group(1)) > 2:
+            parts.append(
+                f"Consider a smaller factor (current={factor_match.group(1)})."
+            )
+            break
+    if not parts:
+        for pragma in action.get("added_pragmas", []):
+            if re.search(r"\bcomplete\b", pragma, re.IGNORECASE):
+                parts.append(
+                    "A complete partition/reshape was tried; consider a "
+                    "partial (cyclic/block) variant with a smaller factor."
+                )
+                break
+    if not parts and action.get("source_changed"):
+        parts.append(
+            "The source-level rewrite increased resources. Consider a "
+            "pragmatic partial parallelization or a less aggressive unroll."
+        )
+    if not parts:
+        parts.append(
+            "The rejected action used parameters that exceeded the resource "
+            "budget. Try a more conservative setting."
+        )
+    return " ".join(parts) + " "
+
+
 def _rejection_feedback(
     card: Any,
     report: Any,
@@ -397,9 +433,14 @@ def _rejection_feedback(
             "aggregate capacity-normalized resource growth. Do not extrapolate "
             "this result to an entire family without another measurement."
         )
+        # Give the LLM a directional hint: when area exploded,
+        # try a smaller factor, a different dimension, or a different
+        # resource class rather than giving up on the family entirely.
+        factor_hint = _parameter_adjustment_hint(card, action)
         feedback["required_next_action"] = (
             "Do not repeat the exact rejected action signature. "
             f"{resource_hint} {clock_hint} "
+            f"{factor_hint}"
             "A changed parameter, target, or architecture must state a new "
             "report/source-supported hypothesis and be measured independently."
         ).strip()

@@ -1,0 +1,366 @@
+{
+  "schema": "ppt-reference-slide-map/v1",
+  "slide_count": 10,
+  "slides": [
+    {
+      "title": "面向 FPT Track A 的工具验证型 HLS 优化智能体",
+      "narrative_role": "opening",
+      "primary_takeaway": "介绍参赛方向、智能体定位与团队成员。",
+      "layout_type": "split-cover",
+      "visual_type": "campus-photo-cover",
+      "density": "low",
+      "reuse_priority": "medium",
+      "keywords": [
+        "封面",
+        "项目定位",
+        "团队",
+        "Track A",
+        "HLS"
+      ],
+      "quality_warnings": [
+        "英文副标题与中文主标题在源渲染中发生重叠，复用时应删除、移位或降低字号。"
+      ],
+      "slide": 1,
+      "render": "renders/slide-001.png",
+      "source_layout": "structure/layouts/source-slide-01.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/0",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "Track A 是带硬门控和预算约束的候选搜索",
+      "narrative_role": "problem-framing",
+      "primary_takeaway": "任务需要在接口、仿真、综合、频率、资源和工具预算约束下搜索候选。",
+      "layout_type": "questions-left-constraints-right",
+      "visual_type": "constraint-explainer",
+      "density": "high",
+      "reuse_priority": "medium",
+      "keywords": [
+        "任务定义",
+        "硬门控",
+        "预算",
+        "QHW",
+        "搜索空间"
+      ],
+      "quality_warnings": [
+        "左侧英文任务截图字号很小，仅适合留作证据，不适合承担主叙事。"
+      ],
+      "slide": 2,
+      "render": "renders/slide-002.png",
+      "source_layout": "structure/layouts/source-slide-02.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/1",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "QHW：更快不等于更优",
+      "narrative_role": "metric-and-evidence",
+      "primary_takeaway": "QHW 同时衡量性能改善和资源代价，避免选择资源爆炸的快速候选。",
+      "layout_type": "formula-left-comparison-table-right",
+      "visual_type": "formula-plus-candidate-comparison",
+      "density": "high",
+      "reuse_priority": "high",
+      "keywords": [
+        "QHW",
+        "PPA",
+        "性能",
+        "资源",
+        "候选比较",
+        "评分"
+      ],
+      "quality_warnings": [],
+      "slide": 3,
+      "render": "renders/slide-003.png",
+      "source_layout": "structure/layouts/source-slide-03.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/2",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "候选先证明有效，再证明优于当前最优",
+      "narrative_role": "decision-rule",
+      "primary_takeaway": "预算、有效性门控和 QHW 比较共同决定停止、保留或晋升。",
+      "layout_type": "decision-tree-with-side-summary",
+      "visual_type": "decision-tree",
+      "density": "medium",
+      "reuse_priority": "high-after-fix",
+      "keywords": [
+        "决策树",
+        "promote",
+        "retain",
+        "reject",
+        "verified fallback"
+      ],
+      "quality_warnings": [
+        "底部蓝色结论条文字在源渲染中发生换行并越界，末尾 b 落在画布外；复用前必须修复。"
+      ],
+      "slide": 4,
+      "render": "renders/slide-004.png",
+      "source_layout": "structure/layouts/source-slide-04.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/3",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "Verified-Candidate Loop（VCL）工作流",
+      "narrative_role": "solution-architecture",
+      "primary_takeaway": "智能体生成候选、完整验证、按角色晋升，并把失败证据反馈到下一轮。",
+      "layout_type": "full-width-workflow-with-bottom-takeaway",
+      "visual_type": "agent-workflow",
+      "density": "high",
+      "reuse_priority": "high",
+      "keywords": [
+        "VCL",
+        "工作流",
+        "多智能体",
+        "验证",
+        "失败反思",
+        "RAG"
+      ],
+      "quality_warnings": [],
+      "slide": 5,
+      "render": "renders/slide-005.png",
+      "source_layout": "structure/layouts/source-slide-05.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/4",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "测试集构成与评测模型选择",
+      "narrative_role": "evaluation-design",
+      "primary_takeaway": "150 个任务覆盖六类 HLS 能力，并用三种规模与架构不同的模型评估依赖程度。",
+      "layout_type": "task-table-left-model-facts-right",
+      "visual_type": "dataset-and-model-inventory",
+      "density": "high",
+      "reuse_priority": "medium",
+      "keywords": [
+        "测试集",
+        "150任务",
+        "六类能力",
+        "模型选择",
+        "评测设计"
+      ],
+      "quality_warnings": [
+        "右侧模型参数说明字号偏小，复用时建议精简而不是继续缩小。"
+      ],
+      "slide": 6,
+      "render": "renders/slide-006.png",
+      "source_layout": "structure/layouts/source-slide-06.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/5",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "类别差距主要集中在生成与结构修复",
+      "narrative_role": "result-comparison",
+      "primary_takeaway": "模型在编译、综合和 QoR 上接近，但代码生成和结构修复存在明显差距。",
+      "layout_type": "heatmap-matrix-with-three-callouts",
+      "visual_type": "categorical-heatmap",
+      "density": "medium",
+      "reuse_priority": "high",
+      "keywords": [
+        "成功率",
+        "热力图",
+        "类别对比",
+        "模型对比",
+        "结构修复"
+      ],
+      "quality_warnings": [],
+      "slide": 7,
+      "render": "renders/slide-007.png",
+      "source_layout": "structure/layouts/source-slide-07.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/6",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "完成率均超过 92%，但结构修复均分仅 40–45",
+      "narrative_role": "quality-analysis",
+      "primary_takeaway": "高完成率并不等于高优化质量，结构修复仍是共同短板。",
+      "layout_type": "overview-chart-plus-score-tables",
+      "visual_type": "completion-and-quality-dashboard",
+      "density": "very-high",
+      "reuse_priority": "high-after-fix",
+      "keywords": [
+        "完成率",
+        "质量评分",
+        "结构修复",
+        "均分",
+        "模型表现"
+      ],
+      "quality_warnings": [
+        "底部三个示例表格超出源页面画布并被裁切；复用时应拆页或删减。"
+      ],
+      "slide": 8,
+      "render": "renders/slide-008.png",
+      "source_layout": "structure/layouts/source-slide-08.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/7",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "创新点与局限性",
+      "narrative_role": "contribution-limitations-next-step",
+      "primary_takeaway": "贡献是用验证和 QHW 控制晋升；局限是对成熟工程输入、工具链和硬件平台依赖较强。",
+      "layout_type": "two-column-with-bottom-next-step",
+      "visual_type": "contributions-limitations",
+      "density": "medium",
+      "reuse_priority": "high",
+      "keywords": [
+        "创新点",
+        "局限性",
+        "下一步",
+        "工程输入",
+        "泛化"
+      ],
+      "quality_warnings": [],
+      "slide": 9,
+      "render": "renders/slide-009.png",
+      "source_layout": "structure/layouts/source-slide-09.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/8",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    },
+    {
+      "title": "感谢观看",
+      "narrative_role": "closing",
+      "primary_takeaway": "结束汇报并感谢听众。",
+      "layout_type": "split-closing",
+      "visual_type": "campus-photo-closing",
+      "density": "low",
+      "reuse_priority": "medium",
+      "keywords": [
+        "结束页",
+        "感谢",
+        "团队"
+      ],
+      "quality_warnings": [],
+      "slide": 10,
+      "render": "renders/slide-010.png",
+      "source_layout": "structure/layouts/source-slide-10.layout.json",
+      "script_record": "narrative/speaker-script.json#/slides/9",
+      "reuse_mode": "duplicate-source-slide-and-edit-inherited-elements",
+      "allowed_reuse": [
+        "layout",
+        "typography",
+        "spacing",
+        "visual_hierarchy",
+        "diagram_structure"
+      ],
+      "do_not_reuse_without_verification": [
+        "topic-specific-facts",
+        "metrics",
+        "external-asset-claims",
+        "source-quality-defects"
+      ]
+    }
+  ]
+}

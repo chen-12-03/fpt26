@@ -271,28 +271,107 @@ def build_prompt(
         else
         "Use the structured diagnosis as evidence, not as a fixed recipe: inspect the editable source, choose ONE allowed evidence-matched family, and revise the route after measured feedback. If the diagnosis is unknown or a precondition is unproven, keep the cause unknown and return the kernel unchanged. Improve scoring_v3 Q_HW by balancing effective latency (clock period × cycles) against total capacity-normalized resource pressure. Do not prefer UNROLL merely because a loop has PipelineII=1 unless the diagnosis also proves that loop dominates measured latency and the source proves independence/reduction legality. For a LOOP_UNROLL or PIPELINE trial, preserve non-pragma source and place exactly one selected directive as the first statement inside the diagnosed loop body. TASK_PIPELINE is one coherent family and is permitted only with source_architecture_evidence; it may use DATAFLOW plus the minimum stage-boundary and stage-local scheduling directives needed to realize those exact connected stages. For a SOURCE_RESTRUCTURE trial, add no optimization pragma. Use ARRAY_PARTITION/RESHAPE only when measured_action_contract or source_banking_evidence supports its exact target and dimension."
     )
+
+    # Build a prioritised situation summary so the LLM can quickly orient
+    # before reading the detailed rules.
+    situation_parts: list[str] = []
+    if rejection_feedback:
+        fb_status = str(rejection_feedback.get("status", ""))
+        if fb_status == "REJECTED_BY_SYNTH_EVIDENCE_INTENT":
+            situation_parts.append("PRIORITY: No candidate tool was run. The last pragma-only action contradicted a measured HLS bottleneck. Address the named array with matched banking or real code-locality before any other directive.")
+        elif fb_status == "REJECTED_BY_STRATEGY_CONTRACT":
+            situation_parts.append("PRIORITY: Stay in the assigned strategy lane. Correct only the specific contract violation listed in previous_candidate_feedback.")
+        elif fb_status == "REJECTED_BY_INTERFACE_GATE":
+            situation_parts.append("PRIORITY: Regenerate a complete, balanced C/C++ translation unit with the correct top function before any QoR change.")
+        elif fb_status.startswith("REJECTED_BY_CSIM"):
+            situation_parts.append("PRIORITY: Fix the CSim compile/runtime error using the exact evidence in previous_candidate_feedback before any new architecture.")
+        elif fb_status.startswith("REJECTED_BY_SYNTH"):
+            situation_parts.append("PRIORITY: Roll back the exact failed synthesis candidate. Use its diagnostic lines to choose a different legal construct; do not repeat the unsupported change.")
+        elif fb_status == "REJECTED_BY_SCORING_V3_Q_HW":
+            situation_parts.append("PRIORITY: The last measured candidate did not improve Q_HW. Do not repeat its exact action signature. A different factor/target/architecture is a new hypothesis only with fresh evidence support.")
+        elif fb_status.startswith("REJECTED_BY_"):
+            situation_parts.append("PRIORITY: The prior candidate was rejected. Address the specific feedback reason before exploring new architectures.")
+    if action_contract and isinstance(action_contract, dict):
+        if action_contract.get("actionable") is True:
+            families = action_contract.get("candidate_families", [])
+            target = action_contract.get("target", {})
+            target_desc = (
+                target.get("loop") or target.get("array") or ""
+            ) if isinstance(target, dict) else ""
+            if families and target_desc:
+                situation_parts.append(
+                    f"CONTRACT: Diagnosis supports {sorted(set(families))} "
+                    f"on target '{target_desc}'. Select exactly one."
+                )
+        elif action_contract.get("actionable") is False:
+            situation_parts.append(
+                "CONTRACT: Diagnosis found no actionable target. Return "
+                "the kernel unchanged unless source_banking_evidence proves "
+                "an exact target and dimension."
+            )
+    if source_banking_evidence:
+        arrays = sorted(
+            {str(item.get("array") or "") for item in source_banking_evidence if item.get("array")}
+        )
+        if arrays:
+            situation_parts.append(
+                f"EVIDENCE: Source-backed banking targets available for: {', '.join(arrays)}. "
+                "Use only the listed local arrays and exact proven dimensions."
+            )
+    if source_architecture_evidence:
+        kinds = sorted(
+            {str(item.get("kind") or "") for item in source_architecture_evidence}
+        )
+        if kinds:
+            situation_parts.append(
+                f"EVIDENCE: Source architecture opportunities: {', '.join(kinds)}. "
+                "Use only the named functions, stages, loops, and factors listed."
+            )
+    # When the primary bottleneck is resolved but the kernel has room for
+    # secondary improvement, encourage complementary optimization families
+    # that are often effective after the first architecture change.
+    if (not situation_parts
+            and action_contract
+            and isinstance(action_contract, dict)
+            and action_contract.get("actionable") is False):
+        # No actionable primary bottleneck — suggest inspecting the source
+        # directly for secondary opportunities (e.g. stage-local PIPELINE
+        # after DATAFLOW, ARRAY_PARTITION for local buffers).
+        situation_parts.append(
+            "The primary bottleneck has been addressed. Inspect the editable "
+            "source for complementary optimizations: stage-local PIPELINE or "
+            "UNROLL within parallel regions, ARRAY_PARTITION for local arrays "
+            "with concurrent access, or stream depth tuning. Propose exactly "
+            "one measured candidate."
+        )
+    situation = (
+        " | ".join(situation_parts)
+        if situation_parts
+        else "Propose ONE evidence-matched optimization candidate. "
+        "Prefer the structured bottleneck diagnosis as primary evidence."
+    )
+
     payload["instruction"] = (
-        "Read tool_results carefully. Determine the situation from results alone:\n"
+        f"SITUATION: {situation}\n\n"
+        "Detailed rules (in priority order):\n"
         "- If csim FAILED: fix the functional bug. Do NOT add pragmas.\n"
         "- If cosim DEADLOCKS/TIMEOUT: fix streaming imbalance (interleave writes, add stream depths).\n"
         f"- If all PASSED: {optimization_instruction}\n"
         "- If previous_candidate_feedback.status starts with REJECTED_BY_CSIM: use its exact compiler/runtime evidence "
-        "and failed_candidate_diff. Apply required_next_action before considering any new architecture; never blindly "
-        "repeat the failed source.\n"
+        "and failed_candidate_diff. Apply required_next_action before considering any new architecture.\n"
         "- If previous_candidate_feedback.status starts with REJECTED_BY_SYNTH: use its exact diagnostic lines, "
         "candidate_action_diff_summary, implicated pragmas/loops/arrays, and repetition_count. Roll back the unsupported "
-        "change, obey recommended_next_constraint, and do not repeat the exact failed candidate.\n"
-        "- If previous_candidate_feedback.status is REJECTED_BY_SYNTH_EVIDENCE_INTENT: no candidate tool was run because the pragma-only action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
-        "- If previous_candidate_feedback.status is REJECTED_BY_STRATEGY_CONTRACT: no candidate tool was run. Stay in the same search_strategy and correct the exact contract violation; do not switch to another lane or repeat the rejected architecture.\n"
-        "- If previous_candidate_feedback.status is REJECTED_BY_INTERFACE_GATE: no candidate tool was run. Obey required_next_action exactly: regenerate a complete C/C++ translation unit, preserve required includes and the exact top function signature, include the top_function token, and balance all braces/parentheses before making any QoR change.\n"
-        "- If anti_repeat_contract is present: it is a pre-synthesis hard gate and has higher priority than optimization_patterns/RAG. Do not repeat an exact rejected action signature or byte-equivalent candidate. A different factor, target, or architecture is a new hypothesis only when current report/source evidence justifies it; measure it independently.\n"
-        "- If measured_action_contract is present: treat it as a hard planning boundary. If actionable=false, return editable_kernel unchanged unless separate deterministic source_banking_evidence proves an exact target and dimension. If actionable=true, inspect required_preconditions and select at most one candidate_families/candidate_schemes entry; never invent a missing target or precondition. For measured_memory_port_ii, obey required_candidate_delta, forbidden_as_non_responsive, dimension policy, and verification.\n"
-        "- If source_banking_evidence is present: it is deterministic editable-source evidence, not a generic RAG suggestion. A banking candidate must use only listed local arrays and the exact listed dimension. Select partition type/factor from banking_option_space and require the affine banking_model to produce more than one distinct bank within factor_limit; reshape additionally requires reshape_eligible. Do not bank an unlisted or top-level array.\n"
-        "- If source_architecture_evidence is present: it is deterministic editable-source evidence, not a task-name recipe. For source_connected_task_pipeline, use only the named top function, stages, and connectors; DATAFLOW plus stage-boundary INLINE OFF and stage-local PIPELINE/LATENCY count as one TASK_PIPELINE family. For source_affine_reduction_parallelism, use only the named loop, accumulator, input arrays, and one listed factor candidate; the required source tiling/lane rewrite plus consistent banking and pipeline directives count as one REDUCTION_PARALLELISM family. Preserve numeric semantics and the top interface. Never use either composite family when its matching evidence kind is absent.\n"
-        "- For other previous_candidate_feedback: the prior candidate was measured and rejected by scoring. "
-        "Do NOT repeat its exact action signature or byte-equivalent source. Obey directional_constraint and required_next_action. A different factor, target, or architecture must be justified as a new hypothesis by current report/source evidence and measured independently; otherwise return editable_kernel unchanged.\n"
-        "Return the FULL kernel source code. Keep the top function signature and "
-        "language linkage (including any extern \"C\") UNCHANGED."
+        "change and obey recommended_next_constraint.\n"
+        "- REJECTED_BY_SYNTH_EVIDENCE_INTENT: the action contradicted a measured HLS bottleneck. Address its exact array/resource evidence with matched banking or real locality code; do not repeat standalone PIPELINE/UNROLL.\n"
+        "- REJECTED_BY_STRATEGY_CONTRACT: stay in the same search_strategy and correct the exact contract violation.\n"
+        "- REJECTED_BY_INTERFACE_GATE: regenerate a complete C/C++ translation unit with the required top function, includes, and balanced delimiters.\n"
+        "- anti_repeat_contract present: do not repeat an exact rejected action signature. A changed factor/target/architecture is a new hypothesis only with current report/source justification.\n"
+        "- measured_action_contract present: if actionable=false, return unchanged (unless source_banking_evidence proves a target). If actionable=true, select at most one candidate_families entry; never invent a missing target or precondition.\n"
+        "- source_banking_evidence present: use only listed local arrays, exact proven dimensions, and banking_option_space. Do not bank unlisted or top-level arrays.\n"
+        "- source_architecture_evidence present: use only the named top function, stages, connectors, and listed factor candidates. Never use a composite family when its matching evidence kind is absent.\n"
+        "- Other previous_candidate_feedback: obey directional_constraint and required_next_action. A new hypothesis must be justified by current evidence and measured independently.\n"
+        "\nReturn the FULL kernel source code inside a ```cpp fence. Keep the top function "
+        "signature and language linkage (including any extern \"C\") UNCHANGED."
     )
     return json.dumps(payload, indent=2, ensure_ascii=False)
 

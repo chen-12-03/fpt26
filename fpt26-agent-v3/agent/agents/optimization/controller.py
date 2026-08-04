@@ -123,6 +123,34 @@ def run_optimization_loop(
     strategy_contract_rejections = 0
     strategy_contract_rejection_reasons: list[str] = []
     optimization_failures: list[OptimizationFailure] = []
+    # Seed with prior-lane synthesis failures when running inside a
+    # competition stage, so later lanes avoid repeating unsupported constructs.
+    prior_lane_failures = state.metadata.get("prior_lane_optimization_failures")
+    if isinstance(prior_lane_failures, list):
+        for entry in prior_lane_failures:
+            if isinstance(entry, dict):
+                try:
+                    optimization_failures = merge_optimization_failure(
+                        optimization_failures,
+                        OptimizationFailure(
+                            stage=str(entry.get("stage", "synth")),
+                            phase=str(entry.get("phase", "unknown")),
+                            failure_category=str(entry.get("failure_category", "unknown")),
+                            error_summary=str(entry.get("error_summary") or ""),
+                            key_diagnostic_lines=list(entry.get("key_diagnostic_lines", [])),
+                            candidate_fingerprint=str(entry.get("candidate_fingerprint", "")),
+                            candidate_action_diff_summary=str(entry.get("candidate_action_diff_summary", "")),
+                            implicated={
+                                str(k): list(v)
+                                for k, v in (entry.get("implicated") or {}).items()
+                            },
+                            recommended_next_constraint=str(entry.get("recommended_next_constraint", "")),
+                            repetition_count=int(entry.get("repetition_count", 1)),
+                        ),
+                        max_entries=5,
+                    )
+                except Exception:
+                    pass
     knowledge_retrievals: list[dict[str, Any]] = []
     source_banking_evidence_history: list[dict[str, Any]] = []
     source_architecture_evidence_history: list[dict[str, Any]] = []
@@ -188,7 +216,14 @@ def run_optimization_loop(
         if cr.ok and cr.report:
             resource_history.append(cr.report.resources)
             if anchor_report is None:
-                anchor_report = cr.report
+                # Allow callers to pin the anchor explicitly (e.g. the
+                # post-competition refinement phase must anchor against the
+                # starter, not the winner's reused synth report).
+                pinned_anchor = state.metadata.get("baseline_anchor_report")
+                if pinned_anchor is not None and hasattr(pinned_anchor, "resources"):
+                    anchor_report = pinned_anchor
+                else:
+                    anchor_report = cr.report
             current_card = score_candidate(task, anchor_report, cr.report,
                                            scoring_profile, cosim_latency=best_cosim_latency)
             if best_q_hw is None:
@@ -670,6 +705,7 @@ def run_optimization_loop(
             best_q_hw = cand_card.q_hw
             rejection_feedback = None
             best_synth_result = sr
+            state.best_synth_result = sr
             if task.requires_cosim:
                 best_cosim_latency = getattr(getattr(cosim_result, "cosim", None), "latency_max", None)
             if sr.report:

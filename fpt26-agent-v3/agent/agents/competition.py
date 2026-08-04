@@ -155,12 +155,13 @@ class CompetitionStage:
 
 
 class DiverseOptimizationStage:
-    """Measure independent strategy lanes and select the highest-Q_HW result.
+    """Measure independent strategy lanes, refine the winner, and fall back when needed.
 
     Lanes share only the immutable baseline and a semantic candidate fingerprint
-    set.  They run sequentially to avoid Vitis license contention.  No lane can
-    become another lane's starting point, so an early local improvement cannot
-    collapse the remaining search onto the same architecture.
+    set.  They run sequentially to avoid Vitis license contention.  After
+    selecting the highest-Q_HW lane, a brief unconstrained refinement phase
+    polishes the winning kernel.  When no lane improves the baseline, an
+    unconstrained fallback pass ensures the search is not prematurely abandoned.
     """
 
     def __init__(
@@ -177,12 +178,22 @@ class DiverseOptimizationStage:
     def run(self, state: RunState) -> RunState:
         from agent.agents.optimize import OptimizeAgent, _candidate_fingerprint
 
+        def _newest_synth_report(results: list[Any]) -> Any | None:
+            """Return the report from the newest successful synthesis result."""
+            for result in reversed(results):
+                if (getattr(result, "kind", None) == "synth"
+                        and getattr(result, "ok", False)
+                        and getattr(result, "report", None) is not None):
+                    return result.report
+            return None
+
         strategies = DIVERSE_OPTIMIZATION_STRATEGIES[: self.max_candidates]
         baseline_kernel = state.kernel
         baseline_fingerprint = _candidate_fingerprint(baseline_kernel)
         baseline_results = list(state.results)
         baseline_result_count = len(baseline_results)
         shared_fingerprints: set[str] = set()
+        accumulated_failures: list[dict[str, Any]] = []
         children: list[RunState] = []
         strategy_results: list[dict[str, Any]] = []
 
@@ -206,9 +217,15 @@ class DiverseOptimizationStage:
                 safe_fallback_kernel=state.safe_fallback_kernel,
                 metadata={},
             )
+            # Seed each child with prior-lane synthesis failures so later
+            # lanes avoid repeating the same unsupported constructs.
+            if accumulated_failures:
+                child.metadata["prior_lane_optimization_failures"] = list(
+                    accumulated_failures
+                )
             agent = OptimizeAgent(
                 self.llm,
-                max_rounds=2,
+                max_rounds=4,
                 scoring_profile=self.scoring_profile,
                 search_strategy=strategy,
                 shared_candidate_fingerprints=shared_fingerprints,
@@ -220,6 +237,10 @@ class DiverseOptimizationStage:
             new_results = child.results[baseline_result_count:]
             state.results.extend(new_results)
             children.append(child)
+
+            lane_failures = child.metadata.get("optimization_failures", [])
+            if lane_failures:
+                accumulated_failures.extend(lane_failures)
 
             changed = (
                 _candidate_fingerprint(child.kernel) != baseline_fingerprint
@@ -267,6 +288,114 @@ class DiverseOptimizationStage:
         winner_index = max(range(len(children)), key=_quality)
         winner = children[winner_index]
         strategy_results[winner_index]["selected"] = True
+        any_lane_improved = any(
+            _candidate_fingerprint(child.kernel) != baseline_fingerprint
+            for child in children
+        )
+
+        # ── Post-competition refinement ────────────────────────────────
+        # When a lane found an improvement, polish it with 2–3
+        # unconstrained rounds.  Otherwise run a fallback pass from the
+        # baseline so the search is not abandoned when no strategy matched.
+        refinement_starter = (
+            winner.kernel if any_lane_improved else baseline_kernel
+        )
+        refinement_phase = (
+            "post_competition_refinement"
+            if any_lane_improved
+            else "post_competition_fallback"
+        )
+        state.log(
+            f"strategy competition: {refinement_phase} "
+            f"(any_improvement={any_lane_improved})"
+        )
+        refinement_kernel_before = _candidate_fingerprint(refinement_starter)
+        # Build refinement results: baseline results (for anchor) + winner's
+        # best synth result (so the prompt shows the actual current synthesis).
+        refinement_results = list(baseline_results)
+        winner_best = (
+            winner.best_synth_result
+            if any_lane_improved
+            else state.best_synth_result
+        )
+        if winner_best is not None and getattr(winner_best, "report", None) is not None:
+            refinement_results.append(winner_best)
+        # Extract the baseline anchor report from baseline results so the
+        # controller can pin scoring against the starter regardless of which
+        # synth result is reused for the prompt.
+        baseline_anchor = _newest_synth_report(baseline_results)
+        refine_child = RunState(
+            task=state.task,
+            server=state.server,
+            llm=state.llm,
+            config=state.config,
+            kernel=refinement_starter,
+            results=refinement_results,
+            csim_ok=state.csim_ok,
+            synth_ok=state.synth_ok,
+            cosim_ok=state.cosim_ok,
+            interface_ok=state.interface_ok,
+            frequency_ok=state.frequency_ok,
+            resource_ok=state.resource_ok,
+            best_latency=(
+                winner.best_latency
+                if any_lane_improved
+                else state.best_latency
+            ),
+            best_synth_result=winner_best,
+            last_verified_kernel=state.last_verified_kernel,
+            safe_fallback_kernel=state.safe_fallback_kernel,
+            metadata={},
+        )
+        if baseline_anchor is not None:
+            refine_child.metadata["baseline_anchor_report"] = baseline_anchor
+        if accumulated_failures:
+            refine_child.metadata["prior_lane_optimization_failures"] = list(
+                accumulated_failures
+            )
+        refine_agent = OptimizeAgent(
+            self.llm,
+            max_rounds=4,
+            scoring_profile=self.scoring_profile,
+            search_strategy=None,  # unconstrained
+            shared_candidate_fingerprints=None,
+            stop_after_first_measured=False,
+            early_stop_on_qhw_improvement=False,
+            generalized_qor_rag=True,
+        )
+        refine_child = refine_agent.run(refine_child)
+        refine_initial_count = len(refinement_results)
+        refine_results = refine_child.results[refine_initial_count:]
+        state.results.extend(refine_results)
+        refinement_changed = (
+            _candidate_fingerprint(refine_child.kernel)
+            != refinement_kernel_before
+        )
+        refinement_q_hw = refine_child.metadata.get("best_q_hw")
+        refinement_improved = (
+            refinement_changed
+            and refinement_q_hw is not None
+            and (
+                winner.metadata.get("best_q_hw") is None
+                or refinement_q_hw > winner.metadata.get("best_q_hw", -1.0)
+            )
+        )
+        state.log(
+            f"refinement: changed={refinement_changed} "
+            f"Q_HW={refinement_q_hw} improved={refinement_improved}"
+        )
+        if refinement_improved or (
+            not any_lane_improved and refinement_changed
+        ):
+            winner = refine_child
+            strategy_results.append({
+                "strategy": refinement_phase,
+                "changed": refinement_changed,
+                "improved_baseline": refinement_changed,
+                "best_q_hw": refinement_q_hw,
+                "best_latency": refine_child.best_latency,
+                "selected": True,
+            })
 
         combined_candidates: list[dict[str, Any]] = []
         for index, child in enumerate(children):
@@ -281,10 +410,24 @@ class DiverseOptimizationStage:
                 if combined.get("decision") == "ACCEPTED":
                     combined["decision"] = (
                         "SELECTED"
-                        if index == winner_index
+                        if (
+                            index == winner_index
+                            and not refinement_improved
+                        )
                         else "VALID_NOT_SELECTED"
                     )
                 combined_candidates.append(combined)
+        # Append refinement-phase candidates
+        for entry in refine_child.metadata.get("synth_candidates", []):
+            if entry.get("is_baseline") or entry.get("round") == 0:
+                continue
+            combined = dict(entry)
+            combined["strategy"] = refinement_phase
+            if combined.get("decision") == "ACCEPTED":
+                combined["decision"] = (
+                    "SELECTED" if refinement_improved else "VALID_NOT_SELECTED"
+                )
+            combined_candidates.append(combined)
 
         state.kernel = winner.kernel
         state.best_latency = winner.best_latency
@@ -313,7 +456,7 @@ class DiverseOptimizationStage:
         state.metadata["best_q_hw"] = winner.metadata.get("best_q_hw")
         state.metadata["synth_candidates"] = combined_candidates
         state.metadata["optimization_search"] = {
-            "kind": "independent_strategy_competition",
+            "kind": "independent_strategy_competition_with_refinement",
             "selector": "highest_measured_q_hw",
             "scoring_profile": self.scoring_profile,
             "sequential_vitis": True,
@@ -324,7 +467,18 @@ class DiverseOptimizationStage:
                 "cannot influence formal strategy selection"
             ),
             "strategies": strategy_results,
-            "winner": strategies[winner_index]["name"],
+            "winner": (
+                refinement_phase
+                if refinement_improved
+                else strategies[winner_index]["name"]
+            ),
+            "refinement": {
+                "phase": refinement_phase,
+                "changed": refinement_changed,
+                "q_hw": refinement_q_hw,
+                "improved_over_winner": refinement_improved,
+                "any_lane_improved": any_lane_improved,
+            },
         }
         state.metadata["semantic_duplicate_skips"] = sum(
             child.metadata.get("semantic_duplicate_skips", 0)
@@ -343,7 +497,8 @@ class DiverseOptimizationStage:
             for child in children
         )
         state.log(
-            f"strategy competition selected {strategies[winner_index]['name']} "
-            f"with Q_HW={state.metadata['best_q_hw']}"
+            f"strategy competition final: "
+            f"Q_HW={state.metadata['best_q_hw']} "
+            f"winner={state.metadata['optimization_search']['winner']}"
         )
         return state
