@@ -1,17 +1,16 @@
 \section{任务完成超过评分覆盖}
 \label{sec:evaluation}
 
-\textbf{实验协议。} 三个云端端点在同一个智能体修订版下处理相同的
-\CorpusTaskCount{} 个均衡任务套件。每个完成输出必须通过 \CSim、\Synth、
-100\,MHz、U55C 容量以及 Track-A 契约~\cite{fpt26tracka} 下所有适用的
-\CoSim{} 门。模型覆盖三种架构—规模体制：DeepSeek V4 Pro（1.6\,T MoE，
-49\,B 激活）、Qwen3.5-122B-A10B（122\,B MoE，10\,B 激活）和 Qwen3.6-27B
-（27\,B 稠密）。
+\textbf{实验协议。} 三个云端端点在同一个智能体修订版和 Track-A
+契约~\cite{fpt26tracka} 下处理相同的 \CorpusTaskCount{} 个均衡任务套件。
+模型覆盖三种架构—规模体制：DeepSeek V4 Pro（1.6\,T MoE，49\,B 激活）、
+Qwen3.5-122B-A10B（122\,B MoE，10\,B 激活）和 Qwen3.6-27B（27\,B 稠密）。
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{最小的稠密模型领先。} QoR 分数估计为
-  $100\,Q_{\mathrm{HW}}\,E$；DeepSeek 未返回可测量的 $Q_{\mathrm{HW}}$ 提升。}
+  \caption{\textbf{最小的稠密模型领先。} 分数估计为
+  $100\,Q_{\mathrm{HW}}\,E$。DeepSeek 优化任务平均分低于 73.2 基线；
+  详见附录~\ref{app:results}。}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
@@ -24,28 +23,28 @@
   \end{tabular}}
 \end{table}
 
-\textbf{结果。} 表~\ref{tab:headline-results} 总结了三次实验。
-Qwen3.6-27B 取得了 \QwenThreeSixSuccessRate{} 的完成率
-（\QwenThreeSixSuccessCount{}/\CorpusTaskCount{} 个任务，
-\QwenThreeSixFailureCount{} 次失败），包括在最具挑战性的结构 \CoSim{} 修复
-类别中取得 25/25 满分。尽管是最小的模型，它在完成率和优化质量上均超越了
-两个更大的 MoE 模型。Qwen3.5-122B-A10B 在令牌效率上最优
-（\QwenThreeFiveTokensM{}M 令牌），而 DeepSeek V4 Pro 消耗了
-\DeepSeekTokensM{}M 令牌（是 Qwen3.6 的 3.1$\times$），却未产生可测量的
-QoR 提升。
+\textbf{结果。} 表~\ref{tab:headline-results} 和逐类别分解（附录
+~\ref{app:results}）揭示三种模式。
 
-逐类别分解（附录~\ref{app:results}）揭示四种模式。
-（1）仅显式 QoR 优化任务产生了超越基线的分数；全部五个修复/生成类别均聚集在
+（1）\textbf{仅显式优化提升质量。} 全部五个修复/生成类别均聚集在基线
 $Q_{\mathrm{HW}}{\approx}0.7576$（$S{\approx}73.7$，$E{=}0.973$）附近。
 智能体通过了验证门，但未在修复任务上执行架构级优化。
-（2）Qwen3.6-27B 在优化质量上占优（平均 $Q_{\mathrm{HW}}{=}0.812$，60\%
-的优化任务 $>$76，52\% $>$80），而 Qwen3.5 平均为 $Q_{\mathrm{HW}}{=}0.775$
-（28\% $>$76）。
-（3）对 HLS 修复任务而言，模型架构似乎比参数量更具预测力：27\,B 稠密模型
-在结构修复上超越了 122\,B 和 1.6\,T 两个 MoE 模型（100\% vs.\ 80\% 和
-92\%）。
 
-\takeaway{Qwen3.6-27B 在完成率（\QwenThreeSixSuccessRate）和优化质量
-（QoR 任务平均 \QwenThreeSixQorScore{} 分）上均领先，表明对 HLS 修复而言
-架构比参数量更重要。仅显式优化任务受益于 LLM 驱动的 QoR 提升；修复任务
-达到了正确性但未获得质量收益。}
+（2）\textbf{架构优于参数量。} 27\,B 稠密的 Qwen3.6-27B 取得了
+\QwenThreeSixSuccessRate{} 的完成率（\QwenThreeSixSuccessCount{}/
+\CorpusTaskCount{} 个任务），包括结构 \CoSim{} 修复的 25/25 满分，并在优化
+质量上领先（平均 $Q_{\mathrm{HW}}{=}0.812$，60\% 的优化任务 $>$76）。
+Qwen3.5-122B-A10B 平均为 $Q_{\mathrm{HW}}{=}0.775$（28\% $>$76），但在结构
+修复上落后（80\% vs.\ 100\%）。DeepSeek V4 Pro 完成了 \DeepSeekSuccessCount{}
+个任务，消耗 \DeepSeekTokensM{}M 令牌（是 Qwen3.6 的 3.1$\times$），但在
+25 个优化任务上平均仅得 \DeepSeekQorScore{} 分——低于 73.2 基线，远不及
+Qwen3.6 的 \QwenThreeSixQorScore{} 分。其候选方案频繁以面积换延迟（例如某
+任务 LUT +577\% 仅换取 30\% 延迟降低），在 55/45 的性能/面积权重下
+$h{\approx}1$，无净 $Q_{\mathrm{HW}}$ 收益。
+
+（3）\textbf{结构 \CoSim{} 类别是最强的模型区分器。} 最佳（100\%）与最差
+（80\%）结构修复率之间的差距超过任何其他类别。CoSim 死锁修复需要协调的接口
+变更，稠密架构在此任务上似乎优于 MoE，与第~\ref{sec:vcl}~节的失败分类一致。
+
+\takeaway{Qwen3.6-27B 在完成率和优化质量上均领先；对 HLS 修复而言架构比参数
+量更重要。仅显式优化任务受益于 LLM 驱动的 QoR 提升。}

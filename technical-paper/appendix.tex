@@ -89,7 +89,9 @@ Scores are $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}).
 
 \begin{table}[H]
   \caption{\textbf{Per-category completion by endpoint.}
-  Each category: 25 tasks. QoR mean: optimization tasks only.}
+  Each category: 25 tasks. QoR mean: optimization tasks only.
+  DeepSeek's score is below the 73.2 baseline; its candidates trade
+  latency for area (e.g., LUT +577\% to save 30\% latency on one task).}
   \label{tab:category-success}
   \centering
   \footnotesize
@@ -105,7 +107,7 @@ Scores are $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}).
     Structural repair & 23/25 (92\%) & 20/25 (80\%) & 25/25 (100\%) \\
     QoR optimization & 25/25 (100\%) & 25/25 (100\%) & 25/25 (100\%) \\
     \midrule
-    QoR mean (opt.) & --- & 75.4 & 79.0 \\
+    QoR mean (opt.) & 56.1 & 75.4 & 79.0 \\
     \bottomrule
   \end{tabular}}
 \end{table}

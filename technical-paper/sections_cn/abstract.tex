@@ -9,6 +9,6 @@ Qwen3.6-27B——最小的模型（27\,B 稠密）——取得了最高的完成
 个任务）和最优的估计优化分数（QoR 任务平均 \QwenThreeSixQorScore{} 分）。
 Qwen3.5-122B-A10B（\QwenThreeFiveSuccessCount{} 个完成）在令牌效率上最优。
 DeepSeek V4 Pro（\DeepSeekSuccessCount{} 个完成）消耗了 \DeepSeekTokensM{}M
-令牌，但未产生可测量的 QoR 提升。仅显式优化任务超越了基线
+令牌，但优化任务平均仅得 \DeepSeekQorScore{} 分，低于 73.2 的基线。仅显式优化任务超越了基线
 $Q_{\mathrm{HW}}$；修复任务达到了正确性但未获得质量收益。对 HLS 修复任务
 而言，模型架构似乎比参数量更重要。

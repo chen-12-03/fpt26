@@ -1,17 +1,17 @@
 \section{Limits and Next Steps}
 
 The \VCL{} makes validation evidence and $Q_{\mathrm{HW}}$ the promotion
-authority. The capacity-normalized resource footprint replaces worst-single-growth
-with a continuous aggregate ratio, and $D$/$F$ evidence factors reward source
-change and validity repair. Qwen3.6-27B, the smallest model tested, leads both
-completion (\QwenThreeSixSuccessRate) and optimization quality
-(\QwenThreeSixQorScore{} average on QoR tasks). Only explicit QoR optimization
-tasks improve beyond the $Q_{\mathrm{HW}}{\approx}0.7576$ baseline.
+authority. The capacity-normalized resource footprint replaces
+worst-single-growth with a continuous aggregate ratio. Qwen3.6-27B leads
+both completion (\QwenThreeSixSuccessRate) and optimization quality
+(\QwenThreeSixQorScore{} average on QoR tasks); DeepSeek V4 Pro, despite
+3.1$\times$ more tokens, averages only \DeepSeekQorScore{}---below the
+73.2 baseline. Only explicit QoR optimization tasks improve beyond
+$Q_{\mathrm{HW}}{\approx}0.7576$.
 
 The agent depends on mature testbench inputs, a fixed toolchain
 (Vitis~2025.2), and a single FPGA platform (Alveo~U55C). Matched ablations
-are required to isolate causal mechanisms: full agent, no QoR-RAG, no
-measured-failure retrieval, and no Failure Reflection. Each variant must report
-campaign identifier, success, repeated failures, mean $Q_{\mathrm{HW}}$, tokens,
-calls, credits, and wall time. Broader corpora and cross-platform transfer
-remain for future work.
+must isolate causal mechanisms: full agent, no QoR-RAG, no
+measured-failure retrieval, and no Failure Reflection---each reporting
+success, mean $Q_{\mathrm{HW}}$, tokens, calls, credits, and wall time.
+Broader corpora and cross-platform transfer remain for future work.

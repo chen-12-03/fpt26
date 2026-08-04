@@ -2,18 +2,16 @@
 \label{sec:evaluation}
 
 \textbf{Protocol.} Three hosted endpoints process the same balanced
-\CorpusTaskCount{}-task suite under one agent revision. Each completed
-output must pass \CSim, \Synth, 100\,MHz, U55C capacity, and applicable
-\CoSim{} under the Track-A contract~\cite{fpt26tracka}. The models span
-three architecture--scale regimes: DeepSeek V4 Pro (1.6\,T MoE, 49\,B
-active), Qwen3.5-122B-A10B (122\,B MoE, 10\,B active), and Qwen3.6-27B
-(27\,B dense).
+\CorpusTaskCount{}-task suite under one agent revision under the Track-A
+contract~\cite{fpt26tracka}. The models span three architecture--scale
+regimes: DeepSeek V4 Pro (1.6\,T MoE, 49\,B active), Qwen3.5-122B-A10B
+(122\,B MoE, 10\,B active), and Qwen3.6-27B (27\,B dense).
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{The smallest dense model leads.} QoR scores are
-  estimated as $100\,Q_{\mathrm{HW}}\,E$; DeepSeek returned no measurable
-  $Q_{\mathrm{HW}}$ improvement.}
+  \caption{\textbf{The smallest dense model leads.} Scores estimated as
+  $100\,Q_{\mathrm{HW}}\,E$. DeepSeek averages below the 73.2 baseline on
+  optimization tasks; see Appendix~\ref{app:results} for per-task detail.}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
@@ -27,34 +25,33 @@ active), Qwen3.5-122B-A10B (122\,B MoE, 10\,B active), and Qwen3.6-27B
   \end{tabular}}
 \end{table}
 
-\textbf{Results.} Table~\ref{tab:headline-results} summarises the three
-campaigns. Qwen3.6-27B achieves \QwenThreeSixSuccessRate{} completion
-(\QwenThreeSixSuccessCount{}/\CorpusTaskCount{} tasks,
-\QwenThreeSixFailureCount{} failures), including 25/25 in the challenging
-structural \CoSim{} repair category. Despite being the smallest model, it
-outperforms both larger MoE models on completion and optimization quality.
-Qwen3.5-122B-A10B is the most token-efficient
-(\QwenThreeFiveTokensM{}M tokens), while DeepSeek V4 Pro consumes
-\DeepSeekTokensM{}M tokens (3.1$\times$ more than Qwen3.6) with no
-measurable QoR improvement.
+\textbf{Results.} Table~\ref{tab:headline-results} and the per-category
+breakdown (Appendix~\ref{app:results}) yield three patterns.
 
-Per-category breakdown (Appendix~\ref{app:results}) reveals four patterns.
-(1)~Only explicit QoR optimization tasks yield scores above baseline; all
-five repair/generation categories cluster at
+(1)~\textbf{Only explicit optimization improves quality.} All five
+repair/generation categories cluster at the baseline
 $Q_{\mathrm{HW}}{\approx}0.7576$ ($S{\approx}73.7$ with $E{=}0.973$).
 The agent passes validation gates but performs no architecture-level
 optimization on repair tasks.
-(2)~Qwen3.6-27B dominates on optimization quality
-(avg.\ $Q_{\mathrm{HW}}{=}0.812$, 60\% of optimization tasks $>$76, 52\%
-$>$80), while Qwen3.5 achieves avg.\ $Q_{\mathrm{HW}}{=}0.775$
-(28\% $>$76).
-(3)~Model architecture appears more predictive of HLS repair success than
-parameter count: the 27\,B dense model outperforms both 122\,B and 1.6\,T
-MoE models on structural repair (100\% vs.\ 80\% and 92\%).
 
-\takeaway{Qwen3.6-27B leads completion (\QwenThreeSixSuccessRate) and
-optimization quality (\QwenThreeSixQorScore{} average QoR score on
-optimization tasks), suggesting architecture matters more than parameter
-count for HLS repair. Only explicit optimization tasks benefit from
-LLM-driven QoR improvement; repair tasks achieve correctness without
-quality gains.}
+(2)~\textbf{Architecture trumps parameter count.} Qwen3.6-27B achieves
+\QwenThreeSixSuccessRate{} completion (\QwenThreeSixSuccessCount{}/
+\CorpusTaskCount{}), including 25/25 on structural \CoSim{}, and leads
+optimization quality (avg.\ $Q_{\mathrm{HW}}{=}0.812$, 60\% $>$76).
+Qwen3.5-122B-A10B scores avg.\ $Q_{\mathrm{HW}}{=}0.775$ (28\% $>$76)
+but trails on structural repair (80\% vs.\ 100\%). DeepSeek V4 Pro
+(\DeepSeekSuccessCount{} completed, \DeepSeekTokensM{}M tokens,
+3.1$\times$ Qwen3.6) averages only \DeepSeekQorScore{} on optimization
+tasks---below the 73.2 baseline. Its candidates trade latency for area
+(e.g., LUT +577\% to save 30\% latency), yielding $h{\approx}1$.
+
+(3)~\textbf{The structural \CoSim{} category is the strongest model
+discriminator.} The gap between the best (100\%) and worst (80\%)
+structural repair rate exceeds the gap in any other category. CoSim
+deadlock repair requires coordinated interface changes that appear to
+favor dense architectures over MoE, consistent with the failure
+classification in Section~\ref{sec:vcl}.
+
+\takeaway{Qwen3.6-27B leads both completion and optimization quality;
+architecture matters more than parameter count for HLS repair. Only
+explicit optimization tasks benefit from LLM-driven QoR improvement.}

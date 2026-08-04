@@ -81,7 +81,8 @@ Qwen3.6-27B（27\,B 稠密，FP8）。
 
 \begin{table}[H]
   \caption{\textbf{各端点逐类别完成率。} 每类 25 个任务。QoR 均值仅针对优化
-  任务。}
+  任务。DeepSeek 得分低于 73.2 基线；其候选方案以面积换延迟（例如某任务
+  LUT +577\% 仅换取 30\% 延迟降低）。}
   \label{tab:category-success}
   \centering
   \footnotesize
@@ -97,7 +98,7 @@ Qwen3.6-27B（27\,B 稠密，FP8）。
     结构修复 & 23/25 (92\%) & 20/25 (80\%) & 25/25 (100\%) \\
     QoR 优化 & 25/25 (100\%) & 25/25 (100\%) & 25/25 (100\%) \\
     \midrule
-    QoR 均值（优化任务） & --- & 75.4 & 79.0 \\
+    QoR 均值（优化任务） & 56.1 & 75.4 & 79.0 \\
     \bottomrule
   \end{tabular}}
 \end{table}

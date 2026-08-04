@@ -8,25 +8,33 @@ The \VCL{} runs seven gates in order: Interface, \CSim, \Synth, Frequency,
 Capacity, required \CoSim, and Metric completeness. Frequency enforces
 100\,MHz, Capacity enforces U55C limits, and \CoSim{} applies only when
 required. Define validity $V(c)=\prod_i G_i$ over applicable gates
-$G_i\in\{0,1\}$; an inapplicable gate contributes $1$. Let $b$ be the verified
-fallback. The promotion rule is $P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$.
-Budget admission reserves credits for required gates; denial or failure retains
-$b$. QoR-RAG supplies version-compatible rules and measured outcomes. Failure
-Reflection converts diagnostics into the next constraint without another LLM
-request. Duplicate candidates and repeated failures stop retries.
+$G_i\in\{0,1\}$; an inapplicable gate contributes $1$. Let $b$ be the
+verified fallback. The promotion rule is
+$P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$.
 
-Figure~\ref{fig:vcl} summarizes the loop. The three campaigns record
-\CandidateEventCount{} candidate checks, \CandidateInterfaceRejectCount{}
-interface rejections, \CandidateSynthGateCount{} synthesis gates, and
-\CandidateCosimGateCount{} \CoSim{} gates, establishing contract execution
-without isolating mechanism effects.
+Gate failures fall into three actionable classes, each driving a specific
+repair strategy without extra LLM calls. \textbf{Interface mismatches}
+(\CandidateInterfaceRejectCount{} of \CandidateEventCount{} candidates, 16\%)
+trigger API-usage constraints fixing function signatures and pragma syntax.
+\textbf{Synthesis bottlenecks}---timing violations, resource overruns, II
+blow-up---yield directive constraints (pipeline/unroll, array partitioning)
+from QoR-RAG. \textbf{Co-simulation deadlocks} (C/RTL interface mismatch)
+are repaired via handshake insertion and port-width correction. Duplicate
+candidates and repeated failures stop retries.
+
+Figure~\ref{fig:vcl} summarises the loop. Across three campaigns:
+\CandidateEventCount{} candidates, \CandidateInterfaceRejectCount{}
+interface rejections, \CandidateSynthGateCount{} synthesis gates,
+\CandidateCosimGateCount{} \CoSim{} gates. Co-simulation failures incur
+the highest per-repair token cost, consistent with deadlock complexity.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{系统框图.png}
-  \caption{\textbf{The Verified-Candidate Loop.}
-  A candidate replaces the verified fallback only after every applicable gate
-  passes and $Q_{\mathrm{HW}}$ improves. Failure Reflection converts tool
-  diagnostics into the next constraint without extra model calls.}
+  \includegraphics[width=0.84\textwidth]{系统框图.png}
+  \vspace{-4pt}
+  \caption{\textbf{The Verified-Candidate Loop.} A candidate replaces the
+  verified fallback only after every applicable gate passes and
+  $Q_{\mathrm{HW}}$ improves.}
   \label{fig:vcl}
+  \vspace{-6pt}
 \end{figure*}

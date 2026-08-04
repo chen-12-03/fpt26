@@ -1,13 +1,14 @@
 \section{局限与后续工作}
 
-\VCL{} 将验证证据和 $Q_{\mathrm{HW}}$ 作为提升的决策依据。容量归一化资源
-占用以连续聚合比替代了最差单项增长，$D$/$F$ 证据因子奖励源码变更和有效性
-修复。Qwen3.6-27B——测试中最小的模型——在完成率（\QwenThreeSixSuccessRate）
-和优化质量（QoR 任务平均 \QwenThreeSixQorScore{} 分）上均领先。仅显式 QoR
-优化任务超越了 $Q_{\mathrm{HW}}{\approx}0.7576$ 的基线。
+\VCL{} 将验证证据和 $Q_{\mathrm{HW}}$ 作为提升的决策依据，以容量归一化
+资源占用的连续聚合比替代最差单项增长。Qwen3.6-27B 在完成率
+（\QwenThreeSixSuccessRate）和优化质量（QoR 任务平均 \QwenThreeSixQorScore{}
+分）上均领先；DeepSeek V4 Pro 尽管消耗了 3.1$\times$ 的令牌，优化任务
+平均仅得 \DeepSeekQorScore{} 分——低于 73.2 基线。仅显式 QoR 优化任务超越
+$Q_{\mathrm{HW}}{\approx}0.7576$ 的基线。
 
 该智能体依赖于成熟的测试平台输入、固定工具链（Vitis~2025.2）和单一 FPGA
 平台（Alveo~U55C）。需要匹配消融实验来隔离因果机制：完整智能体、无
-QoR-RAG、无测量失败检索和无失败反思。每种变体需报告实验标识、成功数、重复
-失败、平均 $Q_{\mathrm{HW}}$、令牌数、调用次数、积分和挂钟时间。更广泛的
-语料库和跨平台迁移留待未来工作。
+QoR-RAG、无测量失败检索和无失败反思——每种变体报告成功数、平均
+$Q_{\mathrm{HW}}$、令牌数、调用次数、积分和挂钟时间。更广泛的语料库和
+跨平台迁移留待未来工作。

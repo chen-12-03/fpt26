@@ -8,21 +8,25 @@
 强制 100\,MHz，容量门强制 U55C 限制，\CoSim{} 仅在任务需要时适用。定义
 有效性 $V(c)=\prod_i G_i$，其中 $G_i\in\{0,1\}$ 为各适用门的判定结果；不适用
 的门贡献为 $1$。令 $b$ 为已验证备选方案。提升规则为
-$P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$。预算准入为所有必需
-门保留积分；门失败或预算不足则保留 $b$。QoR-RAG 提供版本兼容的规则和测量
-结果。失败反思将诊断信息转化为下一轮约束，无需额外 LLM 请求。重复候选方案
-和重复失败触发停止。
+$P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$。
 
-图~\ref{fig:vcl} 总结该回路。三次实验共记录 \CandidateEventCount{} 次候选
-检查、\CandidateInterfaceRejectCount{} 次接口拒绝、\CandidateSynthGateCount{}
-次综合门和 \CandidateCosimGateCount{} 次 \CoSim{} 门，确立了契约执行，但并未
-隔离各机制的效果。
+门失败分为三类，每类通过失败反思驱动特定修复策略，无需额外 LLM 调用。
+\textbf{接口不匹配}（\CandidateInterfaceRejectCount{}/\CandidateEventCount{}
+候选，16\%）触发 API 使用约束以修复函数签名和编译指令语法。\textbf{综合瓶颈}
+——时序违例、资源超额、II 膨胀——产生指令约束（流水线/展开、数组分区），来源
+于 QoR-RAG。\textbf{协同仿真死锁}（C/RTL 接口不匹配）通过插入握手逻辑和端口
+宽度修正修复。重复候选方案和重复失败触发停止。
+
+图~\ref{fig:vcl} 总结该回路。三次实验：\CandidateEventCount{} 候选、
+\CandidateInterfaceRejectCount{} 接口拒绝、\CandidateSynthGateCount{} 综合门、
+\CandidateCosimGateCount{} \CoSim{} 门。CoSim 失败的单次修复令牌消耗最高。
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{fig_vcl.png}
-  \caption{\textbf{已验证候选回路。}
-  候选方案仅在通过所有适用门且 $Q_{\mathrm{HW}}$ 提升后方可替代已验证备选。
-  失败反思将工具诊断信息转化为下一轮约束，无需额外模型调用。}
+  \includegraphics[width=0.84\textwidth]{fig_vcl.png}
+  \vspace{-4pt}
+  \caption{\textbf{已验证候选回路。} 候选方案仅在通过所有适用门且
+  $Q_{\mathrm{HW}}$ 提升后方可替代已验证备选。}
   \label{fig:vcl}
+  \vspace{-6pt}
 \end{figure*}

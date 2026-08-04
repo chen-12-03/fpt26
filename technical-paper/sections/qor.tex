@@ -1,30 +1,26 @@
 \section{One Score Rejects False Speedups}
 
-The hardware quality score $Q_{\mathrm{HW}}$ combines performance gain and
-resource cost into a single bounded utility. Let anchor $a$ and candidate $c$
-have cycle latency $L$, effective period $p$, and initiation interval $II$.
-The performance ratio $r_P = (p_a L_a)/(p_c L_c)$ captures speedup weighted by
-pipeline overhead. The area ratio $r_A$ uses a capacity-normalized footprint
-$F(x)=\sum_{r} x_r/K_r$ over LUT, FF, DSP, BRAM, and URAM to prevent a
-resource transfer from causing a discontinuous jump. Two evidence factors
-reward any source edit ($D$, $1.01{\times}$) and validity repair ($F$,
-$2{\times}$). The aggregate hardware ratio
+$Q_{\mathrm{HW}}$ combines performance gain and resource cost into a single
+bounded utility. Let anchor $a$ and candidate $c$ have cycle latency $L$,
+effective period $p$, and initiation interval $II$. The performance ratio
+$r_P = (p_a L_a)/(p_c L_c)$ captures speedup; the area ratio $r_A$ uses a
+capacity-normalized footprint $F(x)=\sum_{r} x_r/K_r$ over LUT, FF, DSP,
+BRAM, and URAM to prevent discontinuous jumps from resource transfers. Two
+evidence factors reward source edits ($D$, $1.01{\times}$) and validity
+repair ($F$, $2{\times}$). The aggregate hardware ratio
 $h = 1.01^{D}\,2^{F}\,r_P^{\,0.55}\,r_A^{\,0.45}$ weights performance at
-55\% and area at 45\%, calibrated against 99 frozen PPA references from
-Vitis~2025.2.
+55\% and area at 45\%, calibrated against 99 frozen PPA references.
 
-The bounded utility $Q_{\mathrm{HW}} = 1-1/(1+h)^2$ maps $h{=}1$ (no change)
-to $0.75$, $h{\to}\infty$ to $1$, and $h{\to}0$ to $0$, with continuous
-monotonic degradation for bloated speedups. Budget efficiency
+$Q_{\mathrm{HW}} = 1-1/(1+h)^2$ maps $h{=}1$ (no change) to $0.75$,
+$h{\to}\infty$ to $1$, and $h{\to}0$ to $0$, with continuous degradation
+for bloated speedups. Budget efficiency
 $E = \max(0.80,\,1-0.10u_{\mathrm{credit}}-0.10u_{\mathrm{time}})$
-discounts excessive tool calls with a floor at $0.80$, where each $u$ term
-is the consumed fraction clipped to $[0,1]$.
-
-The final score is
+discounts excessive tool calls with a floor at $0.80$, where each $u$ is
+the consumed fraction clipped to $[0,1]$. The final score is
 \begin{equation}
 S = 100\,V(c)\,Q_{\mathrm{HW}}\,E.
 \label{eq:score}
 \end{equation}
-Promotion compares $Q_{\mathrm{HW}}$ only after $V(c){=}1$; remaining
-budget never promotes an inferior design. A failed gate yields $S{=}0$;
-the efficiency floor ensures a valid baseline earns at least $60$ points.
+Promotion compares $Q_{\mathrm{HW}}$ only after $V(c){=}1$; a failed gate
+yields $S{=}0$, and the efficiency floor guarantees a valid baseline at
+least $60$ points.

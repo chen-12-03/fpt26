@@ -13,7 +13,8 @@ tasks) and the best estimated optimization scores
 (\QwenThreeSixQorScore{} average on QoR tasks). Qwen3.5-122B-A10B
 (\QwenThreeFiveSuccessCount{} completions) is the most token-efficient.
 DeepSeek V4 Pro (\DeepSeekSuccessCount{} completions) consumes
-\DeepSeekTokensM{}M tokens but returns no measurable QoR improvement.
+\DeepSeekTokensM{}M tokens but averages only \DeepSeekQorScore{} on
+optimization tasks, below the 73.2 baseline.
 Only explicit optimization tasks surpass the baseline $Q_{\mathrm{HW}}$;
 repair tasks achieve correctness without quality gains. Model architecture
 appears to matter more than parameter count for HLS repair tasks.

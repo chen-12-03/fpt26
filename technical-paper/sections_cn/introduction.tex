@@ -1,21 +1,20 @@
-\section{证据必须控制大语言模型的代码编辑}
+\section{用门限证据替代提示词}
 
-大语言模型（LLM）智能体可以编辑不熟悉的高层次综合（HLS）内核，但只有工具
-报告能够证明正确性和硬件质量。因此，一个有计量能力的智能体需要一套提升规则：
-当任何必需验证门失败时，保留已验证的备选方案~\cite{amd2025vitis}。
+LLM 智能体可以编辑不熟悉的 HLS 内核，但只有工具报告能够证明正确性和硬件
+质量。有计量能力的智能体需要一套提升规则：当任何必需验证门失败时，保留已
+验证的备选方案~\cite{amd2025vitis}。
 
 现有 HLS 智能体实现了代码变换、指令搜索和反馈驱动修复的自动化
 ~\cite{xiong2024hlspilot,xu2024ralad,li2026chathls}。工具使用型语言智能体
 交替进行推理和行动~\cite{yao2023react}。我们的设计将候选方案的提升决策交由
 确定性的 HLS 证据控制，并在明确的模型和工具预算约束下运行。
 
-我们的已验证候选回路（\VCL）贡献了三项发现。
-\textbf{（1）验证契约。} 一个 fail-closed 工作流在七个门限前保留已验证备选方案：
-接口（Interface）、\CSim、\Synth、频率（Frequency）、容量（Capacity）、所需
-\CoSim{} 和指标完备性（Metric completeness）。
+已验证候选回路（\VCL）贡献了三项发现。
+\textbf{（1）验证契约。} fail-closed 工作流在七个门限前保留已验证备选方案：
+接口（Interface）、\CSim、\Synth、频率（Frequency）、容量（Capacity）、
+所需 \CoSim{} 和指标完备性（Metric completeness）。
 \textbf{（2）硬件目标。} 有界分数 $Q_{\mathrm{HW}}$ 综合有效延迟、容量归一化
-资源占用和源码变更证据，拒绝那些资源代价超过性能收益的加速方案。
-\textbf{（3）端点评估。} 第~\ref{sec:evaluation}~节报告跨模型结果：
-Qwen3.6-27B——最小的模型——取得了最高的完成率（\QwenThreeSixSuccessRate）和
-最优的优化质量。仅显式优化任务超越了基线质量；对 HLS 修复而言，模型架构
-比参数量更重要。
+资源占用和源码变更证据，拒绝代价过高的加速方案。
+\textbf{（3）端点评估。} Qwen3.6-27B——最小的模型——取得了最高的完成率
+（\QwenThreeSixSuccessRate）和最优的优化质量（第~\ref{sec:evaluation}~节）。
+对 HLS 修复而言，模型架构比参数量更重要。
