@@ -1,51 +1,57 @@
 \relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{amd2025vitis}
 \citation{xiong2024hlspilot,xu2024ralad,li2026chathls}
 \citation{yao2023react}
-\@writefile{toc}{\contentsline {section}{\numberline {I}Evidence Must Control LLM Edits}{1}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {II}Tool Evidence Controls the Agent Workflow}{1}{}\protected@file@percent }
-\newlabel{eq:validity}{{1}{1}{}{equation.1}{}}
-\newlabel{eq:promotion}{{2}{1}{}{equation.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {III}One Score Rejects False Speedups}{1}{}\protected@file@percent }
-\newlabel{eq:performance}{{3}{1}{}{equation.3}{}}
 \citation{fpt26tracka}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Evidence Must Control LLM Edits}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Tool Evidence Controls the Agent Workflow}{1}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}One Score Rejects False Speedups}{1}{section.3}\protected@file@percent }
+\newlabel{eq:score}{{1}{1}{One Score Rejects False Speedups}{equation.1}{}}
+\newlabel{eq:score@cref}{{[equation][1][]1}{[1][1][]1}{}{}{}}
 \bibstyle{IEEEtran}
 \bibdata{references}
 \bibcite{amd2025vitis}{1}
 \bibcite{xiong2024hlspilot}{2}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {The Verified-Candidate Loop.} A candidate replaces the verified fallback only after every applicable gate passes and $Q_{\mathrm  {HW}}$ improves. Failure Reflection converts tool diagnostics into the next constraint without extra model calls.}}{2}{figure.1}\protected@file@percent }
+\newlabel{fig:vcl}{{1}{2}{\textbf {The Verified-Candidate Loop.} A candidate replaces the verified fallback only after every applicable gate passes and $Q_{\mathrm {HW}}$ improves. Failure Reflection converts tool diagnostics into the next constraint without extra model calls}{figure.1}{}}
+\newlabel{fig:vcl@cref}{{[figure][1][]1}{[1][1][]2}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Completion Outpaces Score Coverage}{2}{section.4}\protected@file@percent }
+\newlabel{sec:evaluation}{{IV}{2}{Completion Outpaces Score Coverage}{section.4}{}}
+\newlabel{sec:evaluation@cref}{{[section][4][]IV}{[1][1][]2}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces \textbf  {The smallest dense model leads.} QoR scores are estimated as $100\,Q_{\mathrm  {HW}}\,E$; DeepSeek returned no measurable $Q_{\mathrm  {HW}}$ improvement.}}{2}{table.1}\protected@file@percent }
+\newlabel{tab:headline-results}{{I}{2}{\textbf {The smallest dense model leads.} QoR scores are estimated as $100\,Q_{\mathrm {HW}}\,E$; DeepSeek returned no measurable $Q_{\mathrm {HW}}$ improvement}{table.1}{}}
+\newlabel{tab:headline-results@cref}{{[table][1][]I}{[1][2][]2}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Limits and Next Steps}{2}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{2}{section*.1}\protected@file@percent }
 \bibcite{xu2024ralad}{3}
 \bibcite{li2026chathls}{4}
 \bibcite{yao2023react}{5}
-\bibcite{amdIntroExamples}{6}
-\bibcite{amdAccelExamples}{7}
-\bibcite{fpt26tracka}{8}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Measured evidence controls every state transition.} A candidate replaces the verified fallback only after every applicable gate passes and \ensuremath  {Q_{\mathrm  {HW}}}{} improves.}}{2}{}\protected@file@percent }
-\newlabel{fig:vcl}{{1}{2}{}{figure.1}{}}
-\newlabel{eq:area}{{4}{2}{}{equation.4}{}}
-\newlabel{eq:qhw}{{5}{2}{}{equation.5}{}}
-\newlabel{eq:score}{{6}{2}{}{equation.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}Completion Outpaces Score Coverage}{2}{}\protected@file@percent }
-\newlabel{sec:evaluation}{{IV}{2}{}{section.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces \textbf  {Reruns recover completion, while score coverage remains uneven.} ``Scored mean'' is conditional on the scored set; ``API fails'' counts failed requests in the merged records.}}{2}{}\protected@file@percent }
-\newlabel{tab:headline-results}{{I}{2}{}{table.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Limits and Next Steps}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{2}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Benchmark Sources and Task Composition}{3}{}\protected@file@percent }
-\newlabel{app:benchmark}{{A}{3}{}{section.Appendix.A}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Track-A Requirement Mapping and Scope}{3}{}\protected@file@percent }
-\newlabel{app:compliance}{{B}{3}{}{section.Appendix.B}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: Detailed Three-Endpoint Results}{3}{}\protected@file@percent }
-\newlabel{app:results}{{C}{3}{}{section.Appendix.C}{}}
-\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  D: Reproduction and Result Refresh}{3}{}\protected@file@percent }
-\newlabel{app:reproduction}{{D}{3}{}{section.Appendix.D}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces \textbf  {The test suite balances six agent capabilities.} Each category contains 25{} tasks; only the structural category requires C/RTL co-simulation in the accepted manifest.}}{4}{}\protected@file@percent }
-\newlabel{tab:task-composition}{{II}{4}{}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces \textbf  {Fixed source revisions make the corpus reconstructable.}}}{4}{}\protected@file@percent }
-\newlabel{tab:task-sources}{{III}{4}{}{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textbf  {The run contract maps the applicable Track-A evaluation requirements to recorded evidence.} Submission files and video remain author-side checklist items.}}{4}{}\protected@file@percent }
-\newlabel{tab:compliance}{{IV}{4}{}{table.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces \textbf  {Category completion and QoR scores expose different endpoint profiles.} Completion entries give tasks out of 25 and the corresponding rate. The QoR mean covers the same 25 tasks and uses Eq.~\eqref  {eq:score}.}}{4}{}\protected@file@percent }
-\newlabel{tab:category-success}{{V}{4}{}{table.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces \textbf  {Selected task records retain token and credit fields.} Token counts are in millions. For a targeted-rerun task, rerun tokens replace the original token value, whereas credits remain from the original task record. The rows therefore neither estimate additive campaign spend nor support cost-efficiency comparisons.}}{4}{}\protected@file@percent }
-\newlabel{tab:costs}{{VI}{4}{}{table.6}{}}
+\bibcite{fpt26tracka}{6}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  A: Benchmark Composition}{4}{section*.2}\protected@file@percent }
+\newlabel{app:benchmark}{{A}{4}{\appendixname \nobreakspace \thesectiondis \\* Benchmark Composition}{section*.2}{}}
+\newlabel{app:benchmark@cref}{{[section][1][]A}{[1][4][]4}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces \textbf  {Task suite composition.}}}{4}{table.2}\protected@file@percent }
+\newlabel{tab:task-composition}{{II}{4}{\textbf {Task suite composition.}}{table.2}{}}
+\newlabel{tab:task-composition@cref}{{[table][2][]II}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  B: Track-A Requirement Mapping}{4}{section*.3}\protected@file@percent }
+\newlabel{app:compliance}{{B}{4}{\appendixname \nobreakspace \thesectiondis \\* Track-A Requirement Mapping}{section*.3}{}}
+\newlabel{app:compliance@cref}{{[section][2][]B}{[1][4][]4}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces \textbf  {Track-A run contract.}}}{4}{table.3}\protected@file@percent }
+\newlabel{tab:compliance}{{III}{4}{\textbf {Track-A run contract.}}{table.3}{}}
+\newlabel{tab:compliance@cref}{{[table][3][]III}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  C: Detailed Three-Endpoint Results}{4}{section*.4}\protected@file@percent }
+\newlabel{app:results}{{C}{4}{\appendixname \nobreakspace \thesectiondis \\* Detailed Three-Endpoint Results}{section*.4}{}}
+\newlabel{app:results@cref}{{[section][3][]C}{[1][4][]4}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textbf  {Per-category completion by endpoint.} Each category: 25 tasks. QoR mean: optimization tasks only.}}{4}{table.4}\protected@file@percent }
+\newlabel{tab:category-success}{{IV}{4}{\textbf {Per-category completion by endpoint.} Each category: 25 tasks. QoR mean: optimization tasks only}{table.4}{}}
+\newlabel{tab:category-success@cref}{{[table][4][]IV}{[1][4][]4}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces \textbf  {Token consumption and credit expenditure.} DeepSeek used 3.1$\times $ more tokens than Qwen3.6 with no QoR gain.}}{4}{table.5}\protected@file@percent }
+\newlabel{tab:costs}{{V}{4}{\textbf {Token consumption and credit expenditure.} DeepSeek used 3.1$\times $ more tokens than Qwen3.6 with no QoR gain}{table.5}{}}
+\newlabel{tab:costs@cref}{{[table][5][]V}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{Appendix\nobreakspace  D: Reproduction}{4}{section*.5}\protected@file@percent }
+\newlabel{app:reproduction}{{D}{4}{\appendixname \nobreakspace \thesectiondis \\* Reproduction}{section*.5}{}}
+\newlabel{app:reproduction@cref}{{[section][4][]D}{[1][4][]4}{}{}{}}
 \gdef \@abspage@last{4}

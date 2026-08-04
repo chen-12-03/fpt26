@@ -1,0 +1,14 @@
+高层次综合（HLS）智能体必须在有限的模型和工具预算内修复并优化陌生内核。
+已验证候选回路（\VCL）将验证证据作为候选方案提升的决策依据。其质量评价
+（QoR）分数将有效延迟、容量归一化资源占用和源码变更证据聚合为单一有界效用。
+QoR 引导的检索增强生成（QoR-RAG）复用兼容证据，失败反思（Failure
+Reflection）将工具诊断信息转化为下一轮约束，无需额外模型调用。我们在涵盖
+六种 HLS 能力的 150 个均衡任务套件上评估了三个开放权重的大语言模型端点。
+Qwen3.6-27B——最小的模型（27\,B 稠密）——取得了最高的完成率
+（\QwenThreeSixSuccessRate，\QwenThreeSixSuccessCount{}/\CorpusTaskCount{}
+个任务）和最优的估计优化分数（QoR 任务平均 \QwenThreeSixQorScore{} 分）。
+Qwen3.5-122B-A10B（\QwenThreeFiveSuccessCount{} 个完成）在令牌效率上最优。
+DeepSeek V4 Pro（\DeepSeekSuccessCount{} 个完成）消耗了 \DeepSeekTokensM{}M
+令牌，但未产生可测量的 QoR 提升。仅显式优化任务超越了基线
+$Q_{\mathrm{HW}}$；修复任务达到了正确性但未获得质量收益。对 HLS 修复任务
+而言，模型架构似乎比参数量更重要。

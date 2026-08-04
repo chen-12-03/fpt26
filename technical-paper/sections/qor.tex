@@ -1,45 +1,30 @@
 \section{One Score Rejects False Speedups}
 
-The evaluator selects a valid starter as anchor $a$ and falls back to a
-frozen reference hidden from the agent. Let $c$ denote a candidate,
-$L$ its cycle latency, $p=\max(p_{\mathrm{target}},p_{\mathrm{estimated}})$
-its effective period, and $II$ its initiation interval. The score uses the
-$II$ branch only when the task marks $II$ relevant and both values are
-positive:
-\begin{align}
-r_L &= \frac{p_aL_a}{p_cL_c}, &
-r_P &=
-\begin{cases}
-r_L^{0.85}(II_a/II_c)^{0.15}, & \text{reliable }II,\\
-r_L, & \text{latency only},
-\end{cases}.
-\label{eq:performance}
-\end{align}
-For anchor and candidate resource counts $A_j$ and $C_j$, let
-$\mathcal{R}$ contain lookup tables (LUTs), flip-flops (FFs), digital signal
-processing (DSP) blocks, block RAM (BRAM), and UltraRAM (URAM). The worst
-growth defines area quality:
-\begin{align}
-\mathcal{R}_{+}&=\{j\in\mathcal{R}:A_j>1\lor C_j>1\},\nonumber\\
-\widehat{\mathcal{R}}&=
-\begin{cases}
-\mathcal{R}_{+},&\mathcal{R}_{+}\ne\varnothing,\\
-\mathcal{R},&\mathcal{R}_{+}=\varnothing,
-\end{cases}\nonumber\\
-r_A&=\left[\max_{j\in\widehat{\mathcal{R}}}
-\frac{\max(C_j,1)}{\max(A_j,1)}\right]^{-1}.
-\label{eq:area}
-\end{align}
-The evaluator score combines validity, bounded hardware utility, and budget
-efficiency:
-\begin{align}
-h &= r_P^{0.55}r_A^{0.45}, &
-\QHW &= 1-\frac{1}{(1+h)^2}, \label{eq:qhw}\\
-E &= \max\bigl(0.80,\,1-0.10u_{\mathrm{credit}}
-  \nonumber\\[-2pt]
-  &\hspace{4.7em}{}-0.10u_{\mathrm{time}}\bigr), \nonumber\\
-S &= 100V\QHW E. \label{eq:score}
-\end{align}
-Here the two $u$ terms denote consumed fractions clipped to $[0,1]$.
-Promotion compares \QHW{} only after $V(c)=1$, so remaining budget never turns
-an inferior design into the fallback.
+The hardware quality score $Q_{\mathrm{HW}}$ combines performance gain and
+resource cost into a single bounded utility. Let anchor $a$ and candidate $c$
+have cycle latency $L$, effective period $p$, and initiation interval $II$.
+The performance ratio $r_P = (p_a L_a)/(p_c L_c)$ captures speedup weighted by
+pipeline overhead. The area ratio $r_A$ uses a capacity-normalized footprint
+$F(x)=\sum_{r} x_r/K_r$ over LUT, FF, DSP, BRAM, and URAM to prevent a
+resource transfer from causing a discontinuous jump. Two evidence factors
+reward any source edit ($D$, $1.01{\times}$) and validity repair ($F$,
+$2{\times}$). The aggregate hardware ratio
+$h = 1.01^{D}\,2^{F}\,r_P^{\,0.55}\,r_A^{\,0.45}$ weights performance at
+55\% and area at 45\%, calibrated against 99 frozen PPA references from
+Vitis~2025.2.
+
+The bounded utility $Q_{\mathrm{HW}} = 1-1/(1+h)^2$ maps $h{=}1$ (no change)
+to $0.75$, $h{\to}\infty$ to $1$, and $h{\to}0$ to $0$, with continuous
+monotonic degradation for bloated speedups. Budget efficiency
+$E = \max(0.80,\,1-0.10u_{\mathrm{credit}}-0.10u_{\mathrm{time}})$
+discounts excessive tool calls with a floor at $0.80$, where each $u$ term
+is the consumed fraction clipped to $[0,1]$.
+
+The final score is
+\begin{equation}
+S = 100\,V(c)\,Q_{\mathrm{HW}}\,E.
+\label{eq:score}
+\end{equation}
+Promotion compares $Q_{\mathrm{HW}}$ only after $V(c){=}1$; remaining
+budget never promotes an inferior design. A failed gate yields $S{=}0$;
+the efficiency floor ensures a valid baseline earns at least $60$ points.

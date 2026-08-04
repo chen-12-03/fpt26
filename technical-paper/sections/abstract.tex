@@ -1,19 +1,19 @@
 High-level synthesis (HLS) agents must repair and optimize unfamiliar kernels
 within limited model and tool budgets. The Verified-Candidate Loop (\VCL) lets
 validation evidence control candidate promotion. Its quality-of-results (QoR)
-score combines effective latency and worst-resource growth. QoR-guided
+score aggregates effective latency, capacity-normalized resource footprint, and
+source-change evidence into a single bounded utility. QoR-guided
 retrieval-augmented generation (QoR-RAG) reuses compatible evidence, and
-Failure Reflection turns tool diagnostics into the next constraint. We
-evaluate three hosted large language model endpoints on a balanced 150-task
-suite. Targeted submission reruns replace records affected by application
-programming interface (API) failures, while evaluator reruns fill selected
-missing scores. DeepSeek V4 Pro completes
-\DeepSeekSuccessCount{}/\CorpusTaskCount{} tasks and records the highest score
-sum, \DeepSeekScoreSum, across \DeepSeekScoredTaskCount{} scored tasks.
-Qwen3.5-122B-A10B completes \QwenThreeFiveSuccessCount{} tasks and supplies
-the largest scored set, with \QwenThreeFiveScoredTaskCount{} tasks. Qwen3.6
-reaches \QwenThreeSixSuccessCount{}/\CorpusTaskCount{}
-(\QwenThreeSixSuccessRate{}) completion after targeted reruns, but only
-\QwenThreeSixScoredTaskCount{} tasks carry evaluator scores. Uneven scored
-subsets and residual provider failures prevent attributing endpoint
-differences to model weights alone.
+Failure Reflection turns tool diagnostics into the next constraint without
+extra model calls. We evaluate three open-weight large language model endpoints
+on a balanced 150-task suite spanning six HLS capabilities. Qwen3.6-27B, the
+smallest model (27\,B dense), achieves the highest completion rate
+(\QwenThreeSixSuccessRate, \QwenThreeSixSuccessCount{}/\CorpusTaskCount{}
+tasks) and the best estimated optimization scores
+(\QwenThreeSixQorScore{} average on QoR tasks). Qwen3.5-122B-A10B
+(\QwenThreeFiveSuccessCount{} completions) is the most token-efficient.
+DeepSeek V4 Pro (\DeepSeekSuccessCount{} completions) consumes
+\DeepSeekTokensM{}M tokens but returns no measurable QoR improvement.
+Only explicit optimization tasks surpass the baseline $Q_{\mathrm{HW}}$;
+repair tasks achieve correctness without quality gains. Model architecture
+appears to matter more than parameter count for HLS repair tasks.

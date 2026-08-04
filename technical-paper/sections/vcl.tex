@@ -6,49 +6,27 @@ records every candidate, gate, metric, token, and credit in one run state.
 
 The \VCL{} runs seven gates in order: Interface, \CSim, \Synth, Frequency,
 Capacity, required \CoSim, and Metric completeness. Frequency enforces
-100 MHz, Capacity enforces U55C limits, and \CoSim{} applies only when the task
-requires it. For candidate $c$, define validity $V(c)$ over applicable gates
-$G_i\in\{0,1\}$; an inapplicable \CoSim{} gate contributes one:
-\begin{equation}
-V(c)=G_{\mathrm{int}}G_{\mathrm{csim}}G_{\mathrm{syn}}
-  G_{\mathrm{freq}}G_{\mathrm{cap}}G_{\mathrm{cosim}}G_{\mathrm{metric}}.
-\label{eq:validity}
-\end{equation}
-Let $b$ denote the verified fallback. The promotion rule is
-\begin{equation}
-P(c)=V(c)\land[\QHW(c)>\QHW(b)].
-\label{eq:promotion}
-\end{equation}
-Budget admission reserves the credits for all required gates. A failed gate or
-budget denial retains $b$. QoR-RAG supplies version-compatible rules,
-successes, and measured failures. Failure Reflection converts bounded
-diagnostics into the next constraint without another LLM request. Duplicate
-candidates and repeated failures stop retries. Hidden acceptance remains an
-evaluator-side check.
+100\,MHz, Capacity enforces U55C limits, and \CoSim{} applies only when
+required. Define validity $V(c)=\prod_i G_i$ over applicable gates
+$G_i\in\{0,1\}$; an inapplicable gate contributes $1$. Let $b$ be the verified
+fallback. The promotion rule is $P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$.
+Budget admission reserves credits for required gates; denial or failure retains
+$b$. QoR-RAG supplies version-compatible rules and measured outcomes. Failure
+Reflection converts diagnostics into the next constraint without another LLM
+request. Duplicate candidates and repeated failures stop retries.
 
 Figure~\ref{fig:vcl} summarizes the loop. The three campaigns record
-\CandidateEventCount{} candidate interface checks,
-\CandidateInterfaceRejectCount{} interface rejections,
-\CandidateSynthGateCount{} synthesis gates, and
-\CandidateCosimGateCount{} \CoSim{} gates. The audit establishes contract
-execution but does not isolate mechanism effects.
+\CandidateEventCount{} candidate checks, \CandidateInterfaceRejectCount{}
+interface rejections, \CandidateSynthGateCount{} synthesis gates, and
+\CandidateCosimGateCount{} \CoSim{} gates, establishing contract execution
+without isolating mechanism effects.
 
 \begin{figure*}[t]
   \centering
-  \footnotesize
-  \setlength{\tabcolsep}{3pt}
-  \fbox{\begin{tabular}{c@{\;\(\rightarrow\)\;}c@{\;\(\rightarrow\)\;}c
-        @{\;\(\rightarrow\)\;}c}
-    Task and budget & Candidate and evidence &
-    Validation chain & Promote or retain \\
-    Kernel and interface & LLM + QoR-RAG &
-    \shortstack{Interface/\CSim/\Synth/Frequency/Capacity\\
-    required \CoSim/Metric completeness} &
-    Verified fallback \\
-    & \multicolumn{2}{c}{\(\leftarrow\) Failure Reflection from measured diagnostics} &
-  \end{tabular}}
-  \caption{\textbf{Measured evidence controls every state transition.}
+  \includegraphics[width=\textwidth]{系统框图.png}
+  \caption{\textbf{The Verified-Candidate Loop.}
   A candidate replaces the verified fallback only after every applicable gate
-  passes and \QHW{} improves.}
+  passes and $Q_{\mathrm{HW}}$ improves. Failure Reflection converts tool
+  diagnostics into the next constraint without extra model calls.}
   \label{fig:vcl}
 \end{figure*}

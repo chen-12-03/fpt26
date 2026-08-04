@@ -1,6 +1,42 @@
+% Font encoding — T1 enables proper hyphenation, kerning, and glyph coverage.
+% Load before any package that outputs text.
+\usepackage[T1]{fontenc}
+
+% Core math
 \usepackage{amsmath}
-\usepackage{amssymb}
+
+% Replace the default Times (ptm) with TeX Gyre Termes — a full T1-encoded
+% Times clone that provides bold extended (bx), small caps, and old-style
+% figures without the IEEEtran default fallback from bx→b.
+% newtxmath loads amssymb internally; drop the explicit \usepackage{amssymb}.
+\usepackage{newtxtext}
+\usepackage[amssymbols]{newtxmath}
+
+% Publication-quality tables with proper spacing
 \usepackage{booktabs}
+
+% Citation compression [1]–[5]
 \usepackage{cite}
+
+% Graphics inclusion
 \usepackage{graphicx}
-\usepackage{url}
+
+% URL with line-breaking at hyphens and slashes
+\usepackage[hyphens,obeyspaces,spaces]{url}
+\urlstyle{same}
+
+% Micro-typography — character protrusion and font expansion.
+% This is the single largest improvement to justified-text appearance.
+\usepackage{microtype}
+
+% Clickable cross-references and DOIs (no coloured boxes)
+\usepackage[hidelinks,bookmarks=false]{hyperref}
+
+% Smart cross-references — \cref{fig:foo} prints "Figure 1"
+\usepackage[noabbrev,capitalise]{cleveref}
+
+% Better list spacing
+\usepackage{enumitem}
+
+% Force table/fig placement with [H] — keeps tables next to their section text
+\usepackage{float}

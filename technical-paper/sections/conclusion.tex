@@ -1,8 +1,17 @@
 \section{Limits and Next Steps}
 
-The \VCL{} makes validation evidence and \QHW{} the promotion authority.
-The endpoint evaluation separates completion coverage from available score
-evidence. Uneven scored subsets and residual provider failures prevent
-attributing endpoint differences to model weights alone. Targeted reruns reduce
-the infrastructure confound but do not replace repeated campaigns. Matched
-ablations and broader corpora must test causal mechanism effects and transfer.
+The \VCL{} makes validation evidence and $Q_{\mathrm{HW}}$ the promotion
+authority. The capacity-normalized resource footprint replaces worst-single-growth
+with a continuous aggregate ratio, and $D$/$F$ evidence factors reward source
+change and validity repair. Qwen3.6-27B, the smallest model tested, leads both
+completion (\QwenThreeSixSuccessRate) and optimization quality
+(\QwenThreeSixQorScore{} average on QoR tasks). Only explicit QoR optimization
+tasks improve beyond the $Q_{\mathrm{HW}}{\approx}0.7576$ baseline.
+
+The agent depends on mature testbench inputs, a fixed toolchain
+(Vitis~2025.2), and a single FPGA platform (Alveo~U55C). Matched ablations
+are required to isolate causal mechanisms: full agent, no QoR-RAG, no
+measured-failure retrieval, and no Failure Reflection. Each variant must report
+campaign identifier, success, repeated failures, mean $Q_{\mathrm{HW}}$, tokens,
+calls, credits, and wall time. Broader corpora and cross-platform transfer
+remain for future work.

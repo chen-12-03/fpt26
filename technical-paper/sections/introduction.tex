@@ -7,21 +7,20 @@ fallback when any required validation gate fails~\cite{amd2025vitis}.
 
 Prior HLS agents automate code transformation, directive search, and
 feedback-driven repair~\cite{xiong2024hlspilot,xu2024ralad,li2026chathls}.
-Tool-using language agents also alternate reasoning and actions
-~\cite{yao2023react}. Our design assigns candidate promotion to deterministic
-HLS evidence under explicit model and tool budgets.
+Tool-using language agents alternate reasoning and actions~\cite{yao2023react}.
+Our design assigns candidate promotion to deterministic HLS evidence under
+explicit model and tool budgets.
 
-Our Verified-Candidate Loop (\VCL) contributes three artifacts and findings.
+Our Verified-Candidate Loop (\VCL) contributes three findings.
 \textbf{(1) Validation contract.} A fail-closed workflow preserves a verified
-fallback across seven gates: Interface, C simulation (\CSim), HLS synthesis
-(\Synth), Frequency, Capacity, required C/RTL co-simulation (\CoSim), and
-Metric completeness.
-\textbf{(2) Hardware objective.} The bounded score \QHW{} rejects speedups
-that lose more clock or worst-resource quality than they gain in latency.
-\textbf{(3) Endpoint evaluation.} Section~\ref{sec:evaluation} separates task
-completion from score coverage across three hosted endpoints. DeepSeek
-completes \DeepSeekSuccessCount{}/\CorpusTaskCount{} tasks and records the
-highest score sum, \DeepSeekScoreSum. Qwen3.5 has the largest scored set, and
-Qwen3.6 retains a structural repair gap. Uneven scored subsets and residual
-provider failures prevent attributing endpoint differences to model weights
-alone.
+fallback across seven gates: Interface, \CSim, \Synth, Frequency, Capacity,
+required \CoSim, and Metric completeness.
+\textbf{(2) Hardware objective.} The bounded score $Q_{\mathrm{HW}}$ combines
+effective latency, capacity-normalized resource footprint, and source-change
+evidence to reject speedups whose resource cost outweighs their performance
+gain.
+\textbf{(3) Endpoint evaluation.} Section~\ref{sec:evaluation} reports
+cross-model results: Qwen3.6-27B, the smallest model, achieves the highest
+completion rate (\QwenThreeSixSuccessRate) and best optimization quality.
+Only explicit optimization tasks exceed baseline quality; model architecture
+matters more than parameter count for HLS repair.

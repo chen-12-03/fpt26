@@ -1,0 +1,41 @@
+% === Chinese version preamble — pdflatex compatible ===
+
+% ctex with pdflatex uses CJKutf8 internally for Chinese support.
+% scheme=plain: keep IEEEtran document class, just add Chinese capability.
+\usepackage[scheme=plain]{ctex}
+
+% T1 encoding + TeX Gyre Termes (same as English version)
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext}
+\usepackage[amssymbols]{newtxmath}
+
+% Core math
+\usepackage{amsmath}
+
+% Publication-quality tables
+\usepackage{booktabs}
+
+% Citation compression
+\usepackage{cite}
+
+% Graphics
+\usepackage{graphicx}
+
+% URL line-breaking
+\usepackage[hyphens,obeyspaces,spaces]{url}
+\urlstyle{same}
+
+% Micro-typography
+\usepackage{microtype}
+
+% Clickable cross-references
+\usepackage[hidelinks,bookmarks=false]{hyperref}
+
+% Smart cross-references
+\usepackage[noabbrev,capitalise]{cleveref}
+
+% Better list spacing
+\usepackage{enumitem}
+
+% Force table placement
+\usepackage{float}

@@ -1,12 +1,12 @@
 \documentclass[conference]{IEEEtran}
 
-\input{preamble}
+\input{preamble_cn}
 \input{macros}
 \input{results_generated}
 
 \begin{document}
 
-\title{基于已验证候选回路的预算约束下大语言模型辅助高层次综合}
+\title{基于已验证候选回路的预算约束下\\大语言模型辅助高层次综合}
 
 % 双盲审稿：作者和单位信息匿名
 \author{Anonymous Submission}
@@ -14,19 +14,7 @@
 \maketitle
 
 \begin{abstract}
-高层次综合（HLS）智能体必须在有限的模型和工具预算内修复和优化陌生的内核。
-已验证候选回路（\VCL）将候选方案的提升决策交由验证证据控制。其
-质量评价（QoR）分数综合有效延迟和最差资源增长。QoR 引导的检索增强生成
-（QoR-RAG）复用兼容证据，失败反思（Failure Reflection）将工具诊断信息
-转化为下一轮约束。我们在 150 个任务的均衡套件上评估了三个云端大语言模型
-端点。针对原始记录中存在应用程序接口（API）调用失败的任务进行定向重跑后，
-DeepSeek V4 Pro 完成 \DeepSeekSuccessCount{}/\CorpusTaskCount{} 个任务，
-Qwen3.5-122B-A10B 完成 \QwenThreeFiveSuccessCount{} 个任务。Qwen3.5 在
-\QwenThreeFiveScoredTaskCount{} 个可评分任务上取得了最高总分；DeepSeek 在
-\DeepSeekScoredTaskCount{} 个任务上取得了最高条件均值。重跑后 Qwen3.6 达到
-\QwenThreeSixSuccessCount{}/\CorpusTaskCount{}（\QwenThreeSixSuccessRate{}）
-的完成率，但仅 \QwenThreeSixScoredTaskCount{} 个任务具有评估分数。评分覆盖
-不均和残余的 API 失败阻碍了将端点差异完全归因于模型权重。
+\input{sections_cn/abstract}
 \end{abstract}
 
 \begin{IEEEkeywords}

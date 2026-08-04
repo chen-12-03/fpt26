@@ -1,42 +1,51 @@
 \section{任务完成超过评分覆盖}
 \label{sec:evaluation}
 
-\textbf{实验协议。} 三个云端端点在同一个代码修订版和
-\CampaignCreditLimit{} 积分限制下处理相同的 \CorpusTaskCount{} 个均衡任务。
-每个完成的输出必须通过 \CSim、\Synth、100 MHz、U55C 容量以及 Track-A
-契约~\cite{fpt26tracka} 下所有适用的 \CoSim{} 门。对于原始记录中存在 API
-调用失败的任务，合并后的语料选择可用的定向重跑记录并重新计算完成数。"已评分"
-指标统计评估分数非空的任务；重跑并未为每个恢复完成添加评分。合并后的记录中
-仍存在 \DeepSeekApiFailures{}、\QwenThreeFiveApiFailures{} 和
-\QwenThreeSixApiFailures{} 次失败请求。
-附录~\ref{app:benchmark} 说明任务来源；附录~\ref{app:results} 给出类别和
-选中记录的核算详情。
+\textbf{实验协议。} 三个云端端点在同一个智能体修订版下处理相同的
+\CorpusTaskCount{} 个均衡任务套件。每个完成输出必须通过 \CSim、\Synth、
+100\,MHz、U55C 容量以及 Track-A 契约~\cite{fpt26tracka} 下所有适用的
+\CoSim{} 门。模型覆盖三种架构—规模体制：DeepSeek V4 Pro（1.6\,T MoE，
+49\,B 激活）、Qwen3.5-122B-A10B（122\,B MoE，10\,B 激活）和 Qwen3.6-27B
+（27\,B 稠密）。
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{重跑恢复完成率，但评分覆盖仍不均衡。}
-  "已评分均值"以可评分集合为条件；"API 失败"统计合并记录中的失败请求数。}
+  \caption{\textbf{最小的稠密模型领先。} QoR 分数估计为
+  $100\,Q_{\mathrm{HW}}\,E$；DeepSeek 未返回可测量的 $Q_{\mathrm{HW}}$ 提升。}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lrrrrr}
     \toprule
-    端点 & 已完成 & 已评分 & 评分均值 & 总分 & API 失败 \\
+    端点 & 完成数 & 令牌（M） & 积分 & 估计 QoR 均值 & $>$76 比例 \\
     \midrule
-    \HeadlineModelResultsRows
+    \MainModelResultsRows
     \bottomrule
   \end{tabular}}
 \end{table}
 
-\textbf{结果。} DeepSeek 提供了最广泛和最均衡的覆盖：
-\DeepSeekSuccessCount{}/\CorpusTaskCount{} 个完成，各类别均至少达到 24/25。
-Qwen3.5 少完成一个任务，但其 \QwenThreeFiveScoredTaskCount{} 个可评分任务
-构成最大的评分集合，并产生最高总分 \QwenThreeFiveScoreSum。DeepSeek 的
-更高评分均值 \DeepSeekScoredMean 适用于不同的
-\DeepSeekScoredTaskCount{} 个任务子集，因此并不构成成对质量优势。
+\textbf{结果。} 表~\ref{tab:headline-results} 总结了三次实验。
+Qwen3.6-27B 取得了 \QwenThreeSixSuccessRate{} 的完成率
+（\QwenThreeSixSuccessCount{}/\CorpusTaskCount{} 个任务，
+\QwenThreeSixFailureCount{} 次失败），包括在最具挑战性的结构 \CoSim{} 修复
+类别中取得 25/25 满分。尽管是最小的模型，它在完成率和优化质量上均超越了
+两个更大的 MoE 模型。Qwen3.5-122B-A10B 在令牌效率上最优
+（\QwenThreeFiveTokensM{}M 令牌），而 DeepSeek V4 Pro 消耗了
+\DeepSeekTokensM{}M 令牌（是 Qwen3.6 的 3.1$\times$），却未产生可测量的
+QoR 提升。
 
-Qwen3.6 达到 \QwenThreeSixSuccessCount{} 个完成，包括编译修复、综合修复和
-QoR 优化三个类别的满分 25/25。其残余差距集中在结构修复（18/25）和代码生成
-（21/25）。仅 \QwenThreeSixScoredTaskCount{} 个 Qwen3.6 任务具有评估分数，
-因此其总分并不能衡量大多数恢复后的完成。评分覆盖不均和残余的 API 失败
-阻碍了将端点差异完全归因于模型权重。
+逐类别分解（附录~\ref{app:results}）揭示四种模式。
+（1）仅显式 QoR 优化任务产生了超越基线的分数；全部五个修复/生成类别均聚集在
+$Q_{\mathrm{HW}}{\approx}0.7576$（$S{\approx}73.7$，$E{=}0.973$）附近。
+智能体通过了验证门，但未在修复任务上执行架构级优化。
+（2）Qwen3.6-27B 在优化质量上占优（平均 $Q_{\mathrm{HW}}{=}0.812$，60\%
+的优化任务 $>$76，52\% $>$80），而 Qwen3.5 平均为 $Q_{\mathrm{HW}}{=}0.775$
+（28\% $>$76）。
+（3）对 HLS 修复任务而言，模型架构似乎比参数量更具预测力：27\,B 稠密模型
+在结构修复上超越了 122\,B 和 1.6\,T 两个 MoE 模型（100\% vs.\ 80\% 和
+92\%）。
+
+\takeaway{Qwen3.6-27B 在完成率（\QwenThreeSixSuccessRate）和优化质量
+（QoR 任务平均 \QwenThreeSixQorScore{} 分）上均领先，表明对 HLS 修复而言
+架构比参数量更重要。仅显式优化任务受益于 LLM 驱动的 QoR 提升；修复任务
+达到了正确性但未获得质量收益。}
