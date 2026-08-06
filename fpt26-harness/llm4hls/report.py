@@ -40,8 +40,8 @@ class SynthReport:
         return asdict(self)
 
     def summary(self) -> str:
-        lat = self.latency_worst if self.latency_worst is not None else "?"
-        ii = self.interval_max if self.interval_max is not None else "?"
+        lat = self.latency_worst if self.latency_worst is not None else "data-dep"
+        ii = self.interval_max if self.interval_max is not None else "data-dep"
         r = self.resources
         return (
             f"latency(worst)={lat} cyc  II={ii}  clk~{self.clock_period_ns}ns  "

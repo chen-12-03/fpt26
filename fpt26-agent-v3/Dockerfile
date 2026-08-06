@@ -5,10 +5,7 @@ ARG TARGETARCH
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
-# Vitis 2025.2 is mounted from the host at runtime.  This image contains the
-# Linux runtime/build dependencies required by HLS plus the agent's Python
-# dependencies, so it no longer depends on a locally prebuilt vitis_runtime
-# image.
+# ── System dependencies (Vitis 2025.2 runtime + build tools) ──────────────
 RUN if [ -n "${TARGETARCH}" ] && [ "${TARGETARCH}" != "amd64" ]; then \
       echo "FPT26/Vitis 2025.2 requires an amd64 image (got ${TARGETARCH})" >&2; \
       exit 2; \
@@ -81,6 +78,7 @@ RUN if [ -n "${TARGETARCH}" ] && [ "${TARGETARCH}" != "amd64" ]; then \
       python3-pexpect \
       python3-pip \
       socat \
+      software-properties-common \
       tar \
       texinfo \
       tofrodos \
@@ -96,6 +94,7 @@ RUN if [ -n "${TARGETARCH}" ] && [ "${TARGETARCH}" != "amd64" ]; then \
     && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
+# ── Python dependencies ──────────────────────────────────────────────────
 COPY fpt26-agent-v3/requirements.txt /tmp/fpt26-requirements.txt
 RUN python3 -m pip install --no-cache-dir \
       -r /tmp/fpt26-requirements.txt \

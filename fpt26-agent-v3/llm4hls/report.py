@@ -44,8 +44,8 @@ class SynthReport:
         return asdict(self)
 
     def summary(self) -> str:
-        lat = self.latency_worst if self.latency_worst is not None else "?"
-        interval = self.interval_max if self.interval_max is not None else "?"
+        lat = self.latency_worst if self.latency_worst is not None else "data-dep"
+        interval = self.interval_max if self.interval_max is not None else "data-dep"
         r = self.resources
         loops = ", ".join(
             f"{loop['name']}(trip={loop['trip_count']},lat={loop['latency']},II={loop['pipeline_ii']})"

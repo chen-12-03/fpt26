@@ -17,12 +17,14 @@ Vitis 2025.2，目标平台为 Alveo U55C。
 export VITIS_SDK=/tools/Xilinx/2025.2/Vitis   # <-- 修改这一行
 ls "$VITIS_SDK/settings64.sh"                 # 验证路径存在
 
-# 1. 构建 Docker 镜像
+# 1. 构建 Docker 镜像（基础镜像为公开的 ubuntu:22.04）
+export FPT26_REPO_ROOT=$(pwd) HOST_UID=$(id -u) HOST_GID=$(id -g)
 docker compose -f fpt26-agent-v3/docker-compose.yml build
 
-# 2. 创建环境文件，填入你的 API Key
-cat > /tmp/fpt26.env << 'EOF'
-OPENROUTER_API_KEY=sk-or-v1-xxxxxxxx
+# 2. 创建环境文件，安全输入 API Key（输入时不显示，不入历史记录）
+read -s -p "粘贴 OpenRouter API Key: " KEY && echo
+cat > /tmp/fpt26.env << EOF
+OPENROUTER_API_KEY=${KEY}
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 LLM4HLS_MODEL=qwen/qwen3.6-27b
 EOF
