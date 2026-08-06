@@ -28,9 +28,9 @@ C/RTL 协同仿真。
 \end{table}
 
 内核来自两个 AMD 公开仓库的固定提交版本：
-\path{Xilinx/Vitis-HLS-Introductory-Examples}
+\url{https://github.com/Xilinx/Vitis-HLS-Introductory-Examples}
 （\IntroExampleTaskCount{} 个任务，Apache-2.0，\texttt{aa5c160f}）和
-\path{Xilinx/Vitis_Accel_Examples}
+\url{https://github.com/Xilinx/Vitis_Accel_Examples}
 （\AccelExampleTaskCount{} 个任务，MIT，\texttt{81187602}）。
 150 个变体重用了 \UniqueSourcePathCount{} 个独特源路径。
 
@@ -123,8 +123,7 @@ Qwen3.6-27B（27\,B 稠密，FP8）。
 
 任务清单：\path{tasks/track_a_150/candidate_manifest.json}。
 实验目录：\path{runs/150_ultimate/}。从仓库根目录执行
-\path{python3 technical-paper/scripts/update_results.py} 刷新宏；脚本在模型
-标识、任务数、API 客户端、执行源码哈希和积分限制均一致时才输出。
+\path{python3 technical-paper/scripts/update_results.py} 从原始运行报告重新生成所有宏。
 
 所有实验：源码快照 {\small\ExecutionSourceHash}，temperature~0，
 4,096 令牌输出限制，180\,s 请求超时，$\leq$2 次重试。

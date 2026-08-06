@@ -71,8 +71,11 @@ def _run_evaluator(args, task_dir, output_root):
             verbose=not args.quiet, submission_evidence=submission_evidence,
         )
         report_path = write_run_report(final_state)
+        from agent.reporting.resource_md import write_resource_summary_md
+        rp = write_resource_summary_md(final_state, Path(output_root) / task_dir.name)
         print_evaluation(final_state)
         artifact("Evaluator report", report_path)
+        artifact("Resource usage", rp)
         return _exit_code(final_state.status)
     except Exception as exc:
         rp = _bootstrap_failure(output_root=output_root, task_id=task_dir.name, run_role="evaluator",
@@ -158,10 +161,16 @@ def _run_submission(args, task_dir, output_root):
     ep = Path(output_root) / task.id / "submission_evidence.json"
     ep.parent.mkdir(parents=True, exist_ok=True)
     ep.write_text(_json.dumps(ev.to_dict(), indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # Resource usage markdown (human-readable, in same folder)
+    from agent.reporting.resource_md import write_resource_summary_md
+    rp = write_resource_summary_md(final_state, Path(output_root) / task.id)
+
     print_evaluation(final_state)
     artifact("Final kernel", Path(output_root) / task.id / f"final_{task.kernel_name}")
     artifact("Run report", report_path)
     artifact("Evidence", ep)
+    artifact("Resource usage", rp)
     print()
     return _exit_code(final_state.status)
 

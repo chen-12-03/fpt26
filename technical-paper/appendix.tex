@@ -29,9 +29,9 @@ Only the structural category requires C/RTL co-simulation.
 \end{table}
 
 Kernels come from two public AMD repositories at fixed commits:
-\path{Xilinx/Vitis-HLS-Introductory-Examples}
+\url{https://github.com/Xilinx/Vitis-HLS-Introductory-Examples}
 (\IntroExampleTaskCount{} tasks, Apache-2.0, \texttt{aa5c160f}) and
-\path{Xilinx/Vitis_Accel_Examples}
+\url{https://github.com/Xilinx/Vitis_Accel_Examples}
 (\AccelExampleTaskCount{} tasks, MIT, \texttt{81187602}).
 The 150 variants reuse \UniqueSourcePathCount{} unique source paths.
 
@@ -133,9 +133,7 @@ Scores are $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}).
 Task list: \path{tasks/track_a_150/candidate_manifest.json}.
 Campaigns: \path{runs/150_ultimate/}. Run
 \path{python3 technical-paper/scripts/update_results.py} from the
-repository root to refresh macros; the script validates model identity,
-task count, API client, execution-source hash, and credit limit before
-emitting output.
+repository root to regenerate all macros from the raw run reports.
 
 All campaigns: source snapshot {\small\ExecutionSourceHash},
 temperature~0, 4,096-token output limit, 180\,s request timeout, $\leq$2
