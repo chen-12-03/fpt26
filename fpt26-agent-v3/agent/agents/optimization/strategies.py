@@ -408,10 +408,16 @@ def _report_supported_action_violation(
                 + ", ".join(unsupported)
             )
         if len(selected_families) > 1:
-            return (
-                "candidate combines multiple optimization families; select "
-                "exactly one diagnosis-supported family"
-            )
+            # Source architecture evidence (TASK_PIPELINE, REDUCTION_PARALLELISM)
+            # is deterministic and independently confirmed.  When it co-occurs
+            # with a low-level diagnosis family (e.g. m_axi_widening_limit),
+            # the macro-optimisation takes priority — the M_AXI finding is
+            # often a red herring resolved by the structural fix.
+            if not coherent_source_composite:
+                return (
+                    "candidate combines multiple optimization families; select "
+                    "exactly one diagnosis-supported family"
+                )
     loop_metrics = list(getattr(report, "loop_metrics", None) or [])
     all_loops_measured_at_ii_one = bool(loop_metrics) and all(
         loop.get("pipeline_ii") == 1 for loop in loop_metrics

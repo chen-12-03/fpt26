@@ -42,7 +42,7 @@ docker run --rm \
   bash -c "source /tools/Xilinx/2025.2/Vitis/settings64.sh && \
     python3 -m agent.run_cli \
       --task-root /workspace/tasks/track_a_150 \
-      --task-id code_generation__01__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_256bit_1 \
+      --task-id qor_optimization__13__amd_intro__interface_streaming_axi_stream_to_master \
       --mode auto \
       --backend openrouter \
       --output-root /workspace/runs/demo"

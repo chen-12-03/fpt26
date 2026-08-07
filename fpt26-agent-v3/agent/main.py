@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from agent.cli import parse_args
 from agent.integrations.harness import Budget
@@ -28,6 +29,71 @@ from agent.console_ui import artifact, configure as configure_console, error, ru
 
 def _safe_error_message(exc: BaseException) -> str:
     return redact_sensitive_text(exc)
+
+
+def _submission_self_assessment(state: Any) -> Any | None:
+    """Compute a lightweight QoR scorecard from visible synth results.
+
+    Uses the starter (baseline) synthesis as the anchor and the final
+    candidate as evidence.  This provides approximate QoR feedback during
+    submission runs without requiring hidden tests or reference data.
+    Returns ``None`` when usable synth data is unavailable.
+    """
+    from agent.agents.optimization.scoring import score_candidate
+    from scoring.scoring_v3 import combine_score, efficiency_factor
+
+    # Find starter (baseline) synth — first successful synth in results
+    starter_result = None
+    for result in state.results:
+        if (getattr(result, "kind", None) == "synth"
+                and getattr(result, "ok", False)
+                and getattr(result, "report", None) is not None):
+            starter_result = result
+            break
+
+    # Find final candidate synth — last successful synth
+    candidate_result = None
+    for result in reversed(state.results):
+        if (getattr(result, "kind", None) == "synth"
+                and getattr(result, "ok", False)
+                and getattr(result, "report", None) is not None):
+            candidate_result = result
+            break
+
+    if starter_result is None or candidate_result is None:
+        return None
+
+    try:
+        card = score_candidate(
+            task=state.task,
+            anchor_report=starter_result.report,
+            candidate_report=candidate_result.report,
+        )
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+    if card is not None and card.valid:
+        # Override cost/time with actual budget consumption for honest
+        # efficiency display (score_candidate hardcodes zero).
+        budget = state.server.budget
+        actual_cost = int(getattr(budget, "spent", 0))
+        actual_time = sum(
+            getattr(r, "elapsed_s", 0.0)
+            for r in state.results
+            if hasattr(r, "elapsed_s")
+        )
+        card.cost_spent = actual_cost
+        card.cost_limit = int(state.task.budget)
+        card.wall_time_s = actual_time
+        card.efficiency = efficiency_factor(
+            actual_cost, int(state.task.budget), actual_time,
+        )
+        card.efficiency_source = "self_assessment"
+        card.score = round(
+            combine_score(True, card.q_hw, card.efficiency), 2,
+        )
+
+    return card
 
 
 def _bootstrap_failure(*, output_root, task_id, run_role, status, stop_reason, exc) -> Path:
@@ -161,6 +227,11 @@ def _run_submission(args, task_dir, output_root):
     ep = Path(output_root) / task.id / "submission_evidence.json"
     ep.parent.mkdir(parents=True, exist_ok=True)
     ep.write_text(_json.dumps(ev.to_dict(), indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # Lightweight self-assessment QoR scorecard — populates state.scorecard so
+    # that resource_usage.md and the terminal log both display the QoR score.
+    if final_state.scorecard is None:
+        final_state.scorecard = _submission_self_assessment(final_state)
 
     # Resource usage markdown (human-readable, in same folder)
     from agent.reporting.resource_md import write_resource_summary_md
