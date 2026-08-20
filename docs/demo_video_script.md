@@ -107,13 +107,13 @@ head -40 tasks/track_a_150/qor_optimization__13__amd_intro__interface_streaming_
 > The agent runs C simulation — passes immediately. Then synthesis for a baseline. The starter achieves latency of 136 cycles with an initiation interval of 137 — the three stages execute sequentially at 707 LUTs and 141 FFs.
 
 *（Agent 分析报告，生成修复）*
-> The agent analyzes the synthesis report. It identifies the sequential execution pattern — the bottleneck diagnosis flags `serial_loop_latency` as the primary finding, and source architecture analysis confirms a connected task-pipeline structure. The agent proposes `#pragma HLS DATAFLOW`. This single pragma enables task-level pipelining — demux, both proc instances, and mux can now run simultaneously in a streaming pipeline.
+> The agent analyzes the synthesis report. It identifies diagnoses the bottleneck: the three stages run sequentially. It proposes a single fix — #pragma HLS DATAFLOW — enabling task-level pipelining so all stages overlap.
 
 *（Agent 通过所有 gates）*
 > The candidate passes every gate — Interface, CSim, Synthesis, Frequency, Capacity. With DATAFLOW, the three stages overlap: demux processes the next batch while proc computes and mux writes the previous result. The candidate becomes the new verified fallback.
 
 *（Agent 结束时）*
-> The run completes in one iteration, consuming 10 of 60 credits in under 53 seconds with a single API request. The agent writes the final kernel, run report, and submission evidence.
+> The run completes in one iteration, consuming 10 of 60 credits with a single API request. The agent writes the final kernel, run report, and submission evidence.
 
 ---
 
@@ -129,9 +129,9 @@ cat runs/demo/*/resource_usage.md
 ```
 
 **旁白**：
-> Let's examine what the agent delivered. The diff shows one line added: `#pragma HLS DATAFLOW`. Before optimization, demux, proc, and mux ran sequentially — total latency was 136 cycles. After adding DATAFLOW, latency drops to 54 cycles — a 60% reduction. The three stages now overlap as a task-level pipeline: demux processes the next batch while proc computes the current one and mux writes the previous result. True streaming parallelism from a single pragma.
+> Let's examine what the agent delivered. The diff shows one line added: `#pragma HLS DATAFLOW`. After adding DATAFLOW, latency drops to 54 cycles — a 60% reduction. The three stages now overlap as a task-level pipeline: demux processes the next batch while proc computes the current one and mux writes the previous result.
 
-> The resource usage report shows QoR metrics. Q_HW combines performance and area ratios — score 85.17 out of 100 — up from 75. Latency dropped from 136 to 54 cycles — a 60% reduction — while resource usage stayed within U55C limits: 616 LUTs, 162 FFs.
+> The resource usage report shows QoR metrics. Q_HW combines performance and area ratios — score 85.17 out of 100. Latency dropped from 136 to 54 cycles while resource usage stayed within U55C limits.
 
 > The evidence records the full verification chain: CSim pass, Synthesis pass, all gates green. Every decision grounded in tool evidence — that's the VCL.
 
@@ -141,11 +141,11 @@ cat runs/demo/*/resource_usage.md
 
 **屏幕操作**：
 ```bash
-head -80 runs/150_ultimate/CROSS_MODEL_REPORT.md
+sed -n '1,14p;18,25p;39,48p;99,105p;130,136p' runs/150_ultimate/CROSS_MODEL_REPORT.md
 ```
 
 **旁白**：
-> We evaluated three open-weight models: DeepSeek V4 Pro — a 1.6T MoE with 49B active parameters; Qwen3.5-122B — 10B active MoE; and Qwen3.6-27B — a dense 27B model. The smallest model achieves the highest completion rate and best optimization quality. On structural co-simulation repair, it scores 100% versus 80% for Qwen3.5. Architecture matters more than parameter count for HLS repair.
+> We evaluated three open-weight models. The smallest model achieves the highest completion rate and best optimization quality. On structural co-simulation repair, it scores 100% versus 80% for Qwen3.5. We believe architecture matters more than parameter count for HLS repair.
 
 ---
 
@@ -157,7 +157,7 @@ ls
 ```
 
 **旁白**：
-> To summarize: a self-contained agent with Docker reproducibility; a balanced 150-task benchmark; a Verified-Candidate Loop grounding every decision in tool evidence — as we saw with the DATAFLOW pragma insertion based on synthesis feedback; pre-computed results for three open-weight models; and an IEEE two-page paper. Qwen3.6-27B, the smallest model, achieves the best completion rate including 100% on structural co-simulation repair. Architecture matters more than parameter count. Thank you for reviewing our submission.
+> To summarize: a self-contained Docker agent; a balanced 150-task benchmark; a Verified-Candidate Loop; pre-computed results across three open-weight models; and an IEEE paper. We believe architecture matters more than parameter count. Thank you for reviewing our submission.
 
 ---
 
