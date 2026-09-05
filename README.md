@@ -115,9 +115,11 @@ LLM4HLS_MODEL=qwen/qwen3.6-27b
 │   ├── deepseek/
 │   ├── qwen3.5-122b-a10b/
 │   └── qwen3.6-27b/
+├── docs/experiment-results.md  # Detailed paper experiment tables
 ├── technical-paper/         # IEEE double-column paper + LaTeX source
 │   ├── main.pdf
 │   ├── main.tex
+│   ├── output/pdf/FPT26_46474_NULL.pdf
 │   └── sections/
 └── README.md
 ```
@@ -176,6 +178,9 @@ python3 tools/write_track_a_final_summary.py \
 
 ## Reproducing Paper Results
 
+The detailed tables omitted from the two-page paper are collected in
+[`docs/experiment-results.md`](docs/experiment-results.md).
+
 1. Place the three model outputs under `runs/150_ultimate/` (already provided
    with submission evidence).
 2. Refresh generated macros:
@@ -190,7 +195,7 @@ python3 tools/write_track_a_final_summary.py \
 
 ## Submission Checklist (Track-A)
 
-- [x] Technical paper (IEEE double-column, ≤ 2 pages + appendices)
+- [x] Technical paper (IEEE double-column, ≤ 2 pages including figures and references)
 - [x] Dockerfile with reproducible build
 - [x] Agent source code
 - [x] Task corpus (150 balanced tasks)

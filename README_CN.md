@@ -114,10 +114,11 @@ LLM4HLS_MODEL=qwen/qwen3.6-27b
 │   ├── deepseek/
 │   ├── qwen3.5-122b-a10b/
 │   └── qwen3.6-27b/
+├── docs/experiment-results.md  # 论文详细实验结果
 ├── technical-paper/         # IEEE 双栏论文与 LaTeX 源码
 │   ├── main.pdf
-│   ├── main_cn.pdf          #   中文版（审核用）
 │   ├── main.tex
+│   ├── output/pdf/FPT26_46474_NULL.pdf
 │   └── sections/
 ├── README.md                # 英文说明
 └── README_CN.md             # 本文件
@@ -176,6 +177,9 @@ python3 tools/write_track_a_final_summary.py \
 
 ## 复现论文结果
 
+两页论文中省略的详细表格汇总在
+[`docs/experiment-results.md`](docs/experiment-results.md)。
+
 1. 将三个模型的输出放入 `runs/150_ultimate/`（已随提交证据提供）。
 2. 刷新生成的宏：
    ```bash
@@ -192,7 +196,7 @@ python3 tools/write_track_a_final_summary.py \
 
 ## 提交清单（Track-A）
 
-- [x] 技术论文（IEEE 双栏，正文 ≤ 2 页 + 附录）
+- [x] 技术论文（IEEE 双栏，图、表和参考文献合计不超过 2 页）
 - [x] Dockerfile 可复现构建
 - [x] 智能体源码
 - [x] 任务语料库（150 均衡任务）

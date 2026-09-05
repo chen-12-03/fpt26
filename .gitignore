@@ -7,6 +7,7 @@ Thumbs.db
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp/
 .mypy_cache/
 .ruff_cache/
 .coverage
@@ -51,9 +52,25 @@ xsim.dir/
 **/agent_runs/
 **/generated/
 !tasks/generated/
+/work/vitis_task/
 *.7z
 *.zip
 *.tar.gz
+
+# LaTeX build intermediates (keep final PDFs trackable)
+*.aux
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.xdv
+*.log
+texput.*
 
 # IDE
 .vscode/
