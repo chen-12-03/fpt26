@@ -1,22 +1,23 @@
-\section{任务完成超过评分覆盖}
+\section{完成率与代理质量由不同端点领先}
 \label{sec:evaluation}
 
 \textbf{实验协议。} 三个云端端点在同一个智能体修订版和 Track-A
 契约~\cite{fpt26tracka} 下处理相同的 \CorpusTaskCount{} 个均衡任务套件。
-模型覆盖三种架构—规模体制：DeepSeek V4 Pro（1.6\,T MoE，49\,B 激活）、
-Qwen3.5-122B-A10B（122\,B MoE，10\,B 激活）和 Qwen3.6-27B（27\,B 稠密）。
+我们报告公开门控完成率，以及提交侧综合产生的 starter 锚定 QoR 代理指标。
+该指标仅覆盖25个显式优化任务，并使用公式~\eqref{eq:score}；它不包含评测侧
+隐藏验证和 reference 回退。
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{最小的稠密模型领先。} 分数估计为
-  $100\,Q_{\mathrm{HW}}\,E$。DeepSeek 优化任务平均分低于 73.2 基线；
-  详见附录~\ref{app:results}。}
+  \caption{\textbf{完成率与代理质量由不同端点领先。} QoR 代理指标为
+  $100\,Q_{\mathrm{HW}}\,E$，使用25个优化任务的提交侧综合结果与 starter
+  进行比较。}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lrrrrr}
     \toprule
-    端点 & 完成数 & 令牌（M） & 积分 & 估计 QoR 均值 & $>$76 比例 \\
+    端点 & 完成数 & 令牌（M） & 积分 & QoR 代理均值 & 代理 $>$76 \\
     \midrule
     \MainModelResultsRows
     \bottomrule
@@ -26,25 +27,21 @@ Qwen3.5-122B-A10B（122\,B MoE，10\,B 激活）和 Qwen3.6-27B（27\,B 稠密�
 \textbf{结果。} 表~\ref{tab:headline-results} 和逐类别分解（附录
 ~\ref{app:results}）揭示三种模式。
 
-（1）\textbf{仅显式优化提升质量。} 全部五个修复/生成类别均聚集在基线
-$Q_{\mathrm{HW}}{\approx}0.7576$（$S{\approx}73.7$，$E{=}0.973$）附近。
-智能体通过了验证门，但未在修复任务上执行架构级优化。
-
-（2）\textbf{架构优于参数量。} 27\,B 稠密的 Qwen3.6-27B 取得了
+（1）\textbf{Qwen3.6 的公开门控完成率最高。} Qwen3.6-27B 取得了
 \QwenThreeSixSuccessRate{} 的完成率（\QwenThreeSixSuccessCount{}/
-\CorpusTaskCount{} 个任务），包括结构 \CoSim{} 修复的 25/25 满分，并在优化
-质量上领先（平均 $Q_{\mathrm{HW}}{=}0.812$，60\% 的优化任务 $>$76）。
-Qwen3.5-122B-A10B 平均为 $Q_{\mathrm{HW}}{=}0.775$（28\% $>$76），但在结构
-修复上落后（80\% vs.\ 100\%）。DeepSeek V4 Pro 完成了 \DeepSeekSuccessCount{}
-个任务，消耗 \DeepSeekTokensM{}M 令牌（是 Qwen3.6 的 3.1$\times$），但在
-25 个优化任务上平均仅得 \DeepSeekQorScore{} 分——低于 73.2 基线，远不及
-Qwen3.6 的 \QwenThreeSixQorScore{} 分。其候选方案频繁以面积换延迟（例如某
-任务 LUT +577\% 仅换取 30\% 延迟降低），在 55/45 的性能/面积权重下
-$h{\approx}1$，无净 $Q_{\mathrm{HW}}$ 收益。
+\CorpusTaskCount{} 个任务），包括结构 \CoSim{} 修复的25/25。Qwen3.5 的结构
+修复完成数为20/25，是本次比较中的最低分类结果。
 
-（3）\textbf{结构 \CoSim{} 类别是最强的模型区分器。} 最佳（100\%）与最差
-（80\%）结构修复率之间的差距超过任何其他类别。CoSim 死锁修复需要协调的接口
-变更，稠密架构在此任务上似乎优于 MoE，与第~\ref{sec:vcl}~节的失败分类一致。
+（2）\textbf{DeepSeek 以更高令牌成本取得最高优化代理指标。} DeepSeek 的平均
+$Q_{\mathrm{HW}}$ 为 \DeepSeekQorQhw{}，代理均值为 \DeepSeekQorProxy{}，其中
+\DeepSeekProxyAboveRate{} 的任务高于76。Qwen3.6 的对应结果为
+\QwenThreeSixQorQhw{} 和 \QwenThreeSixQorProxy{}；Qwen3.5 为
+\QwenThreeFiveQorQhw{} 和 \QwenThreeFiveQorProxy{}。DeepSeek 使用的令牌是
+Qwen3.6 的3.1$\times$，Qwen3.5 使用的令牌最少。
 
-\takeaway{Qwen3.6-27B 在完成率和优化质量上均领先；对 HLS 修复而言架构比参数
-量更重要。仅显式优化任务受益于 LLM 驱动的 QoR 提升。}
+（3）\textbf{三个端点呈现完成率、代理质量和成本之间的权衡。} Qwen3.6 的完成率
+最高，DeepSeek 的优化代理指标最高，Qwen3.5 的令牌用量最低。每个端点只有一次
+运行，而且托管服务商不同，因此不能把差异单独归因于模型架构。
+
+\takeaway{Qwen3.6 的公开门控完成率最高，DeepSeek 的 starter 锚定优化代理指标
+最高，Qwen3.5 使用的令牌最少。}

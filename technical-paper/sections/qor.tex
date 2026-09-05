@@ -3,7 +3,7 @@
 $Q_{\mathrm{HW}}$ combines performance gain and resource cost into a single
 bounded utility. Let anchor $a$ and candidate $c$ have cycle latency $L$,
 effective period $p$, and initiation interval $II$. The performance ratio
-$r_P = (p_a L_a)/(p_c L_c)$ captures speedup; the area ratio $r_A$ uses a
+$r_P = (p_a L_a)/(p_c L_c)$ captures speedup. The area ratio $r_A$ uses a
 capacity-normalized footprint $F(x)=\sum_{r} x_r/K_r$ over LUT, FF, DSP,
 BRAM, and URAM to prevent discontinuous jumps from resource transfers. Two
 evidence factors reward source edits ($D$, $1.01{\times}$) and validity
@@ -12,8 +12,8 @@ $h = 1.01^{D}\,2^{F}\,r_P^{\,0.55}\,r_A^{\,0.45}$ weights performance at
 55\% and area at 45\%, calibrated against 99 frozen PPA references.
 
 $Q_{\mathrm{HW}} = 1-1/(1+h)^2$ maps $h{=}1$ (no change) to $0.75$,
-$h{\to}\infty$ to $1$, and $h{\to}0$ to $0$, with continuous degradation
-for bloated speedups. Budget efficiency
+$h{\to}\infty$ to $1$, and $h{\to}0$ to $0$. The mapping degrades
+continuously for bloated speedups. Budget efficiency
 $E = \max(0.80,\,1-0.10u_{\mathrm{credit}}-0.10u_{\mathrm{time}})$
 discounts excessive tool calls with a floor at $0.80$, where each $u$ is
 the consumed fraction clipped to $[0,1]$. The final score is

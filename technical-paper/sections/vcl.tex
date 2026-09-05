@@ -17,10 +17,11 @@ Gate failures fall into three actionable classes, each driving a specific
 repair strategy without extra LLM calls. \textbf{Interface mismatches}
 (\CandidateInterfaceRejectCount{} of \CandidateEventCount{} candidates, 16\%)
 trigger API-usage constraints fixing function signatures and pragma syntax.
-\textbf{Synthesis bottlenecks}---timing violations, resource overruns, II
-blow-up---yield directive constraints (pipeline/unroll, array partitioning)
-from QoR-RAG. \textbf{Co-simulation deadlocks} (C/RTL interface mismatch)
-are repaired via handshake insertion and port-width correction. Duplicate
+\textbf{Synthesis bottlenecks} include timing violations, resource overruns,
+and II blow-up. QoR-RAG converts them into directive constraints such as
+pipeline, unroll, and array partitioning. The controller repairs
+\textbf{co-simulation deadlocks} via handshake insertion and port-width
+correction. Duplicate
 candidates and repeated failures stop retries.
 
 Figure~\ref{fig:vcl} summarises the loop. Across three campaigns:

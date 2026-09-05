@@ -15,7 +15,7 @@ from `technical-paper/results_generated.tex`:
 
 1. overall task completion rate (%);
 2. structural-repair completion rate (%);
-3. mean official score on the 25 QoR tasks; and
+3. mean starter-anchored submission-side QoR proxy on the 25 optimization tasks; and
 4. total model tokens (millions).
 
 Use a compact grouped-bar or dot-plot design. Keep the two success measures
@@ -33,5 +33,5 @@ unit. Do not recompute values from prose.
 ## Caption
 
 Structural repair separates the three endpoints. Plot overall and structural
-completion (%), mean official score on the 25 QoR tasks, and total tokens
-using the generated merged-record aggregates.
+completion (%), mean starter-anchored QoR proxy on the 25 optimization tasks,
+and total tokens using the audited submission records.

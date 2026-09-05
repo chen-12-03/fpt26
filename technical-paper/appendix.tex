@@ -86,14 +86,13 @@ The three checkpoints span three architecture regimes: DeepSeek V4 Pro
 \label{app:results}
 
 Tables~\ref{tab:category-success} and~\ref{tab:costs} provide the
-per-category breakdown underlying Section~\ref{sec:evaluation}.
-Scores are $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}).
+per-category breakdown underlying Section~\ref{sec:evaluation}. The QoR
+proxy is $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}) from
+starter-anchored submission-side synthesis on optimization tasks.
 
 \begin{table}[H]
   \caption{\textbf{Per-category completion by endpoint.}
-  Each category: 25 tasks. QoR mean: optimization tasks only.
-  DeepSeek's score is below the 73.2 baseline; its candidates trade
-  latency for area (e.g., LUT +577\% to save 30\% latency on one task).}
+  Each category contains 25 tasks. The QoR proxy covers optimization tasks.}
   \label{tab:category-success}
   \centering
   \footnotesize
@@ -109,14 +108,14 @@ Scores are $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}).
     Structural repair & 23/25 (92\%) & 20/25 (80\%) & 25/25 (100\%) \\
     QoR optimization & 25/25 (100\%) & 25/25 (100\%) & 25/25 (100\%) \\
     \midrule
-    QoR mean (opt.) & 56.1 & 75.4 & 79.0 \\
+    QoR proxy (opt.) & 85.5 & 76.3 & 79.7 \\
     \bottomrule
   \end{tabular}}
 \end{table}
 
 \begin{table}[H]
   \caption{\textbf{Token consumption and credit expenditure.}
-  DeepSeek used 3.1$\times$ more tokens than Qwen3.6 with no QoR gain.}
+  DeepSeek used 3.1$\times$ more tokens than Qwen3.6 and led the QoR proxy.}
   \label{tab:costs}
   \centering
   \small
@@ -133,9 +132,12 @@ Scores are $100\,Q_{\mathrm{HW}}\,E$ (Eq.~\eqref{eq:score}).
 \label{app:reproduction}
 
 Task list: \path{tasks/track_a_150/candidate_manifest.json}.
-Campaigns: \path{runs/150_ultimate/}. Run
-\path{python3 technical-paper/scripts/update_results.py} from the
-repository root to regenerate all macros from the raw run reports.
+Campaigns: \path{runs/150_ultimate/}. The proxy macros in
+\path{technical-paper/results_generated.tex} were audited from the selected
+optimization-task \path{run_report.json} files using the definition in
+Section~\ref{sec:evaluation}. The existing \path{update_results.py} helper
+targets future evaluator \path{final_report.json} inputs and does not generate
+the submission-side proxy table.
 
 All campaigns: source snapshot {\small\ExecutionSourceHash},
 temperature~0, 4,096-token output limit, 180\,s request timeout, $\leq$2

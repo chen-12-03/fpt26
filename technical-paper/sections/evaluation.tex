@@ -1,24 +1,25 @@
-\section{Completion Outpaces Score Coverage}
+\section{Completion and Proxy Quality Favor Different Endpoints}
 \label{sec:evaluation}
 
 \textbf{Protocol.} Three hosted endpoints process the same balanced
-\CorpusTaskCount{}-task suite under one agent revision under the Track-A
-contract~\cite{fpt26tracka}. The models span three architecture--scale
-regimes: DeepSeek V4 Pro (1.6\,T MoE, 49\,B active), Qwen3.5-122B-A10B
-(122\,B MoE, 10\,B active), and Qwen3.6-27B (27\,B dense).
+\CorpusTaskCount{}-task suite under one agent revision and the Track-A
+contract~\cite{fpt26tracka}. We report public-gate completion and a
+starter-anchored QoR proxy from submission-side synthesis. The proxy applies
+Eq.~\eqref{eq:score} to the 25 explicit optimization tasks; it excludes
+evaluator-side hidden validation and reference fallback.
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{The smallest dense model leads.} Scores estimated as
-  $100\,Q_{\mathrm{HW}}\,E$. DeepSeek averages below the 73.2 baseline on
-  optimization tasks; the accompanying repository provides per-task detail.}
+  \caption{\textbf{Completion and proxy quality favor different endpoints.}
+  The QoR proxy is $100\,Q_{\mathrm{HW}}\,E$, computed against the starter
+  from submission-side synthesis for the 25 optimization tasks.}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lrrrrr}
     \toprule
-    Endpoint & Completed & Tokens (M) & Credits & Est.\ QoR mean &
-    $>$76 rate \\
+    Endpoint & Completed & Tokens (M) & Credits & QoR proxy &
+    Proxy $>$76 \\
     \midrule
     \MainModelResultsRows
     \bottomrule
@@ -28,30 +29,25 @@ regimes: DeepSeek V4 Pro (1.6\,T MoE, 49\,B active), Qwen3.5-122B-A10B
 \textbf{Results.} Table~\ref{tab:headline-results} and the repository's
 per-category breakdown yield three patterns.
 
-(1)~\textbf{Only explicit optimization improves quality.} All five
-repair/generation categories cluster at the baseline
-$Q_{\mathrm{HW}}{\approx}0.7576$ ($S{\approx}73.7$ with $E{=}0.973$).
-The agent passes validation gates but performs no architecture-level
-optimization on repair tasks.
-
-(2)~\textbf{Architecture trumps parameter count.} Qwen3.6-27B achieves
+(1)~\textbf{Qwen3.6 leads public-gate completion.} Qwen3.6-27B achieves
 \QwenThreeSixSuccessRate{} completion (\QwenThreeSixSuccessCount{}/
 \CorpusTaskCount{}), including 25/25 on structural \CoSim{}, and leads
-optimization quality (avg.\ $Q_{\mathrm{HW}}{=}0.812$, 60\% $>$76).
-Qwen3.5-122B-A10B scores avg.\ $Q_{\mathrm{HW}}{=}0.775$ (28\% $>$76)
-but trails on structural repair (80\% vs.\ 100\%). DeepSeek V4 Pro
-(\DeepSeekSuccessCount{} completed, \DeepSeekTokensM{}M tokens,
-3.1$\times$ Qwen3.6) averages only \DeepSeekQorScore{} on optimization
-tasks---below the 73.2 baseline. Its candidates trade latency for area
-(e.g., LUT +577\% to save 30\% latency), yielding $h{\approx}1$.
+the other endpoints in code generation. Qwen3.5 records 20/25 structural
+completions, the lowest category result in the comparison.
 
-(3)~\textbf{The structural \CoSim{} category is the strongest model
-discriminator.} The gap between the best (100\%) and worst (80\%)
-structural repair rate exceeds the gap in any other category. CoSim
-deadlock repair requires coordinated interface changes that appear to
-favor dense architectures over MoE, consistent with the failure
-classification in Section~\ref{sec:vcl}.
+(2)~\textbf{DeepSeek leads the optimization proxy at higher token cost.}
+DeepSeek reaches mean $Q_{\mathrm{HW}}{=}\DeepSeekQorQhw{}$ and proxy
+\DeepSeekQorProxy{}, with \DeepSeekProxyAboveRate{} of tasks above 76.
+Qwen3.6 reaches $Q_{\mathrm{HW}}{=}\QwenThreeSixQorQhw{}$ and proxy
+\QwenThreeSixQorProxy{}; Qwen3.5 reaches
+$Q_{\mathrm{HW}}{=}\QwenThreeFiveQorQhw{}$ and proxy
+\QwenThreeFiveQorProxy{}. DeepSeek uses 3.1$\times$ Qwen3.6's tokens, while
+Qwen3.5 uses the fewest tokens.
 
-\takeaway{Qwen3.6-27B leads both completion and optimization quality;
-architecture matters more than parameter count for HLS repair. Only
-explicit optimization tasks benefit from LLM-driven QoR improvement.}
+(3)~\textbf{The campaigns expose a coverage--quality--cost tradeoff.}
+Qwen3.6 leads completion, DeepSeek leads the optimization proxy, and Qwen3.5
+minimizes token use. One campaign per endpoint and different hosted providers
+prevent attribution of these gaps to model architecture alone.
+
+\takeaway{Qwen3.6 leads public-gate completion, DeepSeek leads the
+starter-anchored optimization proxy, and Qwen3.5 uses the fewest tokens.}

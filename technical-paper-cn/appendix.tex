@@ -77,12 +77,12 @@ Qwen3.6-27B（27\,B 稠密，FP8）。
 \label{app:results}
 
 表~\ref{tab:category-success} 和~\ref{tab:costs} 提供第~\ref{sec:evaluation}~节
-背后的逐类别分解。分数为 $100\,Q_{\mathrm{HW}}\,E$（公式~\eqref{eq:score}）。
+背后的逐类别分解。QoR 代理指标为 $100\,Q_{\mathrm{HW}}\,E$
+（公式~\eqref{eq:score}），使用优化任务的提交侧综合结果与 starter 比较。
 
 \begin{table}[H]
-  \caption{\textbf{各端点逐类别完成率。} 每类 25 个任务。QoR 均值仅针对优化
-  任务。DeepSeek 得分低于 73.2 基线；其候选方案以面积换延迟（例如某任务
-  LUT +577\% 仅换取 30\% 延迟降低）。}
+  \caption{\textbf{各端点逐类别完成率。} 每类25个任务。QoR 代理指标仅覆盖
+  优化任务。}
   \label{tab:category-success}
   \centering
   \footnotesize
@@ -98,14 +98,14 @@ Qwen3.6-27B（27\,B 稠密，FP8）。
     结构修复 & 23/25 (92\%) & 20/25 (80\%) & 25/25 (100\%) \\
     QoR 优化 & 25/25 (100\%) & 25/25 (100\%) & 25/25 (100\%) \\
     \midrule
-    QoR 均值（优化任务） & 56.1 & 75.4 & 79.0 \\
+    QoR 代理均值（优化任务） & 85.5 & 76.3 & 79.7 \\
     \bottomrule
   \end{tabular}}
 \end{table}
 
 \begin{table}[H]
   \caption{\textbf{令牌消耗与积分支出。}
-  DeepSeek 消耗了 Qwen3.6 的 3.1$\times$ 令牌，但无 QoR 收益。}
+  DeepSeek 消耗了 Qwen3.6 的3.1$\times$令牌，并取得最高 QoR 代理指标。}
   \label{tab:costs}
   \centering
   \small
@@ -122,8 +122,10 @@ Qwen3.6-27B（27\,B 稠密，FP8）。
 \label{app:reproduction}
 
 任务清单：\path{tasks/track_a_150/candidate_manifest.json}。
-实验目录：\path{runs/150_ultimate/}。从仓库根目录执行
-\path{python3 technical-paper/scripts/update_results.py} 从原始运行报告重新生成所有宏。
+实验目录：\path{runs/150_ultimate/}。\path{technical-paper/results_generated.tex}
+中的代理指标宏，是依据第~\ref{sec:evaluation}~节的定义从选中的优化任务
+\path{run_report.json} 审计得到的。现有 \path{update_results.py} 仅面向未来的
+评估器 \path{final_report.json} 输入，不生成提交侧代理指标表。
 
 所有实验：源码快照 {\small\ExecutionSourceHash}，temperature~0，
 4,096 令牌输出限制，180\,s 请求超时，$\leq$2 次重试。

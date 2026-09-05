@@ -13,21 +13,22 @@ accounting, and reproduction pointers in one place.
 - Target: AMD Alveo U55C with Vitis 2025.2 and a minimum 100 MHz clock.
 - Three hosted endpoints were evaluated under one task manifest and agent
   revision: DeepSeek V4 Pro, Qwen3.5-122B-A10B, and Qwen3.6-27B.
-- Scores use `S = 100 * V(c) * Q_HW * E`; optimization-only means are reported
-  separately from the headline estimated means.
+- We report public-gate completion and a starter-anchored QoR proxy from
+  submission-side synthesis.
+- The proxy uses `100 * Q_HW * E` on the 25 optimization tasks. It excludes
+  evaluator-side hidden validation and reference fallback.
 
 ## Headline results
 
-| Endpoint | Completed | Tokens (M) | Credits | Estimated mean | >76 rate |
+| Endpoint | Completed | Tokens (M) | Credits | QoR proxy | Proxy >76 |
 |---|---:|---:|---:|---:|---:|
-| DeepSeek V4 Pro | 144/150 (96.0%) | 5.87 | 2,617 | 70.6 | 3/144 (2%) |
-| Qwen3.5-122B-A10B | 140/150 (93.3%) | 1.68 | 2,375 | 74.0 | 7/140 (5%) |
-| Qwen3.6-27B | 148/150 (98.7%) | 1.92 | 2,515 | 74.6 | 15/148 (10%) |
+| DeepSeek V4 Pro | 144/150 (96.0%) | 5.87 | 2,617 | 85.5 | 22/25 (88%) |
+| Qwen3.5-122B-A10B | 140/150 (93.3%) | 1.68 | 2,375 | 76.3 | 7/25 (28%) |
+| Qwen3.6-27B | 148/150 (98.7%) | 1.92 | 2,515 | 79.7 | 15/25 (60%) |
 
-Qwen3.6-27B has the highest completion rate and the best optimization-only
-mean. Qwen3.5-122B-A10B uses the fewest tokens. DeepSeek V4 Pro uses about
-3.1 times as many tokens as Qwen3.6-27B while producing a lower
-optimization-only mean.
+Qwen3.6-27B has the highest completion rate. DeepSeek V4 Pro has the highest
+optimization proxy and uses about 3.1 times as many tokens as Qwen3.6-27B.
+Qwen3.5-122B-A10B uses the fewest tokens.
 
 ## Completion by category
 
@@ -41,7 +42,7 @@ Each category contains 25 tasks.
 | Functional repair | 24/25 (96%) | 24/25 (96%) | 24/25 (96%) |
 | Structural repair | 23/25 (92%) | 20/25 (80%) | 25/25 (100%) |
 | QoR optimization | 25/25 (100%) | 25/25 (100%) | 25/25 (100%) |
-| Optimization-only mean | 56.1 | 75.4 | 79.0 |
+| Optimization QoR proxy | 85.5 | 76.3 | 79.7 |
 
 ## Token and credit accounting
 
@@ -70,17 +71,16 @@ commit `81187602`. The 150 variants reuse 65 unique source paths.
 
 ## Evidence and reproduction
 
-- Cross-model summary: [`runs/150_ultimate/CROSS_MODEL_REPORT.md`](../runs/150_ultimate/CROSS_MODEL_REPORT.md)
+- Legacy cross-model summary: [`runs/150_ultimate/CROSS_MODEL_REPORT.md`](../runs/150_ultimate/CROSS_MODEL_REPORT.md). Its DeepSeek QoR lookup used the wrong directory name and is superseded by the audited values above.
 - Raw campaign evidence: [`runs/150_ultimate/`](../runs/150_ultimate/)
 - Frozen task manifest: [`tasks/track_a_150/candidate_manifest.json`](../tasks/track_a_150/candidate_manifest.json)
 - Generated paper values: [`technical-paper/results_generated.tex`](../technical-paper/results_generated.tex)
 - Track-A compliance evidence: [`docs/p0-compliance-report.md`](p0-compliance-report.md)
 
-Regenerate the paper macros from the repository root:
-
-```bash
-python3 technical-paper/scripts/update_results.py
-```
+The current paper values are audited directly from the selected
+`run_report.json` files. `technical-paper/scripts/update_results.py` targets
+future evaluator-generated `final_report.json` inputs and does not regenerate
+this submission-side proxy table.
 
 All reported campaigns use source snapshot
 `0a06af39777b6ae7f3962afa2910232eaf782e91727e0f184ec168f1`, temperature 0,

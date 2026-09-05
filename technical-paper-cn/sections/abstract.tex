@@ -4,11 +4,9 @@
 QoR 引导的检索增强生成（QoR-RAG）复用兼容证据，失败反思（Failure
 Reflection）将工具诊断信息转化为下一轮约束，无需额外模型调用。我们在涵盖
 六种 HLS 能力的 150 个均衡任务套件上评估了三个开放权重的大语言模型端点。
-Qwen3.6-27B——最小的模型（27\,B 稠密）——取得了最高的完成率
-（\QwenThreeSixSuccessRate，\QwenThreeSixSuccessCount{}/\CorpusTaskCount{}
-个任务）和最优的估计优化分数（QoR 任务平均 \QwenThreeSixQorScore{} 分）。
-Qwen3.5-122B-A10B（\QwenThreeFiveSuccessCount{} 个完成）在令牌效率上最优。
-DeepSeek V4 Pro（\DeepSeekSuccessCount{} 个完成）消耗了 \DeepSeekTokensM{}M
-令牌，但优化任务平均仅得 \DeepSeekQorScore{} 分，低于 73.2 的基线。仅显式优化任务超越了基线
-$Q_{\mathrm{HW}}$；修复任务达到了正确性但未获得质量收益。对 HLS 修复任务
-而言，模型架构似乎比参数量更重要。
+我们报告公开门控完成率，以及提交侧综合产生的 starter 锚定 QoR 代理指标。
+Qwen3.6-27B 取得最高完成率（\QwenThreeSixSuccessRate，
+\QwenThreeSixSuccessCount{}/\CorpusTaskCount{} 个任务）。DeepSeek V4 Pro
+在25个优化任务上的代理均值最高（\DeepSeekQorProxy{}），并消耗
+\DeepSeekTokensM{}M 令牌。Qwen3.5-122B-A10B 使用的令牌最少。每个端点仅有
+一次运行，因此这些结果不能单独归因于模型架构。
