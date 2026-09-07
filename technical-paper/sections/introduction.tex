@@ -18,7 +18,7 @@ Capacity, required \CoSim, and Metric completeness.
 \textbf{(2) Hardware objective.} The bounded score $Q_{\mathrm{HW}}$ combines
 effective latency, capacity-normalized resource footprint, and source-change
 evidence to reject costly speedups.
-\textbf{(3) Endpoint evaluation.} Qwen3.6-27B achieves the highest public-gate
-completion rate (\QwenThreeSixSuccessRate), DeepSeek leads the
-starter-anchored optimization proxy, and Qwen3.5 uses the fewest tokens
-(Section~\ref{sec:evaluation}).
+\textbf{(3) Independent endpoint evaluation.} Hidden reevaluation checks every
+public-completed kernel; on the fully scoreable 25-task optimization slice,
+DeepSeek leads both QoR measures, while Qwen3.6 leads public completion and
+Qwen3.5 minimizes token use (Section~\ref{sec:evaluation}).

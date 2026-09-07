@@ -1,17 +1,15 @@
+\newpage
 \section{Limits and Next Steps}
 
 The \VCL{} makes validation evidence and $Q_{\mathrm{HW}}$ the promotion
-authority. The capacity-normalized resource footprint replaces
-worst-single-growth with a continuous aggregate ratio. Qwen3.6-27B leads
-public-gate completion at \QwenThreeSixSuccessRate. DeepSeek V4 Pro leads the
-starter-anchored optimization proxy at \DeepSeekQorProxy{}, while Qwen3.5
-uses the fewest tokens. These outcomes separate completion, proxy quality,
-and model cost.
+authority. Independent reevaluation supports its functional-correctness
+claims: all \IndependentHiddenCorrectCount{} public-completed kernels pass
+hidden checks. QoR-25 also preserves the endpoint ordering across starter and
+reference anchors, with DeepSeek leading both measures; Qwen3.6 leads public
+completion, and Qwen3.5 minimizes token use.
 
-The proxy omits evaluator-side hidden validation and reference fallback. The
-agent also depends on mature testbench inputs, a fixed toolchain
-(Vitis~2025.2), and a single FPGA platform (Alveo~U55C). Matched ablations
-must isolate causal mechanisms: full agent, no QoR-RAG, no
-measured-failure retrieval, and no Failure Reflection; each must report
-success, mean $Q_{\mathrm{HW}}$, tokens, calls, credits, and wall time.
-Broader corpora and cross-platform transfer remain for future work.
+A full-corpus reference ranking remains unwarranted because fixed anchor
+metrics are available for only 109--115 of \CorpusTaskCount{} tasks. We
+therefore treat the fully covered QoR-25 slice as the primary quality
+comparison. Evidence comes from one Vitis~2025.2/U55C campaign per endpoint;
+matched repeats, ablations, and broader platforms remain future work.
