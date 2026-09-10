@@ -38,6 +38,43 @@ class LLMConfig:
     total_token_budget: int | None = None  # None = unlimited
 
 
+class LLMCallFailed(RuntimeError):
+    """An agent's LLM call could not produce text.
+
+    Raised instead of continuing with an empty response so the pipeline
+    classifies the task as an infrastructure error (with the owning step named)
+    rather than recording it as the model proposing no change.
+    """
+
+    def __init__(self, error: str) -> None:
+        super().__init__(f"LLM call failed: {error}")
+        self.error = error
+
+
+def complete_with_reason(
+    client: Any, system: str, user: str
+) -> LLMResponse:
+    """Complete via *client*, preserving the failure reason when there is one.
+
+    Agents accept any duck-typed client.  Clients built by ``create_llm`` expose
+    :meth:`LLMExecutor.complete_structured`, which never raises and reports why
+    it gave up; a bare client is asked for text directly and its exceptions are
+    returned in the same shape, so callers have one code path either way.
+    """
+    structured = getattr(client, "complete_structured", None)
+    if callable(structured):
+        return structured(system, user)
+    try:
+        text = client.complete(system, user)
+    except Exception as exc:
+        return LLMResponse(text="", error=f"{type(exc).__name__}: {exc}")
+    if not isinstance(text, str) or not text.strip():
+        return LLMResponse(
+            text="", error="LLM client returned empty or non-text message content"
+        )
+    return LLMResponse(text=text)
+
+
 class LLMExecutor:
     """Wraps a raw :class:`LLMClient` with timeout, retry, and budget tracking.
 
@@ -48,10 +85,15 @@ class LLMExecutor:
     - error classification (no raw exceptions leak to callers)
     """
 
+    #: Cap on retained failure records: enough to explain a run, bounded so a
+    #: persistently unreachable endpoint cannot bloat the run report.
+    MAX_RECORDED_FAILURES = 20
+
     def __init__(self, client: LLMClient, config: LLMConfig) -> None:
         self._client = client
         self._config = config
         self._total_tokens: int = 0
+        self._failures: list[dict[str, Any]] = []
 
     @property
     def model(self) -> str | None:
@@ -78,6 +120,19 @@ class LLMExecutor:
     @property
     def total_tokens(self) -> int:
         return self._total_tokens
+
+    @property
+    def failures(self) -> list[dict[str, Any]]:
+        """Why the retry loop gave up, oldest first.
+
+        Without this the reason a call returned no text is lost, and an API
+        failure becomes indistinguishable from a model that proposed no change.
+        """
+        return list(self._failures)
+
+    def _record_failure(self, attempt: int, error: str) -> None:
+        if len(self._failures) < self.MAX_RECORDED_FAILURES:
+            self._failures.append({"attempt": attempt, "error": error})
 
     def complete(self, system: str, user: str) -> str:
         """Complete with retry and budget enforcement.  Returns text.
@@ -119,6 +174,7 @@ class LLMExecutor:
                 # Budget check
                 if (self._config.total_token_budget is not None
                         and self._total_tokens > self._config.total_token_budget):
+                    self._record_failure(attempt, "token_budget_exceeded")
                     return LLMResponse(
                         text="", model=self.model, token_usage=usage,
                         elapsed_s=elapsed, retry_count=attempt,
@@ -131,6 +187,7 @@ class LLMExecutor:
                 )
             except Exception as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
+                self._record_failure(attempt, last_error)
                 if attempt < self._config.max_retries:
                     time.sleep(min(2 ** attempt, 10))
                 continue

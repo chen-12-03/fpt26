@@ -1,0 +1,15 @@
+task_id = "ta2_cg_005"
+task_type = "generate"
+difficulty = 3
+top = "kernel_nussinov"
+kernel_file = "nussinov.cpp"
+header_files = ["nussinov.h"]
+public_tb = "nussinov_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.000

@@ -1,0 +1,20 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_stderr.golden": "9d911292347a2fa65225ef7927d7a1d3c83d3bd0a73eede943081c2186eaada2",
+    "track_a_hidden_stdout.golden": "a446ab080eaa1995827638b34c8daa347255cbe38fab6a4d0de6b554949dec4c"
+  },
+  "hidden_input_derivation": "aggregate_hidden_input_literal:test_inputs:0x80000000->0x5a",
+  "hidden_tb_sha256": "c025dfa390a699afe92331d5791f42c4d50532c0b0cc206fe3274feba2711b40",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "76fe4da5529993883cf31576e5d5de9843facc5e3731f423c1fbde28bcf90be8",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "structural_cosim_repair__14__chstone__df_countLeadingZeros32",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence_batch2/structural_cosim_repair__14__chstone__df_countLeadingZeros32/hardening_evidence.json"
+}

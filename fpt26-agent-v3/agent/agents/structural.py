@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from agent.integrations.harness import Task
+from agent.integrations.llm.protocol import LLMCallFailed, complete_with_reason
 
 from agent.agents.base import RunState
 from agent.candidate.validator import extract_code  # single authority
@@ -94,9 +95,17 @@ class StructuralRepairAgent:
             )
 
             # ── 3. LLM proposes fix ──────────────────────────────────
-            response = self.llm.complete(STRUCTURAL_REPAIR_SYSTEM, prompt)
+            # A failed API call returns an empty response carrying the reason;
+            # reporting it as "no change proposed" would blame the model.
+            response = complete_with_reason(
+                self.llm, STRUCTURAL_REPAIR_SYSTEM, prompt
+            )
+            if response.error is not None:
+                raise LLMCallFailed(
+                    f"structural repair attempt {attempt}: {response.error}"
+                )
             new_code = extract_code(
-                response,
+                response.text,
                 required_token=str(getattr(task, "top", "") or ""),
             )
             if new_code is None or new_code.strip() == stable_code.strip():

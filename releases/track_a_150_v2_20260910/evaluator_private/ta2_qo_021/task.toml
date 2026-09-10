@@ -1,0 +1,33 @@
+task_id = "ta2_qo_021"
+internal_task_id = "qor_optimization__21__polybench__doitgen"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "kernel_doitgen"
+kernel_file = "doitgen.cpp"
+header_files = ["doitgen.h"]
+public_tb = "doitgen_tb.cpp"
+hidden_tb = "doitgen_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 qor_optimization; baseline=valid_baseline"
+expected_baseline_state = "valid_baseline"
+fault_derivation = "upstream_valid_baseline:no_artificial_degradation"
+kernel_family_id = "148cec1228aa99bfb9288464846bd30f213ba8aafe71573c3cd44fdb9cdd806e"
+source_task_id = "polybench__doitgen"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/doitgen"
+source_path = "hls_eval_data/polybench/doitgen/doitgen.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "2f326d850fa2bb688a1970f8e8c79fe1e666df758b3937058607c52f5af01259"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "490f28fc15c2fba2801bdc55eb31f336170450babf0976991abe8bb854b2e3a5"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

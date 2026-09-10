@@ -21,6 +21,11 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlparse
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover
+    import tomli as tomllib
+
 
 TERMINAL_STATUSES = {
     "completed",
@@ -29,9 +34,12 @@ TERMINAL_STATUSES = {
     "infrastructure_error",
 }
 
-EXPECTED_GENERATED_TASK_COUNT = 196
+EXPECTED_GENERATED_TASK_COUNT = 197
 EXPECTED_OFFICIAL_TASK_COUNT = 3
 EXPECTED_TASK_COUNT = EXPECTED_GENERATED_TASK_COUNT + EXPECTED_OFFICIAL_TASK_COUNT
+
+TRACK_A_150_ROOT_NAMES = {"track_a_150", "track_a_150_v2"}
+TRACK_A_150_RELEASE_ROOT_NAMES = {"public_agent", "evaluator_private"}
 
 REAL_API_CLIENTS = {
     "custom": "OpenAICompatClient",
@@ -51,6 +59,15 @@ TOOL_TIMEOUT_ENV = {
 }
 
 
+def _is_track_a_150_root(task_root: Path) -> bool:
+    if task_root.name in TRACK_A_150_ROOT_NAMES:
+        return True
+    return (
+        task_root.name in TRACK_A_150_RELEASE_ROOT_NAMES
+        and task_root.parent.name.startswith("track_a_150")
+    )
+
+
 def resolve_tool_timeout_policy(task_root: Path) -> dict[str, Any] | None:
     """Resolve the corpus-scoped tool timeout policy for one shard.
 
@@ -59,7 +76,7 @@ def resolve_tool_timeout_policy(task_root: Path) -> dict[str, Any] | None:
     experiments, and the resolved values are recorded in the shard summary.
     """
 
-    if task_root.name != "track_a_150":
+    if not _is_track_a_150_root(task_root):
         return None
 
     values_s: dict[str, float] = {}
@@ -85,6 +102,7 @@ def resolve_tool_timeout_policy(task_root: Path) -> dict[str, Any] | None:
 
     return {
         "scope": "track_a_150",
+        "task_root_kind": task_root.name,
         "source": (
             "environment_override"
             if explicit_overrides
@@ -148,7 +166,7 @@ def discover_tasks(
     direct_manifests = sorted(task_root.glob("*/task.toml"))
     if direct_manifests:
         manifests = direct_manifests
-        expected_count = 150 if task_root.name == "track_a_150" else len(manifests)
+        expected_count = 150 if _is_track_a_150_root(task_root) else len(manifests)
     else:
         manifests = sorted((task_root / "generated").glob("*/task.toml"))
         manifests += sorted((task_root / "official").glob("*/task.toml"))
@@ -170,6 +188,109 @@ def discover_tasks(
             )
         tasks = [task for task in tasks if task.name not in excluded_task_ids]
     return tasks
+
+
+def _public_task_identity(task_dir: Path) -> dict[str, Any]:
+    """Return the public contract and file hashes used to pair split roots."""
+
+    spec = tomllib.loads((task_dir / "task.toml").read_text(encoding="utf-8"))
+    task_id = str(spec.get("task_id") or "")
+    if not task_id or task_id != task_dir.name:
+        raise RuntimeError(
+            f"{task_dir}: task_id {task_id!r} does not match directory name"
+        )
+    declared_public_files = [
+        str(spec["kernel_file"]),
+        str(spec["public_tb"]),
+        *[str(name) for name in spec.get("header_files", [])],
+    ]
+    public_files = sorted(
+        set(declared_public_files)
+        | {
+            path.name
+            for path in task_dir.iterdir()
+            if path.is_file() and path.name not in {"task.toml", "description.md"}
+        }
+    )
+    missing = [name for name in public_files if not (task_dir / name).is_file()]
+    if missing:
+        raise RuntimeError(f"{task_dir}: missing public files: {missing}")
+    return {
+        "task_id": task_id,
+        "task_type": spec.get("task_type"),
+        "difficulty": spec.get("difficulty"),
+        "top": spec.get("top"),
+        "kernel_file": spec.get("kernel_file"),
+        "header_files": spec.get("header_files", []),
+        "public_tb": spec.get("public_tb"),
+        "budget": spec.get("budget"),
+        "requires_cosim": spec.get("requires_cosim"),
+        "initial_condition": spec.get("initial_condition"),
+        "target": spec.get("target"),
+        "file_sha256": {
+            name: _sha256(task_dir / name) for name in sorted(set(public_files))
+        },
+    }
+
+
+def pair_task_roots(
+    submission_task_root: Path,
+    evaluator_task_root: Path,
+    *,
+    excluded_task_ids: set[str] | None = None,
+) -> list[tuple[Path, Path]]:
+    """Pair physically separated public and private tasks, failing closed."""
+
+    submission_tasks = discover_tasks(
+        submission_task_root, excluded_task_ids=excluded_task_ids
+    )
+    evaluator_tasks = discover_tasks(
+        evaluator_task_root, excluded_task_ids=excluded_task_ids
+    )
+    submission_by_id = {task.name: task for task in submission_tasks}
+    evaluator_by_id = {task.name: task for task in evaluator_tasks}
+    if submission_by_id.keys() != evaluator_by_id.keys():
+        missing_submission = sorted(evaluator_by_id.keys() - submission_by_id.keys())
+        missing_evaluator = sorted(submission_by_id.keys() - evaluator_by_id.keys())
+        raise RuntimeError(
+            "split task roots have different task IDs: "
+            f"missing_submission={missing_submission}, "
+            f"missing_evaluator={missing_evaluator}"
+        )
+    pairs = []
+    for task_id in sorted(evaluator_by_id):
+        submission_task = submission_by_id[task_id]
+        evaluator_task = evaluator_by_id[task_id]
+        if submission_task.resolve() != evaluator_task.resolve():
+            forbidden_public = [
+                name
+                for name in ("hidden", "reference")
+                if (submission_task / name).exists()
+            ]
+            if forbidden_public:
+                raise RuntimeError(
+                    f"{task_id}: submission root contains evaluator-only paths: "
+                    f"{forbidden_public}"
+                )
+            missing_private = [
+                name
+                for name in ("hidden", "reference")
+                if not (evaluator_task / name).is_dir()
+            ]
+            if missing_private:
+                raise RuntimeError(
+                    f"{task_id}: evaluator root is missing private paths: "
+                    f"{missing_private}"
+                )
+            submission_identity = _public_task_identity(submission_task)
+            evaluator_identity = _public_task_identity(evaluator_task)
+            if submission_identity != evaluator_identity:
+                raise RuntimeError(
+                    f"{task_id}: public task contract differs between "
+                    "submission and evaluator roots"
+                )
+        pairs.append((submission_task, evaluator_task))
+    return pairs
 
 
 def load_excluded_task_ids(path: Path) -> set[str]:
@@ -271,6 +392,63 @@ def _ok_gate(report: dict[str, Any], name: str) -> bool:
     return isinstance(gate, dict) and gate.get("ok") is True
 
 
+def _toolchain_gate_errors(toolchain: dict[str, Any]) -> list[str]:
+    """Part/version gate violations for one report.
+
+    The pinned part is proven by the ``set_part`` line the Vitis driver echoes
+    into its log.  That line is absent when no tool call reached the driver —
+    an absence of evidence, not evidence of the wrong part, and the same rule
+    ``version_gate_ok`` already follows.  A part that *was* observed and
+    differs is a real violation.
+    """
+    errors: list[str] = []
+    if toolchain.get("version_gate_ok") is not True:
+        errors.append("vitis_2025_2_gate_failed")
+    observed = {
+        str(part) for part in (toolchain.get("observed_parts") or []) if part
+    }
+    if observed and observed != {str(toolchain.get("required_part"))}:
+        errors.append("u55c_part_gate_failed")
+    return errors
+
+
+def _api_accounting_errors(report: dict[str, Any]) -> list[str]:
+    """Separate "the API failed" from "the usage numbers do not add up"."""
+    errors: list[str] = []
+    llm = report.get("llm") or {}
+    usage = llm.get("token_usage") or {}
+    failed = usage.get("failed_request_count")
+    if isinstance(failed, int) and failed > 0:
+        # An infrastructure fault, reported on its own so the retry reasons in
+        # ``llm.failures`` can be read next to it.
+        errors.append("api_requests_failed")
+
+    request_count = usage.get("request_count")
+    response_count = usage.get("response_count")
+    consistent = (
+        all(
+            isinstance(value, int) and not isinstance(value, bool)
+            for value in (request_count, response_count, failed)
+        )
+        and failed == request_count - response_count
+    )
+    if (
+        usage.get("complete") is not True
+        or not consistent
+        or usage.get("unreported_response_count") != 0
+        or usage.get("total_tokens")
+        != usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+    ):
+        errors.append("real_api_usage_incomplete")
+    elif (
+        report.get("status") == "completed"
+        and isinstance(request_count, int)
+        and request_count < 1
+    ):
+        errors.append("completed_auto_run_without_api_request")
+    return errors
+
+
 def validate_submission(
     report: dict[str, Any],
     task_id: str,
@@ -318,24 +496,8 @@ def validate_submission(
         )
     if expected_model is not None and llm.get("model") != expected_model:
         errors.append("llm_model_mismatch")
-    request_count = usage.get("request_count", 0)
-    if (
-        usage.get("complete") is not True
-        or request_count != usage.get("response_count")
-        or usage.get("failed_request_count") != 0
-        or usage.get("unreported_response_count") != 0
-        or usage.get("total_tokens")
-        != usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
-    ):
-        errors.append("real_api_usage_incomplete")
-    elif report.get("status") == "completed" and request_count < 1:
-        errors.append("completed_auto_run_without_api_request")
-
-    toolchain = report.get("toolchain") or {}
-    if toolchain.get("version_gate_ok") is not True:
-        errors.append("vitis_2025_2_gate_failed")
-    if toolchain.get("part_gate_ok") is not True:
-        errors.append("u55c_part_gate_failed")
+    errors.extend(_api_accounting_errors(report))
+    errors.extend(_toolchain_gate_errors(report.get("toolchain") or {}))
 
     if report.get("status") == "completed":
         if not _ok_gate(report, "interface"):
@@ -392,23 +554,25 @@ def validate_evaluator(
     elif grading.get("is_fallback") is True:
         errors.append("generated_hidden_grading_mislabelled_fallback")
 
+    # A stage that ran and failed is the evaluated candidate's outcome, not an
+    # audit fault; a stage that is *absent* while its prerequisites passed is a
+    # missing record.  Only the latter is an error here.
     trace = (report.get("execution_trace") or {}).get(
         "grading_results"
     ) or []
     stages = {item.get("stage"): item for item in trace}
     for stage in ("hidden_csim", "candidate_synth"):
-        if stages.get(stage, {}).get("ok") is not True:
-            errors.append(f"{stage}_failed_or_missing")
-    if report.get("cosim_ok") is not None and stages.get(
-        "hidden_cosim", {}
-    ).get("ok") is not True:
-        errors.append("hidden_cosim_failed_or_missing")
+        if stage not in stages:
+            errors.append(f"{stage}_missing")
+    if report.get("cosim_ok") is not None:
+        prerequisites_passed = (
+            stages.get("hidden_csim", {}).get("ok") is True
+            and stages.get("candidate_synth", {}).get("ok") is True
+        )
+        if prerequisites_passed and "hidden_cosim" not in stages:
+            errors.append("hidden_cosim_missing")
 
-    toolchain = report.get("toolchain") or {}
-    if toolchain.get("version_gate_ok") is not True:
-        errors.append("vitis_2025_2_gate_failed")
-    if toolchain.get("part_gate_ok") is not True:
-        errors.append("u55c_part_gate_failed")
+    errors.extend(_toolchain_gate_errors(report.get("toolchain") or {}))
     if report.get("status") == "completed":
         if not _ok_gate(report, "interface"):
             errors.append("interface_gate_failed")
@@ -571,6 +735,8 @@ def _summary(
     quarantine: dict[str, Any] | None = None,
     llm_run_contract: dict[str, Any] | None = None,
     tool_timeout_policy: dict[str, Any] | None = None,
+    submission_task_root: Path | None = None,
+    evaluator_task_root: Path | None = None,
 ) -> dict[str, Any]:
     outcomes: dict[str, int] = {}
     for record in records:
@@ -606,6 +772,14 @@ def _summary(
         summary["llm_run_contract"] = llm_run_contract
     if tool_timeout_policy is not None:
         summary["tool_timeout_policy"] = tool_timeout_policy
+    if submission_task_root is not None and evaluator_task_root is not None:
+        summary["task_roots"] = {
+            "submission": str(submission_task_root),
+            "evaluator": str(evaluator_task_root),
+            "physically_separated": (
+                submission_task_root.resolve() != evaluator_task_root.resolve()
+            ),
+        }
     if quarantine is not None:
         summary["task_quarantine"] = quarantine
     return summary
@@ -623,6 +797,7 @@ def _write_summary(path: Path, value: dict[str, Any]) -> None:
 def run_shard(
     *,
     task_root: Path,
+    submission_task_root: Path | None = None,
     output_root: Path,
     shard_index: int,
     shard_count: int,
@@ -641,14 +816,20 @@ def run_shard(
     }
     model_env = "LLM4HLS_MODEL" if backend == "openrouter" else "FPT26_LLM_MODEL"
     submission_env = {model_env: llm_run_contract["model"]}
-    tool_timeout_policy = resolve_tool_timeout_policy(task_root)
+    evaluator_task_root = task_root
+    submission_task_root = submission_task_root or evaluator_task_root
+    tool_timeout_policy = resolve_tool_timeout_policy(evaluator_task_root)
     tool_timeout_env = (
         dict(tool_timeout_policy["env_overrides"])
         if tool_timeout_policy is not None
         else {}
     )
     submission_env.update(tool_timeout_env)
-    tasks = discover_tasks(task_root, excluded_task_ids=excluded_task_ids)
+    task_pairs = pair_task_roots(
+        submission_task_root,
+        evaluator_task_root,
+        excluded_task_ids=excluded_task_ids,
+    )
     quarantine = None
     if excluded_task_ids:
         quarantine = {
@@ -656,22 +837,24 @@ def run_shard(
             "source": excluded_task_source or "explicit",
             "excluded_task_count": len(excluded_task_ids),
             "excluded_task_ids": sorted(excluded_task_ids),
-            "effective_task_count": len(tasks),
-            "original_expected_task_count": EXPECTED_TASK_COUNT,
+            "effective_task_count": len(task_pairs),
+            "original_expected_task_count": (
+                len(task_pairs) + len(excluded_task_ids)
+            ),
         }
     if requested_task_ids is not None:
-        available = {task.name for task in tasks}
+        available = {evaluator_task.name for _, evaluator_task in task_pairs}
         unknown = sorted(requested_task_ids - available)
         if unknown:
             raise RuntimeError(
                 f"requested tasks are outside the corpus: {unknown}"
             )
-        tasks = [
-            task for task in tasks if task.name in requested_task_ids
+        task_pairs = [
+            pair for pair in task_pairs if pair[1].name in requested_task_ids
         ]
     selected = [
-        task
-        for index, task in enumerate(tasks)
+        pair
+        for index, pair in enumerate(task_pairs)
         if index % shard_count == shard_index
     ]
     summary_path = output_root / "shard_summary.json"
@@ -689,6 +872,18 @@ def run_shard(
         if previous.get("tool_timeout_policy") != tool_timeout_policy:
             raise RuntimeError(
                 "refusing to resume shard after tool timeout policy drift"
+            )
+        previous_roots = previous.get("task_roots") or {}
+        expected_roots = {
+            "submission": str(submission_task_root),
+            "evaluator": str(evaluator_task_root),
+            "physically_separated": (
+                submission_task_root.resolve() != evaluator_task_root.resolve()
+            ),
+        }
+        if previous_roots != expected_roots:
+            raise RuntimeError(
+                "refusing to resume shard after submission/evaluator task-root drift"
             )
         previous_source = (
             (previous.get("execution_source") or {}).get("start") or {}
@@ -716,9 +911,11 @@ def run_shard(
                 quarantine=quarantine,
                 llm_run_contract=llm_run_contract,
                 tool_timeout_policy=tool_timeout_policy,
+                submission_task_root=submission_task_root,
+                evaluator_task_root=evaluator_task_root,
             ),
         )
-    selected_ids = {task.name for task in selected}
+    selected_ids = {evaluator_task.name for _, evaluator_task in selected}
     committed = {record["task_id"] for record in records}
     for checkpoint in sorted(
         (output_root / "tasks").glob("*/checkpoint.json")
@@ -742,10 +939,14 @@ def run_shard(
             quarantine=quarantine,
             llm_run_contract=llm_run_contract,
             tool_timeout_policy=tool_timeout_policy,
+            submission_task_root=submission_task_root,
+            evaluator_task_root=evaluator_task_root,
         ),
     )
 
-    for ordinal, task_dir in enumerate(selected, start=1):
+    for ordinal, (submission_task_dir, evaluator_task_dir) in enumerate(
+        selected, start=1
+    ):
         if (
             execution_source_snapshot().get("tree_sha256")
             != source_start.get("tree_sha256")
@@ -753,13 +954,13 @@ def run_shard(
             raise RuntimeError(
                 "execution source changed during shard; refusing mixed evidence"
             )
-        task_id = task_dir.name
+        task_id = evaluator_task_dir.name
         if task_id in done:
             continue
-        official = task_dir.parent.name == "official"
+        official = evaluator_task_dir.parent.name == "official"
         expected_grading_source = (
             "hidden"
-            if (task_dir / "hidden").is_dir()
+            if (evaluator_task_dir / "hidden").is_dir()
             else "public_fallback"
         )
         attempt_root = _next_attempt(output_root / "tasks" / task_id)
@@ -769,7 +970,7 @@ def run_shard(
         evaluator_log = attempt_root / "evaluator.log"
 
         submission_command = build_submission_command(
-            task_dir=task_dir,
+            task_dir=submission_task_dir,
             backend=backend,
             output_root=submission_root,
             competition=competition,
@@ -813,7 +1014,7 @@ def run_shard(
             and submission_evidence_path.is_file()
         ):
             evaluator_command = build_evaluator_command(
-                task_dir=task_dir,
+                task_dir=evaluator_task_dir,
                 final_kernel=final_path,
                 submission_evidence=submission_evidence_path,
                 output_root=evaluator_root,
@@ -875,7 +1076,9 @@ def run_shard(
         record = {
             "ordinal": ordinal,
             "task_id": task_id,
-            "task_dir": str(task_dir),
+            "task_dir": str(evaluator_task_dir),
+            "submission_task_dir": str(submission_task_dir),
+            "evaluator_task_dir": str(evaluator_task_dir),
             "official_task": official,
             "attempt_root": str(attempt_root),
             "outcome": outcome,
@@ -966,6 +1169,8 @@ def run_shard(
                 quarantine=quarantine,
                 llm_run_contract=llm_run_contract,
                 tool_timeout_policy=tool_timeout_policy,
+                submission_task_root=submission_task_root,
+                evaluator_task_root=evaluator_task_root,
             ),
         )
         if source_current.get("tree_sha256") != source_start.get(
@@ -989,9 +1194,45 @@ def run_shard(
     return result
 
 
+def resolve_cli_task_roots(
+    task_root: Path | None,
+    submission_task_root: Path | None,
+    evaluator_task_root: Path | None,
+) -> tuple[Path, Path]:
+    """Resolve either the legacy combined root or the mandatory split pair."""
+
+    if task_root is not None:
+        if submission_task_root is not None or evaluator_task_root is not None:
+            raise RuntimeError(
+                "--task-root cannot be combined with split task-root options"
+            )
+        resolved = task_root.resolve()
+        return resolved, resolved
+    if submission_task_root is None or evaluator_task_root is None:
+        raise RuntimeError(
+            "provide --task-root, or provide both --submission-task-root "
+            "and --evaluator-task-root"
+        )
+    return submission_task_root.resolve(), evaluator_task_root.resolve()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task-root", required=True, type=Path)
+    parser.add_argument(
+        "--task-root",
+        type=Path,
+        help="Legacy combined task root used by both submission and evaluator",
+    )
+    parser.add_argument(
+        "--submission-task-root",
+        type=Path,
+        help="Physically public-only task root visible to the submission role",
+    )
+    parser.add_argument(
+        "--evaluator-task-root",
+        type=Path,
+        help="Private task root containing hidden tests and references",
+    )
     parser.add_argument("--output-root", required=True, type=Path)
     parser.add_argument("--shard-index", required=True, type=int)
     parser.add_argument("--shard-count", type=int, default=3)
@@ -1050,8 +1291,14 @@ def main() -> int:
             args.retry_from_audit.read_text(encoding="utf-8")
         )
         requested.update(audit.get("retry_task_ids") or [])
+    submission_task_root, evaluator_task_root = resolve_cli_task_roots(
+        args.task_root,
+        args.submission_task_root,
+        args.evaluator_task_root,
+    )
     result = run_shard(
-        task_root=args.task_root.resolve(),
+        task_root=evaluator_task_root,
+        submission_task_root=submission_task_root,
         output_root=args.output_root.resolve(),
         shard_index=args.shard_index,
         shard_count=args.shard_count,

@@ -31,12 +31,12 @@ def _manifest() -> dict:
 
 def test_frozen_scoring_identity_and_formula() -> None:
     manifest = _manifest()
-    assert manifest["scoring_version"] == __version__ == "11.0.0"
+    assert manifest["scoring_version"] == __version__ == "11.1.0"
     assert manifest["scoring_schema"] == SCHEMA_VERSION == 11
     assert manifest["formula"]["performance_weight"] == W_PERFORMANCE == 0.55
     assert manifest["formula"]["area_weight"] == W_AREA == 0.45
     assert W_PERFORMANCE + W_AREA == manifest["formula"]["weight_sum"] == 1.0
-    assert manifest["formula"]["source_change_ratio"] == SOURCE_CHANGE_RATIO == 1.01
+    assert manifest["formula"]["source_change_ratio"] == SOURCE_CHANGE_RATIO == 0.99
     assert manifest["formula"]["validity_rescue_ratio"] == VALIDITY_RESCUE_RATIO == 2.0
     assert (
         manifest["formula"]["zero_candidate_resource_reward"]

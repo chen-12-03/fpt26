@@ -1,0 +1,32 @@
+task_id = "compile_repair__06__machsuite__sort_merge"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "ms_mergesort"
+kernel_file = "sort_merge.cpp"
+header_files = ["sort_merge.h"]
+public_tb = "sort_merge_tb.cpp"
+hidden_tb = "sort_merge_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "ef7741e52e73a4a71754998f031f6995cb6a2308227b1e1b34df4d19277b75af"
+source_task_id = "machsuite__sort_merge"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/sort_merge"
+source_path = "hls_eval_data/machsuite/sort_merge/sort_merge.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "a86ef884ee9655806da0aaa39f23f9d09411b243ee4e7517a0d9c15efa6af350"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "a86ef884ee9655806da0aaa39f23f9d09411b243ee4e7517a0d9c15efa6af350"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

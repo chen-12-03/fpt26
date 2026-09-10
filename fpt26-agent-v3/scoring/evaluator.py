@@ -157,6 +157,7 @@ def _evaluate_anchor_source(
             synth_sources=[task.kernel_name],
             tb_sources=[task.hidden_tb_name],
             top=task.top, part=task.part, clock_ns=task.clock_ns,
+            data_files=data_files,
         )
         payload = getattr(cosim_result, "cosim", None)
         cosim_ok = bool(

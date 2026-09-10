@@ -1,0 +1,32 @@
+task_id = "synthesis_repair__25__c2hlsc__sub_bytes"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "SubBytes"
+kernel_file = "sub.cpp"
+header_files = ["sub.h"]
+public_tb = "sub_tb.cpp"
+hidden_tb = "sub_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "9f5185a23155fab2372f73ec24a7ded3fbf85be91b0d9427ceb3c72fd86af327"
+source_task_id = "c2hlsc__sub_bytes"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/c2hlsc/sub_bytes"
+source_path = "hls_eval_data/c2hlsc/sub_bytes/sub.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "GPL-3.0-only"
+source_sha256 = "d542fbcc5d1e016c6938fe1cb295ba207c2977a2c74ea3eee38b420f5c71362d"
+
+upstream_project_url = "https://github.com/Lucaz97/c2hlsc"
+upstream_revision = "72d08b7d17da38b7ba9c828dce48403352be4dc3"
+license_evidence_url = "https://github.com/Lucaz97/c2hlsc/blob/72d08b7d17da38b7ba9c828dce48403352be4dc3/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "3a4df9bf945a3210f45afe880bbf303581278887d7b4e4292b30d158b9013ec7"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

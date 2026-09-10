@@ -1,0 +1,32 @@
+task_id = "qor_optimization__17__polybench__gemm"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "kernel_gemm"
+kernel_file = "gemm.cpp"
+header_files = ["gemm.h"]
+public_tb = "gemm_tb.cpp"
+hidden_tb = "gemm_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 qor_optimization; baseline=valid_baseline"
+expected_baseline_state = "valid_baseline"
+fault_derivation = "upstream_valid_baseline:no_artificial_degradation"
+kernel_family_id = "976ae16771060cd78ddda65dde745b3be8fbfb3eacfc99f6c1765547589afd0e"
+source_task_id = "polybench__gemm"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/gemm"
+source_path = "hls_eval_data/polybench/gemm/gemm.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "580d1df74a0e2763b456730d831aa8506e83a7d4ffa121b2025f3e4c16d17b7d"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "aaf92028a1416a26a2eeb801729ba43125c98f3318e46cb163224ab1ebdb9e30"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -7,6 +7,7 @@ import os
 from typing import Any
 
 from agent.agents.base import RunState
+from agent.integrations.llm.protocol import LLMCallFailed, complete_with_reason
 from agent.analysis.action_contract import (
     augment_action_contract_with_source_architecture,
     build_bottleneck_action_contract,
@@ -455,9 +456,14 @@ def run_optimization_loop(
         )
 
         # ── 4. LLM proposes optimization ────────────────────────────
-        resp = llm.complete(SYSTEM, prompt)
+        # An empty response is only "converged" when the model actually
+        # answered; when the call itself failed, that is an infrastructure
+        # error and must not be recorded as the search finishing.
+        response = complete_with_reason(llm, SYSTEM, prompt)
+        if response.error is not None:
+            raise LLMCallFailed(f"opt r{rnd}: {response.error}")
         cand = extract_code(
-            resp,
+            response.text,
             required_token=str(getattr(task, "top", "") or ""),
         )
         if not cand or cand.strip() == best.strip():

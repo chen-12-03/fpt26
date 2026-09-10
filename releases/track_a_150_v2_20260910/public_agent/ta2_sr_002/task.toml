@@ -1,0 +1,15 @@
+task_id = "ta2_sr_002"
+task_type = "synth_fix"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["test.h"]
+public_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.000

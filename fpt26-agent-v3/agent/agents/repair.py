@@ -20,6 +20,7 @@ import difflib
 from typing import Any
 
 from agent.integrations.harness import ToolResult
+from agent.integrations.llm.protocol import LLMCallFailed, complete_with_reason
 
 from agent.agents.base import RunState
 from agent.analysis.issue_classifier import IssueClassifier
@@ -103,30 +104,19 @@ class RepairAgent:
             )
 
             # ── 5. LLM modifies code ──────────────────────────────────────
-            try:
-                response = self.llm.complete(REPAIR_SYSTEM, prompt)
-            except Exception as exc:
-                state.log(
-                    f"repair attempt {attempt}: LLM API call failed: {exc}"
+            # The executor never raises; it returns an empty response carrying
+            # the reason.  Surfacing that reason stops an API failure from being
+            # recorded as the model proposing no change — the pipeline turns it
+            # into a named infrastructure error instead.
+            response = complete_with_reason(
+                self.llm, REPAIR_SYSTEM, prompt
+            )
+            if response.error is not None:
+                raise LLMCallFailed(
+                    f"repair attempt {attempt}: {response.error}"
                 )
-                state.metadata.setdefault("infrastructure_errors", []).append(
-                    {
-                        "step": f"repair_attempt_{attempt}",
-                        "error": f"{type(exc).__name__}: {exc}",
-                    }
-                )
-                previous_attempt = {
-                    "attempt": attempt,
-                    "candidate_diff": "",
-                    "result": {
-                        "stage": kind,
-                        "phase": "api_failure",
-                        "summary": f"LLM API error: {exc}",
-                    },
-                }
-                continue
             new_code = extract_code(
-                response,
+                response.text,
                 required_token=str(getattr(task, "top", "") or ""),
             )
             if new_code is None or new_code.strip() == stable_code.strip():

@@ -1,0 +1,21 @@
+{
+  "hidden_fixture_sha256": {
+    "check.data": "57d81a1624cacb7a6bec4b21ee7388cff9917b3cd07d737319c27c9e94cddc3c",
+    "input.data": "79277f51d1793643878d000d6ef1df12c501345b5565f663bd21a9d9978569e6"
+  },
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "integer_plus_one:6->7",
+  "hidden_tb_sha256": "34c050504b37fe00cfab1b91e081805e93129d0868fc95d8b3203546a480882a",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_machsuite_check_fixture",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_fixture",
+  "public_tb_sha256": "34c050504b37fe00cfab1b91e081805e93129d0868fc95d8b3203546a480882a",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "code_generation__01__machsuite__stencil_stencil3d",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_machsuite_evidence/code_generation__01__machsuite__stencil_stencil3d/hardening_evidence.json"
+}

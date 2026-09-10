@@ -1,0 +1,32 @@
+task_id = "qor_optimization__24__machsuite__aes_aes"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 4
+top = "aes256_encrypt_ecb"
+kernel_file = "aes_aes.cpp"
+header_files = ["aes_aes.h"]
+public_tb = "aes_aes_tb.cpp"
+hidden_tb = "aes_aes_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 qor_optimization; baseline=valid_baseline"
+expected_baseline_state = "valid_baseline"
+fault_derivation = "upstream_valid_baseline:no_artificial_degradation"
+kernel_family_id = "2265615b20de01a5409dea7852daec6dd19bbf87f0ba80b7b7437873b130697c"
+source_task_id = "machsuite__aes_aes"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/aes_aes"
+source_path = "hls_eval_data/machsuite/aes_aes/aes_aes.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "ISC"
+source_sha256 = "948137a9b62d1d601ddeb0c52788f598b7cad6377d8b842cf1c588ec58285d10"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "948137a9b62d1d601ddeb0c52788f598b7cad6377d8b842cf1c588ec58285d10"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

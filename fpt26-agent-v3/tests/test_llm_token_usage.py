@@ -98,6 +98,51 @@ def test_llm_executor_forwards_backend_identity_config_and_exact_usage() -> None
     assert summary["token_usage"]["total_tokens"] == 150
 
 
+class _RefusingClient:
+    """A client whose requests always fail, e.g. an unreachable endpoint."""
+
+    model = "refusing"
+
+    def __init__(self, message: str) -> None:
+        self.token_usage = TokenUsage()
+        self.message = message
+        self.calls = 0
+
+    def complete(self, system: str, user: str) -> str:
+        self.calls += 1
+        self.token_usage.begin_request()
+        raise RuntimeError(self.message)
+
+
+def test_llm_executor_records_why_the_retry_loop_gave_up() -> None:
+    """Without the reason an API failure is indistinguishable from silence."""
+    client = _RefusingClient("LLM HTTP 503: upstream unavailable")
+    executor = LLMExecutor(client, LLMConfig(model="refusing", max_retries=1))
+
+    response = executor.complete_structured("system", "user")
+
+    assert response.text == ""
+    assert response.error == "RuntimeError: LLM HTTP 503: upstream unavailable"
+    assert client.calls == 2  # first attempt plus one retry
+    assert [failure["attempt"] for failure in executor.failures] == [0, 1]
+    assert all(
+        "LLM HTTP 503" in failure["error"] for failure in executor.failures
+    )
+
+
+def test_run_report_llm_summary_carries_the_failure_reasons() -> None:
+    client = _RefusingClient("URLError: connection refused")
+    executor = LLMExecutor(client, LLMConfig(model="refusing", max_retries=0))
+    executor.complete_structured("system", "user")
+    state = type("State", (), {"llm": executor})()
+
+    summary = _llm_summary(state)
+
+    assert summary["failure_count"] == 1
+    assert "connection refused" in summary["failures"][0]["error"]
+    assert summary["token_usage"]["failed_request_count"] == 1
+
+
 def test_chat_completion_url_accepts_api_base_or_full_endpoint() -> None:
     assert (
         chat_completions_url("https://openrouter.ai/api/v1")

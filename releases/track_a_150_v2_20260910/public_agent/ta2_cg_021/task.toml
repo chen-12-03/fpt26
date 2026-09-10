@@ -1,0 +1,15 @@
+task_id = "ta2_cg_021"
+task_type = "generate"
+difficulty = 2
+top = "propagateFloat64NaN"
+kernel_file = "propagateFloat64NaN.cpp"
+header_files = ["propagateFloat64NaN.h"]
+public_tb = "propagateFloat64NaN_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.000

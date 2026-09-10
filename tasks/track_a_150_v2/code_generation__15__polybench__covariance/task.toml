@@ -1,0 +1,32 @@
+task_id = "code_generation__15__polybench__covariance"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "kernel_covariance"
+kernel_file = "covariance.cpp"
+header_files = ["covariance.h"]
+public_tb = "covariance_tb.cpp"
+hidden_tb = "covariance_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "325acf9f24027fa4afbbc218136320a03d1deeb30df0b048cc72076cd29464c1"
+source_task_id = "polybench__covariance"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/covariance"
+source_path = "hls_eval_data/polybench/covariance/covariance.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "3ab6b0ee59809fb75b63549f5feca797f4277f2d1cbb96af3b710018289cef25"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "422c7954c766c93c2f0c3381fdc1e3377933db11f4fd3d239eebb3d0e4587336"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

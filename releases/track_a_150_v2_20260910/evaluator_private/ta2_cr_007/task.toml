@@ -1,0 +1,33 @@
+task_id = "ta2_cr_007"
+internal_task_id = "compile_repair__07__machsuite__md_grid"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "md"
+kernel_file = "md_grid.cpp"
+header_files = ["md_grid.h"]
+public_tb = "md_grid_tb.cpp"
+hidden_tb = "md_grid_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "eeaa15f564a0895d338042ab856d6fb6b436fe2ce6ca0f2bf532d9a4e41779f4"
+source_task_id = "machsuite__md_grid"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/md_grid"
+source_path = "hls_eval_data/machsuite/md_grid/md_grid.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "a5fefaa970113dcd81c853a2f8dceeab6fefb1f4bff12af90a0cdce475f6572e"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "a5fefaa970113dcd81c853a2f8dceeab6fefb1f4bff12af90a0cdce475f6572e"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

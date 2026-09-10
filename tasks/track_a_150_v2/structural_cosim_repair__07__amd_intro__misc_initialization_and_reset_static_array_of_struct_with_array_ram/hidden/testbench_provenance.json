@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "alternate_static_array_index_with_closed_form_oracle",
+  "hidden_tb_sha256": "c303b0dfcced98b2913186ffd070fbc0d4cff3d5f4c517248f18c15939ab519e",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "88004e12eea04e5c96c4ffed2c8f186ae4c3dd16c85286f642e7d9e78066ab38",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "structural_cosim_repair__07__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/structural_cosim_repair__07__amd_intro__misc_initialization_and_reset_static_array_of_struct_with_array_ram/hardening_evidence.json"
+}

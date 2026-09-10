@@ -11,3 +11,14 @@ initial_condition = "Functionally correct but unoptimized numerical kernel. Add 
 [target]
 part = "xcu55c-fsvh2892-2L-e"
 clock_ns = 5.0
+
+[provenance]
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/3mm"
+source_path = "hls_eval_data/polybench/3mm/3mm.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "89e0c08d4f933ab3bca500478110c5a3c30a7d4818001a7d2cfed38f4761fef2"

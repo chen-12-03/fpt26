@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "asymmetric_data_and_directio_vectors",
+  "hidden_tb_sha256": "08aaf209e5fdec20330d62a917d02709bc0c3c2461875f9fabab86c04b4ea89c",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "8f9d123238b187de8ca42d28109d112d9750280f0ff978e8748ce833e1d0f678",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "structural_cosim_repair__24__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_stream_inline_retry_evidence/structural_cosim_repair__24__amd_intro__task_level_parallelism_data_driven_using_axilite_with_directio/hardening_evidence.json"
+}

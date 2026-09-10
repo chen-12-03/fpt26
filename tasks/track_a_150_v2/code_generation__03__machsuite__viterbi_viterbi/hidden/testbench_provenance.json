@@ -1,0 +1,21 @@
+{
+  "hidden_fixture_sha256": {
+    "check.data": "5d059bad07e47f38e90c4fc37684e6a3ecc8c131609ee9fe2eb593044abaeffc",
+    "input.data": "d8873c82bf7a55474e56b091d470acb95ebbce662f9123ec0299278b36363309"
+  },
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "integer_plus_one:0->1",
+  "hidden_tb_sha256": "8cde80087b84089e3e04c7a47ec237c998d8a2c4478205e264c5ae2d1db7ccc3",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_machsuite_check_fixture",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_fixture",
+  "public_tb_sha256": "8cde80087b84089e3e04c7a47ec237c998d8a2c4478205e264c5ae2d1db7ccc3",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "code_generation__03__machsuite__viterbi_viterbi",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_machsuite_evidence/code_generation__03__machsuite__viterbi_viterbi/hardening_evidence.json"
+}

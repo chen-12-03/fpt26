@@ -1,0 +1,32 @@
+task_id = "synthesis_repair__18__c2hlsc__present"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "present80_encryptBlock"
+kernel_file = "present.cpp"
+header_files = ["present.h"]
+public_tb = "present_tb.cpp"
+hidden_tb = "present_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "5e211d2c89871ba4beff4502eef748be1a3a7482d28c13b6d85ae92369f2efac"
+source_task_id = "c2hlsc__present"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/c2hlsc/present"
+source_path = "hls_eval_data/c2hlsc/present/present.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "GPL-3.0-only"
+source_sha256 = "30b2429f313cd89af8d35d51f90a1b35f5cdf8f94d3eb651aad6ce510db5c30b"
+
+upstream_project_url = "https://github.com/Lucaz97/c2hlsc"
+upstream_revision = "72d08b7d17da38b7ba9c828dce48403352be4dc3"
+license_evidence_url = "https://github.com/Lucaz97/c2hlsc/blob/72d08b7d17da38b7ba9c828dce48403352be4dc3/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "30b2429f313cd89af8d35d51f90a1b35f5cdf8f94d3eb651aad6ce510db5c30b"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

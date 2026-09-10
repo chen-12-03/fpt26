@@ -1,0 +1,32 @@
+task_id = "code_generation__08__polybench__3mm"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 3
+top = "kernel_3mm"
+kernel_file = "3mm.cpp"
+header_files = ["3mm.h"]
+public_tb = "3mm_tb.cpp"
+hidden_tb = "3mm_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "eeaa801dc7ef22f75dcd76ca1e0fbfdc1790edb552d675c5393da98bb0b8c51d"
+source_task_id = "polybench__3mm"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/3mm"
+source_path = "hls_eval_data/polybench/3mm/3mm.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "3bec54795f2699aa34bd2ac00ec53aae0b825194e23ae031af8b9d06e409ff04"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "89e0c08d4f933ab3bca500478110c5a3c30a7d4818001a7d2cfed38f4761fef2"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

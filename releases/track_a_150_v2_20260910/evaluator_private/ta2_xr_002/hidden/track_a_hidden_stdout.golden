@@ -1,0 +1,17 @@
+hw_result =   0.000137329 : bits = 0x3F22000000000000 : sign = +, exp =   -13, mant = 0x02000000000000
+hw_result = -1.91133e+276 : bits = 0xF94B9A4640000000 : sign = -, exp =   917, mant = 0x0B9A4640000000
+hw_result =  -2.82717e-78 : bits = 0xAFD4F385E0000000 : sign = -, exp =  -258, mant = 0x04F385E0000000
+hw_result =   3.1413e-245 : bits = 0x0D2B746500000000 : sign = +, exp =  -813, mant = 0x0B746500000000
+hw_result =  -1.2164e-284 : bits = 0x84FCF0E000000000 : sign = -, exp =  -944, mant = 0x0CF0E000000000
+hw_result =  9.47911e+161 : bits = 0x6190DB1700000000 : sign = +, exp =   538, mant = 0x00DB1700000000
+hw_result =  -1.74802e+95 : bits = 0xD3B4F33BA0000000 : sign = -, exp =   316, mant = 0x04F33BA0000000
+hw_result =   2.54705e+68 : bits = 0x4E22E52340000000 : sign = +, exp =   227, mant = 0x02E52340000000
+hw_result =   3.89126e+34 : bits = 0x471DFA2680000000 : sign = +, exp =   114, mant = 0x0DFA2680000000
+hw_result =  9.44589e+216 : bits = 0x6CFB66A6A0000000 : sign = +, exp =   720, mant = 0x0B66A6A0000000
+hw_result =  1.72592e-280 : bits = 0x05D9102D60000000 : sign = +, exp =  -930, mant = 0x09102D60000000
+hw_result =  -1.75974e+44 : bits = 0xC91F905320000000 : sign = -, exp =   146, mant = 0x0F905320000000
+hw_result =   8.4041e-288 : bits = 0x045479A340000000 : sign = +, exp =  -954, mant = 0x0479A340000000
+hw_result =  5.07127e+256 : bits = 0x753B050AC0000000 : sign = +, exp =   852, mant = 0x0B050AC0000000
+hw_result = -4.03793e+202 : bits = 0xEA007C2FE0000000 : sign = -, exp =   673, mant = 0x007C2FE0000000
+hw_result =  3.25025e+280 : bits = 0x7A2CA62840000000 : sign = +, exp =   931, mant = 0x0CA62840000000
+*** Test passed ***

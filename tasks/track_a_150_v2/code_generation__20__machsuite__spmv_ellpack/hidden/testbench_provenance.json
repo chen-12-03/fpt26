@@ -1,0 +1,21 @@
+{
+  "hidden_fixture_sha256": {
+    "check.data": "da881d1052e8ae4792817b863fce4005df07763004205dc4b7f2996b8c91cd2a",
+    "input.data": "74e8fc41c043ee3a941e7e58c770d6947ae37dfe305356a1ce0222797b59b5b2"
+  },
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "floating_plus_0.125:2220.8739999999997963->2220.9989999999997963",
+  "hidden_tb_sha256": "0e076343c62721769dfaa48bee88050d8903b0044356805309a3af0740dc907f",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_machsuite_check_fixture",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_fixture",
+  "public_tb_sha256": "0e076343c62721769dfaa48bee88050d8903b0044356805309a3af0740dc907f",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "code_generation__20__machsuite__spmv_ellpack",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_machsuite_evidence/code_generation__20__machsuite__spmv_ellpack/hardening_evidence.json"
+}

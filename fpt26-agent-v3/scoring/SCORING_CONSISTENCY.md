@@ -19,7 +19,7 @@ area_ratio = resource_footprint(anchor) / resource_footprint(candidate)
 
 D = int(candidate_hash != starter_hash)
 F = int(candidate_valid and not starter_valid)
-hardware_ratio = 1.01**D * 2**F \
+hardware_ratio = 0.99**D * 2**F \
     * performance_ratio**0.55 * area_ratio**0.45
 
 q_perf = ratio_quality(performance_ratio)  # 诊断字段
@@ -53,7 +53,7 @@ gate。Cosim gate 未明确 PASS 时以 `hidden_cosim_fail` 失败；PASS 但缺
   转移到 BRAM/URAM 时因为某一项从 0 变成非零而突变。
 - 零资源情况采用显式三分支规则，不使用 `10^-12` 数值垫片；候选零资源收益以
   `A_max=4` 有界。
-- `D` 记录候选是否确实不同于 starter，提供 1.01 倍最小源码变化证据。
+- `D` 记录候选是否不同于 starter，并施加 0.99 倍轻微编辑惩罚；仅加注释或无用代码不能再提高分数。
 - `F` 记录候选是否把无效 starter 修复为有效实现，提供 2 倍有效性跃迁证据。
 - 生产公式不截断 `performance_ratio` 或 `area_ratio` 的退化，因此修复奖励不保证候选
   自动超过 75 分；严重性能或资源退化仍会被连续惩罚。

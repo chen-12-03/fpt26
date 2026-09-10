@@ -15,7 +15,7 @@ Core formula (fits on one screen)::
     performance_ratio       = anchor_time / candidate_time
     U(resources)            = sum(resources[r] / device_capacity[r])
     area_ratio              = U(anchor) / U(candidate)
-    evidence_ratio          = 1.01**D * 2**F
+    evidence_ratio          = 0.99**D * 2**F
                               * performance_ratio**0.55
                               * area_ratio**0.45
     q_hw                    = ratio_quality(evidence_ratio)
@@ -25,9 +25,10 @@ Core formula (fits on one screen)::
 Schema 11 replaces per-resource worst-growth scoring with a capacity-normalized
 resource footprint.  It also records two task-label-independent evidence bits:
 ``D`` for a candidate whose source differs from the starter and ``F`` for a
-valid candidate that repairs an invalid starter.  Production grading keeps
+valid candidate that repairs an invalid starter.  The 0.99 edit factor prevents
+a source-only change from receiving a score uplift.  Production grading keeps
 signed performance and resource ratios, so regressions still reduce the score.
-Standardized reference validation may opt into positive-only evidence through
+Standardized reference validation may opt into positive-only hardware evidence through
 ``reference_validation_ratio``.  Production grading continues to use measured
 cost and wall time.
 """
@@ -50,7 +51,7 @@ W_AREA = 0.45
 LAMBDA_COST = 0.10
 LAMBDA_TIME = 0.10
 E_MIN = 0.80
-SOURCE_CHANGE_RATIO = 1.01
+SOURCE_CHANGE_RATIO = 0.99
 VALIDITY_RESCUE_RATIO = 2.0
 MAX_ZERO_RESOURCE_REWARD = 4.0
 
@@ -401,7 +402,7 @@ def reference_validation_ratio(
     validity_rescue: bool,
     performance_weight: float = W_PERFORMANCE,
 ) -> float:
-    """Positive-only evidence ratio for frozen starter/reference validation."""
+    """Positive-only hardware ratio plus the global edit/rescue factors."""
     return combined_evidence_ratio(
         performance_ratio,
         area_ratio,

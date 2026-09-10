@@ -1,0 +1,32 @@
+task_id = "compile_repair__22__chstone__dfdiv"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 4
+top = "float64_div"
+kernel_file = "dfdiv.cpp"
+header_files = ["dfdiv.h"]
+public_tb = "dfdiv_tb.cpp"
+hidden_tb = "dfdiv_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "4e474555f6d6079770e96d8f0f4a77132329366bd227f599d8186b77aed96e6d"
+source_task_id = "chstone__dfdiv"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/dfdiv"
+source_path = "hls_eval_data/chstone/dfdiv/dfdiv.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+source_sha256 = "069259bc1a96f10a06ca5ddc7a37371962529af01b8d757ef63d46ee31463a72"
+
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "e9ec75b439535e8645e4e0a9d9e22fd0ec7fbf38c3043f1bf3ef6d1f50646c5b"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,158 @@
+{
+  "policy": "acquired_valid_source_without_synthetic_degradation",
+  "purpose": "track_a_qor_baseline_normalization",
+  "schema_version": 1,
+  "task_count": 25,
+  "tasks": [
+    {
+      "new_starter_sha256": "912f934b53f0dc3c582be77f1268d8e9bd908f257af65c1e7d0c0ca7809c495d",
+      "old_starter_sha256": "32f66f6f6a123ac0e63a6ff1fd1a7403ff207f8b4895e75a12a8439c5f16d64e",
+      "reference_sha256": "912f934b53f0dc3c582be77f1268d8e9bd908f257af65c1e7d0c0ca7809c495d",
+      "task_id": "qor_optimization__01__amd_intro__pipelining_loops_using_free_running_pipeline"
+    },
+    {
+      "new_starter_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "old_starter_sha256": "a01ed8632188c8271a62e9332cd0dfe954c483509c577f6b85668e69c5a16172",
+      "reference_sha256": "612836be329bf38248bb9813a82251d5fc8406d9acfa0fac855ecb9eb5fb0697",
+      "task_id": "qor_optimization__02__amd_intro__interface_memory_aliasing_axi_master_ports"
+    },
+    {
+      "new_starter_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "old_starter_sha256": "97a42fbd2d2a7449d436f5e693e2b5eb6964debe2404eba5f5e519b039a88128",
+      "reference_sha256": "2f929c89779a31e368074d7974cda6255bcf6be54df12971fe657109a6c20a6c",
+      "task_id": "qor_optimization__03__amd_intro__task_level_parallelism_control_driven_channels_simple_fifos"
+    },
+    {
+      "new_starter_sha256": "8dbec1b2c7b4beaae6135eac1fe11d2df3c1e4d9ae29c6349def88156bb6a25c",
+      "old_starter_sha256": "13838c44c0001617cdec5f2d806caf778d77cb44044ab257e0d849872226d0b6",
+      "reference_sha256": "8dbec1b2c7b4beaae6135eac1fe11d2df3c1e4d9ae29c6349def88156bb6a25c",
+      "task_id": "qor_optimization__04__amd_accel__sys_opt_multiple_process_src_krnl_vadd"
+    },
+    {
+      "new_starter_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "old_starter_sha256": "236c056e19f295658dafda1ad9fd4029d108c4096531633fe496698a9240d4ef",
+      "reference_sha256": "28a12274d45c2ca96d88c7907e0237932ea1f731e634a9b11972d4641cd31ea1",
+      "task_id": "qor_optimization__05__amd_intro__modeling_free_running_kernel_remerge_ii4to1"
+    },
+    {
+      "new_starter_sha256": "eae88f88a187f6d7fa0b565bf992bb93981969b1db8f5a18392c423864dbd705",
+      "old_starter_sha256": "31990e885751981e4844572b3756cccfc7f69aa82d56fc8b65e6d5403d8f7fc5",
+      "reference_sha256": "eae88f88a187f6d7fa0b565bf992bb93981969b1db8f5a18392c423864dbd705",
+      "task_id": "qor_optimization__06__amd_intro__interface_aggregation_disaggregation_struct_ii_issue"
+    },
+    {
+      "new_starter_sha256": "50b5ea63e363ff000944ff02c89887fb42d7559e4e50dda783b3b3d1a75d88dc",
+      "old_starter_sha256": "ca63329b1aede246e4164058ea0d12fc8877c32e367e7866a13a9c93e3cb6e49",
+      "reference_sha256": "50b5ea63e363ff000944ff02c89887fb42d7559e4e50dda783b3b3d1a75d88dc",
+      "task_id": "qor_optimization__07__amd_accel__sys_opt_kernel_swap_src_krnl_vmul"
+    },
+    {
+      "new_starter_sha256": "a4ccf3252797495141285ff28e52cdfc6fc60366e4ad75f6b3260a317389bf8c",
+      "old_starter_sha256": "5d768b1abbcf6e41a92391f6a224e9252efdc6aa691fe5b061084f3254e9d8e7",
+      "reference_sha256": "a4ccf3252797495141285ff28e52cdfc6fc60366e4ad75f6b3260a317389bf8c",
+      "task_id": "qor_optimization__08__amd_intro__interface_memory_ecc_flags"
+    },
+    {
+      "new_starter_sha256": "ef8f4c10ddb97a312f2c858012865d368344c1c21b9356e467f31186f94cea1a",
+      "old_starter_sha256": "ce196d662b78c21ed1760cc259bf12084689666b244f06fa07e6fd265a5eedf7",
+      "reference_sha256": "ef8f4c10ddb97a312f2c858012865d368344c1c21b9356e467f31186f94cea1a",
+      "task_id": "qor_optimization__09__amd_intro__pipelining_loops_perfect_loop"
+    },
+    {
+      "new_starter_sha256": "2bd6cfba2b97b7bff89871c6b4adfde652753e577d7e6688f04c814c787d1955",
+      "old_starter_sha256": "67fb8ca1a2783ff92346dc0b38d3b390811d06f8bd4347aecd5d141f1ccc56fe",
+      "reference_sha256": "2bd6cfba2b97b7bff89871c6b4adfde652753e577d7e6688f04c814c787d1955",
+      "task_id": "qor_optimization__10__amd_intro__modeling_pointers_using_double"
+    },
+    {
+      "new_starter_sha256": "526b1c6d883765770b9429d0e0d8a585f7689c7055cb45a7274d19d140d7a0fe",
+      "old_starter_sha256": "21b1bdaa467c9edb28771ede3f9598af37aa7303b581bc0720635d8be4bc5236",
+      "reference_sha256": "526b1c6d883765770b9429d0e0d8a585f7689c7055cb45a7274d19d140d7a0fe",
+      "task_id": "qor_optimization__11__amd_intro__pipelining_loops_imperfect_loop"
+    },
+    {
+      "new_starter_sha256": "d35802c6242173bd18ee5b69fd623ddd5a0683c835e99cf306270dc018ca034a",
+      "old_starter_sha256": "8bd3057fc5390069d075ed22aaa2c9997363817df0301887f0fea1b33d03caac",
+      "reference_sha256": "d35802c6242173bd18ee5b69fd623ddd5a0683c835e99cf306270dc018ca034a",
+      "task_id": "qor_optimization__12__amd_intro__interface_memory_memory_bottleneck_modified"
+    },
+    {
+      "new_starter_sha256": "b72c6b57dc6f407b937971764b7079a9ec6913e551b3583d64fb0c19099a0066",
+      "old_starter_sha256": "392d065c7a7e3465ea16a37eeb7f60676b918e77938716142c75aaed8a416765",
+      "reference_sha256": "b72c6b57dc6f407b937971764b7079a9ec6913e551b3583d64fb0c19099a0066",
+      "task_id": "qor_optimization__13__polybench__symm"
+    },
+    {
+      "new_starter_sha256": "9b888b7753791882f425a2dcf892cd58e07ece4dd9aa023465558a75d4c5abde",
+      "old_starter_sha256": "b26093078e332bd08db334daa9624533616515a23d95bc05fc61965c24a2beda",
+      "reference_sha256": "9b888b7753791882f425a2dcf892cd58e07ece4dd9aa023465558a75d4c5abde",
+      "task_id": "qor_optimization__14__polybench__gramschmidt"
+    },
+    {
+      "new_starter_sha256": "5cd967449813577380305b2db7f9278ddeb67d0c9efcfd0a42692b83b53dbc5c",
+      "old_starter_sha256": "bcd13da1536e95b78295a71c5ad78462a4210326b370f210ecd9b0fb2658ed52",
+      "reference_sha256": "5cd967449813577380305b2db7f9278ddeb67d0c9efcfd0a42692b83b53dbc5c",
+      "task_id": "qor_optimization__15__polybench__gesummv"
+    },
+    {
+      "new_starter_sha256": "5772512fa2d60b38622fc0799405b47f7c3d44a70aa78357d493296ccac99ded",
+      "old_starter_sha256": "8f1a313b6c1b8d840bff6faf33d79005439c9e6f2bef5656d68b3e2fb7f6f22b",
+      "reference_sha256": "5772512fa2d60b38622fc0799405b47f7c3d44a70aa78357d493296ccac99ded",
+      "task_id": "qor_optimization__16__polybench__syr2k"
+    },
+    {
+      "new_starter_sha256": "580d1df74a0e2763b456730d831aa8506e83a7d4ffa121b2025f3e4c16d17b7d",
+      "old_starter_sha256": "a1307f2f4314bb88404c59c5d5dced54a461ce65cbf89928da56f0b2cf45a74c",
+      "reference_sha256": "580d1df74a0e2763b456730d831aa8506e83a7d4ffa121b2025f3e4c16d17b7d",
+      "task_id": "qor_optimization__17__polybench__gemm"
+    },
+    {
+      "new_starter_sha256": "d12717b9d3ec43d1ed5388741476f80d37582f38a92b8bafcdbf5e765b571f00",
+      "old_starter_sha256": "3279c01add5cd31d657f00933650b6535251386573597b260ece0338ec4aad09",
+      "reference_sha256": "d12717b9d3ec43d1ed5388741476f80d37582f38a92b8bafcdbf5e765b571f00",
+      "task_id": "qor_optimization__18__polybench__bicg"
+    },
+    {
+      "new_starter_sha256": "043b85dfe2de2e0617f201655a82ed7018cb821b2e347e8a06af3d3946e79b20",
+      "old_starter_sha256": "6e30f09619d134de43b6965fbf3732fe4e4ce15ae9bc6984833a860a08812524",
+      "reference_sha256": "043b85dfe2de2e0617f201655a82ed7018cb821b2e347e8a06af3d3946e79b20",
+      "task_id": "qor_optimization__19__polybench__lu"
+    },
+    {
+      "new_starter_sha256": "eaa2d6fee4e9b3b8bdfe5995b18728036d7dd8b4e4d25246fecfe97eaf6f5a98",
+      "old_starter_sha256": "88c3190ab90291e66f9deaa68022b1dceeb0899bc8dce5462276420792e13578",
+      "reference_sha256": "eaa2d6fee4e9b3b8bdfe5995b18728036d7dd8b4e4d25246fecfe97eaf6f5a98",
+      "task_id": "qor_optimization__20__polybench__jacobi_2d"
+    },
+    {
+      "new_starter_sha256": "2f326d850fa2bb688a1970f8e8c79fe1e666df758b3937058607c52f5af01259",
+      "old_starter_sha256": "e0c9e7a8bc7b5f5229db345dedfba080770c25a72f82b85f7dc74688db7200fd",
+      "reference_sha256": "2f326d850fa2bb688a1970f8e8c79fe1e666df758b3937058607c52f5af01259",
+      "task_id": "qor_optimization__21__polybench__doitgen"
+    },
+    {
+      "new_starter_sha256": "0c8ccf487b0e9dd20c2e5faa000ff2b065eae66fb88231d4424f9d282f7c101a",
+      "old_starter_sha256": "610e388993e6c388c2cfee50002bc757d1aa1b80e58b26248c6ecc0a6821b2b5",
+      "reference_sha256": "0c8ccf487b0e9dd20c2e5faa000ff2b065eae66fb88231d4424f9d282f7c101a",
+      "task_id": "qor_optimization__22__machsuite__sort_radix"
+    },
+    {
+      "new_starter_sha256": "eb16c014890eb84b3c08c200c506425d7d0d7cf5fc42b6283a8489ee7f004fb2",
+      "old_starter_sha256": "858352f7bd6de01332f3ba292290f40cb3d0550a1144cd672f1fc029d9329a96",
+      "reference_sha256": "eb16c014890eb84b3c08c200c506425d7d0d7cf5fc42b6283a8489ee7f004fb2",
+      "task_id": "qor_optimization__23__amd_accel__host_xrt_multiple_cus_asymmetrical_xrt_src_vadd"
+    },
+    {
+      "new_starter_sha256": "948137a9b62d1d601ddeb0c52788f598b7cad6377d8b842cf1c588ec58285d10",
+      "old_starter_sha256": "637eb405546e89cd8a84b0a112fc760627b2a10715fd50fea0693c6ca40ac798",
+      "reference_sha256": "948137a9b62d1d601ddeb0c52788f598b7cad6377d8b842cf1c588ec58285d10",
+      "task_id": "qor_optimization__24__machsuite__aes_aes"
+    },
+    {
+      "new_starter_sha256": "9053d23cc916f6b946591086b5cf1932615e78da496851d7f25ea2e954805445",
+      "old_starter_sha256": "6efbdebf150d25d6cd44a7ff14e31fc0b4059cf904308dc31bf5df8c0294bd61",
+      "reference_sha256": "9053d23cc916f6b946591086b5cf1932615e78da496851d7f25ea2e954805445",
+      "task_id": "qor_optimization__25__amd_perf__security_adler32"
+    }
+  ]
+}

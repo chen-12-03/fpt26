@@ -1,9 +1,10 @@
 #!/bin/bash
-# Launch 3-shard DeepSeek V4 Pro run against 150 Track-A tasks
+# Launch 3-shard DeepSeek V4 Pro run against the frozen split-role 150 tasks
 set -euo pipefail
 
-RUN_LABEL="track_a_150_openrouter_dsv4_$(date +%Y%m%d_%H%M%S)"
+RUN_LABEL="track_a_150_v2_openrouter_dsv4_$(date +%Y%m%d_%H%M%S)"
 MODEL="deepseek/deepseek-v4-pro"
+RELEASE_ROOT="/workspace/releases/track_a_150_v2_20260910"
 
 echo "=== Launching 3 shards ==="
 echo "RUN_LABEL=${RUN_LABEL}"
@@ -26,7 +27,8 @@ for SHARD in 0 1 2; do
     fpt26-agent-v3:latest \
     bash -lc "source /tools/Xilinx/2025.2/Vitis/settings64.sh && \
       python3 -m scoring.run_p0_real_api_shard \
-        --task-root /workspace/tasks/track_a_150 \
+        --submission-task-root ${RELEASE_ROOT}/public_agent \
+        --evaluator-task-root ${RELEASE_ROOT}/evaluator_private \
         --output-root ${OUTPUT_DIR} \
         --shard-index ${SHARD} \
         --shard-count 3 \

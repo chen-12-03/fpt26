@@ -11,3 +11,14 @@ initial_condition = "Functionally correct but unoptimized numerical kernel. Add 
 [target]
 part = "xcu55c-fsvh2892-2L-e"
 clock_ns = 5.0
+
+[provenance]
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/seidel-2d"
+source_path = "hls_eval_data/polybench/seidel-2d/seidel-2d.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "cbf4a091af007bc9f325eb3a9a191ddbccd700fb4a566ddb4284fd232dfe6ff8"

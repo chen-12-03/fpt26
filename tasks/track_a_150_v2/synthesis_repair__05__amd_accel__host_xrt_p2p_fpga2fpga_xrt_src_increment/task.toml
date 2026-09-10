@@ -1,0 +1,26 @@
+task_id = "synthesis_repair__05__amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "increment"
+kernel_file = "increment.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "increment_tb.cpp"
+hidden_tb = "increment_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "81a18abfc0dc8c4ed4b70a79c367ce291e67dd442404b83db5f4396ee9bca5e2"
+source_task_id = "amd_accel__host_xrt_p2p_fpga2fpga_xrt_src_increment"
+source_url = "https://github.com/Xilinx/Vitis_Accel_Examples/tree/81187602355a7c2b666351154c5acca2074cae64/host_xrt/p2p_fpga2fpga_xrt"
+source_path = "host_xrt/p2p_fpga2fpga_xrt"
+repo_commit = "81187602355a7c2b666351154c5acca2074cae64"
+license = "MIT"
+source_sha256 = "633da7a0ce2f706622b72469f66e41c2c1f7a6d31362ff4918b8e412354a1278"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

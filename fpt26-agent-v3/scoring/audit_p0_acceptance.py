@@ -39,6 +39,40 @@ def _record_can_be_replaced(record: dict[str, Any]) -> bool:
     )
 
 
+def _observation_notes(
+    submission: dict[str, Any] | None,
+    evaluator: dict[str, Any] | None,
+) -> list[str]:
+    """Non-fatal observations about one task.
+
+    ``audit_errors`` answers "was the run recorded correctly?"; these notes
+    answer "what happened?".  A candidate that failed grading, or a toolchain
+    whose pinned part was never echoed into a log, is not a recording fault —
+    keeping the two apart is what stops a legitimate model failure from being
+    counted as an infrastructure problem.
+    """
+    notes: list[str] = []
+
+    toolchain = (submission or {}).get("toolchain") or {}
+    if not (toolchain.get("observed_parts") or []):
+        notes.append("toolchain_part_unverified")
+
+    stages = {
+        item.get("stage"): item
+        for item in (
+            ((evaluator or {}).get("execution_trace") or {}).get(
+                "grading_results"
+            )
+            or []
+        )
+        if isinstance(item, dict)
+    }
+    for stage in ("hidden_csim", "candidate_synth", "hidden_cosim"):
+        if stages.get(stage, {}).get("ok") is False:
+            notes.append(f"{stage}_failed")
+    return notes
+
+
 def _add_tokens(total: dict[str, int], usage: dict[str, Any]) -> None:
     for key in (
         "request_count",
@@ -167,6 +201,9 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
     public_only_submission_count = 0
     model_compliance_task_count = 0
     final_verified_task_count = 0
+    api_failure_task_count = 0
+    api_failure_reasons: dict[str, int] = {}
+    observation_counts: dict[str, int] = {}
 
     for task_id, record in sorted(records.items()):
         task_dir = _path(record.get("task_dir"))
@@ -209,9 +246,27 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
                     expected_grading_source=expected_grading_source,
                 )
             )
+        notes = _observation_notes(submission, evaluator)
         errors = sorted(set(errors))
         if errors:
             audit_error_task_count += 1
+
+        for note in notes:
+            observation_counts[note] = observation_counts.get(note, 0) + 1
+        llm_failures = [
+            failure
+            for failure in (
+                ((submission or {}).get("llm") or {}).get("failures") or []
+            )
+            if isinstance(failure, dict)
+        ]
+        if llm_failures:
+            api_failure_task_count += 1
+        for failure in llm_failures:
+            reason = str(failure.get("error") or failure)
+            api_failure_reasons[reason] = (
+                api_failure_reasons.get(reason, 0) + 1
+            )
 
         outcome = str(record.get("outcome"))
         outcome_counts[outcome] = outcome_counts.get(outcome, 0) + 1
@@ -297,6 +352,7 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             "task_dir": str(task_dir) if task_dir else None,
             "audit_ok": not errors,
             "audit_errors": errors,
+            "observations": notes,
             "launcher_audit_errors": launcher_audit_errors,
             "submission": {
                 "status": (submission or {}).get("status"),
@@ -372,6 +428,7 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             "audit_error_task_count": audit_error_task_count,
             "outcome_counts": dict(sorted(outcome_counts.items())),
             "stop_reason_counts": dict(sorted(stop_reason_counts.items())),
+            "observations": dict(sorted(observation_counts.items())),
         },
         "submission_isolation": {
             "public_only_submission_count": public_only_submission_count,
@@ -380,6 +437,8 @@ def audit(task_root: Path, run_roots: list[Path]) -> dict[str, Any]:
             ),
         },
         "model_and_api": {
+            "api_failure_task_count": api_failure_task_count,
+            "api_failure_reasons": dict(sorted(api_failure_reasons.items())),
             "model_compliance_proven_task_count": (
                 model_compliance_task_count
             ),
@@ -441,6 +500,9 @@ def main() -> int:
     print(
         f"P0 audit: tasks={result['coverage']['recorded_task_count']} "
         f"outcomes={result['coverage']['outcome_counts']} "
+        f"audit_errors={result['coverage']['audit_error_task_count']} "
+        f"observations={result['coverage']['observations']} "
+        f"api_failures={result['model_and_api']['api_failure_task_count']} "
         f"api_requests={result['model_and_api']['token_totals']['request_count']} "
         f"tokens={result['model_and_api']['token_totals']['total_tokens']} "
         f"integrity={result['workflow_integrity_ok']} "

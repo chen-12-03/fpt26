@@ -11,3 +11,14 @@ initial_condition = "Functionally correct computation kernel. Add HLS pragmas fo
 [target]
 part = "xcu55c-fsvh2892-2L-e"
 clock_ns = 5.0
+
+[provenance]
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/dfmul"
+source_path = "hls_eval_data/chstone/dfmul/dfmul.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "24fd88128fb15136ed07dd2f5fced57eb839955b7ab3243eec91f5cff9919b19"

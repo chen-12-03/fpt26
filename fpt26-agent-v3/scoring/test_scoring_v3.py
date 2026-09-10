@@ -198,12 +198,12 @@ class TestAggregateResourceScoring:
 
 
 class TestEvidenceMultipliers:
-    def test_source_change_provides_minimal_uplift(self):
+    def test_source_change_applies_minimal_penalty(self):
         ratio = combined_evidence_ratio(
             1.0, 1.0, source_changed=True
         )
-        assert ratio == pytest.approx(1.01)
-        assert 100 * ratio_quality(ratio) == pytest.approx(75.2481374)
+        assert ratio == pytest.approx(0.99)
+        assert 100 * ratio_quality(ratio) == pytest.approx(74.7481124)
 
     def test_validity_rescue_is_explicit_and_label_independent(self):
         ratio = combined_evidence_ratio(
@@ -212,8 +212,8 @@ class TestEvidenceMultipliers:
             source_changed=True,
             validity_rescue=True,
         )
-        assert ratio == pytest.approx(2.02)
-        assert 100 * ratio_quality(ratio) == pytest.approx(89.0355686)
+        assert ratio == pytest.approx(1.98)
+        assert 100 * ratio_quality(ratio) == pytest.approx(88.73924598)
 
     def test_production_keeps_signed_repair_regressions(self):
         signed = combined_evidence_ratio(
@@ -229,7 +229,7 @@ class TestEvidenceMultipliers:
             validity_rescue=True,
         )
         assert signed < 1.0
-        assert positive_only == pytest.approx(2.02)
+        assert positive_only == pytest.approx(1.98)
         assert ratio_quality(signed) < 0.75
 
     def test_scorecard_records_both_evidence_bits(self):
@@ -244,9 +244,9 @@ class TestEvidenceMultipliers:
         )
         assert card.source_changed is True
         assert card.validity_rescue is True
-        assert card.source_change_multiplier == pytest.approx(1.01)
+        assert card.source_change_multiplier == pytest.approx(0.99)
         assert card.validity_rescue_multiplier == pytest.approx(2.0)
-        assert card.score == pytest.approx(89.04, abs=0.01)
+        assert card.score == pytest.approx(88.74, abs=0.01)
 
 
 class TestCapacityEvidence:

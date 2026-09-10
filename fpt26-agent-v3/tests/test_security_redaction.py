@@ -1,11 +1,13 @@
 """Tests for credential/token redaction and env sanitisation."""
 from __future__ import annotations
 
+import json
 import os
 
 import pytest
 
-from agent.security.redaction import redact_sensitive_text
+from agent.reporting.writer import write_json_report
+from agent.security.redaction import redact_data, redact_sensitive_text
 from agent.security.execution_policy import sanitise_env, DEFAULT_POLICY
 
 
@@ -41,6 +43,58 @@ class TestCredentialRedaction:
     def test_handles_non_string_input(self):
         result = redact_sensitive_text(42)
         assert "42" in result
+
+
+class TestStructuredRedaction:
+    """Redaction of JSON-like payloads must not corrupt document structure."""
+
+    def test_redacts_string_leaves_and_keeps_structure(self):
+        payload = {
+            "model_compliance": {
+                "source_evidence": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                "nested": ["ok", {"endpoint": "https://api.example.com/v1"}],
+            },
+            "count": 3,
+            "flag": True,
+            "nothing": None,
+        }
+        result = redact_data(payload)
+        assert result["model_compliance"]["source_evidence"] == "<redacted-endpoint>"
+        assert result["model_compliance"]["nested"][1]["endpoint"] == "<redacted-endpoint>"
+        assert result["count"] == 3
+        assert result["flag"] is True
+        assert result["nothing"] is None
+        # Keys are identifiers, never rewritten
+        assert "model_compliance" in result
+
+    def test_report_with_url_serialises_to_valid_json(self, tmp_path):
+        """Regression: redaction used to run on serialised text and eat the
+        closing quote/comma after a URL, yielding unparseable run reports."""
+        report = {
+            "schema_version": 1,
+            "run_role": "submission",
+            "status": "failed",
+            "model_compliance": {
+                "compliance_proven": True,
+                "model": "qwen3.6-27b",
+                "source_evidence": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            },
+        }
+        path = write_json_report(report, tmp_path, redact=True)
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        assert loaded["status"] == "failed"
+        assert loaded["model_compliance"]["model"] == "qwen3.6-27b"
+        assert (
+            loaded["model_compliance"]["source_evidence"] == "<redacted-endpoint>"
+        )
+
+    def test_written_report_never_contains_secrets(self, tmp_path):
+        secret = "sk-ws-AAAABBBBCCCCDDDD"
+        report = {"llm": {"api_key": secret, "note": f"used {secret} for auth"}}
+        path = write_json_report(report, tmp_path, redact=True)
+        text = path.read_text(encoding="utf-8")
+        assert secret not in text
+        json.loads(text)
 
 
 class TestEnvSanitisation:

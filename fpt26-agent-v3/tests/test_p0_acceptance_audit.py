@@ -52,3 +52,43 @@ def test_only_failed_evidence_records_can_be_replaced() -> None:
     assert not _record_can_be_replaced(
         {"outcome": "completed", "audit_errors": []}
     )
+
+
+def test_observation_notes_explain_outcomes_without_calling_them_errors() -> None:
+    from scoring.audit_p0_acceptance import _observation_notes
+
+    submission = {
+        "toolchain": {"observed_parts": []},
+    }
+    evaluator = {
+        "execution_trace": {
+            "grading_results": [
+                {"stage": "hidden_csim", "ok": False},
+                {"stage": "candidate_synth", "ok": False},
+            ]
+        }
+    }
+
+    notes = _observation_notes(submission, evaluator)
+
+    assert notes == [
+        "toolchain_part_unverified",
+        "hidden_csim_failed",
+        "candidate_synth_failed",
+    ]
+
+
+def test_observation_notes_are_empty_for_a_clean_task() -> None:
+    from scoring.audit_p0_acceptance import _observation_notes
+
+    submission = {"toolchain": {"observed_parts": ["xcu55c-fsvh2892-2L-e"]}}
+    evaluator = {
+        "execution_trace": {
+            "grading_results": [
+                {"stage": "hidden_csim", "ok": True},
+                {"stage": "candidate_synth", "ok": True},
+            ]
+        }
+    }
+
+    assert _observation_notes(submission, evaluator) == []

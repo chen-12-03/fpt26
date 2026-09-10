@@ -1,0 +1,26 @@
+task_id = "compile_repair__23__amd_intro__interface_streaming_axi_stream_to_master"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["example.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "7d863ac4fbb85c91944ea86508eda1aee9cf78ac3e03eb77e040d8d2b1b8365c"
+source_task_id = "amd_intro__interface_streaming_axi_stream_to_master"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axi_stream_to_master"
+source_path = "Interface/Streaming/axi_stream_to_master"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "0c1273bca2b53208be6e16e1422245a95beff2999e85b8912434d98d26a4c275"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

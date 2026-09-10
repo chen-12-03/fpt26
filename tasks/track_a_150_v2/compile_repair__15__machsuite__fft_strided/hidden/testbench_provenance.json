@@ -1,0 +1,21 @@
+{
+  "hidden_fixture_sha256": {
+    "check.data": "0dc25f84d00e03d0442c85ef01ab4be0698b50099d95b5e030df487aa56b615c",
+    "input.data": "41eccfee8117fc4ab53e4f4a5267bd26bc5942a786fafe53eee3a64ac316ed6c"
+  },
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "floating_plus_0.125:0.8483178396146527->0.9733178396146527",
+  "hidden_tb_sha256": "6f6104d2cbc16f88c3bad757dd63e95e38691fffdc8151d27f2cc8d1cce43bff",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_machsuite_check_fixture",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_fixture",
+  "public_tb_sha256": "6f6104d2cbc16f88c3bad757dd63e95e38691fffdc8151d27f2cc8d1cce43bff",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "compile_repair__15__machsuite__fft_strided",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_machsuite_evidence/compile_repair__15__machsuite__fft_strided/hardening_evidence.json"
+}

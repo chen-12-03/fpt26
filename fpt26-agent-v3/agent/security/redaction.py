@@ -8,6 +8,7 @@ stdout, log files, or run reports.
 from __future__ import annotations
 
 import re
+from typing import Any
 
 # Patterns that match credential-shaped strings.  These are deliberately
 # aggressive; false positives are acceptable (over-redaction) while false
@@ -47,6 +48,29 @@ def redact_sensitive_text(value: object) -> str:
         text = pattern.sub("<redacted-key-value>", text)
 
     return text
+
+
+def redact_data(value: Any) -> Any:
+    """Redact string values inside a JSON-like structure recursively.
+
+    Use this for structured payloads that will later be serialised (run
+    reports, checkpoints, evidence files).  The patterns in
+    :func:`redact_sensitive_text` are greedy about non-whitespace characters
+    — ``https?://[^\\s)\\]]+`` happily eats a trailing ``",`` — so applying
+    them to *serialised* JSON destroys structural characters and yields a
+    document that no longer parses.  Redacting the values first keeps the
+    document well-formed: ``json.dumps`` escapes whatever the replacement
+    introduces.
+
+    Dict keys are left untouched (they are identifiers, not data).
+    """
+    if isinstance(value, str):
+        return redact_sensitive_text(value)
+    if isinstance(value, dict):
+        return {key: redact_data(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [redact_data(item) for item in value]
+    return value
 
 
 def redact_and_log(text: str) -> str:

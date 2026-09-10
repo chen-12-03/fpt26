@@ -1,0 +1,33 @@
+task_id = "ta2_cg_020"
+internal_task_id = "code_generation__20__machsuite__spmv_ellpack"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "ellpack"
+kernel_file = "spmv_ellpack.cpp"
+header_files = ["spmv_ellpack.h"]
+public_tb = "spmv_ellpack_tb.cpp"
+hidden_tb = "spmv_ellpack_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "618579c72514ace51402340588c9ed36384b5a8fe0eb05e05dea4270e775adb9"
+source_task_id = "machsuite__spmv_ellpack"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/spmv_ellpack"
+source_path = "hls_eval_data/machsuite/spmv_ellpack/spmv_ellpack.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "219e4403861ac2dd8c09c1bda67af406584f3692a3c40e54016974cfe3b3b5f1"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "219e4403861ac2dd8c09c1bda67af406584f3692a3c40e54016974cfe3b3b5f1"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

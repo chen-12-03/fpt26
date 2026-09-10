@@ -11,3 +11,14 @@ initial_condition = "Functionally correct parallel pattern kernel. Optimize data
 [target]
 part = "xcu55c-fsvh2892-2L-e"
 clock_ns = 5.0
+
+[provenance]
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/pp4fpga/block_mm"
+source_path = "hls_eval_data/pp4fpga/block_mm/block_mm.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "CC-BY-4.0"
+upstream_project_url = "https://github.com/KastnerRG/pp4fpgas"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/KastnerRG/pp4fpgas/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "5c4f1f4e09e4acb11dd3ef6f102dba4b26961125d3903337833797a0b2262c1c"

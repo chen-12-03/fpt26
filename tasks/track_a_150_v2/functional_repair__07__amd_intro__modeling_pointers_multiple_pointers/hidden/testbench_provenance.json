@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "permuted_pointer_indices_and_selectors_with_closed_form_oracle",
+  "hidden_tb_sha256": "23be58c4c571551b04f99277739b1532bcad68f4c59d7d72404af28fe89a10ee",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "9bdae6c8526149714dad82148b96f598bff89ac6495eba37d8d195563298e00b",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "functional_repair__07__amd_intro__modeling_pointers_multiple_pointers",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/functional_repair__07__amd_intro__modeling_pointers_multiple_pointers/hardening_evidence.json"
+}

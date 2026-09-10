@@ -12,7 +12,10 @@ extern "C" void kernel(int *out) {
     stub = _code_generation_stub(reference, "kernel")
 
     assert 'extern "C" void kernel(int *out)' in stub
-    assert "#error TRACK_A_CODE_GENERATION_REQUIRED" in stub
+    # The stub must not compile, but it must not announce the benchmark either
+    # — an unresolved placeholder is the whole declaration of intent.
+    assert "implementation_required()" in stub
+    assert "TRACK_A" not in stub
     assert "*out = 1" not in stub
 
 

@@ -90,10 +90,12 @@ class CoSimTool:
     def __init__(
         self,
         executor: SecureToolExecutor | None = None,
+        data_files: dict[str, bytes] | None = None,
         *,
         workspace_root: str | Path = "/workspace",
     ) -> None:
         self._executor = executor or SecureToolExecutor(workspace_root=workspace_root)
+        self.data_files = data_files
 
     def run(
         self,
@@ -104,11 +106,14 @@ class CoSimTool:
         top: str,
         part: str = config.DEFAULT_PART,
         clock_ns: float = config.DEFAULT_CLOCK_NS,
+        data_files: dict[str, bytes] | None = None,
     ):
         prepared = _prepare_cpp17_sources(files)
+        fixtures = self.data_files if data_files is None else data_files
         return self._executor.cosim(
             build_dir, prepared, synth_sources=synth_sources,
             tb_sources=tb_sources, top=top, part=part, clock_ns=clock_ns,
+            data_files=fixtures,
         )
 
 
@@ -140,7 +145,9 @@ class ToolServer(HarnessToolServer):
             self.executor, getattr(task, "public_data_files", None),
         )
         self._synth = SynthTool(self.executor)
-        self._cosim = CoSimTool(self.executor)
+        self._cosim = CoSimTool(
+            self.executor, getattr(task, "public_data_files", None),
+        )
 
     def _record(self, result) -> None:
         """Record the result and attach its agent-owned persisted artifact path."""

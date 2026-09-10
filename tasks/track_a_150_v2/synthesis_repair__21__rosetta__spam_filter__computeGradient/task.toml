@@ -1,0 +1,34 @@
+task_id = "synthesis_repair__21__rosetta__spam_filter__computeGradient"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "computeGradient"
+kernel_file = "computeGradient.cpp"
+header_files = ["computeGradient.h"]
+public_tb = "computeGradient_tb.cpp"
+hidden_tb = "computeGradient_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "26f2d73cf0942c202b97410b63f512e883703d6217b05d116d44337e64aa6d63"
+source_task_id = "rosetta__spam_filter__computeGradient"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/rosetta/spam_filter__computeGradient"
+source_path = "hls_eval_data/rosetta/spam_filter__computeGradient/computeGradient.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "35fe33ec472829f4938e9321681d0cc04bb5e82f8d5490b3623fd79566f3c7f3"
+
+reference_normalization = "none"
+
+upstream_project_url = "https://github.com/cornell-zhang/rosetta"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/cornell-zhang/rosetta/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "c712fb7a11ca44b97778d6906dc6786d146681faccf59baa4d39c570b109d524"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

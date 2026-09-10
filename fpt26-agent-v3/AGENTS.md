@@ -36,7 +36,7 @@ ratio_quality(r) = 1 - 1/(1+r)²
 performance_ratio = latency_ratio  # 可靠 II 明确适用时才聚合 II
 U(x) = Σ resource_x[r] / device_capacity[r]
 area_ratio = U(anchor) / U(candidate)  # 零资源使用显式分段规则
-evidence_ratio = 1.01^D × 2^F × performance_ratio^0.55 × area_ratio^0.45
+evidence_ratio = 0.99^D × 2^F × performance_ratio^0.55 × area_ratio^0.45
 q_hw     = ratio_quality(evidence_ratio)
 efficiency = max(0.80, 1 - 0.10×cost_ratio - 0.10×time_ratio)
 score    = 100 × validity × q_hw × efficiency
@@ -49,7 +49,7 @@ score    = 100 × validity × q_hw × efficiency
 - **禁止正式自锚定** — starter/reference 均无效时不可计算 QoR 分数
 - **时钟周期纳入计算** — `anchor_time = clock × latency`
 - **综合资源压力** — LUT/FF/DSP/BRAM/URAM 各自除以器件容量后求和，允许资源类型转移
-- **证据因子** — `D` 表示源码相对 starter 改变；`F` 表示有效候选修复无效 starter
+- **编辑/修复因子** — `D` 表示源码相对 starter 改变并施加 0.99 倍轻微惩罚；`F` 表示有效候选修复无效 starter
 
 ### 2.3 统一提示词 — 禁止 mode/task-type 特定提示词
 

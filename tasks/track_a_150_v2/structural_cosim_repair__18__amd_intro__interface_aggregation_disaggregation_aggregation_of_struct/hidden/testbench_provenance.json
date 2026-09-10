@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "affine_struct_field_vector_with_sum_oracle",
+  "hidden_tb_sha256": "39135445bab6eacd2c41f7aedde144a234266a934159eaa6f4f1c9978b47adab",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "c52e6e7f1390f325b75a4ad8ca5caafc4df4f9e63507f3ef503ec72a4ef1cca4",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "structural_cosim_repair__18__amd_intro__interface_aggregation_disaggregation_aggregation_of_struct",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/structural_cosim_repair__18__amd_intro__interface_aggregation_disaggregation_aggregation_of_struct/hardening_evidence.json"
+}

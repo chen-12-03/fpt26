@@ -1,6 +1,7 @@
 """Verify that the agent runner discovers public and hidden data files."""
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 from agent.testbench import (
     _DATA_SUFFIXES,
@@ -9,6 +10,8 @@ from agent.testbench import (
 )
 from agent.integrations.task_repository import PublicTaskRepository
 from llm4hls.task import load_task
+from llm4hls.tools import CoSimTool as HarnessCoSimTool
+from agent.runner import CoSimTool as AgentCoSimTool
 
 
 def _write(path: Path, content: str | bytes) -> None:
@@ -100,3 +103,46 @@ def test_public_repository_attaches_public_fixtures_during_load():
     assert sorted(task.public_data_files) == ["check.data", "input.data"]
     assert task.data_files == task.public_data_files
     assert not hasattr(task, "reference_code") or task.reference_code is None
+
+
+def test_cosim_stages_data_files_before_vitis(monkeypatch, tmp_path):
+    """CoSim must see the same external fixtures as evaluator-side CSim."""
+    fixture = b"hidden golden transcript\n"
+
+    def fake_vitis_run(tcl, work, timeout):
+        assert (work / "golden.data").read_bytes() == fixture
+        assert "add_files -tb golden.data\n" in tcl
+        return SimpleNamespace(
+            stdout="", stderr="", timeout=True, return_code=-1, elapsed_s=0.0
+        )
+
+    monkeypatch.setattr("llm4hls.tools.vitis.run_vitis_tcl", fake_vitis_run)
+    result = HarnessCoSimTool().run(
+        tmp_path / "cosim",
+        {"kernel.cpp": "void top() {}", "tb.cpp": "int main() { return 0; }"},
+        synth_sources=["kernel.cpp"],
+        tb_sources=["tb.cpp"],
+        top="top",
+        data_files={"golden.data": fixture},
+    )
+
+    assert result.phase == "timeout"
+
+
+def test_agent_cosim_uses_constructor_fixture_fallback(tmp_path):
+    fixture = {"input.data": b"public vector\n"}
+
+    class FakeExecutor:
+        def cosim(self, *args, **kwargs):
+            assert kwargs["data_files"] == fixture
+            return SimpleNamespace(ok=True)
+
+    result = AgentCoSimTool(FakeExecutor(), fixture).run(
+        tmp_path / "cosim",
+        {"kernel.cpp": "void top() {}", "tb.cpp": "int main() { return 0; }"},
+        synth_sources=["kernel.cpp"],
+        tb_sources=["tb.cpp"],
+        top="top",
+    )
+
+    assert result.ok is True

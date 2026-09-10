@@ -42,6 +42,7 @@ class ToolExecutor(Protocol):
         *,
         part: str = ...,
         clock_ns: float = ...,
+        data_files: dict[str, bytes] | None = ...,
     ) -> Any: ...
 
     def cosim(

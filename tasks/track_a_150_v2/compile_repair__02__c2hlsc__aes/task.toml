@@ -1,0 +1,32 @@
+task_id = "compile_repair__02__c2hlsc__aes"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 4
+top = "Cipher"
+kernel_file = "aes.cpp"
+header_files = ["aes.h"]
+public_tb = "aes_tb.cpp"
+hidden_tb = "aes_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "3d0136d6026e1cd649e13529cf610fe7fce73384831a0fb90eae65bf83b699f5"
+source_task_id = "c2hlsc__aes"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/c2hlsc/aes"
+source_path = "hls_eval_data/c2hlsc/aes/aes.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "GPL-3.0-only"
+source_sha256 = "bde4471d81fba76834f315e41a0bf4eccd69663f004b99c1c165bb2202a98cb9"
+
+upstream_project_url = "https://github.com/Lucaz97/c2hlsc"
+upstream_revision = "72d08b7d17da38b7ba9c828dce48403352be4dc3"
+license_evidence_url = "https://github.com/Lucaz97/c2hlsc/blob/72d08b7d17da38b7ba9c828dce48403352be4dc3/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "bde4471d81fba76834f315e41a0bf4eccd69663f004b99c1c165bb2202a98cb9"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

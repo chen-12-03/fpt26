@@ -1,0 +1,32 @@
+task_id = "synthesis_repair__11__polybench__mvt"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "kernel_mvt"
+kernel_file = "mvt.cpp"
+header_files = ["mvt.h"]
+public_tb = "mvt_tb.cpp"
+hidden_tb = "mvt_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "f31ce34f7f419a9c3d2e397142953812a0ca49fb1aea655a1899241b79677bc9"
+source_task_id = "polybench__mvt"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/mvt"
+source_path = "hls_eval_data/polybench/mvt/mvt.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "9874f04d48fde41b0ea7f716e787ebf80a4c65ccb8b09923292e353fe48074fa"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "83553c41f3e7b6ba3e4b5579eb068673a882a1ea5d1ec03b6876b5d4ca6a0365"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

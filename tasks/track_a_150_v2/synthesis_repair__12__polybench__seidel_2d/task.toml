@@ -1,0 +1,32 @@
+task_id = "synthesis_repair__12__polybench__seidel_2d"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "kernel_seidel_2d"
+kernel_file = "seidel-2d.cpp"
+header_files = ["seidel-2d.h"]
+public_tb = "seidel-2d_tb.cpp"
+hidden_tb = "seidel-2d_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "272199285b9be7e9844ecf881fe4726b70ff84eeba7cb180f13b6601adade64a"
+source_task_id = "polybench__seidel_2d"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/seidel-2d"
+source_path = "hls_eval_data/polybench/seidel-2d/seidel-2d.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "0326037a93399cbd9d1dc4649e23e20087d6acf9f4d999f31b5c3934ae4fa0ab"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "cbf4a091af007bc9f325eb3a9a191ddbccd700fb4a566ddb4284fd232dfe6ff8"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

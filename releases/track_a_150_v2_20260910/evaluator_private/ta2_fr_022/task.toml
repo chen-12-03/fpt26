@@ -1,0 +1,33 @@
+task_id = "ta2_fr_022"
+internal_task_id = "functional_repair__22__chstone__dfadd"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 4
+top = "float64_add"
+kernel_file = "dfadd.cpp"
+header_files = ["dfadd.h"]
+public_tb = "dfadd_tb.cpp"
+hidden_tb = "dfadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "comparison_flip:==->!=:offset=8087"
+kernel_family_id = "98da42af95abb181b256fd0d4a3fd2fddf5638e060eb3513247f1ab307165e24"
+source_task_id = "chstone__dfadd"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/dfadd"
+source_path = "hls_eval_data/chstone/dfadd/dfadd.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+source_sha256 = "9d9cbe477d5d6e96e34000c71d271043170fceeae4efd8e4814692241f25ea16"
+
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "c2def0fada2c86e8b174779ac83ba288208977b1cb6c1e1fa6f88a3d0ed093e8"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,32 @@
+task_id = "compile_repair__14__machsuite__nw_nw"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "needwun"
+kernel_file = "nw_nw.cpp"
+header_files = ["nw_nw.h"]
+public_tb = "nw_nw_tb.cpp"
+hidden_tb = "nw_nw_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "1bbf9eead57f842b91c3e3e7e7d30cb1ba10007a43c8a34be1aabf6a4c6a2f0f"
+source_task_id = "machsuite__nw_nw"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/nw_nw"
+source_path = "hls_eval_data/machsuite/nw_nw/nw_nw.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "a6f16a7ae519192ed4f06780a7015b76fbfe1870e4c4b6a32bd43561c0bc2c20"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "a6f16a7ae519192ed4f06780a7015b76fbfe1870e4c4b6a32bd43561c0bc2c20"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

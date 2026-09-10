@@ -126,10 +126,15 @@ class SecureToolExecutor:
         *,
         part: str = "xcu55c-fsvh2892-2L-e",
         clock_ns: float = 5.0,
+        data_files: dict[str, bytes] | None = None,
     ) -> Any:
         """Run C/RTL co-simulation with security checks and sanitised env."""
         self._validate(build_dir, files, top, part, clock_ns,
-                       extra_names=list(synth_sources) + list(tb_sources),
+                       extra_names=(
+                           list(synth_sources)
+                           + list(tb_sources)
+                           + list((data_files or {}).keys())
+                       ),
                        kind="cosim")
         prepared = self._transform(files)
         with _clean_subprocess_env():
@@ -137,7 +142,7 @@ class SecureToolExecutor:
                 self._get_cosim().run(
                     build_dir, prepared, synth_sources=synth_sources,
                     tb_sources=tb_sources, top=top, part=part,
-                    clock_ns=clock_ns,
+                    clock_ns=clock_ns, data_files=data_files,
                 )
             )
 

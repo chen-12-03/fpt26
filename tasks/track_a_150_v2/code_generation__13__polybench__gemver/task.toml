@@ -1,0 +1,32 @@
+task_id = "code_generation__13__polybench__gemver"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "kernel_gemver"
+kernel_file = "gemver.cpp"
+header_files = ["gemver.h"]
+public_tb = "gemver_tb.cpp"
+hidden_tb = "gemver_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "16ec10063499df73812508a93701f256267363bc37d7117cc892b49250fe0450"
+source_task_id = "polybench__gemver"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/gemver"
+source_path = "hls_eval_data/polybench/gemver/gemver.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "fc2155b158a08b13e1fd37fda7ffbeda8dc42bc5be8c66c8b031e21f5dd7175d"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "fcd071d1eb4c06abf4fd473bed6eb86439b7f7f5f892e136cccf02285a80358f"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

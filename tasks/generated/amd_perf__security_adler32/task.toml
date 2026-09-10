@@ -1,0 +1,27 @@
+task_id = "amd_perf__security_adler32"
+task_type = "optimize"
+difficulty = 3
+top = "adler32_kernel"
+kernel_file = "adler32_kernel.cpp"
+header_files = ["adler32_kernel.h"]
+public_tb = "adler32_tb.cpp"
+hidden_tb = "adler32_hidden_tb.cpp"
+budget = 60
+initial_condition = "Adapted AMD Vitis Security Adler-32 kernel with independent public and hidden self-checks."
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.0
+
+[provenance]
+source = "amd_perf"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Performance-Pragma/tree/7ca881318017c4136b26793fec499b80ae04cd21/xf_security/L1/tests/adler32"
+license = "Apache-2.0"
+top_function = "dut"
+repo_commit = "7ca881318017c4136b26793fec499b80ae04cd21"
+source_path = "xf_security/L1/tests/adler32 and xf_security/L1/include/xf_security/adler32.hpp"
+adaptation = "bounded standalone interface; algorithm and test intent retained"
+public_only = false
+hidden_imported = false
+reference_imported = false
+generated_testbench = true

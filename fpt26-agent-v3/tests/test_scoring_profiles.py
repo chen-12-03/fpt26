@@ -233,7 +233,7 @@ def test_run_report_records_profile_weights_and_effective_area(tmp_path) -> None
     assert report["scoring"]["candidate_resource_footprint"] == pytest.approx(0.0001)
     assert report["scoring"]["source_changed"] is True
     assert report["scoring"]["validity_rescue"] is True
-    assert report["scoring"]["source_change_multiplier"] == 1.01
+    assert report["scoring"]["source_change_multiplier"] == 0.99
     assert report["scoring"]["validity_rescue_multiplier"] == 2.0
     assert report["scoring_vs_reference"]["area_ratio"] == 10.0
     assert report["scoring_vs_reference"]["effective_area_ratio"] == 1.0

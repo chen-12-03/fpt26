@@ -1,0 +1,15 @@
+task_id = "ta2_cg_003"
+task_type = "generate"
+difficulty = 3
+top = "viterbi"
+kernel_file = "viterbi_viterbi.cpp"
+header_files = ["viterbi_viterbi.h"]
+public_tb = "viterbi_viterbi_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.000

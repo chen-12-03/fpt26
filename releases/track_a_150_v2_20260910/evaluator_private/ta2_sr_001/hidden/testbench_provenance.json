@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "affine_four_channel_merge_vectors",
+  "hidden_tb_sha256": "96dee0ab45db16588997d489aa6dd045cced708b18c35dd6af08a41af77a4726",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "29a423b5736f65cd0c9391f3680ea83f432ed8e65da8e66f5973a30f54e63149",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "synthesis_repair__01__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_stream_inline_evidence/synthesis_repair__01__amd_intro__task_level_parallelism_control_driven_channels_merge_split_merge_round_robin/hardening_evidence.json"
+}

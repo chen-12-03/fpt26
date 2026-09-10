@@ -1,0 +1,26 @@
+task_id = "structural_cosim_repair__20__amd_intro__interface_streaming_using_array_of_streams"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["example.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A v2 structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_arithmetic_operator:+->-:offset=1139"
+kernel_family_id = "2a69cb28f8bf57c9b543f53563c493cb4f3748a657bdf5b041565b3b9a0e8817"
+source_task_id = "amd_intro__interface_streaming_using_array_of_streams"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/using_array_of_streams"
+source_path = "Interface/Streaming/using_array_of_streams"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "89d6c0b69fc759ea91eb36c1a3056723f9e657091195c6041b2eddf7df09610d"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

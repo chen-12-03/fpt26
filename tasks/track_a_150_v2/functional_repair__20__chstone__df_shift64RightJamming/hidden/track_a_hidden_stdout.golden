@@ -1,0 +1,6 @@
+Test case 1: count = 0 failed: expected 0x123456789abcdef0, got 0xaa
+Test case 2: count < 64 passed
+Test case 3: count >= 64 passed
+Test case 4: count < 64, zero input passed
+Test case 5: count < 64, specific pattern for jamming passed
+Some test cases failed!

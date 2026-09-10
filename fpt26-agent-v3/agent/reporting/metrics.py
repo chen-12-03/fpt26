@@ -141,6 +141,16 @@ def _llm_summary(state: RunState) -> dict[str, Any] | None:
     token_usage = getattr(client, "token_usage", None)
     snapshot = getattr(token_usage, "snapshot", None)
     summary["token_usage"] = snapshot() if callable(snapshot) else None
+    failures = getattr(client, "failures", None)
+    if isinstance(failures, list):
+        # Retained so a failed request can be attributed to the API rather than
+        # silently read as the model proposing nothing.
+        summary["failure_count"] = len(failures)
+        summary["failures"] = [
+            {str(key): value for key, value in failure.items()}
+            for failure in failures
+            if isinstance(failure, dict)
+        ]
     return summary
 
 

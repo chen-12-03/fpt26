@@ -1,0 +1,32 @@
+task_id = "compile_repair__19__machsuite__spmv_crs"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 2
+top = "spmv"
+kernel_file = "spmv_crs.cpp"
+header_files = ["spmv_crs.h"]
+public_tb = "spmv_crs_tb.cpp"
+hidden_tb = "spmv_crs_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "802e0d56d794d7199f761f426ac89eaee303292fbfc8ac5bf0fb19282aa4d34b"
+source_task_id = "machsuite__spmv_crs"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/spmv_crs"
+source_path = "hls_eval_data/machsuite/spmv_crs/spmv_crs.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "92ffe95831c350ac3783020a980c50ccdea11e6f35e27af84392701d665f6601"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "92ffe95831c350ac3783020a980c50ccdea11e6f35e27af84392701d665f6601"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

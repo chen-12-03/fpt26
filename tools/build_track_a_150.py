@@ -159,14 +159,10 @@ def _code_generation_stub(reference: str, top: str) -> str:
     includes = "\n".join(
         line for line in reference.splitlines() if line.lstrip().startswith("#include")
     )
-    return (
-        includes
-        + "\n\n"
-        + signature
-        + " {\n"
-        + "#error TRACK_A_CODE_GENERATION_REQUIRED\n"
-        + "}\n"
-    )
+    # Keep a parseable top definition for interface validation while making
+    # the missing implementation explicit through an unresolved placeholder.
+    # Avoid benchmark-specific ``#error`` markers that disclose the injection.
+    return includes + "\n\n" + signature + " {\n  implementation_required();\n}\n"
 
 
 def _enclosing_language_linkage(source: str, position: int) -> str | None:
@@ -225,10 +221,7 @@ def _inject_early_return(source: str, top: str, variant: int) -> tuple[str, str]
         start -= 1
     prefix = clean[start : match.start()].strip()
     return_statement = "return;" if re.search(r"\bvoid\s*$", prefix) else "return {};"
-    injection = (
-        f"\n  // TRACK_A_INTENTIONAL_EARLY_RETURN_VARIANT_{variant}\n"
-        f"  {return_statement}\n"
-    )
+    injection = f"\n  {return_statement}\n"
     return (
         source[: body + 1] + injection + source[body + 1 :],
         f"top_early_return:{return_statement}:variant={variant}",

@@ -1,0 +1,32 @@
+task_id = "structural_cosim_repair__17__chstone__df_mul64To128"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "mul64To128"
+kernel_file = "mul64To128.cpp"
+header_files = ["mul64To128.h"]
+public_tb = "gen_tb.cpp"
+hidden_tb = "gen_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A v2 structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_integer_literal_bitflip:32->33:offset=236"
+kernel_family_id = "953648b5d123bedf54bf0fab03433a022544ea8711a780e1ac2f5af53020398b"
+source_task_id = "chstone__df_mul64To128"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/df_mul64To128"
+source_path = "hls_eval_data/chstone/df_mul64To128/mul64To128.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+source_sha256 = "727ee5ce3346ca3afdf0cb469539c3d096d6fe03c1ae9015e76b0b8933d4e7b7"
+
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "76dc16259815901d7c68374ebb9fb73d776447104e20b3f8bb58bbec85767ec6"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

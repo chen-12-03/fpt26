@@ -20,6 +20,31 @@ from pathlib import Path
 from . import config, vitis
 from .report import CoSimResult, SynthReport, parse_cosim_rpt, parse_csynth_xml
 
+# Substrings that identify *which* toolchain ran: the driver banner and the
+# target part.  Grading harvests these from the tool logs to prove the pinned
+# Vitis 2025.2 / U55C configuration was actually used.
+_TOOLCHAIN_EVIDENCE_MARKERS = ("vitis-run v", "HLS Build v", "set_part ")
+
+
+def _toolchain_evidence(text: str) -> str:
+    """Return the toolchain-identity lines of *text*, deduplicated in order.
+
+    C-simulation runs in two phases: the Vitis driver compiles the design, then
+    the executable it produced runs the testbench.  Only the compile-phase
+    output carries the banner and the target part; the run-phase output replaces
+    it.  Carrying the evidence across keeps the recorded toolchain truthful for
+    designs that compile — otherwise a submission that compiles but fails its
+    testbench looks like it never invoked the pinned part.
+    """
+    observed: list[str] = []
+    for line in (text or "").splitlines():
+        if not any(marker in line for marker in _TOOLCHAIN_EVIDENCE_MARKERS):
+            continue
+        stripped = line.strip()
+        if stripped and stripped not in observed:
+            observed.append(stripped)
+    return "\n".join(observed)
+
 
 def _truncate(text: str, head: int = 6000, tail: int = 6000) -> str:
     if len(text) <= head + tail:
@@ -112,6 +137,9 @@ class CSimTool:
                 (exe_dir / name).write_bytes(blob)
         rr = vitis.run_binary(csim_exe, exe_dir, config.CSIM_TIMEOUT_S)
         run_log = _truncate(rr.stdout + "\n" + rr.stderr)
+        evidence = _toolchain_evidence(log)
+        if evidence:
+            run_log = evidence + "\n" + run_log
         if rr.timeout:
             return ToolResult(
                 "csim", False, "timeout", -1, run_log, r.elapsed_s + rr.elapsed_s
@@ -199,16 +227,25 @@ class CoSimTool:
         top: str,
         part: str = config.DEFAULT_PART,
         clock_ns: float = config.DEFAULT_CLOCK_NS,
+        data_files: dict[str, bytes] | None = None,
     ) -> ToolResult:
         work = build_dir
         if work.exists():
             shutil.rmtree(work)
         _write_files(work, files)
+        if data_files:
+            for name, blob in data_files.items():
+                (work / name).write_bytes(blob)
 
         tcl = "open_project cosim_proj\n"
         for f in synth_sources:
             tcl += f"add_files {f}\n"
         for f in tb_sources:
+            tcl += f"add_files -tb {f}\n"
+        # Vitis copies files registered as testbench assets into the runtime
+        # simulation directory.  Merely writing fixtures at the project root
+        # leaves relative fopen() calls in sim/wrapc unable to find them.
+        for f in sorted(data_files or {}):
             tcl += f"add_files -tb {f}\n"
         tcl += f"open_solution sol -flow_target {config.DEFAULT_FLOW_TARGET}\n"
         tcl += f"set_top {top}\n"

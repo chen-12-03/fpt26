@@ -1,6 +1,6 @@
 """Security policy modules — execution isolation, path validation, redaction."""
 
-from agent.security.redaction import redact_sensitive_text
+from agent.security.redaction import redact_data, redact_sensitive_text
 from agent.security.paths import (
     resolve_safe_path,
     validate_task_id,
@@ -14,6 +14,7 @@ from agent.security.execution_policy import (
 )
 
 __all__ = [
+    "redact_data",
     "redact_sensitive_text",
     "resolve_safe_path",
     "validate_task_id",

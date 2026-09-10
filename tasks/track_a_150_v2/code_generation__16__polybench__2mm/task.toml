@@ -1,0 +1,32 @@
+task_id = "code_generation__16__polybench__2mm"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "kernel_2mm"
+kernel_file = "2mm.cpp"
+header_files = ["2mm.h"]
+public_tb = "2mm_tb.cpp"
+hidden_tb = "2mm_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "25dbd13f6aff8f705e281954384db596e872e2a80ddf07dc10c4ccc798f190e1"
+source_task_id = "polybench__2mm"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/2mm"
+source_path = "hls_eval_data/polybench/2mm/2mm.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "b855391e211c1765b33321fbd91d8f0e76b444c065aed746b5fa3078eafe0430"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "c140850f4f173cdb51940b5b986dc0674571981d4da96e2e16936c9db3d10b5d"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,32 @@
+task_id = "synthesis_repair__23__gnnbuilder__global_add_pool"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "global_add_pool"
+kernel_file = "global_add_pool.cpp"
+header_files = ["global_add_pool.h"]
+public_tb = "global_add_pool_tb.cpp"
+hidden_tb = "global_add_pool_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "5f7e3f257621794683e87bc6b70c44f5ed1fa74afeaef9a7e19628dd7f633f5b"
+source_task_id = "gnnbuilder__global_add_pool"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/gnnbuilder/global_add_pool"
+source_path = "hls_eval_data/gnnbuilder/global_add_pool/global_add_pool.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "AGPL-3.0-only"
+source_sha256 = "4592799d1c0625e7328d7c1ed1824572ad57e33a190de89b137d6fb2856e11f6"
+
+upstream_project_url = "https://github.com/sharc-lab/gnn-builder"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/sharc-lab/gnn-builder/blob/main/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "d1cb2ff5fd592912cd77aa3c817beee3400fbbf83bb3093679cf00bd5584f8ea"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

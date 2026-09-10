@@ -1,0 +1,26 @@
+task_id = "qor_optimization__09__amd_intro__pipelining_loops_perfect_loop"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "loop_perfect"
+kernel_file = "loop_perfect.cpp"
+header_files = ["loop_perfect.h"]
+public_tb = "loop_perfect_tb.cpp"
+hidden_tb = "loop_perfect_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 qor_optimization; baseline=valid_baseline"
+expected_baseline_state = "valid_baseline"
+fault_derivation = "upstream_valid_baseline:no_artificial_degradation"
+kernel_family_id = "da0565e6c19d7853744911fe87b86f4c4f1f3e40dd84f6ef1359cb6c739a4dd2"
+source_task_id = "amd_intro__pipelining_loops_perfect_loop"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Pipelining/Loops/perfect_loop"
+source_path = "Pipelining/Loops/perfect_loop"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "ef8f4c10ddb97a312f2c858012865d368344c1c21b9356e467f31186f94cea1a"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

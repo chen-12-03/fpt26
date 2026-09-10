@@ -16,7 +16,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from agent.security.redaction import redact_sensitive_text
+from agent.security.redaction import redact_data, redact_sensitive_text
 
 
 def _atomic_write(path: Path, content: str, *, encoding: str = "utf-8") -> None:
@@ -50,7 +50,8 @@ def write_json_report(
         report: The report dictionary to serialise.
         output_dir: Target directory (will be created if needed).
         filename: Output file name.
-        redact: If True, also write a redacted copy of any string fields.
+        redact: If True, redact credential-shaped substrings in every string
+            field before writing.
 
     Returns:
         Path to the written file.
@@ -58,12 +59,15 @@ def write_json_report(
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
+    # Redact sensitive content before writing to disk.  This runs on the
+    # string values, not on the serialised text: the redaction patterns match
+    # trailing structural characters (a closing quote and comma after a URL),
+    # which would emit a document that no longer parses as JSON.
+    if redact:
+        report = redact_data(report)
+
     # Serialise
     text = json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-
-    # Redact sensitive content before writing to disk
-    if redact:
-        text = redact_sensitive_text(text)
 
     target = out / filename
     _atomic_write(target, text)

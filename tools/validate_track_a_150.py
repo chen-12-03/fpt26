@@ -49,10 +49,33 @@ EXPECTED_COUNTS = {
 }
 U55C_PART = "xcu55c-fsvh2892-2L-e"
 CAPACITY_KEYS = ("BRAM_18K", "DSP", "FF", "LUT", "URAM")
+REDISTRIBUTABLE_LICENSES = {
+    "AGPL-3.0-only",
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "CC-BY-4.0",
+    "GPL-3.0-only",
+    "ISC",
+    "LicenseRef-CHStone-SoftFloat-2b",
+    "LicenseRef-PolyBenchC-OSU",
+    "MIT",
+}
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _task_input_hashes(task_dir: Path, spec: dict[str, Any]) -> dict[str, str]:
+    hidden_name = str(spec.get("hidden_tb", spec["public_tb"]))
+    return {
+        "task_toml": _sha256(task_dir / "task.toml"),
+        "description": _sha256(task_dir / "description.md"),
+        "baseline": _sha256(task_dir / str(spec["kernel_file"])),
+        "reference": _sha256(task_dir / "reference" / str(spec["kernel_file"])),
+        "public_testbench": _sha256(task_dir / str(spec["public_tb"])),
+        "hidden_testbench": _sha256(task_dir / "hidden" / hidden_name),
+    }
 
 
 def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
@@ -176,11 +199,19 @@ def validate_one(task_dir: Path, output_root: Path, toolchain: dict[str, Any]) -
     checkpoint = work / "evidence.json"
     if checkpoint.is_file():
         previous = json.loads(checkpoint.read_text(encoding="utf-8"))
-        if previous.get("accepted") is True:
+        current_hashes = _task_input_hashes(task_dir, spec)
+        checkpoint_is_current = previous.get("hashes") == current_hashes
+        # Provenance placeholders do not invalidate already-passing hardware
+        # evidence.  Reuse a technically accepted record only when every
+        # hashed task input is byte-identical; otherwise rerun the task.
+        if previous.get("technical_accepted") is True and checkpoint_is_current:
             return previous
 
     task = load_task(task_dir)
-    normalize_task_testbench_data(task)
+    # Acceptance is evaluator-side: hidden fixtures must overlay public ones.
+    # Using the submission-side default here would silently validate a hidden
+    # testbench against public input/check data whenever filenames overlap.
+    normalize_task_testbench_data(task, include_hidden=True)
     if task.reference_code is None:
         raise RuntimeError(f"{task_id}: reference missing")
     baseline = task.kernel_code
@@ -193,6 +224,7 @@ def validate_one(task_dir: Path, output_root: Path, toolchain: dict[str, Any]) -
         source_label="reference",
         task=task,
         grade_root=attempt_root / "reference",
+        workspace_root=output_root.resolve(),
         requires_cosim=task.requires_cosim,
     )
     reference_record = _reference_record(reference_ev)
@@ -231,6 +263,7 @@ def validate_one(task_dir: Path, output_root: Path, toolchain: dict[str, Any]) -
             top=task.top,
             part=task.part,
             clock_ns=task.clock_ns,
+            data_files=getattr(task, "public_data_files", None) or None,
         )
 
     expected_checks: dict[str, bool] = {
@@ -283,7 +316,16 @@ def validate_one(task_dir: Path, output_root: Path, toolchain: dict[str, Any]) -
         else None
     )
     if qor is not None:
-        expected_checks["reference_qor_improves"] = qor["ok"] is True
+        # The reference is an official-score anchor, not a deliberately
+        # optimized answer.  QoR starters may therefore be byte-identical to
+        # the acquired reference.  Require measurable synthesis results and
+        # leave the baseline/reference relation descriptive.
+        expected_checks["qor_metrics_available"] = all(
+            isinstance(qor.get(key), (int, float))
+            and math.isfinite(float(qor[key]))
+            and float(qor[key]) > 0
+            for key in ("performance_ratio", "area_ratio", "hardware_ratio")
+        )
 
     reference_checks = {
         "accepted": reference_record.get("accepted") is True,
@@ -310,7 +352,7 @@ def validate_one(task_dir: Path, output_root: Path, toolchain: dict[str, Any]) -
         "reference": (task_dir / "reference" / task.kernel_name).is_file(),
         "source_url": str(spec.get("source_url", "")).startswith("https://github.com/"),
         "source_commit": bool(re.fullmatch(r"[0-9a-f]{40}", str(spec.get("repo_commit", "")))),
-        "license": spec.get("license") in {"MIT", "Apache-2.0"},
+        "license": spec.get("license") in REDISTRIBUTABLE_LICENSES,
     }
     target_checks = {
         "u55c": task.part == U55C_PART,
@@ -320,18 +362,21 @@ def validate_one(task_dir: Path, output_root: Path, toolchain: dict[str, Any]) -
         )
         >= 100.0,
     }
-    accepted = all(
+    technical_accepted = all(
         list(expected_checks.values())
         + list(reference_checks.values())
-        + list(artifact_checks.values())
         + list(target_checks.values())
     )
+    provenance_accepted = all(artifact_checks.values())
+    accepted = technical_accepted and provenance_accepted
     record = {
         "schema_version": 1,
         "purpose": "track_a_task_initial_acceptance",
         "task_id": task_id,
         "category": category,
         "accepted": accepted,
+        "technical_accepted": technical_accepted,
+        "provenance_accepted": provenance_accepted,
         "task_dir": str(task_dir),
         "attempt_root": str(attempt_root),
         "toolchain": toolchain,
@@ -415,8 +460,61 @@ def _aggregate(
     corpus: dict[str, Any],
     toolchain: dict[str, Any],
 ) -> dict[str, Any]:
+    task_dirs = {path.parent.name: path.parent for path in task_root.glob("*/task.toml")}
+    evidence_currency: dict[str, bool] = {}
+    stale_evidence: list[dict[str, Any]] = []
+    for item in records:
+        task_id = str(item["task_id"])
+        task_dir = task_dirs[task_id]
+        spec = tomllib.loads((task_dir / "task.toml").read_text(encoding="utf-8"))
+        current_hashes = _task_input_hashes(task_dir, spec)
+        recorded_hashes = item.get("hashes") or {}
+        changed_fields = sorted(
+            key
+            for key, value in current_hashes.items()
+            if recorded_hashes.get(key) != value
+        )
+        evidence_currency[task_id] = not changed_fields
+        if changed_fields:
+            stale_evidence.append(
+                {"task_id": task_id, "changed_input_fields": changed_fields}
+            )
     accepted = [item for item in records if item.get("accepted") is True]
+    technically_accepted = [
+        item
+        for item in records
+        if item.get("technical_accepted") is True
+        or (
+            "technical_accepted" not in item
+            and all((item.get("expected_baseline_checks") or {}).values())
+            and all((item.get("reference_checks") or {}).values())
+            and all((item.get("target_checks") or {}).values())
+        )
+    ]
+    provenance_accepted = [
+        item
+        for item in records
+        if item.get("provenance_accepted") is True
+        or (
+            "provenance_accepted" not in item
+            and all((item.get("artifact_checks") or {}).values())
+        )
+    ]
     category_accepted = Counter(item["category"] for item in accepted)
+    category_technically_accepted = Counter(
+        item["category"] for item in technically_accepted
+    )
+    category_provenance_accepted = Counter(
+        item["category"] for item in provenance_accepted
+    )
+    current_technically_accepted = [
+        item
+        for item in technically_accepted
+        if evidence_currency.get(str(item["task_id"])) is True
+    ]
+    category_current_technically_accepted = Counter(
+        item["category"] for item in current_technically_accepted
+    )
     failures = [
         {
             "task_id": item["task_id"],
@@ -477,8 +575,30 @@ def _aggregate(
         "corpus": corpus,
         "submission_isolation": submission_isolation,
         "accepted_count": len(accepted),
+        "technically_accepted_count": len(technically_accepted),
+        "provenance_accepted_count": len(provenance_accepted),
+        "current_evidence_count": sum(evidence_currency.values()),
+        "stale_evidence_count": len(stale_evidence),
+        "stale_evidence": stale_evidence,
+        "current_technically_accepted_count": len(current_technically_accepted),
         "rejected_count": len(failures),
         "accepted_by_category": dict(sorted(category_accepted.items())),
+        "technically_accepted_by_category": dict(
+            sorted(category_technically_accepted.items())
+        ),
+        "provenance_accepted_by_category": dict(
+            sorted(category_provenance_accepted.items())
+        ),
+        "current_technically_accepted_by_category": dict(
+            sorted(category_current_technically_accepted.items())
+        ),
+        "fully_current_technically_accepted": (
+            len(current_technically_accepted) == 150
+            and corpus["category_counts_ok"]
+            and corpus["cross_category_kernel_overlap_count"] == 0
+            and corpus["all_tasks_have_headers"]
+            and submission_isolation["forbidden_artifact_access_count"] == 0
+        ),
         "fully_accepted": len(accepted) == 150
         and corpus["category_counts_ok"]
         and corpus["cross_category_kernel_overlap_count"] == 0
@@ -488,6 +608,9 @@ def _aggregate(
             item["task_id"]: {
                 "category": item["category"],
                 "accepted": item["accepted"],
+                "technical_accepted": item.get("technical_accepted"),
+                "provenance_accepted": item.get("provenance_accepted"),
+                "evidence_current": evidence_currency.get(str(item["task_id"])),
                 "evidence": str(
                     output_root / "tasks" / item["task_id"] / "evidence.json"
                 ),
@@ -572,6 +695,7 @@ def main() -> int:
     parser.add_argument("--shard-index", type=int, default=0)
     parser.add_argument("--shard-count", type=int, default=1)
     parser.add_argument("--task-id", action="append", default=[])
+    parser.add_argument("--category", action="append", default=[])
     parser.add_argument("--aggregate-only", action="store_true")
     args = parser.parse_args()
     if not 0 <= args.shard_index < args.shard_count:
@@ -593,6 +717,8 @@ def main() -> int:
         )
         print(
             f"accepted={matrix['accepted_count']} "
+            f"technical_current={matrix['current_technically_accepted_count']} "
+            f"stale={matrix['stale_evidence_count']} "
             f"rejected={matrix['rejected_count']} "
             f"fully_accepted={matrix['fully_accepted']}",
             flush=True,
@@ -604,12 +730,24 @@ def main() -> int:
         missing = wanted - {task.name for task in tasks}
         if missing:
             raise RuntimeError(f"unknown task ids: {sorted(missing)}")
-    else:
+    if args.category:
+        wanted_categories = set(args.category)
+        unknown_categories = wanted_categories - set(EXPECTED_COUNTS)
+        if unknown_categories:
+            raise RuntimeError(f"unknown categories: {sorted(unknown_categories)}")
         tasks = [
             task
-            for index, task in enumerate(tasks)
-            if index % args.shard_count == args.shard_index
+            for task in tasks
+            if tomllib.loads((task / "task.toml").read_text(encoding="utf-8"))[
+                "track_a_category"
+            ]
+            in wanted_categories
         ]
+    tasks = [
+        task
+        for index, task in enumerate(tasks)
+        if index % args.shard_count == args.shard_index
+    ]
     toolchain = _vitis_version()
     if not toolchain["version_2025_2"]:
         raise RuntimeError(f"Vitis 2025.2 gate failed: {toolchain}")
@@ -619,7 +757,10 @@ def main() -> int:
         records.append(record)
         print(
             f"{index}/{len(tasks)} {record['task_id']} "
-            f"category={record['category']} accepted={record['accepted']} "
+            f"category={record['category']} "
+            f"technical={record.get('technical_accepted')} "
+            f"provenance={record.get('provenance_accepted')} "
+            f"accepted={record['accepted']} "
             f"elapsed={record['elapsed_s']}s",
             flush=True,
         )
@@ -629,6 +770,12 @@ def main() -> int:
         "shard_count": args.shard_count,
         "selected_task_count": len(tasks),
         "accepted_count": sum(item.get("accepted") is True for item in records),
+        "technically_accepted_count": sum(
+            item.get("technical_accepted") is True for item in records
+        ),
+        "provenance_accepted_count": sum(
+            item.get("provenance_accepted") is True for item in records
+        ),
         "task_ids": [item["task_id"] for item in records],
         "toolchain": toolchain,
         "host": platform.node(),

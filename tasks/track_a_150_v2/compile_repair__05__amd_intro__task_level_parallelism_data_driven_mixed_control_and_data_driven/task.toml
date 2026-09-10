@@ -1,0 +1,26 @@
+task_id = "compile_repair__05__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["test.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "937938eb63aa7339979c528b2d5525602bd488aacb02ba5ad7b27709c48f9d31"
+source_task_id = "amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Data_driven/mixed_control_and_data_driven"
+source_path = "Task_level_Parallelism/Data_driven/mixed_control_and_data_driven"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "84c2e2c2258ea79565e3312b7fcba0fc1ca725724036220d09bcf815bb9f6fdb"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

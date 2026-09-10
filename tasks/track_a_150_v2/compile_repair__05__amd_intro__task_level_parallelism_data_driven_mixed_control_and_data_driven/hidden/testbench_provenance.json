@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "signed_affine_array_with_elementwise_oracle",
+  "hidden_tb_sha256": "9d5cdb58755f58bfba51827eeeac01d48205fab91bb716c314c7da1ba95c1c47",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "0300cfb320b1e3505f9e3d28f46524312b987636aa03b04bb62b0371fa01e7bf",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "compile_repair__05__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/compile_repair__05__amd_intro__task_level_parallelism_data_driven_mixed_control_and_data_driven/hardening_evidence.json"
+}

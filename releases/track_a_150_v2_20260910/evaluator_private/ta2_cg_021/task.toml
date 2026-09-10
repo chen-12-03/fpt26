@@ -1,0 +1,33 @@
+task_id = "ta2_cg_021"
+internal_task_id = "code_generation__21__chstone__df_propagateFloat64NaN"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "propagateFloat64NaN"
+kernel_file = "propagateFloat64NaN.cpp"
+header_files = ["propagateFloat64NaN.h"]
+public_tb = "propagateFloat64NaN_tb.cpp"
+hidden_tb = "propagateFloat64NaN_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "33d09bda870e490d343b480fa72d1d5a6355b53c4dfc9abe752ae5fc0aaedae2"
+source_task_id = "chstone__df_propagateFloat64NaN"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/df_propagateFloat64NaN"
+source_path = "hls_eval_data/chstone/df_propagateFloat64NaN/propagateFloat64NaN.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+source_sha256 = "d0ac029dc99eddf6ba08a6a251f3a35314e48c12ed4e0ad0e8884112dcb30c0f"
+
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "15c6d030dd5d97f8da2f28cffc39556d19ccdffc9801f99198ac7ccc6a349805"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

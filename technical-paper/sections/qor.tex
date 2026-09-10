@@ -5,11 +5,13 @@ bounded utility. Let anchor $a$ and candidate $c$ have cycle latency $L$,
 effective period $p$, and initiation interval $II$. The performance ratio
 $r_P = (p_a L_a)/(p_c L_c)$ captures speedup. The area ratio $r_A$ uses a
 capacity-normalized footprint $F(x)=\sum_{r} x_r/K_r$ over LUT, FF, DSP,
-BRAM, and URAM to prevent discontinuous jumps from resource transfers. Two
-evidence factors reward source edits ($D$, $1.01{\times}$) and validity
-repair ($F$, $2{\times}$). The aggregate hardware ratio
-$h = 1.01^{D}\,2^{F}\,r_P^{\,0.55}\,r_A^{\,0.45}$ weights performance at
-55\% and area at 45\%, calibrated against 99 frozen PPA references.
+BRAM, and URAM to prevent discontinuous jumps from resource transfers. An
+edit factor penalizes any source change ($D$, $0.99{\times}$), preventing
+comment-only or otherwise QoR-neutral edits from increasing the score, while a
+validity factor rewards repair ($F$, $2{\times}$). The aggregate hardware ratio
+$h = 0.99^{D}\,2^{F}\,r_P^{\,0.55}\,r_A^{\,0.45}$ weights performance at
+55\% and area at 45\%; these two weights were calibrated against 99 frozen
+PPA references.
 
 $Q_{\mathrm{HW}} = 1-1/(1+h)^2$ maps $h{=}1$ (no change) to $0.75$,
 $h{\to}\infty$ to $1$, and $h{\to}0$ to $0$. The mapping degrades

@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "fixed_distinct_rng_seed_with_software_filter_oracle",
+  "hidden_tb_sha256": "43912f08b8547c529215daa3c3ea7b8411b1051296133fa70945ee34bcff4c3a",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "4b17f45edf9a9bccb49aa93e6bb28205684c8b7fee8d788d9e83cce5f11d57b3",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "functional_repair__23__amd_intro__modeling_using_array_stencil_2d",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/functional_repair__23__amd_intro__modeling_using_array_stencil_2d/hardening_evidence.json"
+}
