@@ -113,6 +113,11 @@ class LLMExecutor:
         return self._config.max_tokens
 
     @property
+    def thinking(self) -> str | None:
+        """Resolved provider reasoning mode, when explicitly controlled."""
+        return getattr(self._client, "thinking", None)
+
+    @property
     def token_usage(self) -> Any:
         """Forward the raw client's cumulative usage tracker for audit."""
         return getattr(self._client, "token_usage", None)

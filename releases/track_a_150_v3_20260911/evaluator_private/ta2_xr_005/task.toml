@@ -1,0 +1,33 @@
+task_id = "ta2_xr_005"
+internal_task_id = "structural_cosim_repair__05__chstone__df_countLeadingZeros64"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "countLeadingZeros64"
+kernel_file = "countLeadingZeros64.cpp"
+header_files = ["countLeadingZeros64.h"]
+public_tb = "countLeadingZeros64_tb.cpp"
+hidden_tb = "countLeadingZeros64_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A v2 structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_integer_literal_bitflip:32->33:offset=1410"
+kernel_family_id = "3c5763fc660fbae63726e927b86b51f0fb35d5b3fae37e4afb37fcab70dc1dd4"
+source_task_id = "chstone__df_countLeadingZeros64"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/df_countLeadingZeros64"
+source_path = "hls_eval_data/chstone/df_countLeadingZeros64/countLeadingZeros64.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+source_sha256 = "686e297ce47fb1e0d0da4432390d5ddeb1bdfd51f9f0c5d45be45020f64fc628"
+
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "6008980be8f56d939f47759707a3d3ac14e9804fa086f4d6e6d5137137f79c03"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

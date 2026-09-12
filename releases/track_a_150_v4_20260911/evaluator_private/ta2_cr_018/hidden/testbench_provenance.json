@@ -1,0 +1,18 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "separate_read_and_write_mode_vectors_at_non_degenerate_length",
+  "hidden_tb_sha256": "977085f3bd14f02d44911d36525fa000c56ec8c4133dd05f0d8380a07a561a25",
+  "limitations": [
+    "Early-return rejection is a minimum sanity mutation, not a complete mutation score."
+  ],
+  "oracle_strategy": "explicit_memory_and_performance_counter_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "separate_read",
+  "public_tb_sha256": "1496906b607b8bb042dfeede4d194b57ddcd7c723a9bb4c2e6b1c1a686057cb2",
+  "public_testbench_preserved": false,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "compile_repair__18__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/full_pair_validation_release/tasks/compile_repair__18__amd_accel__performance_axi_burst_performance_src_test_kernel_maxi_512bit_6/pair_validation.json"
+}

@@ -1,0 +1,27 @@
+task_id = "ta2_xr_004"
+internal_task_id = "structural_cosim_repair__04__amd_intro__interface_memory_using_axi_master"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A v2 structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_arithmetic_operator:+->-:offset=1387"
+kernel_family_id = "85b0550db35e15263aefa1823c90c2fe8774c3ef4b52b05657819f8638595fe9"
+source_task_id = "amd_intro__interface_memory_using_axi_master"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/using_axi_master"
+source_path = "Interface/Memory/using_axi_master"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "5b1cc9aba94902e437da3416806db8742a04f1c65a82e7b4fe032c3ca08754af"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

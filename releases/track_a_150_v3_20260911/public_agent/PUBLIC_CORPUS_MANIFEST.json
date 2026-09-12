@@ -1,0 +1,768 @@
+{
+  "category_counts": {
+    "code_generation": 25,
+    "compile_repair": 25,
+    "functional_repair": 25,
+    "qor_optimization": 25,
+    "structural_cosim_repair": 25,
+    "synthesis_repair": 25
+  },
+  "contains_hidden_or_reference": false,
+  "description_policy": "full_provenance_free_contract_for_code_generation; blind_category_instruction_for_repair_and_optimization",
+  "id_policy": "blind_ids_no_upstream_path_or_revision",
+  "purpose": "track_a_public_agent_corpus",
+  "schema_version": 1,
+  "task_count": 150,
+  "tasks": [
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_001"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_002"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_003"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_004"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_005"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_006"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_007"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_008"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 3,
+      "task_id": "ta2_cg_009"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_010"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_011"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_012"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_013"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_014"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_015"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_016"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_017"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_018"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_019"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_020"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_021"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_022"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_023"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_024"
+    },
+    {
+      "category": "code_generation",
+      "difficulty": 2,
+      "task_id": "ta2_cg_025"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_001"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 4,
+      "task_id": "ta2_cr_002"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_003"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_004"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_005"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_006"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_007"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_008"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_009"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_010"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_011"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_012"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_013"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_014"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_015"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_016"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_017"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_018"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_019"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_020"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_021"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 4,
+      "task_id": "ta2_cr_022"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 3,
+      "task_id": "ta2_cr_023"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 2,
+      "task_id": "ta2_cr_024"
+    },
+    {
+      "category": "compile_repair",
+      "difficulty": 4,
+      "task_id": "ta2_cr_025"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 3,
+      "task_id": "ta2_fr_001"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_002"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_003"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_004"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_005"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_006"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_007"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_008"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_009"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_010"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_011"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_012"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_013"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 3,
+      "task_id": "ta2_fr_014"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_015"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_016"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_017"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_018"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_019"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 2,
+      "task_id": "ta2_fr_020"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 4,
+      "task_id": "ta2_fr_021"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 4,
+      "task_id": "ta2_fr_022"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 4,
+      "task_id": "ta2_fr_023"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 3,
+      "task_id": "ta2_fr_024"
+    },
+    {
+      "category": "functional_repair",
+      "difficulty": 3,
+      "task_id": "ta2_fr_025"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 4,
+      "task_id": "ta2_qo_001"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 4,
+      "task_id": "ta2_qo_002"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_003"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_004"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_005"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_006"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_007"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_008"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_009"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_010"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_011"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_012"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_013"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_014"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_015"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_016"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_017"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_018"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_019"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_020"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_021"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 4,
+      "task_id": "ta2_qo_022"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 4,
+      "task_id": "ta2_qo_023"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 4,
+      "task_id": "ta2_qo_024"
+    },
+    {
+      "category": "qor_optimization",
+      "difficulty": 3,
+      "task_id": "ta2_qo_025"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_001"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_002"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_003"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_004"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_005"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_006"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_007"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_008"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_009"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_010"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_011"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_012"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_013"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_014"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_015"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_016"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_017"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_018"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_019"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_020"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_021"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 3,
+      "task_id": "ta2_xr_022"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 4,
+      "task_id": "ta2_xr_023"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 4,
+      "task_id": "ta2_xr_024"
+    },
+    {
+      "category": "structural_cosim_repair",
+      "difficulty": 4,
+      "task_id": "ta2_xr_025"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_001"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_002"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_003"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_004"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_005"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_006"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_007"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_008"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_009"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_010"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_011"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_012"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_013"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_014"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_015"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_016"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_017"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 3,
+      "task_id": "ta2_sr_018"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_019"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_020"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_021"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_022"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_023"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_024"
+    },
+    {
+      "category": "synthesis_repair",
+      "difficulty": 2,
+      "task_id": "ta2_sr_025"
+    }
+  ]
+}

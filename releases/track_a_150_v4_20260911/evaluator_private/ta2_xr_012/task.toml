@@ -1,0 +1,27 @@
+task_id = "ta2_xr_012"
+internal_task_id = "structural_cosim_repair__12__amd_intro__interface_aggregation_disaggregation_aggregation_of_m_axi_ports"
+task_type = "repair"
+track_a_category = "structural_cosim_repair"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["example.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A v2 structural_cosim_repair; baseline=cosim_fail"
+expected_baseline_state = "cosim_fail"
+fault_derivation = "synthesis_only_arithmetic_operator:+=->-=:offset=1084"
+kernel_family_id = "68ca9e6226b1b2277b53f8d9e18dbab673f7e3d29a5f5e6c802ae13d7b5fda0c"
+source_task_id = "amd_intro__interface_aggregation_disaggregation_aggregation_of_m_axi_ports"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Aggregation_Disaggregation/aggregation_of_m_axi_ports"
+source_path = "Interface/Aggregation_Disaggregation/aggregation_of_m_axi_ports"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "a5a65699cbcd5eac7f0b8c499461e49f7ec63e67a76c2459e1acc9634f87929e"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

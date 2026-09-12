@@ -1,28 +1,27 @@
-\section{One Score Rejects False Speedups}
+\section{A Composite Score Rejects Costly Gains}
 
-$Q_{\mathrm{HW}}$ combines performance gain and resource cost into a single
-bounded utility. Let anchor $a$ and candidate $c$ have cycle latency $L$,
-effective period $p$, and initiation interval $II$. The performance ratio
-$r_P = (p_a L_a)/(p_c L_c)$ captures speedup. The area ratio $r_A$ uses a
-capacity-normalized footprint $F(x)=\sum_{r} x_r/K_r$ over LUT, FF, DSP,
-BRAM, and URAM to prevent discontinuous jumps from resource transfers. An
-edit factor penalizes any source change ($D$, $0.99{\times}$), preventing
-comment-only or otherwise QoR-neutral edits from increasing the score, while a
-validity factor rewards repair ($F$, $2{\times}$). The aggregate hardware ratio
-$h = 0.99^{D}\,2^{F}\,r_P^{\,0.55}\,r_A^{\,0.45}$ weights performance at
-55\% and area at 45\%; these two weights were calibrated against 99 frozen
-PPA references.
+$Q_{\mathrm{HW}}$ is the implementation's bounded promotion utility, not a
+hardware-only objective. For anchor $a$ and candidate $c$, let
+$r_L=(p_aL_a)/(p_cL_c)$ use cycle latency $L$ and effective clock period $p$.
+When initiation interval applies,
+$r_P=r_L^{0.85}(II_a/II_c)^{0.15}$; otherwise $r_P=r_L$. Define the
+capacity-normalized resource footprint
+$A(x)=\sum_r x_r/K_r$ over LUT, FF, DSP, BRAM, and URAM, and
+$r_A=A(a)/A(c)$. Let $D\in\{0,1\}$ mark a source change and
+$R\in\{0,1\}$ mark a valid candidate that repairs an invalid starter. The
+composite ratio is
+$h=0.99^D2^Rr_P^{0.55}r_A^{0.45}$.
 
-$Q_{\mathrm{HW}} = 1-1/(1+h)^2$ maps $h{=}1$ (no change) to $0.75$,
-$h{\to}\infty$ to $1$, and $h{\to}0$ to $0$. The mapping degrades
-continuously for bloated speedups. Budget efficiency
-$E = \max(0.80,\,1-0.10u_{\mathrm{credit}}-0.10u_{\mathrm{time}})$
-discounts excessive tool calls with a floor at $0.80$, where each $u$ is
-the consumed fraction clipped to $[0,1]$. The final score is
+$Q_{\mathrm{HW}}=1-1/(1+h)^2$ maps $h{=}1$ to $0.75$, approaches $1$ for
+large gains, and approaches $0$ for regressions. Budget efficiency
+$E=\max(0.80,1-0.10u_{\mathrm{credit}}-0.10u_{\mathrm{time}})$ uses consumed
+fractions clipped to $[0,1]$. The final score is
 \begin{equation}
-S = 100\,V(c)\,Q_{\mathrm{HW}}\,E.
+S=100\,V(c)\,Q_{\mathrm{HW}}\,E.
 \label{eq:score}
 \end{equation}
-Promotion compares $Q_{\mathrm{HW}}$ only after $V(c){=}1$; a failed gate
-yields $S{=}0$, and the efficiency floor guarantees a valid baseline at
-least $60$ points.
+The 0.99 and 2 factors encode anti-no-op and repair policies; the 0.85/0.15
+and 0.55/0.45 exponents are fixed heuristic weights. The same scoring module
+and constants apply to every campaign, but we make no sensitivity claim;
+reported QoR comparisons are conditional on this utility. Promotion occurs
+only after $V(c){=}1$, and a failed gate yields $S{=}0$.

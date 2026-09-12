@@ -1,0 +1,7 @@
+#ifndef TRACK_A_CONTRACT_AMD_INTRO__TASK_LEVEL_PARALLELISM_DATA_DRIVEN_USING_MAXI_IN_TASKS
+#define TRACK_A_CONTRACT_AMD_INTRO__TASK_LEVEL_PARALLELISM_DATA_DRIVEN_USING_MAXI_IN_TASKS
+
+// Fixed public contract for top-level function: stable_pointer
+// The complete typed declaration remains in the public baseline source.
+
+#endif  // TRACK_A_CONTRACT_AMD_INTRO__TASK_LEVEL_PARALLELISM_DATA_DRIVEN_USING_MAXI_IN_TASKS

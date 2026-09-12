@@ -17,6 +17,7 @@ Open this file to understand the core repair logic::
 from __future__ import annotations
 
 import difflib
+import hashlib
 from typing import Any
 
 from agent.integrations.harness import ToolResult
@@ -48,7 +49,7 @@ class RepairAgent:
     def __init__(
         self,
         llm: Any,
-        max_attempts: int = 3,
+        max_attempts: int = 6,
     ) -> None:
         self.llm = llm
         self.max_attempts = max_attempts
@@ -60,6 +61,11 @@ class RepairAgent:
         task = state.task
         server = state.server
         stable_code = state.kernel
+        working_code = stable_code
+        seen_candidate_hashes = {_source_fingerprint(stable_code)}
+        state.metadata.setdefault("repair_duplicate_skips", 0)
+        state.metadata.setdefault("repair_no_change_skips", 0)
+        state.metadata.setdefault("repair_working_candidate_advances", 0)
         failure = state.results[-1] if state.results else None
         previous_attempt: dict[str, Any] | None = None
         if getattr(failure, "ok", True):
@@ -93,7 +99,7 @@ class RepairAgent:
             # ── 4. Build prompt with error context ────────────────────────
             prompt = build_repair_prompt(
                 task=task,
-                current_kernel=stable_code,
+                current_kernel=working_code,
                 normalized_log=normalized,
                 issue=issue,
                 attempt_feedback={
@@ -119,8 +125,9 @@ class RepairAgent:
                 response.text,
                 required_token=str(getattr(task, "top", "") or ""),
             )
-            if new_code is None or new_code.strip() == stable_code.strip():
+            if new_code is None or new_code.strip() == working_code.strip():
                 state.log(f"repair attempt {attempt}: LLM returned no change")
+                state.metadata["repair_no_change_skips"] += 1
                 previous_attempt = {
                     "attempt": attempt,
                     "candidate_diff": "",
@@ -131,6 +138,31 @@ class RepairAgent:
                     },
                 }
                 continue
+
+            candidate_hash = _source_fingerprint(new_code)
+            if candidate_hash in seen_candidate_hashes:
+                state.metadata["repair_duplicate_skips"] += 1
+                state.log(
+                    f"repair attempt {attempt}: duplicate candidate — skip tools"
+                )
+                previous_attempt = _repair_attempt_record(
+                    attempt,
+                    working_code,
+                    new_code,
+                    ToolResult(
+                        kind=kind,
+                        ok=False,
+                        phase="duplicate_candidate",
+                        return_code=-1,
+                        log=(
+                            "This exact source was already tested. Propose a "
+                            "materially different repair hypothesis."
+                        ),
+                        elapsed_s=0.0,
+                    ),
+                )
+                continue
+            seen_candidate_hashes.add(candidate_hash)
 
             # ── 6. Validate the proposal immediately in this attempt ─────
             from agent.candidate.validator import (
@@ -162,7 +194,7 @@ class RepairAgent:
                     elapsed_s=0.0,
                 )
                 previous_attempt = _repair_attempt_record(
-                    attempt, stable_code, new_code, failure
+                    attempt, working_code, new_code, failure
                 )
                 continue
 
@@ -172,8 +204,10 @@ class RepairAgent:
             if not cr.ok:
                 failure = cr
                 previous_attempt = _repair_attempt_record(
-                    attempt, stable_code, new_code, failure
+                    attempt, working_code, new_code, failure
                 )
+                working_code = new_code
+                state.metadata["repair_working_candidate_advances"] += 1
                 continue
 
             sr = server.synth(new_code)
@@ -182,8 +216,10 @@ class RepairAgent:
             if not sr.ok:
                 failure = sr
                 previous_attempt = _repair_attempt_record(
-                    attempt, stable_code, new_code, failure
+                    attempt, working_code, new_code, failure
                 )
+                working_code = new_code
+                state.metadata["repair_working_candidate_advances"] += 1
                 continue
             if not record_synth_gates(
                 state,
@@ -207,8 +243,10 @@ class RepairAgent:
                     f"repair attempt {attempt}: target gate failed — discard"
                 )
                 previous_attempt = _repair_attempt_record(
-                    attempt, stable_code, new_code, failure
+                    attempt, working_code, new_code, failure
                 )
+                working_code = new_code
+                state.metadata["repair_working_candidate_advances"] += 1
                 continue
 
             state.kernel = new_code
@@ -241,15 +279,22 @@ class RepairAgent:
         return state
 
 
+def _source_fingerprint(source: str) -> str:
+    """Hash source deterministically while ignoring newline-style noise."""
+
+    normalized = source.replace("\r\n", "\n").replace("\r", "\n").strip()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
 def _repair_attempt_record(
-    attempt: int, stable_code: str, candidate: str, result: Any
+    attempt: int, base_code: str, candidate: str, result: Any
 ) -> dict[str, Any]:
     """Build bounded evidence for the next repair attempt without another call."""
     diff = "\n".join(
         difflib.unified_diff(
-            stable_code.splitlines(),
+            base_code.splitlines(),
             candidate.splitlines(),
-            fromfile="stable_kernel",
+            fromfile="editable_kernel",
             tofile="failed_candidate",
             n=2,
             lineterm="",
@@ -262,7 +307,12 @@ def _repair_attempt_record(
         log = log.decode("utf-8", errors="replace")
     else:
         log = str(log)
-    summary = next((line.strip() for line in log.splitlines() if line.strip()), "")
+    normalized = LogNormalizer(max_summary_chars=500, max_key_lines=12).normalize(
+        getattr(result, "kind", "unknown") or "unknown",
+        getattr(result, "phase", "unknown") or "unknown",
+        log,
+    )
+    summary = normalized.error_summary or ""
     if len(summary) > 500:
         summary = summary[:484].rstrip() + "... [truncated]"
     return {

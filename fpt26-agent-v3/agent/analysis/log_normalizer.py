@@ -9,15 +9,15 @@ from agent.security.redaction import redact_sensitive_text
 ANSI_RE = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 PATH_RE = re.compile(r"(?<!\w)(?:/[A-Za-z0-9_.:-]+)+")
 KEYWORD_RE = re.compile(
-    r"\b(error|fatal|failed|failure|fail|mismatch|deadlock|timeout|timed out|"
+    r"(?<![A-Za-z0-9])(error|fatal|failed|failure|fail|mismatch|deadlock|timeout|timed out|"
     r"undefined|symbol|extern|did you mean|not found|cannot|warning|violation|"
-    r"segmentation|stream|dataflow|fifo|linker)\b",
+    r"segmentation|stream|dataflow|fifo|linker)(?![A-Za-z0-9])",
     re.IGNORECASE,
 )
 WARNING_RE = re.compile(r"\b(warning|warn)\b", re.IGNORECASE)
 HIGH_SIGNAL_RE = re.compile(
-    r"\b(error|fatal|undefined|symbol|extern|did you mean|not found|cannot|"
-    r"mismatch|deadlock|timeout|timed out|segmentation|linker)\b",
+    r"(?<![A-Za-z0-9])(error|fatal|undefined|symbol|extern|did you mean|not found|cannot|"
+    r"mismatch|deadlock|timeout|timed out|segmentation|linker)(?![A-Za-z0-9])",
     re.IGNORECASE,
 )
 

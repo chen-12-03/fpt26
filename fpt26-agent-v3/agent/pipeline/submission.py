@@ -97,10 +97,16 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
                 "step": "repair", "error": f"ImportError: {exc}",
             })
         except Exception as exc:
-            state.log(f"repair: RepairAgent crashed: {type(exc).__name__}: {exc}")
+            # An agent crash — including a failed LLM call surfacing as
+            # LLMCallFailed — is an infrastructure error and must end the run:
+            # continuing would record the crash as a model outcome.
+            state.status = "infrastructure_error"
+            state.stop_reason = f"{type(exc).__name__}: {exc}"
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "repair", "error": f"{type(exc).__name__}: {exc}",
             })
+            state.log(f"repair: RepairAgent crashed: {type(exc).__name__}: {exc}")
+            return
 
     # Stage 3: Synthesis
     if state.csim_ok:
@@ -122,10 +128,13 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
                 "step": "synth_repair", "error": f"ImportError: {exc}",
             })
         except Exception as exc:
-            state.log(f"synth_repair: RepairAgent crashed: {type(exc).__name__}: {exc}")
+            state.status = "infrastructure_error"
+            state.stop_reason = f"{type(exc).__name__}: {exc}"
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "synth_repair", "error": f"{type(exc).__name__}: {exc}",
             })
+            state.log(f"synth_repair: RepairAgent crashed: {type(exc).__name__}: {exc}")
+            return
 
     # Stage 4: CoSim (structural only)
     if task.requires_cosim and state.synth_ok:
@@ -146,10 +155,13 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
                 "step": "structural_repair", "error": f"ImportError: {exc}",
             })
         except Exception as exc:
-            state.log(f"structural_repair: StructuralRepairAgent crashed: {type(exc).__name__}: {exc}")
+            state.status = "infrastructure_error"
+            state.stop_reason = f"{type(exc).__name__}: {exc}"
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "structural_repair", "error": f"{type(exc).__name__}: {exc}",
             })
+            state.log(f"structural_repair: StructuralRepairAgent crashed: {type(exc).__name__}: {exc}")
+            return
 
     # Stage 5: Optimization
     gates_ok = (state.csim_ok and state.synth_ok and state.interface_ok
@@ -183,6 +195,14 @@ def _run_pipeline(state: RunState, config: Any, task: Any, server: Any, llm: Any
             state.metadata.setdefault("infrastructure_errors", []).append({
                 "step": "optimize", "error": f"ImportError: {exc}",
             })
+        except Exception as exc:
+            state.status = "infrastructure_error"
+            state.stop_reason = f"{type(exc).__name__}: {exc}"
+            state.metadata.setdefault("infrastructure_errors", []).append({
+                "step": "optimize", "error": f"{type(exc).__name__}: {exc}",
+            })
+            state.log(f"optimize: OptimizeAgent crashed: {type(exc).__name__}: {exc}")
+            return
 
     # Stage 6: Public acceptance
     failures = []

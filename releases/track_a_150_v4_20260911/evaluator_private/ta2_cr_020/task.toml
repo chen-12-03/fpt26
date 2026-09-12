@@ -1,0 +1,27 @@
+task_id = "ta2_cr_020"
+internal_task_id = "compile_repair__20__amd_intro__modeling_pointers_native_casts"
+task_type = "repair"
+track_a_category = "compile_repair"
+difficulty = 3
+top = "pointer_cast_native"
+kernel_file = "pointer_cast_native.cpp"
+header_files = ["pointer_cast_native.h"]
+public_tb = "pointer_cast_native_tb.cpp"
+hidden_tb = "pointer_cast_native_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 compile_repair; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "top_body_missing_initializer_expression"
+kernel_family_id = "e4e89c2da47ff02015c1a906cccacf00d9661aaae84fa7315b6a22bb1225d4a3"
+source_task_id = "amd_intro__modeling_pointers_native_casts"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/native_casts"
+source_path = "Modeling/Pointers/native_casts"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "f7cb567c9fad7b90c7ad808ef2e23d791e66cb92c012be61728f661d86ad9566"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

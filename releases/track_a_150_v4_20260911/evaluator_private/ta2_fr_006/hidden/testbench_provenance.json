@@ -1,0 +1,21 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_output_0.golden": "a2a5a4bb82c5418ebcd638be2531201ebe0608901b837c3cc6ebe33a4f956bb8",
+    "track_a_hidden_stderr.golden": "9d911292347a2fa65225ef7927d7a1d3c83d3bd0a73eede943081c2186eaada2",
+    "track_a_hidden_stdout.golden": "8b4bc2b29532506323d3afc0e2cdf393dddd4bdcc8ddac3559682126d62b5352"
+  },
+  "hidden_input_derivation": "hidden_input_assignment_literal:inA:2->5",
+  "hidden_tb_sha256": "c46c44d4db2e2bc7a1535a63c335504902e6abe7f5efe5f11a63fd93818576a7",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "4d886cb88c19b95eb72c12655630a0f2767532b9a474334d95ade86f2167098c",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "functional_repair__06__amd_intro__modeling_using_arbitrary_precision_arith",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence_batch2/functional_repair__06__amd_intro__modeling_using_arbitrary_precision_arith/hardening_evidence.json"
+}

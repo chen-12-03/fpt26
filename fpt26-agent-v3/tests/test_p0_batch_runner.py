@@ -273,6 +273,8 @@ def test_openrouter_contract_is_explicit_and_contains_no_credential(
     monkeypatch.setenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
     monkeypatch.setenv("FPT26_LLM_TEMPERATURE", "0.2")
     monkeypatch.setenv("FPT26_LLM_MAX_TOKENS", "8192")
+    monkeypatch.setenv("FPT26_LLM_TIMEOUT_SECONDS", "240")
+    monkeypatch.setenv("FPT26_LLM_MAX_RETRIES", "3")
 
     contract = resolve_llm_run_contract(
         "openrouter", "qwen/qwen3-coder"
@@ -284,6 +286,8 @@ def test_openrouter_contract_is_explicit_and_contains_no_credential(
         "model": "qwen/qwen3-coder",
         "temperature": 0.2,
         "max_tokens": 8192,
+        "timeout_s": 240.0,
+        "max_retries": 3,
         "provider": "openrouter",
         "api_origin": "https://openrouter.ai",
     }
@@ -301,6 +305,23 @@ def test_openrouter_contract_rejects_missing_key_or_non_openrouter_endpoint(
     monkeypatch.setenv("OPENROUTER_BASE_URL", "https://example.invalid/v1")
     with pytest.raises(RuntimeError, match="must use https://openrouter.ai"):
         resolve_llm_run_contract("openrouter", "qwen/qwen3-coder")
+
+
+def test_custom_contract_records_provider_reasoning_mode(monkeypatch) -> None:
+    monkeypatch.setenv("FPT26_LLM_BASE_URL", "https://api.deepseek.com/v1")
+    monkeypatch.setenv("FPT26_LLM_MODEL", "deepseek-v4-pro")
+
+    deepseek = resolve_llm_run_contract("custom", None)
+
+    assert deepseek["thinking"] == "disabled"
+
+    monkeypatch.setenv(
+        "FPT26_LLM_BASE_URL",
+        "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    qwen = resolve_llm_run_contract("custom", "qwen3.6-27b")
+
+    assert qwen["thinking"] is None
 
 
 def test_formal_evaluator_command_always_links_submission_evidence() -> None:
@@ -820,6 +841,31 @@ def test_evaluator_audit_flags_a_grading_stage_that_never_ran() -> None:
     ]
 
     assert "hidden_csim_missing" in validate_evaluator(
+        report, "t", official_task=False
+    )
+
+
+def test_evaluator_audit_accepts_hidden_csim_failure_without_synth_record() -> None:
+    """A candidate that fails hidden csim is never synthesized (cg_021 shape):
+    the absent candidate_synth stage is the grading outcome, not a missing
+    record."""
+    report = _clean_evaluator_report()
+    report["execution_trace"]["grading_results"] = [
+        {"stage": "hidden_csim", "ok": False}
+    ]
+
+    assert validate_evaluator(report, "t", official_task=False) == []
+
+
+def test_evaluator_audit_flags_candidate_synth_missing_after_csim_pass() -> None:
+    """hidden_csim passed but no candidate_synth record exists: the record
+    really is incomplete."""
+    report = _clean_evaluator_report()
+    report["execution_trace"]["grading_results"] = [
+        {"stage": "hidden_csim", "ok": True}
+    ]
+
+    assert "candidate_synth_missing" in validate_evaluator(
         report, "t", official_task=False
     )
 

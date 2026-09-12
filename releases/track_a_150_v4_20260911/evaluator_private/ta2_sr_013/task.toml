@@ -1,0 +1,33 @@
+task_id = "ta2_sr_013"
+internal_task_id = "synthesis_repair__13__polybench__jacobi_1d"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "kernel_jacobi_1d"
+kernel_file = "jacobi-1d.cpp"
+header_files = ["jacobi-1d.h"]
+public_tb = "jacobi-1d_tb.cpp"
+hidden_tb = "jacobi-1d_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "f2335e0080f0e5f59d243a592708d46f464d7555066ae72915a466e5aaf5acf1"
+source_task_id = "polybench__jacobi_1d"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/jacobi-1d"
+source_path = "hls_eval_data/polybench/jacobi-1d/jacobi-1d.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "1ad72bd109cb052af344c688072ce09d7ea2bd980f8ef7a4fa58c3ba75f70d18"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "ceebaa941414d66e2e231de887f8b787e868b2d902edb266d2bc7538112271a5"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

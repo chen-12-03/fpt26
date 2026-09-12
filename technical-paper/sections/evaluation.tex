@@ -1,54 +1,71 @@
-\section{Independent Checks Separate Three Objectives}
+\section{Separated Evaluation Measures}
 \label{sec:evaluation}
 
-\textbf{Protocol.} Three hosted endpoints process the same balanced
-\CorpusTaskCount{}-task suite under one agent revision and the Track-A
-contract~\cite{fpt26tracka}. Submission-side synthesis provides public-gate
-completion and a starter-anchored QoR proxy. A fresh evaluator reruns all
-\IndependentEvaluatedCount{} public-completed kernels with hidden \CSim,
-synthesis, and required hidden \CoSim, then computes reference-anchored QoR
-when fixed reference metrics exist. Both QoR measures apply
-Eq.~\eqref{eq:score}; the 25 optimization tasks (QoR-25) have complete coverage.
+\textbf{Protocol.} Each configuration first processes the same frozen,
+balanced \CorpusTaskCount{}-task Track-A v4 suite~\cite{fpt26tracka}. A
+deterministic merge rule permits a retry only when the currently selected
+record is classified as an LLM-API infrastructure error; the chronological
+retry replaces it regardless of retry outcome. Validation failures and
+900-second task timeouts are ineligible. First-pass public completions are
+143, 129, and 131; after 0, 17, and 19 eligible retry records, the final counts
+are 143, 140, and 141.
+
+Public completion retains all 150 tasks. API-conditioned completion excludes
+only unresolved LLM API-call records from its denominator and retains task
+timeouts and validation failures. A separate evaluator reruns each
+public-completed output using finite hidden \CSim, synthesis, and required
+\CoSim{} gates. The QoR columns apply Eq.~\eqref{eq:score} to the same
+\CommonQorTaskCount{} tasks.
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{Independent evaluation of public-completed kernels.}
-  Hidden uses Public as its denominator; Proxy and Ref. QoR are starter- and
-  reference-anchored means on the fully covered QoR-25 slice.}
+  \caption{\textbf{Final descriptive point estimates.} Hidden is conditional
+  on Public; API-cond. removes unresolved API-call records. QoR means use the
+  paired subset; Qwen token totals are lower bounds.}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{lrrrrr}
+  \begin{tabular}{lrrrrrr}
     \toprule
-    Endpoint & Public & Hidden & Tokens (M) & Proxy & Ref. QoR \\
+    Configuration & Public & API-cond. & Hidden & Tok. (M) & Proxy & Ref. QoR \\
     \midrule
     DeepSeek V4 Pro & \DeepSeekSuccessCount{}/\CorpusTaskCount{} &
+    \DeepSeekApiCleanCount{}/\DeepSeekApiCleanDenominator{} &
     \DeepSeekHiddenCorrectCount{}/\DeepSeekEvaluatorReportCount{} &
-    \DeepSeekTokensM{} & \DeepSeekQorProxy{} & \DeepSeekReferenceQorMean{} \\
+    \DeepSeekTokensM{} & \DeepSeekCommonQorProxy{} &
+    \DeepSeekCommonReferenceQorMean{} \\
     Qwen3.5-122B-A10B & \QwenThreeFiveSuccessCount{}/\CorpusTaskCount{} &
+    \QwenThreeFiveApiCleanCount{}/\QwenThreeFiveApiCleanDenominator{} &
     \QwenThreeFiveHiddenCorrectCount{}/\QwenThreeFiveEvaluatorReportCount{} &
-    \QwenThreeFiveTokensM{} & \QwenThreeFiveQorProxy{} &
-    \QwenThreeFiveReferenceQorMean{} \\
+    $\geq$\QwenThreeFiveTokensM{} & \QwenThreeFiveCommonQorProxy{} &
+    \QwenThreeFiveCommonReferenceQorMean{} \\
     Qwen3.6-27B & \QwenThreeSixSuccessCount{}/\CorpusTaskCount{} &
+    \QwenThreeSixApiCleanCount{}/\QwenThreeSixApiCleanDenominator{} &
     \QwenThreeSixHiddenCorrectCount{}/\QwenThreeSixEvaluatorReportCount{} &
-    \QwenThreeSixTokensM{} & \QwenThreeSixQorProxy{} &
-    \QwenThreeSixReferenceQorMean{} \\
+    $\geq$\QwenThreeSixTokensM{} & \QwenThreeSixCommonQorProxy{} &
+    \QwenThreeSixCommonReferenceQorMean{} \\
     \bottomrule
   \end{tabular}}
 \end{table}
 
-\textbf{Results.} Table~\ref{tab:headline-results} yields three patterns.
+\textbf{Results.} (1) All
+\IndependentHiddenCorrectCount{}/\IndependentEvaluatedCount{} final outputs
+that pass the public gate also pass the recorded finite hidden-gate suite. The
+26 endpoint--task runs without public completion are outside this denominator;
+the result is test-bounded evidence, not a correctness certificate.
 
-(1)~\textbf{No hidden failures appear.} All
-\IndependentHiddenCorrectCount{}/\IndependentEvaluatedCount{} kernels pass
-evaluator-side hidden correctness. Qwen3.6-27B supplies the largest evaluated
-set (\QwenThreeSixSuccessCount{}/\CorpusTaskCount{} public completions),
-including all 25 structural \CoSim{} tasks.
+(2) DeepSeek has the largest raw completion point estimate
+(\DeepSeekSuccessRate); Qwen3.5 has the largest API-conditioned point estimate
+(\QwenThreeFiveApiCleanRate). These answer different questions, so the latter
+is not relabelled as agent completion.
 
-(2)~\textbf{DeepSeek leads both QoR-25 measures.} The shared denominator makes
-the endpoints directly comparable, and changing from the starter to the
-reference anchor preserves their ordering: DeepSeek, Qwen3.6, then Qwen3.5.
+(3) Qwen3.5 has the largest paired QoR point estimates. Its reference mean is
+only 0.37 above Qwen3.6; one campaign per configuration provides no uncertainty
+or stable-ranking claim. DeepSeek has the lowest observed selected-record
+token total.
 
-(3)~\textbf{No endpoint dominates every objective.} Qwen3.6 leads public-gate
-completion, DeepSeek leads QoR-25, and Qwen3.5 minimizes token use. One
-campaign per endpoint prevents architecture attribution.
+\textbf{Configuration boundary.} The recorded snapshots match in 83/86 files,
+including controller, prompts, gates, and scoring; differences are confined to
+provider/run-contract, metric-recording, and runner/record-validation plumbing.
+Because the provider adapter is outside the snapshot, the rows compare complete
+deployed configurations rather than isolating endpoint or model effects.

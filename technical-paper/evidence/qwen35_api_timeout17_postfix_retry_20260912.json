@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "purpose": "post-interface-fix retry of API-only failures",
+  "source_run": "runs/track_a_150_v4_qwen35_full150_20260912_v1",
+  "selection_rule": "failed_request_count > 0; excludes task timeouts and functional failures",
+  "retry_task_ids": [
+    "ta2_cg_025",
+    "ta2_cr_005",
+    "ta2_cr_009",
+    "ta2_fr_004",
+    "ta2_fr_009",
+    "ta2_fr_018",
+    "ta2_fr_022",
+    "ta2_fr_024",
+    "ta2_fr_025",
+    "ta2_qo_009",
+    "ta2_qo_010",
+    "ta2_qo_011",
+    "ta2_qo_013",
+    "ta2_sr_012",
+    "ta2_sr_013",
+    "ta2_xr_005",
+    "ta2_xr_012"
+  ]
+}

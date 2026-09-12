@@ -1,0 +1,22 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_stderr.golden": "ff4e8a727a9f8212c8bd353859e32aec70ca8c8486add6a589e5eab34b34dd89",
+    "track_a_hidden_stdout.golden": "0fea8c132c8d261f16732b4e1f88cbdae84c6fa5c8f4d0794bc030391411043f"
+  },
+  "hidden_input_derivation": "hidden_input_assignment_literal:test_data:32767->32770",
+  "hidden_tb_sha256": "827e39d0bd5f53cebe1fecdde2eb2fa112cc186a9e978d0b56a9a3c2ec421d07",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {
+    "track_a_public_stderr.golden": "bf64cbf23e3a3fe058fd835e8e3575d79a70f241e6e82c1cbdce672faaca99a8",
+    "track_a_public_stdout.golden": "0fea8c132c8d261f16732b4e1f88cbdae84c6fa5c8f4d0794bc030391411043f"
+  },
+  "public_input_derivation": "public_input_assignment_literal:test_data:32767->32769",
+  "public_tb_sha256": "c06dde2856be30e7d8ae30eaaea04bc167d620bd7b984c5b1ba5ed0b3b2a8d01",
+  "schema_version": 1,
+  "task_id": "structural_cosim_repair__03__amd_intro__interface_memory_coefficient_filter",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence/structural_cosim_repair__03__amd_intro__interface_memory_coefficient_filter/hardening_evidence.json"
+}

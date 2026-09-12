@@ -1,0 +1,20 @@
+{
+  "category_counts": {
+    "code_generation": 25,
+    "compile_repair": 25,
+    "functional_repair": 25,
+    "qor_optimization": 25,
+    "structural_cosim_repair": 25,
+    "synthesis_repair": 25
+  },
+  "evaluator_file_count": 1632,
+  "evaluator_tree_sha256": "63e4d452cfc122bfa52b9752b8a9d33210c568fe2c65d14f11375072353d3261",
+  "id_mapping_location": "evaluator_private/EVALUATOR_MAPPING.json",
+  "public_file_count": 928,
+  "public_private_separation_pass": true,
+  "public_tree_sha256": "c0b95c199f7b115c63bad819a4ae7056bfccc1c0fb821c7c867f888aaafe3d8f",
+  "purpose": "track_a_corpus_release_freeze",
+  "schema_version": 1,
+  "task_count": 150,
+  "violations": []
+}

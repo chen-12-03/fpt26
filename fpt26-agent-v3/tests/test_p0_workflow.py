@@ -563,3 +563,67 @@ def test_llm_bootstrap_exception_writes_redacted_infrastructure_report(
     assert report["scoring"] is None
     assert "private.example" not in report["error"]["message"]
     assert "sk-secretvalue" not in report["error"]["message"]
+
+
+def test_run_submission_agent_crash_is_infrastructure_error(tmp_path) -> None:
+    """The production pipeline must not swallow an agent crash and continue:
+    continuing would record an infrastructure failure as a model outcome."""
+    from agent.pipeline.submission import run_submission
+
+    task = _task(tmp_path)
+    server = _Server(
+        task.budget,
+        lambda code: _result("csim", False, phase="runtime_fail"),
+        lambda code: _result("synth", True, report=_report()),
+    )
+
+    state = run_submission(
+        task=task,
+        config=AgentConfig(
+            mode="auto",
+            output_root=str(tmp_path / "runs"),
+            verbose=False,
+            max_repair_attempts=1,
+            max_structural_attempts=1,
+            max_optimization_rounds=0,
+        ),
+        server=server,
+        llm=_Llm([RuntimeError("LLM HTTP 503: unavailable")]),
+        run_root=tmp_path / "agent",
+        total_budget=task.budget,
+    )
+
+    assert state.status == "infrastructure_error"
+    assert "LLM call failed" in state.stop_reason
+    errors = state.metadata.get("infrastructure_errors") or []
+    assert any(e["step"] == "repair" for e in errors)
+
+
+def test_run_submission_survives_healthy_repair(tmp_path) -> None:
+    """Sanity: the same production path still completes when nothing crashes."""
+    from agent.pipeline.submission import run_submission
+
+    task = _task(tmp_path)
+    server = _Server(
+        task.budget,
+        lambda code: _result("csim", True),
+        lambda code: _result("synth", True, report=_report()),
+    )
+
+    state = run_submission(
+        task=task,
+        config=AgentConfig(
+            mode="auto",
+            output_root=str(tmp_path / "runs"),
+            verbose=False,
+            max_repair_attempts=1,
+            max_structural_attempts=1,
+            max_optimization_rounds=0,
+        ),
+        server=server,
+        llm=_Llm([_FIXED]),
+        run_root=tmp_path / "agent",
+        total_budget=task.budget,
+    )
+
+    assert state.status == "completed"

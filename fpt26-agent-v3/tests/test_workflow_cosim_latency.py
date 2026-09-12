@@ -33,6 +33,7 @@ def _report(*, latency: int, interval: int, lut: int, ff: int) -> SimpleNamespac
 
 
 def _state(tmp_path) -> SimpleNamespace:
+    hidden_fixtures = {"track_a_hidden_stdout.golden": b"expected\n"}
     task = SimpleNamespace(
         id="measured_cosim",
         type="structural",
@@ -46,6 +47,7 @@ def _state(tmp_path) -> SimpleNamespace:
         headers={},
         hidden_tb_code="int main() { return 0; }\n",
         hidden_tb_name="residual_tb.cpp",
+        hidden_data_files=hidden_fixtures,
         top="residual",
         part="xcu55c-fsvh2892-2L-e",
         assemble=lambda kernel, tb, tb_name: {
@@ -82,7 +84,7 @@ def _state(tmp_path) -> SimpleNamespace:
     )
 
 
-def _run_score(monkeypatch, tmp_path, measured_latency):
+def _run_score(monkeypatch, tmp_path, measured_latency, cosim_kwargs=None):
     candidate = _report(latency=68, interval=64, lut=406, ff=231)
     baseline = _report(latency=135, interval=136, lut=539, ff=248)
     synth_results = iter(
@@ -97,6 +99,8 @@ def _run_score(monkeypatch, tmp_path, measured_latency):
             pass
 
         def run(self, *args, **kwargs):
+            if cosim_kwargs is not None:
+                cosim_kwargs.append(kwargs)
             return SimpleNamespace(ok=True, report=None)
 
     class FakeCoSimTool:
@@ -135,6 +139,22 @@ def test_step_score_uses_measured_rtl_latency_not_cosim_synth_estimate(
     assert card.cosim_latency_used == 97
     assert card.latency_ratio == 1.39
     assert card.latency_ratio != round(135 / 68, 2)
+
+
+def test_step_score_passes_hidden_fixtures_to_candidate_and_anchor_cosim(
+    monkeypatch, tmp_path
+) -> None:
+    calls = []
+    state = _run_score(monkeypatch, tmp_path, measured_latency=97, cosim_kwargs=calls)
+
+    assert state.scorecard.valid
+    assert calls
+    assert all(
+        call["data_files"] == {
+            "track_a_hidden_stdout.golden": b"expected\n"
+        }
+        for call in calls
+    )
 
 
 def test_step_score_fails_closed_when_passed_cosim_has_no_measured_latency(

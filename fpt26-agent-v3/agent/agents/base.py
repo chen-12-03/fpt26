@@ -43,7 +43,7 @@ class AgentConfig:
     mode: str = "auto"                # auto | baseline | repair | optimize | structural | full
     run_role: str = "submission"      # submission | evaluator
     competition: bool = False         # independent strategy lanes, measured sequentially
-    max_repair_attempts: int = 3
+    max_repair_attempts: int = 6
     max_optimization_rounds: int = 5
     max_structural_attempts: int = 3
     output_root: str = "runs"

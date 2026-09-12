@@ -1,0 +1,33 @@
+task_id = "ta2_cg_003"
+internal_task_id = "code_generation__03__machsuite__viterbi_viterbi"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 3
+top = "viterbi"
+kernel_file = "viterbi_viterbi.cpp"
+header_files = ["viterbi_viterbi.h"]
+public_tb = "viterbi_viterbi_tb.cpp"
+hidden_tb = "viterbi_viterbi_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "b7790fef5f703692ca76194899822a3428cf360c093bf46191f2ac400f2775e7"
+source_task_id = "machsuite__viterbi_viterbi"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/viterbi_viterbi"
+source_path = "hls_eval_data/machsuite/viterbi_viterbi/viterbi_viterbi.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "6446ce363627141100bc36551f312bed578c9d22222dca24ea2b2e3f06c6f763"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "6446ce363627141100bc36551f312bed578c9d22222dca24ea2b2e3f06c6f763"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

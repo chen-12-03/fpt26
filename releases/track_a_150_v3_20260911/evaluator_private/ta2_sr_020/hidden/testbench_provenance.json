@@ -1,0 +1,18 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "distinct_graph_sizes_and_deterministic_edge_lists",
+  "hidden_tb_sha256": "7066827f386e1d70ced66b9688906a537cf3819545ee1dbefed9bc1e48816583",
+  "limitations": [
+    "Early-return rejection is a minimum sanity mutation, not a complete mutation score."
+  ],
+  "oracle_strategy": "independent_degree_offset_and_neighbor_table_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "distinct_graph_sizes",
+  "public_tb_sha256": "68817653c5ea6b2e4648ceed6bd379a1c2a286c4a50b75131f00fa158fd1dce6",
+  "public_testbench_preserved": false,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "synthesis_repair__20__gnnbuilder__compute_neighbor_tables",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/full_pair_validation_release/tasks/synthesis_repair__20__gnnbuilder__compute_neighbor_tables/pair_validation.json"
+}

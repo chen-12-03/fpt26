@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "generated_on": "2026-09-12",
+  "status": "paper_readable_pre_retry_evidence_for_qwen35",
+  "scope": {
+    "model": "qwen3.5-122b-a10b",
+    "base_run": "runs/track_a_150_v4_qwen35_full150_20260912_v1",
+    "base_record_count": 150,
+    "retry_run": null,
+    "retry_record_count": 0,
+    "selected_record_count": 150,
+    "selection_policy": "Base run only. No retry records exist."
+  },
+  "frozen_artifacts": {
+    "release": "releases/track_a_150_v4_20260911",
+    "task_count": 150,
+    "public_tree_sha256": "105e34dbc3ba9e146ae99cb4ce020c65ea5b77d4a87cef6c9674dba04aa4d537",
+    "evaluator_tree_sha256": "2261ba6c9c874b49c51f3e87870c217e9f241e33d6089fbd5e0ccf267bc4b21e",
+    "public_private_separation_pass": true,
+    "agent_source_tree_sha256": "51ebeb770639fa6873e62b93824bad7cb92693537ab7f0ef6862e56ad00c4474"
+  },
+  "run_contract": {
+    "api_client": "OpenAICompatClient",
+    "temperature": 0.0,
+    "max_tokens": 8192,
+    "llm_timeout_s": 360.0,
+    "llm_max_retries": 0,
+    "task_timeout_s": 900.0,
+    "csim_timeout_s": 30.0,
+    "synth_timeout_s": 180.0,
+    "cosim_timeout_s": 240.0,
+    "shard_count": 3,
+    "maximum_shard_elapsed_hours": 4.16,
+    "toolchain": "Vitis HLS 2025.2",
+    "target": "xcu55c-fsvh2892-2L-e"
+  },
+  "headline": {
+    "completed": 129,
+    "infrastructure_error": 19,
+    "failed": 2,
+    "public_gate_completion": {
+      "numerator": 129,
+      "denominator": 150,
+      "percent": 86.0
+    },
+    "non_infrastructure_conditional_completion": {
+      "numerator": 129,
+      "denominator": 131,
+      "percent": 98.5
+    },
+    "evaluator_hidden_correctness": {
+      "numerator": 129,
+      "denominator": 129,
+      "percent": 100.0,
+      "corpus_coverage": 129,
+      "corpus_size": 150
+    },
+    "reference_anchored_official_score": {
+      "scoreable_count": 108,
+      "corpus_size": 150,
+      "coverage_percent": 72.0,
+      "validity_only_completed_count": 21,
+      "mean": 85.6537962962963,
+      "median": 88.625,
+      "min": 18.47,
+      "max": 99.8
+    }
+  },
+  "qor_25": {
+    "submission_starter_anchored_proxy": {
+      "available_count": 21,
+      "slice_size": 25,
+      "mean": 77.15979838624338,
+      "median": 74.33604166666667,
+      "min": 72.35020833333334,
+      "max": 98.11284283333333,
+      "mean_q_hw": 0.7863476190476191,
+      "above_76_count": 6,
+      "formula": "100 * best_q_hw * max(0.8, 1 - 0.10*credit_utilization - 0.10*metered_tool_time_utilization)"
+    },
+    "evaluator_reference_anchored_score": {
+      "scoreable_count": 21,
+      "slice_size": 25,
+      "mean": 78.41190476190476,
+      "median": 74.89,
+      "min": 74.7,
+      "max": 99.73,
+      "above_76_count": 10
+    },
+    "missing_task_ids": [
+      "ta2_qo_009",
+      "ta2_qo_010",
+      "ta2_qo_011",
+      "ta2_qo_013"
+    ]
+  },
+  "categories": {
+    "code_generation": {
+      "completed": 24,
+      "infrastructure_error": 1,
+      "failed": 0,
+      "task_count": 25,
+      "reference_scoreable": 21,
+      "validity_only_completed": 3,
+      "reference_mean": 91.08428571428571,
+      "reference_median": 89.89
+    },
+    "compile_repair": {
+      "completed": 22,
+      "infrastructure_error": 3,
+      "failed": 0,
+      "task_count": 25,
+      "reference_scoreable": 4,
+      "validity_only_completed": 18,
+      "reference_mean": 91.97500000000001,
+      "reference_median": 91.635
+    },
+    "functional_repair": {
+      "completed": 17,
+      "infrastructure_error": 7,
+      "failed": 1,
+      "task_count": 25,
+      "reference_scoreable": 17,
+      "validity_only_completed": 0,
+      "reference_mean": 88.83941176470589,
+      "reference_median": 88.65
+    },
+    "qor_optimization": {
+      "completed": 21,
+      "infrastructure_error": 4,
+      "failed": 0,
+      "task_count": 25,
+      "reference_scoreable": 21,
+      "validity_only_completed": 0,
+      "reference_mean": 78.41190476190476,
+      "reference_median": 74.89
+    },
+    "synthesis_repair": {
+      "completed": 23,
+      "infrastructure_error": 2,
+      "failed": 0,
+      "task_count": 25,
+      "reference_scoreable": 23,
+      "validity_only_completed": 0,
+      "reference_mean": 90.38739130434782,
+      "reference_median": 88.63
+    },
+    "structural_repair": {
+      "completed": 22,
+      "infrastructure_error": 2,
+      "failed": 1,
+      "task_count": 25,
+      "reference_scoreable": 22,
+      "validity_only_completed": 0,
+      "reference_mean": 78.82318181818181,
+      "reference_median": 88.25
+    }
+  },
+  "unresolved": {
+    "api_read_timeout": [
+      "ta2_cg_025",
+      "ta2_cr_005",
+      "ta2_cr_009",
+      "ta2_fr_004",
+      "ta2_fr_009",
+      "ta2_fr_018",
+      "ta2_fr_022",
+      "ta2_fr_024",
+      "ta2_fr_025",
+      "ta2_qo_009",
+      "ta2_qo_010",
+      "ta2_qo_011",
+      "ta2_qo_013",
+      "ta2_sr_012",
+      "ta2_sr_013",
+      "ta2_xr_005",
+      "ta2_xr_012"
+    ],
+    "api_timeout_records_with_aggregate_stop_reason_all_api_requests_failed": [
+      "ta2_qo_009",
+      "ta2_qo_011"
+    ],
+    "task_timeout_900s": [
+      "ta2_cr_002",
+      "ta2_fr_021"
+    ],
+    "functional_failure": [
+      {
+        "task_id": "ta2_fr_003",
+        "stop_reason": "csim_failed"
+      },
+      {
+        "task_id": "ta2_xr_022",
+        "stop_reason": "cosim_failed"
+      }
+    ]
+  },
+  "token_accounting": {
+    "record_count": 150,
+    "request_count": 424,
+    "response_count": 407,
+    "failed_request_count": 17,
+    "observed_prompt_tokens": 2736685,
+    "observed_completion_tokens": 1126485,
+    "observed_total_tokens": 3863170,
+    "exact_known_total_tokens": 3567473,
+    "complete_api_record_count": 131,
+    "credits_spent": 2853,
+    "submission_tool_calls": 821,
+    "interpretation": "Observed totals include usage reported by partial records but remain lower bounds because failed API requests report no usage."
+  },
+  "paper_update_guardrails": {
+    "may_be_used_as_single_campaign_result": true,
+    "equal_retry_cross_model_comparison_ready": false,
+    "qwen35_api_timeout_retry_eligible_count": 17,
+    "reason": "Qwen3.6 received an infrastructure-only API retry pass, while this Qwen3.5 result contains no retries."
+  }
+}

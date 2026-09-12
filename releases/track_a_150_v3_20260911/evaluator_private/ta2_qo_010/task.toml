@@ -1,0 +1,27 @@
+task_id = "ta2_qo_010"
+internal_task_id = "qor_optimization__10__amd_intro__modeling_pointers_using_double"
+task_type = "optimize"
+track_a_category = "qor_optimization"
+difficulty = 3
+top = "pointer_double"
+kernel_file = "pointer_double.cpp"
+header_files = ["pointer_double.h"]
+public_tb = "pointer_double_tb.cpp"
+hidden_tb = "pointer_double_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 qor_optimization; baseline=valid_baseline"
+expected_baseline_state = "valid_baseline"
+fault_derivation = "upstream_valid_baseline:no_artificial_degradation"
+kernel_family_id = "cfd39b7e183518937f34cc3c8abe9e91ce73a04e361e98f5d95a36ba313c91aa"
+source_task_id = "amd_intro__modeling_pointers_using_double"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Modeling/Pointers/using_double"
+source_path = "Modeling/Pointers/using_double"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "2bd6cfba2b97b7bff89871c6b4adfde652753e577d7e6688f04c814c787d1955"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,20 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_stderr.golden": "9d911292347a2fa65225ef7927d7a1d3c83d3bd0a73eede943081c2186eaada2",
+    "track_a_hidden_stdout.golden": "245c640ee97ad95e5b8b6afddda237ce8be7f818a20c06e4fb14d79e7dc3e0df"
+  },
+  "hidden_input_derivation": "hidden_input_assignment_offset:x1",
+  "hidden_tb_sha256": "6a6856d90ac043a134af01ab4c50de75ba82faa820a05d6fe66d64e25832f852",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "e4ffd2747dc8aa062c597545210bc4addfd8612e1f1165f9f457e93cfdba53d3",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "functional_repair__22__chstone__dfadd",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence_batch2/functional_repair__22__chstone__dfadd/hardening_evidence.json"
+}

@@ -1,0 +1,27 @@
+task_id = "ta2_fr_011"
+internal_task_id = "functional_repair__11__amd_intro__interface_streaming_axis_array_stream_no_side_channel_data"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 2
+top = "example"
+kernel_file = "example.cpp"
+header_files = ["track_a_contract.h"]
+public_tb = "example_tb.cpp"
+hidden_tb = "example_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "arithmetic_operator:+->-:offset=977"
+kernel_family_id = "270926c96b577652b1416f26ad1cedbde064566a0a5b0e8ab68ea6b1ddfc6969"
+source_task_id = "amd_intro__interface_streaming_axis_array_stream_no_side_channel_data"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Streaming/axis_array_stream_no_side_channel_data"
+source_path = "Interface/Streaming/axis_array_stream_no_side_channel_data"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "8001c1c290cf08735f2c1dc5e8e9730c8fadb1d09eb270b4fe496a515d22e511"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

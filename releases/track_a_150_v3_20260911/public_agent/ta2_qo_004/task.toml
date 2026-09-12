@@ -1,0 +1,15 @@
+task_id = "ta2_qo_004"
+task_type = "optimize"
+difficulty = 3
+top = "krnl_vadd"
+kernel_file = "krnl_vadd.cpp"
+header_files = ["multi_krnl.h"]
+public_tb = "krnl_vadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 qor_optimization; baseline=valid_baseline"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.000

@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "asymmetric_array_vectors_with_software_oracle",
+  "hidden_tb_sha256": "44822599dc7565a8da2946cdc950e552cac1fa987085fe18eef70b9e19605ef6",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "public_oracle_completed_without_changing_public_vector",
+  "public_tb_sha256": "af810fa0e17657d9cfe4e3122dc7fac869982a89702343c2c00cfb5049935e7d",
+  "public_testbench_preserved": false,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "synthesis_repair__14__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_retry_evidence/synthesis_repair__14__amd_intro__interface_memory_manual_burst_manual_burst_with_conditionals/hardening_evidence.json"
+}

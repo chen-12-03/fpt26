@@ -1,7 +1,12 @@
+import json
+
+import pytest
+
 from llm4hls.llm import (
     OpenAICompatClient,
     OpenRouterClient,
     TokenUsage,
+    _message_text,
     chat_completions_url,
     create_llm,
 )
@@ -170,6 +175,98 @@ def test_openai_compat_client_normalizes_custom_full_endpoint() -> None:
         == "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     )
     assert client.model == "qwen3-coder-plus"
+    assert client.thinking is None
+
+
+def test_deepseek_v4_disables_thinking_without_affecting_qwen(monkeypatch) -> None:
+    captured: list[dict] = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def read(self) -> bytes:
+            return json.dumps(
+                {
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {"role": "assistant", "content": "OK"},
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 10,
+                        "completion_tokens": 1,
+                        "total_tokens": 11,
+                    },
+                }
+            ).encode()
+
+    def fake_urlopen(request, timeout):
+        captured.append(json.loads(request.data.decode()))
+        return Response()
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    deepseek = OpenAICompatClient(
+        base_url="https://api.deepseek.com/v1",
+        api_key="test-key",
+        model="deepseek-v4-pro",
+    )
+    qwen = OpenAICompatClient(
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        api_key="test-key",
+        model="qwen3.6-27b",
+    )
+
+    assert deepseek.complete("system", "user") == "OK"
+    assert qwen.complete("system", "user") == "OK"
+    assert deepseek.thinking == "disabled"
+    assert captured[0]["thinking"] == {"type": "disabled"}
+    assert qwen.thinking is None
+    assert "thinking" not in captured[1]
+
+
+def test_message_text_accepts_string_and_content_parts() -> None:
+    assert _message_text(
+        {"choices": [{"message": {"content": "plain"}}]}
+    ) == "plain"
+    assert _message_text(
+        {
+            "choices": [
+                {
+                    "message": {
+                        "content": [
+                            {"type": "text", "text": "first"},
+                            {"type": "text", "text": "second"},
+                        ]
+                    }
+                }
+            ]
+        }
+    ) == "first\nsecond"
+
+
+def test_message_text_does_not_misclassify_reasoning_as_final_answer() -> None:
+    with pytest.raises(
+        RuntimeError,
+        match=r"no final text .*finish_reason='length'.*reasoning_chars=8",
+    ):
+        _message_text(
+            {
+                "choices": [
+                    {
+                        "finish_reason": "length",
+                        "message": {
+                            "content": "",
+                            "reasoning_content": "analysis",
+                        },
+                    }
+                ]
+            }
+        )
 
 
 def test_openrouter_client_normalizes_configured_api_base(monkeypatch) -> None:
@@ -276,3 +373,24 @@ def test_llm_executor_returns_canonical_empty_string_after_null_content() -> Non
 
     assert response.text == ""
     assert "empty or non-text" in str(response.error)
+
+
+def test_openai_compat_client_timeout_is_configurable() -> None:
+    default = OpenAICompatClient(base_url="https://api.example.com/v1", api_key="k")
+    assert default.timeout_s == 180.0
+
+    client = OpenAICompatClient(
+        base_url="https://api.example.com/v1", api_key="k", timeout_s=600
+    )
+    assert client.timeout_s == 600.0
+
+
+def test_backends_wire_configured_timeout_into_the_client(monkeypatch) -> None:
+    monkeypatch.setenv("FPT26_LLM_BASE_URL", "https://api.example.com/v1")
+    monkeypatch.setenv("FPT26_LLM_API_KEY", "test-key")
+    monkeypatch.setenv("FPT26_LLM_MODEL", "qwen3.6-27b")
+    monkeypatch.setenv("FPT26_LLM_TIMEOUT_SECONDS", "600")
+
+    executor = agent_backends.create_llm("custom")
+
+    assert executor._client.timeout_s == 600.0

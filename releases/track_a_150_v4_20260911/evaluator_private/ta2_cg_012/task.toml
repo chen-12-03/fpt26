@@ -1,0 +1,33 @@
+task_id = "ta2_cg_012"
+internal_task_id = "code_generation__12__pp4fpga__pp4fpga_cordic"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "cordic"
+kernel_file = "cordic.cpp"
+header_files = ["cordic.h"]
+public_tb = "cordic_tb.cpp"
+hidden_tb = "cordic_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "b0414b1d8dffb8cdf946fc7ba1ea915d64173e3f91783cd72c386773460cb8d1"
+source_task_id = "pp4fpga__pp4fpga_cordic"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/pp4fpga/pp4fpga_cordic"
+source_path = "hls_eval_data/pp4fpga/pp4fpga_cordic/cordic.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "CC-BY-4.0"
+source_sha256 = "ecf3c6441506d52ac29614802cef80614c65f9d93d8b047dd179fb101820808f"
+
+upstream_project_url = "https://github.com/KastnerRG/pp4fpgas"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/KastnerRG/pp4fpgas/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "8f4b0e72bdf3617e1ced07d808a050c71fd557657b43d3d2a05bc04d5ef51871"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -104,7 +104,43 @@ def evaluator_toml(text: str, internal_id: str, public_id: str) -> str:
     return text.replace(old, new, 1)
 
 
-def public_description(spec: dict[str, Any], public_id: str) -> str:
+def code_generation_specification(description: str, internal_id: str) -> str:
+    """Return the public, provenance-free kernel contract for a generation task."""
+
+    marker = "## Kernel specification"
+    if marker not in description:
+        raise RuntimeError(f"{internal_id}: missing {marker!r} in description.md")
+    kernel_spec = description.split(marker, 1)[1].strip()
+
+    # A future imported task may append provenance after the useful contract.
+    # Never expose that private source locator merely because the current CG set
+    # happens not to contain one.
+    kernel_spec = kernel_spec.split("\nProvenance:", 1)[0].strip()
+    lowered = kernel_spec.lower()
+    forbidden_fragments = (
+        "github.com/",
+        "http://",
+        "https://",
+        "source sha-256",
+        "repo_commit",
+        "source_url",
+        internal_id.lower(),
+    )
+    leaked = [item for item in forbidden_fragments if item and item in lowered]
+    if leaked:
+        raise RuntimeError(
+            f"{internal_id}: source locator in kernel specification: {leaked}"
+        )
+    if len(kernel_spec) < 400:
+        raise RuntimeError(
+            f"{internal_id}: kernel specification is too short ({len(kernel_spec)} chars)"
+        )
+    return kernel_spec
+
+
+def public_description(
+    spec: dict[str, Any], public_id: str, source_description: str
+) -> str:
     category = str(spec["track_a_category"])
     instruction = {
         "code_generation": "Implement the missing HLS kernel.",
@@ -114,7 +150,7 @@ def public_description(spec: dict[str, Any], public_id: str) -> str:
         "structural_cosim_repair": "Repair the C/RTL CoSim mismatch.",
         "qor_optimization": "Improve hardware QoR while preserving exact behavior.",
     }[category]
-    return (
+    text = (
         f"# {public_id}\n\n"
         f"{instruction}\n\n"
         f"Edit only `{spec['kernel_file']}`. Preserve the top-level function "
@@ -122,6 +158,12 @@ def public_description(spec: dict[str, Any], public_id: str) -> str:
         "testbench contract. The target is Alveo U55C under Vitis 2025.2 with "
         "a minimum frequency of 100 MHz.\n"
     )
+    if category == "code_generation":
+        kernel_spec = code_generation_specification(
+            source_description, str(spec["task_id"])
+        )
+        text += f"\n## Kernel specification\n\n{kernel_spec}\n"
+    return text
 
 
 def tree_manifest(root: Path, excluded: set[str] | None = None) -> dict[str, Any]:
@@ -196,8 +238,9 @@ def main() -> int:
         (public_task / "task.toml").write_text(
             public_toml(spec, public_id), encoding="utf-8"
         )
+        source_description = (task_dir / "description.md").read_text(encoding="utf-8")
         (public_task / "description.md").write_text(
-            public_description(spec, public_id), encoding="utf-8"
+            public_description(spec, public_id, source_description), encoding="utf-8"
         )
         mapping.append(
             {
@@ -224,6 +267,10 @@ def main() -> int:
         "task_count": 150,
         "category_counts": dict(sorted(per_category.items())),
         "id_policy": "blind_ids_no_upstream_path_or_revision",
+        "description_policy": (
+            "full_provenance_free_contract_for_code_generation; "
+            "blind_category_instruction_for_repair_and_optimization"
+        ),
         "contains_hidden_or_reference": False,
         "tasks": [
             {
@@ -259,6 +306,13 @@ def main() -> int:
         description = (path.parent / "description.md").read_text(encoding="utf-8")
         if "github.com/" in description or "Provenance:" in description:
             violations.append(f"source_locator_in_description:{path.parent.name}")
+        if path.parent.name.startswith("ta2_cg_"):
+            if "## Kernel specification" not in description:
+                violations.append(
+                    f"missing_kernel_specification:{path.parent.name}"
+                )
+            elif len(description.split("## Kernel specification", 1)[1].strip()) < 400:
+                violations.append(f"short_kernel_specification:{path.parent.name}")
     if len(list(public_root.glob("*/task.toml"))) != 150:
         violations.append("public_task_count_not_150")
 

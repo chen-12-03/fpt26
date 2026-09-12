@@ -1,0 +1,21 @@
+{
+  "hidden_fixture_sha256": {
+    "check.data": "20af9c0737c89921588ad361e908d789d3c7ea4a3f687bddaf8266e0628d9c6a",
+    "input.data": "4f57ee1502e46bbafb9663440d327c1f07ca37fbcf4fa05d0035a9200b39be4b"
+  },
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "string_first_character_rotation:tcgacgaaataggatgacagcacgttctcgtattagagggccgcggtacaaaccaaatgctgcggcgtacagggcacggggcgctgttcgggagatcgggggaatcgtggcgtgggtgattcgccggc->acgacgaaataggatgacagcacgttctcgtattagagggccgcggtacaaaccaaatgctgcggcgtacagggcacggggcgctgttcgggagatcgggggaatcgtggcgtgggtgattcgccggc",
+  "hidden_tb_sha256": "5a486f3934be4ad53d9e0174fe4e0f3d71befe96fe39a30ecb137cbc4efdae4f",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_machsuite_check_fixture",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_fixture",
+  "public_tb_sha256": "5a486f3934be4ad53d9e0174fe4e0f3d71befe96fe39a30ecb137cbc4efdae4f",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "compile_repair__14__machsuite__nw_nw",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_machsuite_evidence/compile_repair__14__machsuite__nw_nw/hardening_evidence.json"
+}

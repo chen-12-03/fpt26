@@ -1,0 +1,33 @@
+task_id = "ta2_cg_010"
+internal_task_id = "code_generation__10__pp4fpga__block_mm"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "blockmatmul"
+kernel_file = "block_mm.cpp"
+header_files = ["block_mm.h"]
+public_tb = "block_mm_tb.cpp"
+hidden_tb = "block_mm_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "06b8c7ea3a5730fd7a836997730ea0215f5f226b6d7dad39ea68b52c4359e76d"
+source_task_id = "pp4fpga__block_mm"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/pp4fpga/block_mm"
+source_path = "hls_eval_data/pp4fpga/block_mm/block_mm.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "CC-BY-4.0"
+source_sha256 = "5c4f1f4e09e4acb11dd3ef6f102dba4b26961125d3903337833797a0b2262c1c"
+
+upstream_project_url = "https://github.com/KastnerRG/pp4fpgas"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/KastnerRG/pp4fpgas/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "5c4f1f4e09e4acb11dd3ef6f102dba4b26961125d3903337833797a0b2262c1c"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

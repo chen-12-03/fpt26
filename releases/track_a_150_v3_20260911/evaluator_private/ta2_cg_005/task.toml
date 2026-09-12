@@ -1,0 +1,33 @@
+task_id = "ta2_cg_005"
+internal_task_id = "code_generation__05__polybench__nussinov"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 3
+top = "kernel_nussinov"
+kernel_file = "nussinov.cpp"
+header_files = ["nussinov.h"]
+public_tb = "nussinov_tb.cpp"
+hidden_tb = "nussinov_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "497c0bb316048c869d595caf0c21f1b7055b497117b778be34123ec740dfdb96"
+source_task_id = "polybench__nussinov"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/nussinov"
+source_path = "hls_eval_data/polybench/nussinov/nussinov.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "651d5e8496e3a163a1c511a3ba743068af927ce1ced6bbe53dd5a8a83a529ea3"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "239caa46d602273b407b1a95063bb31b1962ad1b194167bd417456d226ce3bcd"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

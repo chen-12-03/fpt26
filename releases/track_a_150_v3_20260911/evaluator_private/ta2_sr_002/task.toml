@@ -1,0 +1,27 @@
+task_id = "ta2_sr_002"
+internal_task_id = "synthesis_repair__02__amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["test.h"]
+public_tb = "dut_tb.cpp"
+hidden_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "58a458dbf18069bbb672b361d2f714ec9035a468e20fe10fc3b06c14046b52bb"
+source_task_id = "amd_intro__task_level_parallelism_control_driven_channels_merge_split_split_round_robin"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/merge_split/split_round_robin"
+source_path = "Task_level_Parallelism/Control_driven/Channels/merge_split/split_round_robin"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "e8a338c8bb048c990a2858660530085287882942f5528cbad6a5599245e4d41c"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

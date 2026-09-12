@@ -1,0 +1,273 @@
+{
+  "categories": {
+    "code_generation": {
+      "outcomes": {
+        "completed": 25
+      },
+      "reference_score": {
+        "count": 22,
+        "max": 96.74,
+        "mean": 90.97363636363637,
+        "median": 89.88,
+        "min": 86.49
+      },
+      "task_count": 25,
+      "validity_only_completed_count": 3
+    },
+    "compile_repair": {
+      "outcomes": {
+        "completed": 24,
+        "infrastructure_error": 1
+      },
+      "reference_score": {
+        "count": 4,
+        "max": 95.98,
+        "mean": 91.97500000000001,
+        "median": 91.635,
+        "min": 88.65
+      },
+      "task_count": 25,
+      "validity_only_completed_count": 20
+    },
+    "functional_repair": {
+      "outcomes": {
+        "completed": 18,
+        "failed": 2,
+        "infrastructure_error": 5
+      },
+      "reference_score": {
+        "count": 17,
+        "max": 91.77,
+        "mean": 88.83941176470589,
+        "median": 88.65,
+        "min": 88.36
+      },
+      "task_count": 25,
+      "validity_only_completed_count": 1
+    },
+    "qor_optimization": {
+      "outcomes": {
+        "completed": 25
+      },
+      "reference_score": {
+        "count": 25,
+        "max": 99.73,
+        "mean": 78.7704,
+        "median": 74.9,
+        "min": 74.7
+      },
+      "task_count": 25,
+      "validity_only_completed_count": 0
+    },
+    "structural_repair": {
+      "outcomes": {
+        "completed": 23,
+        "failed": 1,
+        "infrastructure_error": 1
+      },
+      "reference_score": {
+        "count": 23,
+        "max": 97.58,
+        "mean": 79.23695652173913,
+        "median": 88.28,
+        "min": 18.47
+      },
+      "task_count": 25,
+      "validity_only_completed_count": 0
+    },
+    "synthesis_repair": {
+      "outcomes": {
+        "completed": 25
+      },
+      "reference_score": {
+        "count": 25,
+        "max": 99.8,
+        "mean": 90.2464,
+        "median": 88.63,
+        "min": 88.56
+      },
+      "task_count": 25,
+      "validity_only_completed_count": 0
+    }
+  },
+  "frozen_release": {
+    "evaluator_tree_sha256": "2261ba6c9c874b49c51f3e87870c217e9f241e33d6089fbd5e0ccf267bc4b21e",
+    "path": "releases/track_a_150_v4_20260911",
+    "public_private_separation_pass": true,
+    "public_tree_sha256": "105e34dbc3ba9e146ae99cb4ce020c65ea5b77d4a87cef6c9674dba04aa4d537",
+    "task_count": 150
+  },
+  "headline": {
+    "api_clean_agent_completion": {
+      "denominator": 145,
+      "excluded_api_failure_count": 5,
+      "numerator": 140,
+      "rate": 0.9655172413793104,
+      "task_timeouts_remain_failures": true
+    },
+    "end_to_end_completion_rate": 0.9333333333333333,
+    "hidden_correct_count": 140,
+    "hidden_evaluated_count": 140,
+    "non_infrastructure_conditional_completion_rate": 0.9790209790209791,
+    "outcomes": {
+      "completed": 140,
+      "failed": 3,
+      "infrastructure_error": 7
+    },
+    "reference_score": {
+      "count": 116,
+      "max": 99.8,
+      "mean": 85.58155172413792,
+      "median": 88.62,
+      "min": 18.47
+    },
+    "validity_only_completed_count": 24
+  },
+  "qor_25": {
+    "evaluator_reference_anchored_score": {
+      "above_76_count": 12,
+      "count": 25,
+      "max": 99.73,
+      "mean": 78.7704,
+      "median": 74.9,
+      "min": 74.7
+    },
+    "submission_starter_anchored_proxy": {
+      "above_76_count": 8,
+      "count": 25,
+      "formula": "100 * best_q_hw * max(0.8, 1 - 0.10*credit_utilization - 0.10*metered_tool_time_utilization)",
+      "max": 98.11284283333333,
+      "mean": 77.54918973111111,
+      "mean_q_hw": 0.7899240000000001,
+      "median": 74.34166666666667,
+      "min": 72.35020833333334
+    }
+  },
+  "retry_recovered_task_ids": [
+    "ta2_cg_025",
+    "ta2_cr_005",
+    "ta2_cr_009",
+    "ta2_fr_024",
+    "ta2_qo_009",
+    "ta2_qo_010",
+    "ta2_qo_011",
+    "ta2_qo_013",
+    "ta2_sr_012",
+    "ta2_sr_013",
+    "ta2_xr_005"
+  ],
+  "schema_version": 1,
+  "scope": {
+    "base_record_count": 150,
+    "base_run": "runs/track_a_150_v4_qwen35_full150_20260912_v1",
+    "merge_policy": "retry records replace only the currently selected infrastructure-error record, in chronological retry order",
+    "merged_record_count": 150,
+    "model": "qwen3.5-122b-a10b",
+    "retry_record_count": 17,
+    "retry_run": "runs/track_a_150_v4_qwen35_api_timeout17_postfix_retry_20260912_v1",
+    "retry_runs": [
+      "runs/track_a_150_v4_qwen35_api_timeout17_postfix_retry_20260912_v1"
+    ]
+  },
+  "token_accounting": {
+    "all_attempts_including_retry": {
+      "complete_api_record_count": 143,
+      "credits_spent": 3115,
+      "exact_known_total_tokens": 3860057,
+      "failed_request_count": 22,
+      "observed_completion_tokens": 1273054,
+      "observed_prompt_tokens": 2987625,
+      "observed_total_tokens": 4260679,
+      "record_count": 167,
+      "request_count": 471,
+      "response_count": 449,
+      "submission_tool_calls": 908
+    },
+    "interpretation": "Observed token totals are lower bounds because failed API requests do not report usage.",
+    "selected_merged_records": {
+      "complete_api_record_count": 143,
+      "credits_spent": 2895,
+      "exact_known_total_tokens": 3860057,
+      "failed_request_count": 5,
+      "observed_completion_tokens": 1164587,
+      "observed_prompt_tokens": 2800395,
+      "observed_total_tokens": 3964982,
+      "record_count": 150,
+      "request_count": 422,
+      "response_count": 417,
+      "submission_tool_calls": 839
+    }
+  },
+  "unresolved": [
+    {
+      "category": "compile_repair",
+      "launcher_error": "launcher_timeout_after_900.0s",
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": null,
+      "task_id": "ta2_cr_002"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": null,
+      "outcome": "failed",
+      "submission_stop_reason": "csim_failed",
+      "task_id": "ta2_fr_003"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": null,
+      "outcome": "failed",
+      "submission_stop_reason": "csim_failed",
+      "task_id": "ta2_fr_004"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": null,
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 2: TimeoutError: The read operation timed out",
+      "task_id": "ta2_fr_009"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": null,
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+      "task_id": "ta2_fr_018"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": "launcher_timeout_after_900.0s",
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": null,
+      "task_id": "ta2_fr_021"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": null,
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 5: TimeoutError: The read operation timed out",
+      "task_id": "ta2_fr_022"
+    },
+    {
+      "category": "functional_repair",
+      "launcher_error": null,
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+      "task_id": "ta2_fr_025"
+    },
+    {
+      "category": "structural_repair",
+      "launcher_error": null,
+      "outcome": "infrastructure_error",
+      "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+      "task_id": "ta2_xr_012"
+    },
+    {
+      "category": "structural_repair",
+      "launcher_error": null,
+      "outcome": "failed",
+      "submission_stop_reason": "cosim_failed",
+      "task_id": "ta2_xr_022"
+    }
+  ]
+}

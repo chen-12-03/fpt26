@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "purpose": "post-interface-fix retry of API-only failures",
+  "source_runs": [
+    "runs/track_a_150_v4_qwen36_full150_20260911_v1",
+    "runs/track_a_150_v4_qwen36_api_timeout15_retry1_20260912"
+  ],
+  "selection_rule": "latest selected record still has failed_request_count > 0; excludes task timeouts and functional failures",
+  "retry_task_ids": [
+    "ta2_cg_012",
+    "ta2_cr_009",
+    "ta2_fr_014",
+    "ta2_fr_020"
+  ]
+}

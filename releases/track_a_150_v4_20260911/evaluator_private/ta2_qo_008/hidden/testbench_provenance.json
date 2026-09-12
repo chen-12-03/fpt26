@@ -1,0 +1,20 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_stderr.golden": "dd473a3bc4476ca97d8c3d8a27d969e4a811b3727533133682f01299849e9ec3",
+    "track_a_hidden_stdout.golden": "2404cfce06ef04cc41514876cd4a695b6f41dd9b27a6c5647d56f5774124bc5c"
+  },
+  "hidden_input_derivation": "hidden_input_assignment_literal:Iter:100->103",
+  "hidden_tb_sha256": "d49311c924e8a252ac39bc0813317d992c8c5c768d1f84df8f4f6129b6efa51c",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "e2160c90588a286a86c02d770ad438002b31a429bd31e7bd7b699f85a2d5e8e2",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "qor_optimization__08__amd_intro__interface_memory_ecc_flags",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence_batch2/qor_optimization__08__amd_intro__interface_memory_ecc_flags/hardening_evidence.json"
+}

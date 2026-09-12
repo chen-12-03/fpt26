@@ -1,0 +1,33 @@
+task_id = "ta2_cg_002"
+internal_task_id = "code_generation__02__machsuite__md_knn"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 3
+top = "md_kernel"
+kernel_file = "md_knn.cpp"
+header_files = ["md_knn.h"]
+public_tb = "md_knn_tb.cpp"
+hidden_tb = "md_knn_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "8ba4389a9b6bf92bf95e089bbe09bf3001f2151d5a4af035987f31b7e6e01c94"
+source_task_id = "machsuite__md_knn"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/machsuite/md_knn"
+source_path = "hls_eval_data/machsuite/md_knn/md_knn.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "BSD-3-Clause"
+source_sha256 = "d7e2ce41649dafe8192316163f9689176ee7080bc64a10ea0c767d137408cd3a"
+
+upstream_project_url = "https://github.com/breagen/MachSuite"
+upstream_revision = "license-observed-2026-09-09"
+license_evidence_url = "https://github.com/breagen/MachSuite/blob/master/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "d7e2ce41649dafe8192316163f9689176ee7080bc64a10ea0c767d137408cd3a"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

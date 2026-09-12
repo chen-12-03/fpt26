@@ -1,0 +1,33 @@
+task_id = "ta2_sr_016"
+internal_task_id = "synthesis_repair__16__polybench__floyd_warshall"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 2
+top = "kernel_floyd_warshall"
+kernel_file = "floyd-warshall.cpp"
+header_files = ["floyd-warshall.h"]
+public_tb = "floyd-warshall_tb.cpp"
+hidden_tb = "floyd-warshall_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "4cea3bc9a83ec7d06ef56ead8eac9eca1d23594d9b562c483774752c9f6f9b6f"
+source_task_id = "polybench__floyd_warshall"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/polybench/floyd-warshall"
+source_path = "hls_eval_data/polybench/floyd-warshall/floyd-warshall.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-PolyBenchC-OSU"
+source_sha256 = "fb2bc7984f15bcb1872fb8a76666adfa98d8cfeb864d92578d0ee7759f531ec3"
+
+upstream_project_url = "https://github.com/ferrandi/PolyBenchC"
+upstream_revision = "d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8"
+license_evidence_url = "https://github.com/ferrandi/PolyBenchC/blob/d3a15bb1725afaaa33bcf3a4db6087ebf557c9b8/LICENSE.txt"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "0a2cb8915b897b6db53d2438d11b1e7718e953f6031f22c685d724c2026347bb"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

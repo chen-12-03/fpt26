@@ -1,18 +1,19 @@
 High-level synthesis (HLS) agents must repair and optimize unfamiliar kernels
 under limited model and tool budgets. The Verified-Candidate Loop (\VCL)
-promotes a candidate only after tool-based validation, using a bounded
-quality-of-results (QoR) score over effective latency, capacity-normalized
-resources, and source-change evidence. QoR-guided retrieval reuses compatible
-evidence, while Failure Reflection converts diagnostics into constraints
-without extra model calls. We evaluate three open-weight large language model
-endpoints on a balanced 150-task suite, then independently recheck every
-public-completed kernel with hidden tests and reference synthesis. All
-\IndependentHiddenCorrectCount{}/\IndependentEvaluatedCount{} evaluated
-kernels pass evaluator-side hidden correctness. On the fully scoreable 25-task
-optimization slice, DeepSeek V4 Pro leads the starter-anchored proxy
-(\DeepSeekQorProxy{}) and reference-anchored score
-(\DeepSeekReferenceQorMean{}). Qwen3.6-27B has the highest public-gate
-completion (\QwenThreeSixSuccessRate, \QwenThreeSixSuccessCount{}/
-\CorpusTaskCount{}), and Qwen3.5-122B-A10B uses the fewest tokens. Because each
-endpoint has one campaign, these results compare endpoints rather than
-architectures.
+retains a verified fallback, promotes a candidate only after seven tool gates,
+and ranks valid candidates with a bounded composite score. Deterministic
+diagnostic extraction and public-evidence retrieval constrain later model
+proposals. We evaluate three deployed agent--endpoint configurations on a
+frozen, balanced \CorpusTaskCount{}-task suite. A deterministic retry rule
+replaces only records already classified as LLM-API infrastructure errors.
+Across the final records, \IndependentEvaluatedCount{} endpoint--task outputs
+reach public completion; all \IndependentHiddenCorrectCount{} pass the
+evaluator's finite hidden gate suite. DeepSeek V4 Pro has the largest raw
+completion point estimate (\DeepSeekSuccessCount{}/\CorpusTaskCount{}) and
+lowest observed selected-record token total (\DeepSeekTokensM{}M), whereas
+Qwen3.5-122B-A10B has the largest API-conditioned completion point estimate
+(\QwenThreeFiveApiCleanCount{}/\QwenThreeFiveApiCleanDenominator{}) and paired
+QoR means (\QwenThreeFiveCommonQorProxy{},
+\QwenThreeFiveCommonReferenceQorMean{}) on \CommonQorTaskCount{} common tasks.
+Single campaigns and source-provenance differences make these descriptive
+configuration results, not causal model comparisons.

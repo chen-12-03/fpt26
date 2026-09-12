@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "asymmetric_struct_fields_with_elementwise_oracle_and_output_boundary_canary",
+  "hidden_tb_sha256": "e7547fa51a1ea1884e7042614c95f35fba4aaab47c6e2fc091470e5b2c33df88",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "415d9c5309285a0dc0f4b4e70ee7eaed726f62b154f2ca88a9d66e3c58260478",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "structural_cosim_repair__19__amd_intro__interface_aggregation_disaggregation_disaggregation_of_axis_port",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/pair_validation_survivor_hardening_v1/tasks/structural_cosim_repair__19__amd_intro__interface_aggregation_disaggregation_disaggregation_of_axis_port/pair_validation.json"
+}

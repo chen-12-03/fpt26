@@ -1,0 +1,22 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_stderr.golden": "c6f6bcb85e154f22792ce0ae58a77127b91b07a8ec143617784913cfc984faf0",
+    "track_a_hidden_stdout.golden": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "hidden_input_derivation": "polybench_nonlinear_hidden_input:path[i][j]:indices=i,j",
+  "hidden_tb_sha256": "e20a20cfbc653e62f78e6b9ce3eb4fc708fbd5fe2bf231d298beb8d9cf062a30",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {
+    "track_a_public_stderr.golden": "c6f6bcb85e154f22792ce0ae58a77127b91b07a8ec143617784913cfc984faf0",
+    "track_a_public_stdout.golden": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "public_input_derivation": "polybench_nonlinear_public_input:path[i][j]:indices=i,j",
+  "public_tb_sha256": "4ed9791f46f32cc5ff55cf691338365c44403cb6d70c85c277105e3afaddedaa",
+  "schema_version": 1,
+  "task_id": "synthesis_repair__16__polybench__floyd_warshall",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_weak_evidence/synthesis_repair__16__polybench__floyd_warshall/hardening_evidence.json"
+}

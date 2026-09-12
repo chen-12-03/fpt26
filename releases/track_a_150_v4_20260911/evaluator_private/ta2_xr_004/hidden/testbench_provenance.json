@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "signed_affine_memory_vector_with_software_oracle",
+  "hidden_tb_sha256": "30e09590f037e216a2b1fab00158f54cf910cd8d6db779f5d630d0c5087655c6",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "fac6b4772450cb722ca24c710a5fd40241e265e8ad65fead480dad925cd79b29",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "structural_cosim_repair__04__amd_intro__interface_memory_using_axi_master",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/structural_cosim_repair__04__amd_intro__interface_memory_using_axi_master/hardening_evidence.json"
+}

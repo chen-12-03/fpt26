@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "affine_four_stream_vectors_with_counter_oracle",
+  "hidden_tb_sha256": "5255ca676107c598e8c2ace581fe150ed75374d9959cc38eee1b13695bbcc3a5",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "3db0883ddf9db7d9a94df588042e0d32ad4e174486c9d02913e79f2c62a55809",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "functional_repair__25__amd_intro__task_level_parallelism_data_driven_unique_task_regions",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_stream_inline_evidence/functional_repair__25__amd_intro__task_level_parallelism_data_driven_unique_task_regions/hardening_evidence.json"
+}

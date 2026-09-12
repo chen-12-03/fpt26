@@ -204,7 +204,7 @@ def _run_submission(args, task_dir, output_root):
         mode=args.mode, run_role="submission", competition=args.competition,
         output_root=output_root, score=False, scoring_profile=args.scoring_profile,
         verbose=not args.quiet,
-        max_repair_attempts=args.max_repair_attempts or _env_int("FPT26_MAX_REPAIR_ATTEMPTS", 3),
+        max_repair_attempts=args.max_repair_attempts or _env_int("FPT26_MAX_REPAIR_ATTEMPTS", 6),
         max_optimization_rounds=args.max_optimization_rounds or _env_int("FPT26_MAX_OPTIMIZATION_CANDIDATES", 5),
         max_structural_attempts=args.max_structural_attempts or _env_int("FPT26_MAX_STRUCTURAL_REPAIR_ATTEMPTS", 3),
     )

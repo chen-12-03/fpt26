@@ -184,6 +184,32 @@ class TestFailClosedEvaluatorRejectsBadEvidence:
 
 
 class TestValidityOnlyAnchorFallback:
+    def test_valid_anchor_with_missing_candidate_metric_is_validity_only(
+        self, tmp_path: Path
+    ):
+        from agent.pipeline.evaluator import _candidate_validity_only_ok
+
+        task = _task(tmp_path)
+        state = RunState(
+            task=task,
+            server=MagicMock(),
+            llm=None,
+            config=AgentConfig(mode="baseline", output_root=str(tmp_path)),
+            kernel=_STARTER,
+            safe_fallback_kernel=_STARTER,
+        )
+        state.csim_ok = True
+        state.synth_ok = True
+        state.interface_ok = True
+        state.frequency_ok = True
+        state.resource_ok = True
+        state.cosim_ok = True
+        state.scorecard = SimpleNamespace(gate_reason="required_metric_missing")
+
+        assert _candidate_validity_only_ok(
+            state, AnchorEvidence(source="reference", valid=True)
+        )
+
     def test_candidate_gate_passes_allow_validity_only_without_qor_anchor(
         self, tmp_path: Path
     ):

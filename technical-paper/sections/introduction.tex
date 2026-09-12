@@ -1,9 +1,10 @@
 \section{Gate Evidence, Not Prompts}
 
-LLM agents can edit unfamiliar HLS kernels, but only tool reports certify
-correctness and hardware quality. A metered agent therefore needs a
-promotion rule that preserves a verified fallback when any required
-validation gate fails~\cite{amd2025vitis}.
+LLM agents can edit unfamiliar HLS kernels, but prompts alone do not establish
+correctness or hardware quality. Tool reports provide reproducible, but
+test-bounded, evidence. A metered agent therefore needs a promotion rule that
+preserves a verified fallback whenever a required validation gate
+fails~\cite{amd2025vitis}.
 
 Prior HLS agents automate code transformation, directive search, and
 feedback-driven repair~\cite{xiong2024hlspilot,xu2024ralad,li2026chathls}.
@@ -11,14 +12,14 @@ Tool-using language agents alternate reasoning and actions~\cite{yao2023react}.
 Our design assigns candidate promotion to deterministic HLS evidence under
 explicit model and tool budgets.
 
-The Verified-Candidate Loop (\VCL) contributes three findings.
-\textbf{(1) Validation contract.} A fail-closed workflow preserves a
-verified fallback across seven gates: Interface, \CSim, \Synth, Frequency,
-Capacity, required \CoSim, and Metric completeness.
-\textbf{(2) Hardware objective.} The bounded score $Q_{\mathrm{HW}}$ combines
-effective latency, capacity-normalized resource footprint, and source-change
-evidence to reject costly speedups.
-\textbf{(3) Independent endpoint evaluation.} Hidden reevaluation checks every
-public-completed kernel; on the fully scoreable 25-task optimization slice,
-DeepSeek leads both QoR measures, while Qwen3.6 leads public completion and
-Qwen3.5 minimizes token use (Section~\ref{sec:evaluation}).
+The Verified-Candidate Loop (\VCL) presents three elements.
+\textbf{(1) Validation contract.} A fail-closed workflow preserves a verified
+fallback across Interface, \CSim, \Synth, Frequency, Capacity, required
+\CoSim, and Metric-completeness gates.
+\textbf{(2) Composite promotion utility.} The bounded $Q_{\mathrm{HW}}$
+combines measured performance and resource ratios with source-change and
+repair evidence; despite its implementation name, it is not a pure hardware
+QoR metric.
+\textbf{(3) Separated evaluation views.} Raw completion, API-conditioned
+completion, finite hidden-gate pass, and paired QoR are reported with their
+own denominators (Section~\ref{sec:evaluation}).

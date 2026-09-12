@@ -1,0 +1,2734 @@
+{
+  "common_qor_subset": {
+    "models": {
+      "deepseek-v4-pro": {
+        "evaluator_reference_anchored_score_mean": 75.6875,
+        "submission_starter_anchored_proxy_mean": 74.97775676620371
+      },
+      "qwen3.5-122b-a10b": {
+        "evaluator_reference_anchored_score_mean": 78.93208333333332,
+        "submission_starter_anchored_proxy_mean": 77.76581395601852
+      },
+      "qwen3.6-27b": {
+        "evaluator_reference_anchored_score_mean": 78.56,
+        "submission_starter_anchored_proxy_mean": 77.05893833333333
+      }
+    },
+    "task_count": 24,
+    "task_ids": [
+      "ta2_qo_001",
+      "ta2_qo_002",
+      "ta2_qo_003",
+      "ta2_qo_004",
+      "ta2_qo_005",
+      "ta2_qo_006",
+      "ta2_qo_007",
+      "ta2_qo_008",
+      "ta2_qo_009",
+      "ta2_qo_010",
+      "ta2_qo_011",
+      "ta2_qo_012",
+      "ta2_qo_013",
+      "ta2_qo_014",
+      "ta2_qo_015",
+      "ta2_qo_016",
+      "ta2_qo_017",
+      "ta2_qo_018",
+      "ta2_qo_019",
+      "ta2_qo_020",
+      "ta2_qo_021",
+      "ta2_qo_023",
+      "ta2_qo_024",
+      "ta2_qo_025"
+    ]
+  },
+  "comparability_audit": {
+    "base_run_has_150_unique_tasks_per_model": true,
+    "deepseek_provider_thinking_mode": "disabled",
+    "deepseek_source_files_changed_from_qwen": [
+      "agent/integrations/llm/protocol.py",
+      "agent/reporting/metrics.py",
+      "scoring/run_p0_real_api_shard.py"
+    ],
+    "execution_source_snapshot_includes_llm4hls_adapter": false,
+    "identical_agent_source_tree": false,
+    "retry_source_hashes_retained_for_provenance": true,
+    "same_frozen_corpus": true,
+    "same_infrastructure_only_replacement_rule": true,
+    "same_llm_retry_count": false,
+    "same_llm_timeout": true,
+    "same_max_tokens": true,
+    "same_temperature": true,
+    "same_tool_timeouts": true
+  },
+  "frozen_release": {
+    "evaluator_tree_sha256": "2261ba6c9c874b49c51f3e87870c217e9f241e33d6089fbd5e0ccf267bc4b21e",
+    "path": "releases/track_a_150_v4_20260911",
+    "public_private_separation_pass": true,
+    "public_tree_sha256": "105e34dbc3ba9e146ae99cb4ce020c65ea5b77d4a87cef6c9674dba04aa4d537",
+    "task_count": 150
+  },
+  "generated_on": "2026-09-12",
+  "models": {
+    "deepseek-v4-pro": {
+      "agent_source_file_count": 86,
+      "agent_source_tree_sha256": "e75e42d70b013990ef92642085cb071ce804ae511fde3d61d94b7b3b530fc281",
+      "base_run": "runs/track_a_150_v4_deepseek_v4pro_nothink_full150_20260912_v1",
+      "base_view": {
+        "api_clean_agent_completion": {
+          "denominator": 150,
+          "excluded_api_failure_count": 0,
+          "numerator": 143,
+          "percent": 95.33333333333333,
+          "task_timeouts_remain_failures": true
+        },
+        "categories": {
+          "code_generation": {
+            "outcomes": {
+              "completed": 23,
+              "failed": 2
+            },
+            "reference_score": {
+              "count": 22,
+              "max": 96.71,
+              "mean": 89.28272727272727,
+              "median": 88.64,
+              "min": 83.84
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 1
+          },
+          "compile_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 5,
+              "max": 88.65,
+              "mean": 88.646,
+              "median": 88.65,
+              "min": 88.64
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 20
+          },
+          "functional_repair": {
+            "outcomes": {
+              "completed": 22,
+              "failed": 3
+            },
+            "reference_score": {
+              "count": 20,
+              "max": 88.65,
+              "mean": 88.6275,
+              "median": 88.64,
+              "min": 88.58
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 2
+          },
+          "qor_optimization": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 88.51,
+              "mean": 75.6556,
+              "median": 74.89,
+              "min": 74.68
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "structural_repair": {
+            "outcomes": {
+              "completed": 23,
+              "failed": 2
+            },
+            "reference_score": {
+              "count": 23,
+              "max": 97.48,
+              "mean": 78.76260869565218,
+              "median": 88.15,
+              "min": 18.47
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "synthesis_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 95.61,
+              "mean": 89.4748,
+              "median": 88.63,
+              "min": 88.56
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          }
+        },
+        "evaluator_hidden_correctness": {
+          "corpus_coverage": 143,
+          "corpus_size": 150,
+          "denominator": 143,
+          "numerator": 143
+        },
+        "non_infrastructure_conditional_completion": {
+          "denominator": 150,
+          "numerator": 143
+        },
+        "outcomes": {
+          "completed": 143,
+          "failed": 7
+        },
+        "public_gate_completion": {
+          "denominator": 150,
+          "numerator": 143,
+          "percent": 95.33333333333333
+        },
+        "qor_25": {
+          "available_count": 25,
+          "evaluator_reference_anchored_score": {
+            "count": 25,
+            "max": 88.51,
+            "mean": 75.6556,
+            "median": 74.89,
+            "min": 74.68
+          },
+          "slice_size": 25,
+          "submission_starter_anchored_proxy": {
+            "count": 25,
+            "max": 87.21915691666666,
+            "mean": 74.95213816222223,
+            "median": 74.33666666666667,
+            "min": 73.64604166666666
+          },
+          "task_values": {
+            "ta2_qo_001": {
+              "efficiency": 0.9819472222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 73.64604166666666
+            },
+            "ta2_qo_002": {
+              "efficiency": 0.9902833333333334,
+              "q_hw": 0.75,
+              "reference_score": 74.68,
+              "submission_proxy": 74.27125000000001
+            },
+            "ta2_qo_003": {
+              "efficiency": 0.9911916666666667,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.339375
+            },
+            "ta2_qo_004": {
+              "efficiency": 0.9911555555555556,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33666666666667
+            },
+            "ta2_qo_005": {
+              "efficiency": 0.9909583333333334,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.321875
+            },
+            "ta2_qo_006": {
+              "efficiency": 0.9910972222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 74.33229166666668
+            },
+            "ta2_qo_007": {
+              "efficiency": 0.9911777777777778,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33833333333334
+            },
+            "ta2_qo_008": {
+              "efficiency": 0.9823638888888888,
+              "q_hw": 0.7864,
+              "reference_score": 78.3,
+              "submission_proxy": 77.25309622222221
+            },
+            "ta2_qo_009": {
+              "efficiency": 0.9909722222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.32291666666667
+            },
+            "ta2_qo_010": {
+              "efficiency": 0.9912111111111112,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.34083333333334
+            },
+            "ta2_qo_011": {
+              "efficiency": 0.9909416666666667,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.320625
+            },
+            "ta2_qo_012": {
+              "efficiency": 0.990975,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.323125
+            },
+            "ta2_qo_013": {
+              "efficiency": 0.9911722222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33791666666667
+            },
+            "ta2_qo_014": {
+              "efficiency": 0.9911472222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 74.33604166666667
+            },
+            "ta2_qo_015": {
+              "efficiency": 0.9822777777777777,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.67083333333332
+            },
+            "ta2_qo_016": {
+              "efficiency": 0.991163888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33729166666667
+            },
+            "ta2_qo_017": {
+              "efficiency": 0.991163888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33729166666667
+            },
+            "ta2_qo_018": {
+              "efficiency": 0.9822444444444444,
+              "q_hw": 0.7593,
+              "reference_score": 75.56,
+              "submission_proxy": 74.58182066666666
+            },
+            "ta2_qo_019": {
+              "efficiency": 0.9823083333333332,
+              "q_hw": 0.8879,
+              "reference_score": 88.51,
+              "submission_proxy": 87.21915691666666
+            },
+            "ta2_qo_020": {
+              "efficiency": 0.9823083333333332,
+              "q_hw": 0.7719,
+              "reference_score": 76.84,
+              "submission_proxy": 75.82438024999999
+            },
+            "ta2_qo_021": {
+              "efficiency": 0.9822972222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67229166666667
+            },
+            "ta2_qo_022": {
+              "efficiency": 0.991163888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33729166666667
+            },
+            "ta2_qo_023": {
+              "efficiency": 0.9911222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.87,
+              "submission_proxy": 74.33416666666666
+            },
+            "ta2_qo_024": {
+              "efficiency": 0.99105,
+              "q_hw": 0.75,
+              "reference_score": 74.87,
+              "submission_proxy": 74.32875
+            },
+            "ta2_qo_025": {
+              "efficiency": 0.9911972222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.33979166666667
+            }
+          }
+        },
+        "reference_anchored_official_score": {
+          "corpus_size": 150,
+          "count": 120,
+          "max": 97.48,
+          "mean": 84.33166666666666,
+          "median": 88.6,
+          "min": 18.47,
+          "validity_only_completed_count": 23
+        },
+        "token_accounting": {
+          "complete_api_record_count": 150,
+          "credits_spent": 2477,
+          "exact_known_total_tokens": 2128323,
+          "failed_request_count": 0,
+          "observed_completion_tokens": 213232,
+          "observed_prompt_tokens": 1915091,
+          "observed_total_tokens": 2128323,
+          "record_count": 150,
+          "request_count": 320,
+          "response_count": 320,
+          "submission_tool_calls": 654
+        },
+        "unresolved": [
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_cg_010"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_cg_025"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_010"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_021"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "cosim_failed",
+            "task_id": "ta2_xr_020"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "cosim_failed",
+            "task_id": "ta2_xr_022"
+          }
+        ]
+      },
+      "llm_run_contract": {
+        "backend": "custom",
+        "competition": false,
+        "expected_client": "OpenAICompatClient",
+        "max_retries": 0,
+        "max_tokens": 8192,
+        "model": "deepseek-v4-pro",
+        "temperature": 0.0,
+        "thinking": "disabled",
+        "timeout_s": 360.0
+      },
+      "maximum_shard_elapsed_hours": 2.049402379285004,
+      "model_compliance": {
+        "records_with_evidence": 150,
+        "records_without_evidence": 0,
+        "variants": [
+          {
+            "evidence": {
+              "compliance_proven": false,
+              "compliance_status": "unproven",
+              "evidence_source": null,
+              "license": null,
+              "model": "deepseek-v4-pro",
+              "open_source_claimed": false,
+              "source_evidence": null
+            },
+            "record_count": 150
+          }
+        ]
+      },
+      "selected_view": {
+        "api_clean_agent_completion": {
+          "denominator": 150,
+          "excluded_api_failure_count": 0,
+          "numerator": 143,
+          "percent": 95.33333333333333,
+          "task_timeouts_remain_failures": true
+        },
+        "categories": {
+          "code_generation": {
+            "outcomes": {
+              "completed": 23,
+              "failed": 2
+            },
+            "reference_score": {
+              "count": 22,
+              "max": 96.71,
+              "mean": 89.28272727272727,
+              "median": 88.64,
+              "min": 83.84
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 1
+          },
+          "compile_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 5,
+              "max": 88.65,
+              "mean": 88.646,
+              "median": 88.65,
+              "min": 88.64
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 20
+          },
+          "functional_repair": {
+            "outcomes": {
+              "completed": 22,
+              "failed": 3
+            },
+            "reference_score": {
+              "count": 20,
+              "max": 88.65,
+              "mean": 88.6275,
+              "median": 88.64,
+              "min": 88.58
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 2
+          },
+          "qor_optimization": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 88.51,
+              "mean": 75.6556,
+              "median": 74.89,
+              "min": 74.68
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "structural_repair": {
+            "outcomes": {
+              "completed": 23,
+              "failed": 2
+            },
+            "reference_score": {
+              "count": 23,
+              "max": 97.48,
+              "mean": 78.76260869565218,
+              "median": 88.15,
+              "min": 18.47
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "synthesis_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 95.61,
+              "mean": 89.4748,
+              "median": 88.63,
+              "min": 88.56
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          }
+        },
+        "evaluator_hidden_correctness": {
+          "corpus_coverage": 143,
+          "corpus_size": 150,
+          "denominator": 143,
+          "numerator": 143
+        },
+        "non_infrastructure_conditional_completion": {
+          "denominator": 150,
+          "numerator": 143
+        },
+        "outcomes": {
+          "completed": 143,
+          "failed": 7
+        },
+        "public_gate_completion": {
+          "denominator": 150,
+          "numerator": 143,
+          "percent": 95.33333333333333
+        },
+        "qor_25": {
+          "available_count": 25,
+          "evaluator_reference_anchored_score": {
+            "count": 25,
+            "max": 88.51,
+            "mean": 75.6556,
+            "median": 74.89,
+            "min": 74.68
+          },
+          "slice_size": 25,
+          "submission_starter_anchored_proxy": {
+            "count": 25,
+            "max": 87.21915691666666,
+            "mean": 74.95213816222223,
+            "median": 74.33666666666667,
+            "min": 73.64604166666666
+          },
+          "task_values": {
+            "ta2_qo_001": {
+              "efficiency": 0.9819472222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 73.64604166666666
+            },
+            "ta2_qo_002": {
+              "efficiency": 0.9902833333333334,
+              "q_hw": 0.75,
+              "reference_score": 74.68,
+              "submission_proxy": 74.27125000000001
+            },
+            "ta2_qo_003": {
+              "efficiency": 0.9911916666666667,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.339375
+            },
+            "ta2_qo_004": {
+              "efficiency": 0.9911555555555556,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33666666666667
+            },
+            "ta2_qo_005": {
+              "efficiency": 0.9909583333333334,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.321875
+            },
+            "ta2_qo_006": {
+              "efficiency": 0.9910972222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 74.33229166666668
+            },
+            "ta2_qo_007": {
+              "efficiency": 0.9911777777777778,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33833333333334
+            },
+            "ta2_qo_008": {
+              "efficiency": 0.9823638888888888,
+              "q_hw": 0.7864,
+              "reference_score": 78.3,
+              "submission_proxy": 77.25309622222221
+            },
+            "ta2_qo_009": {
+              "efficiency": 0.9909722222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.32291666666667
+            },
+            "ta2_qo_010": {
+              "efficiency": 0.9912111111111112,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.34083333333334
+            },
+            "ta2_qo_011": {
+              "efficiency": 0.9909416666666667,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.320625
+            },
+            "ta2_qo_012": {
+              "efficiency": 0.990975,
+              "q_hw": 0.75,
+              "reference_score": 74.84,
+              "submission_proxy": 74.323125
+            },
+            "ta2_qo_013": {
+              "efficiency": 0.9911722222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33791666666667
+            },
+            "ta2_qo_014": {
+              "efficiency": 0.9911472222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 74.33604166666667
+            },
+            "ta2_qo_015": {
+              "efficiency": 0.9822777777777777,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.67083333333332
+            },
+            "ta2_qo_016": {
+              "efficiency": 0.991163888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33729166666667
+            },
+            "ta2_qo_017": {
+              "efficiency": 0.991163888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33729166666667
+            },
+            "ta2_qo_018": {
+              "efficiency": 0.9822444444444444,
+              "q_hw": 0.7593,
+              "reference_score": 75.56,
+              "submission_proxy": 74.58182066666666
+            },
+            "ta2_qo_019": {
+              "efficiency": 0.9823083333333332,
+              "q_hw": 0.8879,
+              "reference_score": 88.51,
+              "submission_proxy": 87.21915691666666
+            },
+            "ta2_qo_020": {
+              "efficiency": 0.9823083333333332,
+              "q_hw": 0.7719,
+              "reference_score": 76.84,
+              "submission_proxy": 75.82438024999999
+            },
+            "ta2_qo_021": {
+              "efficiency": 0.9822972222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67229166666667
+            },
+            "ta2_qo_022": {
+              "efficiency": 0.991163888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 74.33729166666667
+            },
+            "ta2_qo_023": {
+              "efficiency": 0.9911222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.87,
+              "submission_proxy": 74.33416666666666
+            },
+            "ta2_qo_024": {
+              "efficiency": 0.99105,
+              "q_hw": 0.75,
+              "reference_score": 74.87,
+              "submission_proxy": 74.32875
+            },
+            "ta2_qo_025": {
+              "efficiency": 0.9911972222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.33979166666667
+            }
+          }
+        },
+        "reference_anchored_official_score": {
+          "corpus_size": 150,
+          "count": 120,
+          "max": 97.48,
+          "mean": 84.33166666666666,
+          "median": 88.6,
+          "min": 18.47,
+          "validity_only_completed_count": 23
+        },
+        "token_accounting": {
+          "complete_api_record_count": 150,
+          "credits_spent": 2477,
+          "exact_known_total_tokens": 2128323,
+          "failed_request_count": 0,
+          "observed_completion_tokens": 213232,
+          "observed_prompt_tokens": 1915091,
+          "observed_total_tokens": 2128323,
+          "record_count": 150,
+          "request_count": 320,
+          "response_count": 320,
+          "submission_tool_calls": 654
+        },
+        "unresolved": [
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_cg_010"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_cg_025"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_010"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_021"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "cosim_failed",
+            "task_id": "ta2_xr_020"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "cosim_failed",
+            "task_id": "ta2_xr_022"
+          }
+        ]
+      },
+      "selection": {
+        "all_attempt_token_accounting": {
+          "complete_api_record_count": 150,
+          "credits_spent": 2477,
+          "exact_known_total_tokens": 2128323,
+          "failed_request_count": 0,
+          "observed_completion_tokens": 213232,
+          "observed_prompt_tokens": 1915091,
+          "observed_total_tokens": 2128323,
+          "record_count": 150,
+          "request_count": 320,
+          "response_count": 320,
+          "submission_tool_calls": 654
+        },
+        "policy": "base run; no infrastructure retry was required",
+        "retry_record_count": 0,
+        "retry_runs": [],
+        "retry_source_metadata": []
+      },
+      "tool_timeout_policy": {
+        "env_overrides": {
+          "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+          "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+          "LLM4HLS_SYNTH_TIMEOUT_S": "180.0"
+        },
+        "explicit_override_names": [],
+        "scope": "track_a_150",
+        "source": "track_a_150_runner_defaults",
+        "task_root_kind": "evaluator_private",
+        "values_s": {
+          "cosim": 240.0,
+          "csim": 30.0,
+          "synth": 180.0
+        }
+      }
+    },
+    "qwen3.5-122b-a10b": {
+      "agent_source_file_count": 86,
+      "agent_source_tree_sha256": "51ebeb770639fa6873e62b93824bad7cb92693537ab7f0ef6862e56ad00c4474",
+      "base_run": "runs/track_a_150_v4_qwen35_full150_20260912_v1",
+      "base_view": {
+        "api_clean_agent_completion": {
+          "denominator": 135,
+          "excluded_api_failure_count": 15,
+          "numerator": 129,
+          "percent": 95.55555555555556,
+          "task_timeouts_remain_failures": true
+        },
+        "categories": {
+          "code_generation": {
+            "outcomes": {
+              "completed": 24,
+              "infrastructure_error": 1
+            },
+            "reference_score": {
+              "count": 21,
+              "max": 96.74,
+              "mean": 91.08428571428571,
+              "median": 89.89,
+              "min": 86.49
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 3
+          },
+          "compile_repair": {
+            "outcomes": {
+              "completed": 22,
+              "infrastructure_error": 3
+            },
+            "reference_score": {
+              "count": 4,
+              "max": 95.98,
+              "mean": 91.97500000000001,
+              "median": 91.635,
+              "min": 88.65
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 18
+          },
+          "functional_repair": {
+            "outcomes": {
+              "completed": 17,
+              "failed": 1,
+              "infrastructure_error": 7
+            },
+            "reference_score": {
+              "count": 17,
+              "max": 91.77,
+              "mean": 88.83941176470589,
+              "median": 88.65,
+              "min": 88.36
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "qor_optimization": {
+            "outcomes": {
+              "completed": 21,
+              "infrastructure_error": 4
+            },
+            "reference_score": {
+              "count": 21,
+              "max": 99.73,
+              "mean": 78.41190476190476,
+              "median": 74.89,
+              "min": 74.7
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "structural_repair": {
+            "outcomes": {
+              "completed": 22,
+              "failed": 1,
+              "infrastructure_error": 2
+            },
+            "reference_score": {
+              "count": 22,
+              "max": 97.58,
+              "mean": 78.82318181818181,
+              "median": 88.25,
+              "min": 18.47
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "synthesis_repair": {
+            "outcomes": {
+              "completed": 23,
+              "infrastructure_error": 2
+            },
+            "reference_score": {
+              "count": 23,
+              "max": 99.8,
+              "mean": 90.38739130434782,
+              "median": 88.63,
+              "min": 88.56
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          }
+        },
+        "evaluator_hidden_correctness": {
+          "corpus_coverage": 129,
+          "corpus_size": 150,
+          "denominator": 129,
+          "numerator": 129
+        },
+        "non_infrastructure_conditional_completion": {
+          "denominator": 131,
+          "numerator": 129
+        },
+        "outcomes": {
+          "completed": 129,
+          "failed": 2,
+          "infrastructure_error": 19
+        },
+        "public_gate_completion": {
+          "denominator": 150,
+          "numerator": 129,
+          "percent": 86.0
+        },
+        "qor_25": {
+          "available_count": 21,
+          "evaluator_reference_anchored_score": {
+            "count": 21,
+            "max": 99.73,
+            "mean": 78.41190476190476,
+            "median": 74.89,
+            "min": 74.7
+          },
+          "slice_size": 25,
+          "submission_starter_anchored_proxy": {
+            "count": 21,
+            "max": 98.11284283333333,
+            "mean": 77.15979838624338,
+            "median": 74.33604166666667,
+            "min": 72.35020833333334
+          },
+          "task_values": {
+            "ta2_qo_001": {
+              "efficiency": 0.989111111111111,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 74.18333333333332
+            },
+            "ta2_qo_002": {
+              "efficiency": 0.9903222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.7,
+              "submission_proxy": 74.27416666666667
+            },
+            "ta2_qo_003": {
+              "efficiency": 0.9824138888888888,
+              "q_hw": 0.8204,
+              "reference_score": 81.72,
+              "submission_proxy": 80.59723544444445
+            },
+            "ta2_qo_004": {
+              "efficiency": 0.9823694444444444,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67770833333333
+            },
+            "ta2_qo_005": {
+              "efficiency": 0.9729416666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 72.970625
+            },
+            "ta2_qo_006": {
+              "efficiency": 0.9911472222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 74.33604166666667
+            },
+            "ta2_qo_007": {
+              "efficiency": 0.9824055555555555,
+              "q_hw": 0.9987,
+              "reference_score": 99.73,
+              "submission_proxy": 98.11284283333333
+            },
+            "ta2_qo_008": {
+              "efficiency": 0.9823805555555555,
+              "q_hw": 0.8283,
+              "reference_score": 82.51,
+              "submission_proxy": 81.37058141666665
+            },
+            "ta2_qo_012": {
+              "efficiency": 0.9910194444444445,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 74.32645833333333
+            },
+            "ta2_qo_014": {
+              "efficiency": 0.9734499999999999,
+              "q_hw": 0.7692,
+              "reference_score": 76.56,
+              "submission_proxy": 74.877774
+            },
+            "ta2_qo_015": {
+              "efficiency": 0.9734944444444444,
+              "q_hw": 0.7714,
+              "reference_score": 76.79,
+              "submission_proxy": 75.09536144444445
+            },
+            "ta2_qo_016": {
+              "efficiency": 0.9823666666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.6775
+            },
+            "ta2_qo_017": {
+              "efficiency": 0.9823166666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67375
+            },
+            "ta2_qo_018": {
+              "efficiency": 0.9822972222222222,
+              "q_hw": 0.7772,
+              "reference_score": 77.36,
+              "submission_proxy": 76.3441401111111
+            },
+            "ta2_qo_019": {
+              "efficiency": 0.9823916666666667,
+              "q_hw": 0.8863,
+              "reference_score": 88.35,
+              "submission_proxy": 87.06937341666666
+            },
+            "ta2_qo_020": {
+              "efficiency": 0.9823305555555555,
+              "q_hw": 0.7654,
+              "reference_score": 76.19,
+              "submission_proxy": 75.18758072222221
+            },
+            "ta2_qo_021": {
+              "efficiency": 0.9646750000000001,
+              "q_hw": 0.7814,
+              "reference_score": 77.79,
+              "submission_proxy": 75.3797045
+            },
+            "ta2_qo_022": {
+              "efficiency": 0.9646694444444445,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 72.35020833333334
+            },
+            "ta2_qo_023": {
+              "efficiency": 0.9822722222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.67041666666667
+            },
+            "ta2_qo_024": {
+              "efficiency": 0.9893333333333333,
+              "q_hw": 0.75,
+              "reference_score": 74.87,
+              "submission_proxy": 74.2
+            },
+            "ta2_qo_025": {
+              "efficiency": 0.9824388888888889,
+              "q_hw": 0.865,
+              "reference_score": 86.21,
+              "submission_proxy": 84.98096388888888
+            }
+          }
+        },
+        "reference_anchored_official_score": {
+          "corpus_size": 150,
+          "count": 108,
+          "max": 99.8,
+          "mean": 85.6537962962963,
+          "median": 88.625,
+          "min": 18.47,
+          "validity_only_completed_count": 21
+        },
+        "token_accounting": {
+          "complete_api_record_count": 131,
+          "credits_spent": 2853,
+          "exact_known_total_tokens": 3567473,
+          "failed_request_count": 17,
+          "observed_completion_tokens": 1126485,
+          "observed_prompt_tokens": 2736685,
+          "observed_total_tokens": 3863170,
+          "record_count": 150,
+          "request_count": 424,
+          "response_count": 407,
+          "submission_tool_calls": 821
+        },
+        "unresolved": [
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 3: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cg_025"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_cr_002"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cr_005"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_003"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 4: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_004"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 4: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r5: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_018"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_fr_021"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 4: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_022"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_024"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_025"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "all_api_requests_failed",
+            "task_id": "ta2_qo_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r3: TimeoutError: The read operation timed out",
+            "task_id": "ta2_qo_010"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "all_api_requests_failed",
+            "task_id": "ta2_qo_011"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r3: TimeoutError: The read operation timed out",
+            "task_id": "ta2_qo_013"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_sr_012"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r3: TimeoutError: The read operation timed out",
+            "task_id": "ta2_sr_013"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_xr_005"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_xr_012"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "cosim_failed",
+            "task_id": "ta2_xr_022"
+          }
+        ]
+      },
+      "llm_run_contract": {
+        "backend": "custom",
+        "competition": false,
+        "expected_client": "OpenAICompatClient",
+        "max_retries": 0,
+        "max_tokens": 8192,
+        "model": "qwen3.5-122b-a10b",
+        "temperature": 0.0,
+        "timeout_s": 360.0
+      },
+      "maximum_shard_elapsed_hours": 4.161548296489725,
+      "model_compliance": {
+        "records_with_evidence": 148,
+        "records_without_evidence": 2,
+        "variants": [
+          {
+            "evidence": {
+              "compliance_proven": true,
+              "compliance_status": "proven",
+              "evidence_source": "explicit_environment_evidence",
+              "license": "apache-2.0",
+              "model": "qwen3.5-122b-a10b",
+              "open_source_claimed": true,
+              "source_evidence": "<redacted-endpoint>"
+            },
+            "record_count": 148
+          }
+        ]
+      },
+      "selected_view": {
+        "api_clean_agent_completion": {
+          "denominator": 145,
+          "excluded_api_failure_count": 5,
+          "numerator": 140,
+          "percent": 96.55172413793103,
+          "task_timeouts_remain_failures": true
+        },
+        "categories": {
+          "code_generation": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 22,
+              "max": 96.74,
+              "mean": 90.97363636363637,
+              "median": 89.88,
+              "min": 86.49
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 3
+          },
+          "compile_repair": {
+            "outcomes": {
+              "completed": 24,
+              "infrastructure_error": 1
+            },
+            "reference_score": {
+              "count": 4,
+              "max": 95.98,
+              "mean": 91.97500000000001,
+              "median": 91.635,
+              "min": 88.65
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 20
+          },
+          "functional_repair": {
+            "outcomes": {
+              "completed": 18,
+              "failed": 2,
+              "infrastructure_error": 5
+            },
+            "reference_score": {
+              "count": 17,
+              "max": 91.77,
+              "mean": 88.83941176470589,
+              "median": 88.65,
+              "min": 88.36
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 1
+          },
+          "qor_optimization": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 99.73,
+              "mean": 78.7704,
+              "median": 74.9,
+              "min": 74.7
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "structural_repair": {
+            "outcomes": {
+              "completed": 23,
+              "failed": 1,
+              "infrastructure_error": 1
+            },
+            "reference_score": {
+              "count": 23,
+              "max": 97.58,
+              "mean": 79.23695652173913,
+              "median": 88.28,
+              "min": 18.47
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "synthesis_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 99.8,
+              "mean": 90.2464,
+              "median": 88.63,
+              "min": 88.56
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          }
+        },
+        "evaluator_hidden_correctness": {
+          "corpus_coverage": 140,
+          "corpus_size": 150,
+          "denominator": 140,
+          "numerator": 140
+        },
+        "non_infrastructure_conditional_completion": {
+          "denominator": 143,
+          "numerator": 140
+        },
+        "outcomes": {
+          "completed": 140,
+          "failed": 3,
+          "infrastructure_error": 7
+        },
+        "public_gate_completion": {
+          "denominator": 150,
+          "numerator": 140,
+          "percent": 93.33333333333333
+        },
+        "qor_25": {
+          "available_count": 25,
+          "evaluator_reference_anchored_score": {
+            "count": 25,
+            "max": 99.73,
+            "mean": 78.7704,
+            "median": 74.9,
+            "min": 74.7
+          },
+          "slice_size": 25,
+          "submission_starter_anchored_proxy": {
+            "count": 25,
+            "max": 98.11284283333333,
+            "mean": 77.54918973111111,
+            "median": 74.34166666666667,
+            "min": 72.35020833333334
+          },
+          "task_values": {
+            "ta2_qo_001": {
+              "efficiency": 0.989111111111111,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 74.18333333333332
+            },
+            "ta2_qo_002": {
+              "efficiency": 0.9903222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.7,
+              "submission_proxy": 74.27416666666667
+            },
+            "ta2_qo_003": {
+              "efficiency": 0.9824138888888888,
+              "q_hw": 0.8204,
+              "reference_score": 81.72,
+              "submission_proxy": 80.59723544444445
+            },
+            "ta2_qo_004": {
+              "efficiency": 0.9823694444444444,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67770833333333
+            },
+            "ta2_qo_005": {
+              "efficiency": 0.9729416666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 72.970625
+            },
+            "ta2_qo_006": {
+              "efficiency": 0.9911472222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 74.33604166666667
+            },
+            "ta2_qo_007": {
+              "efficiency": 0.9824055555555555,
+              "q_hw": 0.9987,
+              "reference_score": 99.73,
+              "submission_proxy": 98.11284283333333
+            },
+            "ta2_qo_008": {
+              "efficiency": 0.9823805555555555,
+              "q_hw": 0.8283,
+              "reference_score": 82.51,
+              "submission_proxy": 81.37058141666665
+            },
+            "ta2_qo_009": {
+              "efficiency": 0.9819666666666667,
+              "q_hw": 0.9494,
+              "reference_score": 94.67,
+              "submission_proxy": 93.22791533333333
+            },
+            "ta2_qo_010": {
+              "efficiency": 0.9912222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.34166666666667
+            },
+            "ta2_qo_011": {
+              "efficiency": 0.9819972222222222,
+              "q_hw": 0.7854,
+              "reference_score": 78.15,
+              "submission_proxy": 77.12606183333332
+            },
+            "ta2_qo_012": {
+              "efficiency": 0.9910194444444445,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 74.32645833333333
+            },
+            "ta2_qo_013": {
+              "efficiency": 0.9823777777777777,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67833333333333
+            },
+            "ta2_qo_014": {
+              "efficiency": 0.9734499999999999,
+              "q_hw": 0.7692,
+              "reference_score": 76.56,
+              "submission_proxy": 74.877774
+            },
+            "ta2_qo_015": {
+              "efficiency": 0.9734944444444444,
+              "q_hw": 0.7714,
+              "reference_score": 76.79,
+              "submission_proxy": 75.09536144444445
+            },
+            "ta2_qo_016": {
+              "efficiency": 0.9823666666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.6775
+            },
+            "ta2_qo_017": {
+              "efficiency": 0.9823166666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67375
+            },
+            "ta2_qo_018": {
+              "efficiency": 0.9822972222222222,
+              "q_hw": 0.7772,
+              "reference_score": 77.36,
+              "submission_proxy": 76.3441401111111
+            },
+            "ta2_qo_019": {
+              "efficiency": 0.9823916666666667,
+              "q_hw": 0.8863,
+              "reference_score": 88.35,
+              "submission_proxy": 87.06937341666666
+            },
+            "ta2_qo_020": {
+              "efficiency": 0.9823305555555555,
+              "q_hw": 0.7654,
+              "reference_score": 76.19,
+              "submission_proxy": 75.18758072222221
+            },
+            "ta2_qo_021": {
+              "efficiency": 0.9646750000000001,
+              "q_hw": 0.7814,
+              "reference_score": 77.79,
+              "submission_proxy": 75.3797045
+            },
+            "ta2_qo_022": {
+              "efficiency": 0.9646694444444445,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 72.35020833333334
+            },
+            "ta2_qo_023": {
+              "efficiency": 0.9822722222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.67041666666667
+            },
+            "ta2_qo_024": {
+              "efficiency": 0.9893333333333333,
+              "q_hw": 0.75,
+              "reference_score": 74.87,
+              "submission_proxy": 74.2
+            },
+            "ta2_qo_025": {
+              "efficiency": 0.9824388888888889,
+              "q_hw": 0.865,
+              "reference_score": 86.21,
+              "submission_proxy": 84.98096388888888
+            }
+          }
+        },
+        "reference_anchored_official_score": {
+          "corpus_size": 150,
+          "count": 116,
+          "max": 99.8,
+          "mean": 85.58155172413792,
+          "median": 88.62,
+          "min": 18.47,
+          "validity_only_completed_count": 24
+        },
+        "token_accounting": {
+          "complete_api_record_count": 143,
+          "credits_spent": 2895,
+          "exact_known_total_tokens": 3860057,
+          "failed_request_count": 5,
+          "observed_completion_tokens": 1164587,
+          "observed_prompt_tokens": 2800395,
+          "observed_total_tokens": 3964982,
+          "record_count": 150,
+          "request_count": 422,
+          "response_count": 417,
+          "submission_tool_calls": 839
+        },
+        "unresolved": [
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_cr_002"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_003"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_004"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_018"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_fr_021"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 5: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_022"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_025"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_xr_012"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "cosim_failed",
+            "task_id": "ta2_xr_022"
+          }
+        ]
+      },
+      "selection": {
+        "all_attempt_token_accounting": {
+          "complete_api_record_count": 143,
+          "credits_spent": 3115,
+          "exact_known_total_tokens": 3860057,
+          "failed_request_count": 22,
+          "observed_completion_tokens": 1273054,
+          "observed_prompt_tokens": 2987625,
+          "observed_total_tokens": 4260679,
+          "record_count": 167,
+          "request_count": 471,
+          "response_count": 449,
+          "submission_tool_calls": 908
+        },
+        "policy": "chronological infrastructure-only retries replace the currently selected infrastructure-error record",
+        "retry_record_count": 17,
+        "retry_runs": [
+          "runs/track_a_150_v4_qwen35_api_timeout17_postfix_retry_20260912_v1"
+        ],
+        "retry_source_metadata": [
+          {
+            "agent_source_file_count": 86,
+            "agent_source_tree_sha256": "e75e42d70b013990ef92642085cb071ce804ae511fde3d61d94b7b3b530fc281",
+            "llm_run_contract": {
+              "backend": "custom",
+              "competition": false,
+              "expected_client": "OpenAICompatClient",
+              "max_retries": 0,
+              "max_tokens": 8192,
+              "model": "qwen3.5-122b-a10b",
+              "temperature": 0.0,
+              "thinking": null,
+              "timeout_s": 360.0
+            },
+            "maximum_shard_elapsed_hours": 0.8124480595863861,
+            "model_compliance": {
+              "records_with_evidence": 17,
+              "records_without_evidence": 0,
+              "variants": [
+                {
+                  "evidence": {
+                    "compliance_proven": true,
+                    "compliance_status": "proven",
+                    "evidence_source": "explicit_environment_evidence",
+                    "license": "apache-2.0",
+                    "model": "qwen3.5-122b-a10b",
+                    "open_source_claimed": true,
+                    "source_evidence": "Qwen/Qwen3.5-122B-A10B"
+                  },
+                  "record_count": 17
+                }
+              ]
+            },
+            "tool_timeout_policy": {
+              "env_overrides": {
+                "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+                "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+                "LLM4HLS_SYNTH_TIMEOUT_S": "180.0"
+              },
+              "explicit_override_names": [],
+              "scope": "track_a_150",
+              "source": "track_a_150_runner_defaults",
+              "task_root_kind": "evaluator_private",
+              "values_s": {
+                "cosim": 240.0,
+                "csim": 30.0,
+                "synth": 180.0
+              }
+            }
+          }
+        ]
+      },
+      "tool_timeout_policy": {
+        "env_overrides": {
+          "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+          "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+          "LLM4HLS_SYNTH_TIMEOUT_S": "180.0"
+        },
+        "explicit_override_names": [],
+        "scope": "track_a_150",
+        "source": "track_a_150_runner_defaults",
+        "task_root_kind": "evaluator_private",
+        "values_s": {
+          "cosim": 240.0,
+          "csim": 30.0,
+          "synth": 180.0
+        }
+      }
+    },
+    "qwen3.6-27b": {
+      "agent_source_file_count": 86,
+      "agent_source_tree_sha256": "51ebeb770639fa6873e62b93824bad7cb92693537ab7f0ef6862e56ad00c4474",
+      "base_run": "runs/track_a_150_v4_qwen36_full150_20260911_v1",
+      "base_view": {
+        "api_clean_agent_completion": {
+          "denominator": 136,
+          "excluded_api_failure_count": 14,
+          "numerator": 131,
+          "percent": 96.32352941176471,
+          "task_timeouts_remain_failures": true
+        },
+        "categories": {
+          "code_generation": {
+            "outcomes": {
+              "completed": 22,
+              "infrastructure_error": 3
+            },
+            "reference_score": {
+              "count": 20,
+              "max": 99.25,
+              "mean": 88.9995,
+              "median": 90.09,
+              "min": 51.95
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 2
+          },
+          "compile_repair": {
+            "outcomes": {
+              "completed": 21,
+              "infrastructure_error": 4
+            },
+            "reference_score": {
+              "count": 5,
+              "max": 95.99,
+              "mean": 91.598,
+              "median": 89.61,
+              "min": 88.65
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 16
+          },
+          "functional_repair": {
+            "outcomes": {
+              "completed": 19,
+              "failed": 1,
+              "infrastructure_error": 5
+            },
+            "reference_score": {
+              "count": 19,
+              "max": 91.76,
+              "mean": 88.83315789473684,
+              "median": 88.65,
+              "min": 88.59
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "qor_optimization": {
+            "outcomes": {
+              "completed": 23,
+              "infrastructure_error": 2
+            },
+            "reference_score": {
+              "count": 23,
+              "max": 99.73,
+              "mean": 78.32826086956521,
+              "median": 74.9,
+              "min": 74.69
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "structural_repair": {
+            "outcomes": {
+              "completed": 22,
+              "infrastructure_error": 3
+            },
+            "reference_score": {
+              "count": 21,
+              "max": 97.59,
+              "mean": 81.39952380952381,
+              "median": 88.2,
+              "min": 29.87
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 1
+          },
+          "synthesis_repair": {
+            "outcomes": {
+              "completed": 24,
+              "infrastructure_error": 1
+            },
+            "reference_score": {
+              "count": 24,
+              "max": 97.24,
+              "mean": 89.97791666666666,
+              "median": 88.63,
+              "min": 88.58
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          }
+        },
+        "evaluator_hidden_correctness": {
+          "corpus_coverage": 131,
+          "corpus_size": 150,
+          "denominator": 131,
+          "numerator": 131
+        },
+        "non_infrastructure_conditional_completion": {
+          "denominator": 132,
+          "numerator": 131
+        },
+        "outcomes": {
+          "completed": 131,
+          "failed": 1,
+          "infrastructure_error": 18
+        },
+        "public_gate_completion": {
+          "denominator": 150,
+          "numerator": 131,
+          "percent": 87.33333333333333
+        },
+        "qor_25": {
+          "available_count": 23,
+          "evaluator_reference_anchored_score": {
+            "count": 23,
+            "max": 99.73,
+            "mean": 78.32826086956521,
+            "median": 74.9,
+            "min": 74.69
+          },
+          "slice_size": 25,
+          "submission_starter_anchored_proxy": {
+            "count": 23,
+            "max": 98.11201058333333,
+            "mean": 76.8132141062802,
+            "median": 74.01074916666666,
+            "min": 71.33645833333334
+          },
+          "task_values": {
+            "ta2_qo_001": {
+              "efficiency": 0.9638444444444445,
+              "q_hw": 0.789,
+              "reference_score": 78.5,
+              "submission_proxy": 76.04732666666668
+            },
+            "ta2_qo_002": {
+              "efficiency": 0.9903472222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.69,
+              "submission_proxy": 74.27604166666667
+            },
+            "ta2_qo_003": {
+              "efficiency": 0.9824027777777777,
+              "q_hw": 0.8002,
+              "reference_score": 79.69,
+              "submission_proxy": 78.61187027777777
+            },
+            "ta2_qo_004": {
+              "efficiency": 0.9735694444444444,
+              "q_hw": 0.7602,
+              "reference_score": 75.67,
+              "submission_proxy": 74.01074916666666
+            },
+            "ta2_qo_005": {
+              "efficiency": 0.9819555555555555,
+              "q_hw": 0.8011,
+              "reference_score": 79.73,
+              "submission_proxy": 78.66445955555555
+            },
+            "ta2_qo_006": {
+              "efficiency": 0.982261111111111,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.66958333333332
+            },
+            "ta2_qo_007": {
+              "efficiency": 0.9823972222222221,
+              "q_hw": 0.9987,
+              "reference_score": 99.73,
+              "submission_proxy": 98.11201058333333
+            },
+            "ta2_qo_008": {
+              "efficiency": 0.9823916666666667,
+              "q_hw": 0.7869,
+              "reference_score": 78.34,
+              "submission_proxy": 77.30440025
+            },
+            "ta2_qo_009": {
+              "efficiency": 0.9819305555555555,
+              "q_hw": 0.9494,
+              "reference_score": 94.67,
+              "submission_proxy": 93.22448694444444
+            },
+            "ta2_qo_010": {
+              "efficiency": 0.9912222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.34166666666667
+            },
+            "ta2_qo_011": {
+              "efficiency": 0.9820083333333333,
+              "q_hw": 0.7854,
+              "reference_score": 78.15,
+              "submission_proxy": 77.12693449999999
+            },
+            "ta2_qo_012": {
+              "efficiency": 0.9910111111111112,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 74.32583333333334
+            },
+            "ta2_qo_014": {
+              "efficiency": 0.9626555555555556,
+              "q_hw": 0.7538,
+              "reference_score": 75.01,
+              "submission_proxy": 72.56497577777778
+            },
+            "ta2_qo_015": {
+              "efficiency": 0.9511527777777778,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 71.33645833333334
+            },
+            "ta2_qo_016": {
+              "efficiency": 0.9823444444444444,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67583333333333
+            },
+            "ta2_qo_017": {
+              "efficiency": 0.9823333333333333,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.675
+            },
+            "ta2_qo_018": {
+              "efficiency": 0.973486111111111,
+              "q_hw": 0.7581,
+              "reference_score": 75.45,
+              "submission_proxy": 73.79998208333333
+            },
+            "ta2_qo_019": {
+              "efficiency": 0.9734805555555556,
+              "q_hw": 0.8863,
+              "reference_score": 88.35,
+              "submission_proxy": 86.27958163888889
+            },
+            "ta2_qo_020": {
+              "efficiency": 0.9644416666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 72.333125
+            },
+            "ta2_qo_021": {
+              "efficiency": 0.9647166666666667,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 72.35375
+            },
+            "ta2_qo_023": {
+              "efficiency": 0.9804638888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.53479166666666
+            },
+            "ta2_qo_024": {
+              "efficiency": 0.9821888888888889,
+              "q_hw": 0.7509,
+              "reference_score": 74.71,
+              "submission_proxy": 73.75256366666667
+            },
+            "ta2_qo_025": {
+              "efficiency": 0.9824333333333333,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 73.68249999999999
+            }
+          }
+        },
+        "reference_anchored_official_score": {
+          "corpus_size": 150,
+          "count": 112,
+          "max": 99.73,
+          "mean": 85.68053571428571,
+          "median": 88.63,
+          "min": 29.87,
+          "validity_only_completed_count": 19
+        },
+        "token_accounting": {
+          "complete_api_record_count": 132,
+          "credits_spent": 2962,
+          "exact_known_total_tokens": 4466065,
+          "failed_request_count": 15,
+          "observed_completion_tokens": 2092694,
+          "observed_prompt_tokens": 2667002,
+          "observed_total_tokens": 4759696,
+          "record_count": 150,
+          "request_count": 411,
+          "response_count": 396,
+          "submission_tool_calls": 848
+        },
+        "unresolved": [
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cg_007"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cg_012"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: repair attempt 2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cg_021"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r4: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cr_007"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cr_014"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_cr_015"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_004"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "all_api_requests_failed",
+            "task_id": "ta2_fr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_014"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_020"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r3: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_024"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_fr_025"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r5: TimeoutError: The read operation timed out",
+            "task_id": "ta2_qo_013"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_qo_022"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_sr_013"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_xr_010"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r2: TimeoutError: The read operation timed out",
+            "task_id": "ta2_xr_011"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_xr_021"
+          }
+        ]
+      },
+      "llm_run_contract": {
+        "backend": "custom",
+        "competition": false,
+        "expected_client": "OpenAICompatClient",
+        "max_retries": 0,
+        "max_tokens": 8192,
+        "model": "qwen3.6-27b",
+        "temperature": 0.0,
+        "timeout_s": 360.0
+      },
+      "maximum_shard_elapsed_hours": 5.655495885348613,
+      "model_compliance": {
+        "records_with_evidence": 147,
+        "records_without_evidence": 3,
+        "variants": [
+          {
+            "evidence": {
+              "compliance_proven": true,
+              "compliance_status": "proven",
+              "evidence_source": "explicit_environment_evidence",
+              "license": "apache-2.0",
+              "model": "qwen3.6-27b",
+              "open_source_claimed": true,
+              "source_evidence": "<redacted-endpoint>"
+            },
+            "record_count": 147
+          }
+        ]
+      },
+      "selected_view": {
+        "api_clean_agent_completion": {
+          "denominator": 147,
+          "excluded_api_failure_count": 3,
+          "numerator": 141,
+          "percent": 95.91836734693878,
+          "task_timeouts_remain_failures": true
+        },
+        "categories": {
+          "code_generation": {
+            "outcomes": {
+              "completed": 24,
+              "infrastructure_error": 1
+            },
+            "reference_score": {
+              "count": 22,
+              "max": 99.25,
+              "mean": 89.3640909090909,
+              "median": 90.09,
+              "min": 51.95
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 2
+          },
+          "compile_repair": {
+            "outcomes": {
+              "completed": 22,
+              "infrastructure_error": 3
+            },
+            "reference_score": {
+              "count": 5,
+              "max": 95.99,
+              "mean": 91.598,
+              "median": 89.61,
+              "min": 88.65
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 17
+          },
+          "functional_repair": {
+            "outcomes": {
+              "completed": 21,
+              "failed": 1,
+              "infrastructure_error": 3
+            },
+            "reference_score": {
+              "count": 20,
+              "max": 91.76,
+              "mean": 88.82300000000001,
+              "median": 88.65,
+              "min": 88.59
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 1
+          },
+          "qor_optimization": {
+            "outcomes": {
+              "completed": 24,
+              "infrastructure_error": 1
+            },
+            "reference_score": {
+              "count": 24,
+              "max": 99.73,
+              "mean": 78.56,
+              "median": 74.95500000000001,
+              "min": 74.69
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          },
+          "structural_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 24,
+              "max": 97.59,
+              "mean": 81.97166666666666,
+              "median": 88.225,
+              "min": 29.87
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 1
+          },
+          "synthesis_repair": {
+            "outcomes": {
+              "completed": 25
+            },
+            "reference_score": {
+              "count": 25,
+              "max": 97.24,
+              "mean": 89.92399999999999,
+              "median": 88.63,
+              "min": 88.58
+            },
+            "task_count": 25,
+            "validity_only_completed_count": 0
+          }
+        },
+        "evaluator_hidden_correctness": {
+          "corpus_coverage": 141,
+          "corpus_size": 150,
+          "denominator": 141,
+          "numerator": 141
+        },
+        "non_infrastructure_conditional_completion": {
+          "denominator": 142,
+          "numerator": 141
+        },
+        "outcomes": {
+          "completed": 141,
+          "failed": 1,
+          "infrastructure_error": 8
+        },
+        "public_gate_completion": {
+          "denominator": 150,
+          "numerator": 141,
+          "percent": 94.0
+        },
+        "qor_25": {
+          "available_count": 24,
+          "evaluator_reference_anchored_score": {
+            "count": 24,
+            "max": 99.73,
+            "mean": 78.56,
+            "median": 74.95500000000001,
+            "min": 74.69
+          },
+          "slice_size": 25,
+          "submission_starter_anchored_proxy": {
+            "count": 24,
+            "max": 98.11201058333333,
+            "mean": 77.05893833333333,
+            "median": 74.14339541666666,
+            "min": 71.33645833333334
+          },
+          "task_values": {
+            "ta2_qo_001": {
+              "efficiency": 0.9638444444444445,
+              "q_hw": 0.789,
+              "reference_score": 78.5,
+              "submission_proxy": 76.04732666666668
+            },
+            "ta2_qo_002": {
+              "efficiency": 0.9903472222222223,
+              "q_hw": 0.75,
+              "reference_score": 74.69,
+              "submission_proxy": 74.27604166666667
+            },
+            "ta2_qo_003": {
+              "efficiency": 0.9824027777777777,
+              "q_hw": 0.8002,
+              "reference_score": 79.69,
+              "submission_proxy": 78.61187027777777
+            },
+            "ta2_qo_004": {
+              "efficiency": 0.9735694444444444,
+              "q_hw": 0.7602,
+              "reference_score": 75.67,
+              "submission_proxy": 74.01074916666666
+            },
+            "ta2_qo_005": {
+              "efficiency": 0.9819555555555555,
+              "q_hw": 0.8011,
+              "reference_score": 79.73,
+              "submission_proxy": 78.66445955555555
+            },
+            "ta2_qo_006": {
+              "efficiency": 0.982261111111111,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.66958333333332
+            },
+            "ta2_qo_007": {
+              "efficiency": 0.9823972222222221,
+              "q_hw": 0.9987,
+              "reference_score": 99.73,
+              "submission_proxy": 98.11201058333333
+            },
+            "ta2_qo_008": {
+              "efficiency": 0.9823916666666667,
+              "q_hw": 0.7869,
+              "reference_score": 78.34,
+              "submission_proxy": 77.30440025
+            },
+            "ta2_qo_009": {
+              "efficiency": 0.9819305555555555,
+              "q_hw": 0.9494,
+              "reference_score": 94.67,
+              "submission_proxy": 93.22448694444444
+            },
+            "ta2_qo_010": {
+              "efficiency": 0.9912222222222222,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 74.34166666666667
+            },
+            "ta2_qo_011": {
+              "efficiency": 0.9820083333333333,
+              "q_hw": 0.7854,
+              "reference_score": 78.15,
+              "submission_proxy": 77.12693449999999
+            },
+            "ta2_qo_012": {
+              "efficiency": 0.9910111111111112,
+              "q_hw": 0.75,
+              "reference_score": 74.85,
+              "submission_proxy": 74.32583333333334
+            },
+            "ta2_qo_013": {
+              "efficiency": 0.982311111111111,
+              "q_hw": 0.842,
+              "reference_score": 83.89,
+              "submission_proxy": 82.71059555555556
+            },
+            "ta2_qo_014": {
+              "efficiency": 0.9626555555555556,
+              "q_hw": 0.7538,
+              "reference_score": 75.01,
+              "submission_proxy": 72.56497577777778
+            },
+            "ta2_qo_015": {
+              "efficiency": 0.9511527777777778,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 71.33645833333334
+            },
+            "ta2_qo_016": {
+              "efficiency": 0.9823444444444444,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.67583333333333
+            },
+            "ta2_qo_017": {
+              "efficiency": 0.9823333333333333,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 73.675
+            },
+            "ta2_qo_018": {
+              "efficiency": 0.973486111111111,
+              "q_hw": 0.7581,
+              "reference_score": 75.45,
+              "submission_proxy": 73.79998208333333
+            },
+            "ta2_qo_019": {
+              "efficiency": 0.9734805555555556,
+              "q_hw": 0.8863,
+              "reference_score": 88.35,
+              "submission_proxy": 86.27958163888889
+            },
+            "ta2_qo_020": {
+              "efficiency": 0.9644416666666666,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 72.333125
+            },
+            "ta2_qo_021": {
+              "efficiency": 0.9647166666666667,
+              "q_hw": 0.75,
+              "reference_score": 74.89,
+              "submission_proxy": 72.35375
+            },
+            "ta2_qo_023": {
+              "efficiency": 0.9804638888888889,
+              "q_hw": 0.75,
+              "reference_score": 74.88,
+              "submission_proxy": 73.53479166666666
+            },
+            "ta2_qo_024": {
+              "efficiency": 0.9821888888888889,
+              "q_hw": 0.7509,
+              "reference_score": 74.71,
+              "submission_proxy": 73.75256366666667
+            },
+            "ta2_qo_025": {
+              "efficiency": 0.9824333333333333,
+              "q_hw": 0.75,
+              "reference_score": 74.9,
+              "submission_proxy": 73.68249999999999
+            }
+          }
+        },
+        "reference_anchored_official_score": {
+          "corpus_size": 150,
+          "count": 120,
+          "max": 99.73,
+          "mean": 85.84433333333332,
+          "median": 88.63,
+          "min": 29.87,
+          "validity_only_completed_count": 21
+        },
+        "token_accounting": {
+          "complete_api_record_count": 142,
+          "credits_spent": 2995,
+          "exact_known_total_tokens": 4987373,
+          "failed_request_count": 3,
+          "observed_completion_tokens": 2233372,
+          "observed_prompt_tokens": 2810723,
+          "observed_total_tokens": 5044095,
+          "record_count": 150,
+          "request_count": 417,
+          "response_count": 414,
+          "submission_tool_calls": 860
+        },
+        "unresolved": [
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cg_012"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r3: TimeoutError: The read operation timed out",
+            "task_id": "ta2_cr_009"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_cr_014"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_cr_015"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "failed",
+            "submission_stop_reason": "csim_failed",
+            "task_id": "ta2_fr_004"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_fr_009"
+          },
+          {
+            "launcher_error": null,
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": "LLMCallFailed: LLM call failed: opt r1: TimeoutError: The read operation timed out",
+            "task_id": "ta2_fr_020"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_fr_025"
+          },
+          {
+            "launcher_error": "launcher_timeout_after_900.0s",
+            "outcome": "infrastructure_error",
+            "submission_stop_reason": null,
+            "task_id": "ta2_qo_022"
+          }
+        ]
+      },
+      "selection": {
+        "all_attempt_token_accounting": {
+          "complete_api_record_count": 142,
+          "credits_spent": 3313,
+          "exact_known_total_tokens": 4987373,
+          "failed_request_count": 22,
+          "observed_completion_tokens": 2390730,
+          "observed_prompt_tokens": 3007720,
+          "observed_total_tokens": 5398450,
+          "record_count": 169,
+          "request_count": 466,
+          "response_count": 444,
+          "submission_tool_calls": 947
+        },
+        "policy": "chronological infrastructure-only retries replace the currently selected infrastructure-error record",
+        "retry_record_count": 19,
+        "retry_runs": [
+          "runs/track_a_150_v4_qwen36_api_timeout15_retry1_20260912",
+          "runs/track_a_150_v4_qwen36_api_timeout4_postfix_retry_20260912_v1"
+        ],
+        "retry_source_metadata": [
+          {
+            "agent_source_file_count": 86,
+            "agent_source_tree_sha256": "51ebeb770639fa6873e62b93824bad7cb92693537ab7f0ef6862e56ad00c4474",
+            "llm_run_contract": {
+              "backend": "custom",
+              "competition": false,
+              "expected_client": "OpenAICompatClient",
+              "max_retries": 0,
+              "max_tokens": 8192,
+              "model": "qwen3.6-27b",
+              "temperature": 0.0,
+              "timeout_s": 360.0
+            },
+            "maximum_shard_elapsed_hours": 0.8701792299525065,
+            "model_compliance": {
+              "records_with_evidence": 13,
+              "records_without_evidence": 2,
+              "variants": [
+                {
+                  "evidence": {
+                    "compliance_proven": true,
+                    "compliance_status": "proven",
+                    "evidence_source": "explicit_environment_evidence",
+                    "license": "apache-2.0",
+                    "model": "qwen3.6-27b",
+                    "open_source_claimed": true,
+                    "source_evidence": "<redacted-endpoint>"
+                  },
+                  "record_count": 13
+                }
+              ]
+            },
+            "tool_timeout_policy": {
+              "env_overrides": {
+                "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+                "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+                "LLM4HLS_SYNTH_TIMEOUT_S": "180.0"
+              },
+              "explicit_override_names": [],
+              "scope": "track_a_150",
+              "source": "track_a_150_runner_defaults",
+              "task_root_kind": "evaluator_private",
+              "values_s": {
+                "cosim": 240.0,
+                "csim": 30.0,
+                "synth": 180.0
+              }
+            }
+          },
+          {
+            "agent_source_file_count": 86,
+            "agent_source_tree_sha256": "e75e42d70b013990ef92642085cb071ce804ae511fde3d61d94b7b3b530fc281",
+            "llm_run_contract": {
+              "backend": "custom",
+              "competition": false,
+              "expected_client": "OpenAICompatClient",
+              "max_retries": 0,
+              "max_tokens": 8192,
+              "model": "qwen3.6-27b",
+              "temperature": 0.0,
+              "thinking": null,
+              "timeout_s": 360.0
+            },
+            "maximum_shard_elapsed_hours": 0.5654250493086066,
+            "model_compliance": {
+              "records_with_evidence": 4,
+              "records_without_evidence": 0,
+              "variants": [
+                {
+                  "evidence": {
+                    "compliance_proven": true,
+                    "compliance_status": "proven",
+                    "evidence_source": "explicit_environment_evidence",
+                    "license": "apache-2.0",
+                    "model": "qwen3.6-27b",
+                    "open_source_claimed": true,
+                    "source_evidence": "<redacted-endpoint>"
+                  },
+                  "record_count": 4
+                }
+              ]
+            },
+            "tool_timeout_policy": {
+              "env_overrides": {
+                "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+                "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+                "LLM4HLS_SYNTH_TIMEOUT_S": "180.0"
+              },
+              "explicit_override_names": [],
+              "scope": "track_a_150",
+              "source": "track_a_150_runner_defaults",
+              "task_root_kind": "evaluator_private",
+              "values_s": {
+                "cosim": 240.0,
+                "csim": 30.0,
+                "synth": 180.0
+              }
+            }
+          }
+        ]
+      },
+      "tool_timeout_policy": {
+        "env_overrides": {
+          "LLM4HLS_COSIM_TIMEOUT_S": "240.0",
+          "LLM4HLS_CSIM_TIMEOUT_S": "30.0",
+          "LLM4HLS_SYNTH_TIMEOUT_S": "180.0"
+        },
+        "explicit_override_names": [],
+        "scope": "track_a_150",
+        "source": "track_a_150_runner_defaults",
+        "task_root_kind": "evaluator_private",
+        "values_s": {
+          "cosim": 240.0,
+          "csim": 30.0,
+          "synth": 180.0
+        }
+      }
+    }
+  },
+  "paper_readiness": {
+    "causal_agent_component_claims": "unsupported without matched ablations",
+    "causal_model_ranking": "unsupported by one campaign per endpoint",
+    "common_subset_qor_comparison": "ready from selected records",
+    "deepseek_open_source_compliance": "unproven in every run record",
+    "descriptive_base_run_results": "ready as immutable endpoint-reliability evidence",
+    "descriptive_selected_results": "ready as one final campaign result per model",
+    "full_corpus_reference_score": "unavailable because fixed anchors cover only a subset outside QoR-25",
+    "infrastructure_retry_result": "ready; report API-clean ability separately from raw endpoint completion",
+    "source_provenance": "partial because the execution snapshot excludes llm4hls/llm.py"
+  },
+  "primary_comparison_policy": {
+    "reason": "Infrastructure-only retry records replace infrastructure-error records from the same campaign. The final selected record set is the reported run result.",
+    "view": "one final campaign result per model"
+  },
+  "schema_version": 1,
+  "scope": "Track-A v4 three-endpoint paper dataset"
+}

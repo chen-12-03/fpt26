@@ -1,0 +1,33 @@
+task_id = "ta2_fr_019"
+internal_task_id = "functional_repair__19__chstone__df_add128"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 2
+top = "add128"
+kernel_file = "add128.cpp"
+header_files = ["add128.h"]
+public_tb = "add128_tb.cpp"
+hidden_tb = "add128_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "arithmetic_operator:+->-:offset=162"
+kernel_family_id = "46d681f9d3909c5491b9621b97711e2f79a83503d41983156bd46c0951ed4445"
+source_task_id = "chstone__df_add128"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/chstone/df_add128"
+source_path = "hls_eval_data/chstone/df_add128/add128.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "LicenseRef-CHStone-SoftFloat-2b"
+source_sha256 = "ba156bcc4eb24a5df6d68e40e5322bbefe5e35581abc3d6bb0d7b151e6c0e0a4"
+
+upstream_project_url = "https://github.com/ferrandi/CHStone"
+upstream_revision = "2b7e20ffd3365016faf1e4e2b86496a5c95445fb"
+license_evidence_url = "https://github.com/ferrandi/CHStone/blob/2b7e20ffd3365016faf1e4e2b86496a5c95445fb/dfadd/softfloat.c"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "d603a1467fee056216f50f774d8e62fbb765531290cbef42e6fbd4e40dfc9347"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

@@ -1,0 +1,21 @@
+{
+  "hidden_fixture_sha256": {
+    "check.data": "25dc08e8851f9264819c6bf08ee93d48ecf7ab2680dc9cbe9a0d64959aff366f",
+    "input.data": "d49e26f09b36be92a3247f7b7beff77f50a12e2ec139bf3740449ff505eb1c96"
+  },
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "floating_plus_0.125:0.8483178396146527->0.9733178396146527",
+  "hidden_tb_sha256": "593fb7c529c9aae919322ee9ce5722df5a1a7a7f333d7563e0a87d4ca7c10587",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_machsuite_check_fixture",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_fixture",
+  "public_tb_sha256": "593fb7c529c9aae919322ee9ce5722df5a1a7a7f333d7563e0a87d4ca7c10587",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "code_generation__09__machsuite__gemm_blocked",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_machsuite_evidence/code_generation__09__machsuite__gemm_blocked/hardening_evidence.json"
+}

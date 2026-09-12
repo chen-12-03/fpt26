@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "affine_block_stream_with_closed_form_oracle",
+  "hidden_tb_sha256": "2d65cb88898763a55550a7ef9a40d3e89fbde43916828d84c5b32dd8ef50ece3",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "0ce8105bcac4737ed0d778ee8c49b9b986bb3c7353cc2951c7d36707eb1e0690",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "synthesis_repair__07__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_stream_inline_retry_evidence/synthesis_repair__07__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks/hardening_evidence.json"
+}

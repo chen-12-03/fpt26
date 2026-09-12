@@ -1,0 +1,27 @@
+task_id = "ta2_sr_007"
+internal_task_id = "synthesis_repair__07__amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks"
+task_type = "synth_fix"
+track_a_category = "synthesis_repair"
+difficulty = 3
+top = "diamond"
+kernel_file = "diamond.cpp"
+header_files = ["diamond.h"]
+public_tb = "diamond_tb.cpp"
+hidden_tb = "diamond_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 synthesis_repair; baseline=synth_fail"
+expected_baseline_state = "synth_fail"
+fault_derivation = "synthesis_only_undefined_local_type"
+kernel_family_id = "1e4b524367896121e642bf5b6effa724e3974e0e2057785dfba7c0df3c06d497"
+source_task_id = "amd_intro__task_level_parallelism_control_driven_channels_using_stream_of_blocks"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Task_level_Parallelism/Control_driven/Channels/using_stream_of_blocks"
+source_path = "Task_level_Parallelism/Control_driven/Channels/using_stream_of_blocks"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "0c9ff8254dc0dc8a5d5e7292f25ca844277669bccabce5305e35e185c2c68265"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

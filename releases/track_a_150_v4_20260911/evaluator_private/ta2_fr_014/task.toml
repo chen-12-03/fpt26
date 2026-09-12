@@ -1,0 +1,27 @@
+task_id = "ta2_fr_014"
+internal_task_id = "functional_repair__14__amd_intro__interface_memory_lmem_2rw"
+task_type = "repair"
+track_a_category = "functional_repair"
+difficulty = 3
+top = "vadd"
+kernel_file = "vadd.cpp"
+header_files = ["vadd.h"]
+public_tb = "vadd_tb.cpp"
+hidden_tb = "vadd_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 functional_repair; baseline=csim_fail"
+expected_baseline_state = "csim_fail"
+fault_derivation = "integer_literal_bitflip:0->1:offset=3526"
+kernel_family_id = "31064e051c1dadee4f4871505578a52ea29207058227680fdc6ed90d0efc8cb9"
+source_task_id = "amd_intro__interface_memory_lmem_2rw"
+source_url = "https://github.com/Xilinx/Vitis-HLS-Introductory-Examples/tree/aa5c160faf5d5ebf58674df8f0591f9984ebae0f/Interface/Memory/lmem_2rw"
+source_path = "Interface/Memory/lmem_2rw"
+repo_commit = "aa5c160faf5d5ebf58674df8f0591f9984ebae0f"
+license = "Apache-2.0"
+source_sha256 = "a16c1b43bd6da1d9426ce6ed5e99ef32f92c8c2a657c3878c860401751a422de"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

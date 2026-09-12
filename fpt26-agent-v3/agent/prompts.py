@@ -189,15 +189,19 @@ def build_prompt(
     public_declarations = _public_top_declarations(task)
     if public_declarations:
         payload["public_top_declarations"] = public_declarations
-    else:
-        public_tb = str(getattr(task, "public_tb_code", "") or "")
-        if public_tb:
-            excerpt = _bounded_prompt_text(public_tb, 6_000)
-            payload["public_testbench_excerpt"] = (
-                f"// {getattr(task, 'public_tb_name', 'public_testbench')}\n"
-                f"{excerpt}"
-            )
-            payload["public_testbench_excerpt_truncated"] = len(public_tb) > 6_000
+    # The declaration alone is insufficient for generation and semantic
+    # repair tasks whose prose says only "implement" or "repair".  The public
+    # testbench is part of the submission-visible contract, so include a
+    # bounded excerpt even when a prototype was extracted.  Hidden tests and
+    # non-code attachments remain unavailable to this prompt.
+    public_tb = str(getattr(task, "public_tb_code", "") or "")
+    if public_tb:
+        excerpt = _bounded_head_tail_prompt_text(public_tb, 12_000)
+        payload["public_testbench_excerpt"] = (
+            f"// {getattr(task, 'public_tb_name', 'public_testbench')}\n"
+            f"{excerpt}"
+        )
+        payload["public_testbench_excerpt_truncated"] = len(public_tb) > 12_000
 
     if omitted_attachments:
         payload["omitted_non_code_attachments"] = sorted(omitted_attachments)
@@ -444,6 +448,26 @@ def build_repair_prompt(
 
 def _bounded_prompt_text(value: Any, max_chars: int) -> str:
     """Make prompt evidence UTF-8-safe and deterministically bounded."""
+    text = _prompt_safe_text(value)
+    if len(text) > max_chars:
+        return text[: max_chars - 16].rstrip() + "... [truncated]"
+    return text
+
+
+def _bounded_head_tail_prompt_text(value: Any, max_chars: int) -> str:
+    """Bound source context while retaining declarations and final checks."""
+    text = _prompt_safe_text(value)
+    if len(text) <= max_chars:
+        return text
+    marker = "\n... [middle truncated; tail retained] ...\n"
+    available = max_chars - len(marker)
+    head_chars = available // 2
+    tail_chars = available - head_chars
+    return text[:head_chars].rstrip() + marker + text[-tail_chars:].lstrip()
+
+
+def _prompt_safe_text(value: Any) -> str:
+    """Normalize and redact prompt text without applying a size bound."""
     if value is None:
         return ""
     if isinstance(value, bytes):
@@ -464,8 +488,6 @@ def _bounded_prompt_text(value: Any, max_chars: int) -> str:
         ),
         text,
     )
-    if len(text) > max_chars:
-        return text[: max_chars - 16].rstrip() + "... [truncated]"
     return text
 
 

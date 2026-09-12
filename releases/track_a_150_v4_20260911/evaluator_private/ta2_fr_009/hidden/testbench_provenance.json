@@ -1,0 +1,21 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_output_0.golden": "1d60d07f7729253f3a45a3c4bcc11cacd401a4b956f4e97b8000e8b78ce42423",
+    "track_a_hidden_stderr.golden": "7e8e5f31a4852497b4de1920e637917dd43c33c3f4501eb475595fbc6282e489",
+    "track_a_hidden_stdout.golden": "8b4bc2b29532506323d3afc0e2cdf393dddd4bdcc8ddac3559682126d62b5352"
+  },
+  "hidden_input_derivation": "hidden_input_assignment_offset:A",
+  "hidden_tb_sha256": "d8760a0f8d972c80af1efcdd032ed9c46c023bcb598ef409e2fa536268bf1225",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "92482d609b9e731cef280cb962cc8ed5e4bf0feb6cfdf0f3fc2886b6d3dbf7ae",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "functional_repair__09__amd_intro__interface_memory_memory_bottleneck_original",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence_batch2/functional_repair__09__amd_intro__interface_memory_memory_bottleneck_original/hardening_evidence.json"
+}

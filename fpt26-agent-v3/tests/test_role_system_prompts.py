@@ -58,7 +58,8 @@ def test_prompt_omits_non_code_task_attachments() -> None:
     assert payload["public_top_declarations"] == [
         'extern "C" void top(int *out);'
     ]
-    assert "int main()" not in prompt
+    assert "int main()" in prompt
+    assert payload["public_testbench_excerpt"].startswith("// top_tb.cpp")
     assert "language linkage" in payload["instruction"]
 
 
@@ -85,3 +86,28 @@ def test_prompt_falls_back_to_bounded_public_testbench_excerpt() -> None:
     assert payload["public_testbench_excerpt"].startswith("// top_tb.cpp")
     assert "top(&value)" in payload["public_testbench_excerpt"]
     assert payload["public_testbench_excerpt_truncated"] is False
+
+
+def test_long_public_testbench_excerpt_retains_head_and_tail() -> None:
+    task = SimpleNamespace(
+        id="long_public_tb",
+        description="Implement the kernel.",
+        top="top",
+        headers={"top.h": "void top(int *out);"},
+        kernel_name="top.cpp",
+        requires_cosim=False,
+        public_tb_name="top_tb.cpp",
+        public_tb_code=(
+            '#include "top.h"\n'
+            + ("int filler_value = 0;\n" * 800)
+            + "int main() { int output = 0; top(&output); return output != 7; }\n"
+        ),
+    )
+
+    payload = json.loads(build_prompt(task, "void top(int *out) { *out = 7; }"))
+    excerpt = payload["public_testbench_excerpt"]
+
+    assert payload["public_testbench_excerpt_truncated"] is True
+    assert '#include "top.h"' in excerpt
+    assert "top(&output)" in excerpt
+    assert "middle truncated; tail retained" in excerpt

@@ -137,6 +137,7 @@ def _llm_summary(state: RunState) -> dict[str, Any] | None:
         "model": getattr(client, "model", None),
         "temperature": getattr(client, "temperature", None),
         "max_tokens": getattr(client, "max_tokens", None),
+        "thinking": getattr(client, "thinking", None),
     }
     token_usage = getattr(client, "token_usage", None)
     snapshot = getattr(token_usage, "snapshot", None)

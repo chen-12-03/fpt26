@@ -1,60 +1,65 @@
 # Paper Experiment Results
 
-This page preserves the detailed experiment material omitted from the
-two-page FPT'26 Track-A short paper. The paper reports the headline findings;
-this page provides the benchmark composition, per-category outcomes, cost
-accounting, and reproduction pointers in one place.
+This page preserves the detailed Track-A v4 results omitted from the two-page
+FPT'26 short paper. Values come from the canonical dataset generated on
+2026-09-13.
 
-## Evaluation protocol
+## Reporting policy
 
-- 150 tasks across six balanced HLS capabilities, with 25 tasks per category.
-- All tasks require C simulation and synthesis; the 25 structural-repair tasks
-  additionally require C/RTL co-simulation.
-- Target: AMD Alveo U55C with Vitis 2025.2 and a minimum 100 MHz clock.
-- Three hosted endpoints were evaluated under one task manifest and agent
-  revision: DeepSeek V4 Pro, Qwen3.5-122B-A10B, and Qwen3.6-27B.
-- We report public-gate completion and a starter-anchored QoR proxy from
-  submission-side synthesis.
-- The proxy uses `100 * Q_HW * E` on the 25 optimization tasks. It excludes
-  evaluator-side hidden validation and reference fallback.
-- A fresh evaluator checks evaluator-side hidden correctness for all 432
-  public-completed final kernels using hidden C simulation, candidate
-  synthesis, and required hidden co-simulation.
-- Reference-anchored QoR scores use frozen evaluator references. The 25
-  optimization tasks have complete reference coverage for all endpoints.
+- Each deployed configuration contains one final record for every one of the
+  150 frozen tasks.
+- The deterministic retry rule applies only when the currently selected record
+  is an LLM-API infrastructure error; the chronological retry replaces it
+  regardless of retry outcome. Validation failures and 900-second task
+  timeouts are ineligible.
+- Public completion keeps all 150 tasks in the denominator.
+- API-conditioned completion excludes only unresolved LLM API-call records;
+  task timeouts and validation failures remain in the denominator.
+- Hidden-gate pass conditions on public completion and does not certify general
+  correctness.
+- Cross-endpoint QoR comparisons use the same 24 scoreable tasks.
+- Qwen token totals are lower bounds because failed calls omit usage.
 
-## Headline results
+## Final campaign results
 
-| Endpoint | Public-gate completion | Tokens (M) | Credits | Starter-anchored QoR proxy | Proxy >76 |
+| Configuration | Public completion | API-conditioned completion | Conditional hidden-gate pass | Selected tokens | All-attempt tokens |
 |---|---:|---:|---:|---:|---:|
-| DeepSeek V4 Pro | 144/150 (96.0%) | 5.87 | 2,617 | 85.5 | 22/25 (88%) |
-| Qwen3.5-122B-A10B | 140/150 (93.3%) | 1.68 | 2,375 | 76.3 | 7/25 (28%) |
-| Qwen3.6-27B | 148/150 (98.7%) | 1.92 | 2,515 | 79.7 | 15/25 (60%) |
+| DeepSeek V4 Pro | 143/150 (95.3%) | 143/150 (95.3%) | 143/143 | 2.128M | 2.128M |
+| Qwen3.5-122B-A10B | 140/150 (93.3%) | 140/145 (96.6%) | 140/140 | >=3.965M | >=4.261M |
+| Qwen3.6-27B | 141/150 (94.0%) | 141/147 (95.9%) | 141/141 | >=5.044M | >=5.398M |
 
-Qwen3.6-27B has the highest public-gate completion rate. DeepSeek V4 Pro has
-the highest starter-anchored QoR proxy and uses about 3.1 times as many tokens
-as Qwen3.6-27B.
-Qwen3.5-122B-A10B uses the fewest tokens.
+The first-pass public-completion counts were 143, 129, and 131; 0, 17, and 19
+eligible retry records produced the final counts shown above. All 424 final
+outputs that pass the public gate also pass the evaluator's finite hidden-gate
+suite; the other 26 endpoint--task runs are outside that denominator. DeepSeek
+has the largest raw-completion point estimate and lowest observed token total;
+Qwen3.5 has the largest API-conditioned point estimate. These metrics answer
+different questions and are not merged or relabelled.
 
-## Independent evaluator results
+## Paired QoR comparison
 
-| Endpoint | Evaluator-side hidden correctness | Reference-scoreable / 150 | Reference-anchored QoR-25 mean |
+| Configuration | Starter-anchored proxy mean | Reference-anchored mean | Common tasks |
 |---|---:|---:|---:|
-| DeepSeek V4 Pro | 144/144 (100.0%) | 112/150 | 83.11 |
-| Qwen3.5-122B-A10B | 140/140 (100.0%) | 109/150 | 70.77 |
-| Qwen3.6-27B | 148/148 (100.0%) | 115/150 | 75.33 |
+| DeepSeek V4 Pro | 74.98 | 75.69 | 24 |
+| Qwen3.5-122B-A10B | 77.77 | 78.93 | 24 |
+| Qwen3.6-27B | 77.06 | 78.56 | 24 |
 
-All 432 final kernels that passed the public gate also pass evaluator-side
-hidden correctness. The evaluator uses hidden grading for all 432 reports,
-and all 450 final-kernel hashes match their submission evidence.
+Qwen3.5 has the largest point estimate under both anchors on the paired subset;
+its reference mean exceeds Qwen3.6 by 0.37. With one campaign per
+configuration, there is no uncertainty interval or stable-ranking claim.
 
-Full-corpus reference means remain unavailable. Some frozen starter/reference
-syntheses report data-dependent or missing latency and interval metrics, so
-missing scores remain unavailable. On the 106 tasks with valid reference
-scores for all endpoints, the comparable means are 84.03 for DeepSeek, 80.48
-for Qwen3.5, and 82.20 for Qwen3.6. One Qwen3.5 task passes evaluator-side
-hidden correctness but ends with `required_metric_missing` because neither
-anchor supplies the required fixed metric.
+## Available-task score coverage
+
+| Configuration | Reference-scoreable | Reference mean | QoR available | Starter proxy | Reference QoR |
+|---|---:|---:|---:|---:|---:|
+| DeepSeek V4 Pro | 120/150 | 84.33 | 25/25 | 74.95 | 75.66 |
+| Qwen3.5-122B-A10B | 116/150 | 85.58 | 25/25 | 77.55 | 78.77 |
+| Qwen3.6-27B | 120/150 | 85.84 | 24/25 | 77.06 | 78.56 |
+
+These raw means use different denominators and are not the primary
+cross-endpoint QoR ranking. Qwen3.6 task ta2_qo_022 remains unavailable after a
+900-second task timeout. Completed tasks without fixed reference metrics remain
+validity-only rather than receiving an imputed zero.
 
 ## Completion by category
 
@@ -62,59 +67,72 @@ Each category contains 25 tasks.
 
 | Category | DeepSeek V4 Pro | Qwen3.5-122B-A10B | Qwen3.6-27B |
 |---|---:|---:|---:|
-| Code generation | 22/25 (88%) | 22/25 (88%) | 24/25 (96%) |
-| Compile repair | 25/25 (100%) | 25/25 (100%) | 25/25 (100%) |
-| Synthesis repair | 25/25 (100%) | 24/25 (96%) | 25/25 (100%) |
-| Functional repair | 24/25 (96%) | 24/25 (96%) | 24/25 (96%) |
-| Structural repair | 23/25 (92%) | 20/25 (80%) | 25/25 (100%) |
-| QoR optimization | 25/25 (100%) | 25/25 (100%) | 25/25 (100%) |
-| Starter-anchored QoR proxy | 85.5 | 76.3 | 79.7 |
+| Code generation | 23/25 | 25/25 | 24/25 |
+| Compile repair | 25/25 | 24/25 | 22/25 |
+| Synthesis repair | 25/25 | 25/25 | 25/25 |
+| Functional repair | 22/25 | 18/25 | 21/25 |
+| Structural repair | 23/25 | 23/25 | 25/25 |
+| QoR optimization | 25/25 | 25/25 | 24/25 |
 
-## Token and credit accounting
+Functional repair remains the weakest category for both Qwen endpoints. All
+three endpoints complete every synthesis-repair task.
 
-| Endpoint | Tokens (M) | Credits |
-|---|---:|---:|
-| DeepSeek V4 Pro | 5.87 | 2,617 |
-| Qwen3.5-122B-A10B | 1.68 | 2,375 |
-| Qwen3.6-27B | 1.92 | 2,515 |
+## Token, credit, and request accounting
 
-## Benchmark composition
+| Configuration | Requests/responses | Failed requests | Selected tokens | All-attempt tokens | Selected credits | Tool calls |
+|---|---:|---:|---:|---:|---:|---:|
+| DeepSeek V4 Pro | 320/320 | 0 | 2,128,323 | 2,128,323 | 2,477 | 654 |
+| Qwen3.5-122B-A10B | 422/417 | 5 | >=3,964,982 | >=4,260,679 | 2,895 | 839 |
+| Qwen3.6-27B | 417/414 | 3 | >=5,044,095 | >=5,398,450 | 2,995 | 860 |
 
-| Task type | Tasks | CoSim required |
-|---|---:|---:|
-| Code generation | 25 | 0 |
-| Compile repair | 25 | 0 |
-| Synthesis repair | 25 | 0 |
-| Functional repair | 25 | 0 |
-| Structural repair | 25 | 25 |
-| QoR optimization | 25 | 0 |
+Selected totals describe the final 150 records; all-attempt totals include
+superseded retry attempts. DeepSeek usage is exact for all responses.
 
-The suite contains 109 tasks derived from
-[Vitis-HLS-Introductory-Examples](https://github.com/Xilinx/Vitis-HLS-Introductory-Examples)
-at commit `aa5c160f` and 41 tasks derived from
-[Vitis_Accel_Examples](https://github.com/Xilinx/Vitis_Accel_Examples) at
-commit `81187602`. The 150 variants reuse 65 unique source paths.
+## Remaining failures
 
-## Evidence and reproduction
+- DeepSeek: five CSim failures and two CoSim failures; no API failure.
+- Qwen3.5: five unresolved API failures, two task timeouts, two CSim failures,
+  and one CoSim failure.
+- Qwen3.6: three unresolved API failures, five task timeouts, and one CSim
+  failure.
 
-- Legacy cross-model summary: [`runs/150_ultimate/CROSS_MODEL_REPORT.md`](../runs/150_ultimate/CROSS_MODEL_REPORT.md). Its DeepSeek QoR lookup used the wrong directory name and is superseded by the audited values above.
-- Raw campaign evidence: [`runs/150_ultimate/`](../runs/150_ultimate/)
-- Versioned evaluator summary: [`technical-paper/evidence/track_a_150_reevaluation_summary.md`](../technical-paper/evidence/track_a_150_reevaluation_summary.md)
-- Versioned machine-readable evaluator data: [`technical-paper/evidence/track_a_150_reevaluation_summary.json`](../technical-paper/evidence/track_a_150_reevaluation_summary.json)
-- Raw evaluator run tree: [`runs/150_ultimate_evaluator_20260905_v1/`](../runs/150_ultimate_evaluator_20260905_v1/)
-- Frozen task manifest: [`tasks/track_a_150/candidate_manifest.json`](../tasks/track_a_150/candidate_manifest.json)
-- Generated paper values: [`technical-paper/results_generated.tex`](../technical-paper/results_generated.tex)
-- Generated evaluator values: [`technical-paper/evaluator_results_generated.tex`](../technical-paper/evaluator_results_generated.tex)
-- Track-A compliance evidence: [`docs/p0-compliance-report.md`](p0-compliance-report.md)
+## Frozen corpus
 
-The current paper values are audited directly from the selected
-`run_report.json` files. `technical-paper/scripts/update_results.py` targets
-future evaluator-generated `final_report.json` inputs and does not regenerate
-this submission-side proxy table. Run
-`python3 technical-paper/scripts/update_evaluator_results.py` to regenerate the
-independent evaluator macros from the machine-readable summary.
+The Track-A v4 release contains six balanced 25-task categories. All tasks
+require C simulation and synthesis; the 25 structural-repair tasks additionally
+require C/RTL co-simulation.
 
-All reported campaigns use source snapshot
-`0a06af39777b6ae7f3962afa2910232eaf782e91727e0f184ec168f1`, temperature 0,
-a 4,096-token output limit, a 180-second request timeout, and at most two
-retries.
+| Upstream repository | Tasks | Commit |
+|---|---:|---|
+| sharc-lab/hls-eval | 70 | e628c0ad |
+| Xilinx/Vitis-HLS-Introductory-Examples | 70 | aa5c160f |
+| Xilinx/Vitis_Accel_Examples | 9 | 81187602 |
+| Xilinx/Vitis-HLS-Performance-Pragma | 1 | 7ca88131 |
+
+Public tree SHA256:
+105e34dbc3ba9e146ae99cb4ce020c65ea5b77d4a87cef6c9674dba04aa4d537.
+Evaluator tree SHA256:
+2261ba6c9c874b49c51f3e87870c217e9f241e33d6089fbd5e0ccf267bc4b21e.
+
+## Evidence and limitations
+
+- [Canonical 2026-09-13 paper data](../technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json)
+- [Human-readable final update](../technical-paper/evidence/track_a_v4_paper_data_update_20260913.md)
+- [Qwen3.5 merged summary](../technical-paper/evidence/track_a_v4_qwen35_merged_summary_20260912.json)
+- [Qwen3.6 merged summary](../technical-paper/evidence/track_a_v4_qwen36_merged_summary_20260912.json)
+- [DeepSeek summary](../technical-paper/evidence/track_a_v4_deepseek_base_summary_20260912.json)
+- [Frozen release](../releases/track_a_150_v4_20260911/)
+- [Paper-data generator](../tools/build_track_a_v4_paper_data.py)
+- [Campaign summarizer](../tools/summarize_track_a_v4_campaign.py)
+
+The frozen corpus, timeout, token limit, temperature, tool timeouts, and
+deterministic replacement rule are matched. Retry counts differ because the
+configurations produced different eligible failures. The snapshots match in
+83/86 tracked files, including controller, prompts, gates, and scoring. The
+three differences concern provider/run-contract, metric-recording, and
+runner/record-validation plumbing; the latter also resolves provider reasoning
+mode. The execution snapshot omits the provider adapter, so neutrality cannot
+be established, and immutable license evidence for the exact DeepSeek endpoint
+identity is not archived. Repeated campaigns, sensitivity analysis, and
+matched component ablations are absent. Accordingly, claims remain descriptive
+at the deployed-configuration level.

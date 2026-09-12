@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "seeded_random_matrices_with_software_matmul_oracle",
+  "hidden_tb_sha256": "646fc76de5355da0daa327f1e862b6ca5327f565a9a2598a3f3ceed9fbaf957f",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "public_oracle_completed_without_changing_public_vector",
+  "public_tb_sha256": "d3a89bdb0d1bb3ed8a17a16f2ff7e958578565b126ce544fb6e9c352c1128090",
+  "public_testbench_preserved": false,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "code_generation__10__pp4fpga__block_mm",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_evidence/code_generation__10__pp4fpga__block_mm/hardening_evidence.json"
+}

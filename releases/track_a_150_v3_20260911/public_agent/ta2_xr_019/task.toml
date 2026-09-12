@@ -1,0 +1,15 @@
+task_id = "ta2_xr_019"
+task_type = "repair"
+difficulty = 3
+top = "dut"
+kernel_file = "dut.cpp"
+header_files = ["example.h"]
+public_tb = "dut_tb.cpp"
+budget = 60
+requires_cosim = true
+initial_condition = "Track-A v2 structural_cosim_repair; baseline=cosim_fail"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.000

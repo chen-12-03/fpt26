@@ -1,0 +1,19 @@
+{
+  "hidden_fixture_sha256": {},
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "new_128_bit_edge_vectors_with_independent_uint128_oracle",
+  "hidden_tb_sha256": "0a9c7cf7e854dae035f86ec056cb98c85a3f95f8d929f08f5972687b70ad698a",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "independent_explicit_software_or_closed_form_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "0bb54122469baa9c37b0e8c3fb53d1be57d1ec6ab1914e7c2b7724b8f6275b27",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "self_contained_testbench": true,
+  "task_id": "functional_repair__19__chstone__df_add128",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_remaining_inline_retry_evidence/functional_repair__19__chstone__df_add128/hardening_evidence.json"
+}

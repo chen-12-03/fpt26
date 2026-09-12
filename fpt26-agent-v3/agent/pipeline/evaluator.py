@@ -42,8 +42,6 @@ def _candidate_validity_only_ok(state: RunState, anchor_evidence: AnchorEvidence
     enough to publish an anchored QoR score.
     """
 
-    if anchor_evidence.passes_all_required_gates:
-        return False
     if not all(
         bool(value)
         for value in (
@@ -63,7 +61,8 @@ def _candidate_validity_only_ok(state: RunState, anchor_evidence: AnchorEvidence
     gate_reason = getattr(scorecard, "gate_reason", "") if scorecard else ""
     stop_reason = getattr(state, "stop_reason", "") or ""
     return (
-        stop_reason.startswith("anchor_invalid")
+        (not anchor_evidence.passes_all_required_gates)
+        or stop_reason.startswith("anchor_invalid")
         or gate_reason in {"no_valid_anchor", "required_metric_missing"}
         or anchor_evidence.source in {"none", "candidate_self"}
     )
@@ -194,6 +193,25 @@ def run_evaluator(
         anchor_evidence = AnchorEvidence.from_dict(anchor_data)
     else:
         anchor_evidence = AnchorEvidence(source="none", valid=False)
+
+    # Candidate correctness/gate failures happen before anchor evaluation and
+    # therefore have neither a scorecard nor anchor evidence.  Preserve the
+    # real failure reason instead of overwriting it with "anchor_invalid".
+    if (
+        state.status == RunStatus.FAILED.value
+        and state.scorecard is None
+        and not isinstance(anchor_data, dict)
+    ):
+        state.metadata["evaluator_acceptance"] = {
+            "ok": False,
+            "failures": [state.stop_reason or "evaluation_failed"],
+            "grading_source": source,
+            "hidden_available": hidden_available,
+            "anchor_source": "none",
+            "anchor_valid": False,
+            "score_available": False,
+        }
+        return step_finalize(state)
 
     # ── Validity-only fallback: correct candidate, unusable QoR anchor ───
     if _candidate_validity_only_ok(state, anchor_evidence):

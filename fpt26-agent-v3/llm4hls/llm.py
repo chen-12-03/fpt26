@@ -17,6 +17,7 @@ import json
 import os
 import threading
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Protocol
 
@@ -124,6 +125,60 @@ def chat_completions_url(base_url: str) -> str:
     return f"{resolved}{suffix}"
 
 
+def _default_thinking_mode(base_url: str, model: str) -> str | None:
+    """Return a provider-specific reasoning mode when one is required.
+
+    DeepSeek V4 enables high-effort thinking by default and counts reasoning
+    against ``max_tokens``.  For this source-editing client that can consume
+    the entire generation budget before any final ``content`` is emitted.
+    Disable thinking on the official DeepSeek endpoint so the requested token
+    budget is available to the final answer.  Other providers keep their own
+    defaults and receive no DeepSeek-specific request field.
+    """
+
+    hostname = (urllib.parse.urlparse(base_url).hostname or "").lower()
+    if hostname == "api.deepseek.com" and model.lower().startswith("deepseek-v4"):
+        return "disabled"
+    return None
+
+
+def _message_text(body: object) -> str:
+    """Extract final assistant text from common OpenAI-compatible responses."""
+
+    if not isinstance(body, dict):
+        raise RuntimeError("LLM response body is not a JSON object")
+    choices = body.get("choices")
+    if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+        raise RuntimeError("LLM response has no usable choice")
+    choice = choices[0]
+    message = choice.get("message")
+    if not isinstance(message, dict):
+        raise RuntimeError("LLM response choice has no message object")
+
+    content = message.get("content")
+    if isinstance(content, str) and content.strip():
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for part in content:
+            if isinstance(part, str) and part:
+                parts.append(part)
+            elif isinstance(part, dict):
+                text = part.get("text")
+                if isinstance(text, str) and text:
+                    parts.append(text)
+        if parts:
+            return "\n".join(parts)
+
+    reasoning = message.get("reasoning_content")
+    reasoning_chars = len(reasoning) if isinstance(reasoning, str) else 0
+    raise RuntimeError(
+        "LLM response has no final text "
+        f"(finish_reason={choice.get('finish_reason')!r}, "
+        f"reasoning_chars={reasoning_chars})"
+    )
+
+
 class ScriptedClient:
     """Deterministic offline backend: returns the next canned response."""
 
@@ -159,6 +214,7 @@ class OpenRouterClient:
         self.base_url = chat_completions_url(config.OPENROUTER_BASE_URL)
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.timeout_s = 180.0
         self.token_usage = TokenUsage()
 
     def complete(self, system: str, user: str) -> str:
@@ -187,14 +243,14 @@ class OpenRouterClient:
         )
         self.token_usage.begin_request()
         try:
-            with urllib.request.urlopen(req, timeout=180) as resp:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             raise RuntimeError(
                 f"OpenRouter HTTP {e.code}: {e.read().decode('utf-8', 'replace')}"
             ) from e
         self.token_usage.record_response(body)
-        return body["choices"][0]["message"]["content"]
+        return _message_text(body)
 
 
 class OpenAICompatClient:
@@ -212,6 +268,7 @@ class OpenAICompatClient:
         model: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
+        timeout_s: float = 180.0,
     ) -> None:
         resolved_base = (
             base_url
@@ -230,8 +287,12 @@ class OpenAICompatClient:
             or os.environ.get("FPT26_LLM_MODEL")
             or config.DEFAULT_LLM_MODEL
         )
+        self.thinking = _default_thinking_mode(self.base_url, self.model)
         self.temperature = temperature
         self.max_tokens = max_tokens
+        # Long generations on large prompts can legitimately take minutes;
+        # the caller (agent backends) overrides this from the run config.
+        self.timeout_s = timeout_s
         self.token_usage = TokenUsage()
 
     def complete(self, system: str, user: str) -> str:
@@ -244,6 +305,8 @@ class OpenAICompatClient:
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
         }
+        if self.thinking is not None:
+            payload["thinking"] = {"type": self.thinking}
         data = json.dumps(payload).encode("utf-8")
         headers: dict[str, str] = {
             "Content-Type": "application/json",
@@ -259,14 +322,14 @@ class OpenAICompatClient:
         )
         self.token_usage.begin_request()
         try:
-            with urllib.request.urlopen(req, timeout=180) as resp:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             raise RuntimeError(
                 f"LLM HTTP {e.code}: {e.read().decode('utf-8', 'replace')}"
             ) from e
         self.token_usage.record_response(body)
-        return body["choices"][0]["message"]["content"]
+        return _message_text(body)
 
 
 def create_llm(backend: str = "auto") -> "LLMClient":

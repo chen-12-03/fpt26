@@ -1,0 +1,16 @@
+{
+  "hidden_golden_sha256": {},
+  "hidden_input_derivation": "all_10_legal_rom_addresses_in_nonmonotonic_order",
+  "hidden_tb_sha256": "43280ff067f386ad6975dd3f4dde6a7d57c74bb3bdec887a6a23acce19db4897",
+  "limitations": [
+    "A[i]+B[i] is invariant at 9 for the pinned public ROM contents.",
+    "Required RTL CoSim independently checks synthesis-only behavior."
+  ],
+  "oracle_strategy": "self_contained_exhaustive_legal_address_oracle",
+  "public_golden_sha256": {},
+  "public_input_derivation": "three_boundary_and_midpoint_rom_addresses",
+  "public_tb_sha256": "aa9f43de40eaa5b2e684a5fb9db5c2a5ccb886690954bc8016db500969b9baad",
+  "schema_version": 1,
+  "task_id": "structural_cosim_repair__15__amd_intro__misc_initialization_and_reset_static_array_rom",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/pair_unreachable_oracle_fix_v2/tasks/structural_cosim_repair__15__amd_intro__misc_initialization_and_reset_static_array_rom/pair_validation.json"
+}

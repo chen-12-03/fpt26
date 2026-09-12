@@ -13,29 +13,27 @@ $G_i\in\{0,1\}$; an inapplicable gate contributes $1$. Let $b$ be the
 verified fallback. The promotion rule is
 $P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$.
 
-Gate failures fall into three actionable classes, each driving a specific
-repair strategy without extra LLM calls. \textbf{Interface mismatches}
-(\CandidateInterfaceRejectCount{} of \CandidateEventCount{} candidates, 16\%)
-trigger API-usage constraints fixing function signatures and pragma syntax.
-\textbf{Synthesis bottlenecks} include timing violations, resource overruns,
-and II blow-up. QoR-RAG converts them into directive constraints such as
-pipeline, unroll, and array partitioning. The controller repairs
-\textbf{co-simulation deadlocks} via handshake insertion and port-width
-correction. Duplicate
-candidates and repeated failures stop retries.
+Local failure classification and retrieval require no additional model call;
+generating a subsequent candidate still does. \textbf{Failure Reflection}
+parses interface, synthesis, and co-simulation diagnostics plus the source
+diff into a compact constraint for the next proposal. \textbf{QoR-RAG}
+retrieves compatible public rules and measured success/failure cases by task
+metadata and bottleneck, then adds them to the optimization context. Thus
+interface mismatches produce signature/pragma constraints, synthesis failures
+produce timing/resource/II constraints, and co-simulation deadlocks produce
+handshake/port-width constraints. Duplicate candidates and repeated failures
+stop retries.
 
-Figure~\ref{fig:vcl} summarises the loop. Across three campaigns:
-\CandidateEventCount{} candidates, \CandidateInterfaceRejectCount{}
-interface rejections, \CandidateSynthGateCount{} synthesis gates,
-\CandidateCosimGateCount{} \CoSim{} gates. Co-simulation failures incur
-the highest per-repair token cost, consistent with deadlock complexity.
+Figure~\ref{fig:vcl} summarises the loop. The controller records every
+candidate and gate outcome for audit, while a failed or incomplete candidate
+never replaces the last verified fallback.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=0.84\textwidth]{系统框图.png}
   \vspace{-4pt}
   \caption{\textbf{The Verified-Candidate Loop.} A candidate replaces the
-  verified fallback only after every applicable gate passes and
+  verified fallback only after every applicable gate passes and the composite
   $Q_{\mathrm{HW}}$ improves.}
   \label{fig:vcl}
   \vspace{-6pt}

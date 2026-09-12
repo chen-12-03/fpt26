@@ -263,6 +263,7 @@ def evaluate_and_score(state: Any, *, accounting: EvaluationAccounting | None = 
             synth_sources=[task.kernel_name],
             tb_sources=[task.hidden_tb_name],
             top=task.top, part=task.part, clock_ns=task.clock_ns,
+            data_files=data_files,
         )
         _record("hidden_cosim", cosim)
         cosim_ok = record_cosim_gate(state, cosim, stage="evaluator_hidden_cosim", source_code=kernel)

@@ -21,6 +21,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlparse
 
+from llm4hls.llm import _default_thinking_mode, chat_completions_url
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover
@@ -139,7 +141,19 @@ def resolve_llm_run_contract(
         "max_tokens": int(
             os.environ.get("FPT26_LLM_MAX_TOKENS") or "4096"
         ),
+        "timeout_s": float(
+            os.environ.get("FPT26_LLM_TIMEOUT_SECONDS") or "180"
+        ),
+        "max_retries": int(
+            os.environ.get("FPT26_LLM_MAX_RETRIES") or "2"
+        ),
     }
+    if backend == "custom":
+        base_url = os.environ.get("FPT26_LLM_BASE_URL", "").strip()
+        thinking = _default_thinking_mode(
+            chat_completions_url(base_url), resolved_model
+        )
+        contract["thinking"] = thinking
     if backend == "openrouter":
         if not os.environ.get("OPENROUTER_API_KEY"):
             raise RuntimeError(
@@ -561,12 +575,19 @@ def validate_evaluator(
         "grading_results"
     ) or []
     stages = {item.get("stage"): item for item in trace}
-    for stage in ("hidden_csim", "candidate_synth"):
-        if stage not in stages:
-            errors.append(f"{stage}_missing")
+    # hidden_csim always runs first when the evaluator grades; if it is
+    # absent the grading record itself is incomplete.
+    if "hidden_csim" not in stages:
+        errors.append("hidden_csim_missing")
+    # candidate_synth runs only after hidden_csim passed: a candidate whose
+    # hidden tests fail is never synthesized, and that is the candidate's
+    # outcome, not a missing record.
+    csim_passed = stages.get("hidden_csim", {}).get("ok") is True
+    if csim_passed and "candidate_synth" not in stages:
+        errors.append("candidate_synth_missing")
     if report.get("cosim_ok") is not None:
         prerequisites_passed = (
-            stages.get("hidden_csim", {}).get("ok") is True
+            csim_passed
             and stages.get("candidate_synth", {}).get("ok") is True
         )
         if prerequisites_passed and "hidden_cosim" not in stages:

@@ -1,0 +1,33 @@
+task_id = "ta2_cg_024"
+internal_task_id = "code_generation__24__c2hlsc__cusums"
+task_type = "generate"
+track_a_category = "code_generation"
+difficulty = 2
+top = "CumulativeSums"
+kernel_file = "cusums.cpp"
+header_files = ["cusums.h"]
+public_tb = "cusums_tb.cpp"
+hidden_tb = "cusums_tb.cpp"
+budget = 60
+requires_cosim = false
+initial_condition = "Track-A v2 code_generation; baseline=compile_fail"
+expected_baseline_state = "compile_fail"
+fault_derivation = "unresolved_implementation_placeholder"
+kernel_family_id = "e76af0c33ccae7c763d26d33a42caa2cadba666b73268f39ec0677ab7d894d3b"
+source_task_id = "c2hlsc__cusums"
+source_url = "https://github.com/sharc-lab/hls-eval/tree/e628c0ad9b58d3890fbc350e9b37470cc92bf183/hls_eval_data/c2hlsc/cusums"
+source_path = "hls_eval_data/c2hlsc/cusums/cusums.cpp"
+repo_commit = "e628c0ad9b58d3890fbc350e9b37470cc92bf183"
+license = "GPL-3.0-only"
+source_sha256 = "62cd64914ca7bbbe1effa0a542dd17af2f2371c83bed4a49d5908e9f80167fe7"
+
+upstream_project_url = "https://github.com/Lucaz97/c2hlsc"
+upstream_revision = "72d08b7d17da38b7ba9c828dce48403352be4dc3"
+license_evidence_url = "https://github.com/Lucaz97/c2hlsc/blob/72d08b7d17da38b7ba9c828dce48403352be4dc3/LICENSE"
+acquisition_normalization = "universal-newlines-and-one-terminal-newline"
+acquisition_snapshot_sha256 = "62cd64914ca7bbbe1effa0a542dd17af2f2371c83bed4a49d5908e9f80167fe7"
+
+[target]
+part = "xcu55c-fsvh2892-2L-e"
+clock_ns = 5.000
+minimum_frequency_mhz = 100.0

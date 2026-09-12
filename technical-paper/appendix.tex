@@ -5,11 +5,9 @@
 \section{Benchmark Composition}
 \label{app:benchmark}
 
-The manifest freezes every upstream path, commit, task description, test,
-and gate configuration, retaining \CorpusTaskCount{} tasks with no
-cross-category kernel overlap. Table~\ref{tab:task-composition} describes
-the six balanced capabilities, each containing \TasksPerCategory{} tasks.
-Only the structural category requires C/RTL co-simulation.
+The frozen Track-A v4 release contains \CorpusTaskCount{} tasks across six
+balanced capabilities. All tasks require \CSim{} and \Synth{}; only the
+\RequiredCosimTaskCount{} structural-repair tasks require \CoSim{}.
 
 \begin{table}[H]
   \caption{\textbf{Task suite composition.}}
@@ -20,177 +18,111 @@ Only the structural category requires C/RTL co-simulation.
     \toprule
     Task type & Tasks & \CoSim{} \\
     \midrule
-    Code generation (stub $\to$ kernel) & 25 & 0 \\
+    Code generation & 25 & 0 \\
     Compile repair & 25 & 0 \\
     Synthesis repair & 25 & 0 \\
-    Functional repair (\CSim{}) & 25 & 0 \\
-    Structural repair (\CoSim{}) & 25 & 25 \\
+    Functional repair & 25 & 0 \\
+    Structural repair & 25 & 25 \\
     QoR optimization & 25 & 0 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Kernels come from two public AMD repositories at fixed commits:
+The evaluator mapping records \HLSEvalTaskCount{} tasks from
+\url{https://github.com/sharc-lab/hls-eval} (\texttt{e628c0ad}),
+\IntroExampleTaskCount{} from
 \url{https://github.com/Xilinx/Vitis-HLS-Introductory-Examples}
-(\IntroExampleTaskCount{} tasks, Apache-2.0, \texttt{aa5c160f}) and
+(\texttt{aa5c160f}), \AccelExampleTaskCount{} from
 \url{https://github.com/Xilinx/Vitis_Accel_Examples}
-(\AccelExampleTaskCount{} tasks, MIT, \texttt{81187602}).
-The 150 variants reuse \UniqueSourcePathCount{} unique source paths.
+(\texttt{81187602}), and \PerformancePragmaTaskCount{} from
+\url{https://github.com/Xilinx/Vitis-HLS-Performance-Pragma}
+(\texttt{7ca88131}). The public and evaluator trees have SHA256 values
+\texttt{105e34db...aa4d537} and \texttt{2261ba6c...bc4b21e}.
 
-\section{Track-A Requirement Mapping}
-\label{app:compliance}
-
-All tasks require \CSim{} and \Synth{}; the manifest requires \CoSim{}
-for the \RequiredCosimTaskCount{} structural tasks only.
-Table~\ref{tab:compliance} maps Track-A requirements to recorded evidence.
-
-\begin{table}[H]
-  \caption{\textbf{Track-A run contract.}}
-  \label{tab:compliance}
-  \centering
-  \small
-  \begin{tabular}{p{0.20\columnwidth}p{0.70\columnwidth}}
-    \toprule
-    Requirement & Recorded evidence \\
-    \midrule
-    U55C; Vitis 2025.2 &
-    Container pins target part and tool release; reports preserve
-    execution-source revision. \\
-    \CSim{}, \Synth{}, applicable \CoSim{} &
-    Missing or failed gate rejects candidate. Hidden tests and
-    references remain evaluator-only; independent reports record both. \\
-    $\geq$100\,MHz; feasible &
-    Frequency and U55C capacity gates precede promotion. Reports
-    retain latency, $II$, period, LUT, FF, DSP, BRAM, URAM. \\
-    Token/credit accounting &
-    Each run records tokens and credits. Limit:
-    \CampaignCreditLimit{} credits. \\
-    3-endpoint comparison &
-    DeepSeek V4 Pro, Qwen3.5-122B-A10B, Qwen3.6-27B; one manifest,
-    one source revision. \\
-    Docker; reproducibility &
-    Docker workflow, public task materials, structured reports,
-    result-generation script provided. \\
-    PDF, source, video &
-    Authors confirm IEEE format, 2-page boundary, archive contents,
-    and 5-minute demo. \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-The three checkpoints span three architecture regimes: DeepSeek V4 Pro
-(1.6\,T MoE, 49\,B active, FP8), Qwen3.5-122B-A10B (122\,B MoE,
-10\,B active, AWQ-4bit), and Qwen3.6-27B (27\,B dense, FP8).
-
-\section{Detailed Three-Endpoint Results}
+\section{Detailed Final-Campaign Results}
 \label{app:results}
 
-Tables~\ref{tab:category-success} and~\ref{tab:costs} provide the
-per-category breakdown underlying Section~\ref{sec:evaluation}. The
-starter-anchored QoR proxy is $100\,Q_{\mathrm{HW}}\,E$
-(Eq.~\eqref{eq:score}) from
-starter-anchored submission-side synthesis on optimization tasks.
+Each row uses the final selected record for every task; an infrastructure-only
+retry replaces only an earlier infrastructure-error record for that task.
+Table~\ref{tab:category-success} reports public-gate completion.
 
 \begin{table}[H]
-  \caption{\textbf{Per-category completion by endpoint.}
-  Each category contains 25 tasks. The starter-anchored QoR proxy covers
-  optimization tasks.}
+  \caption{\textbf{Per-category final-campaign completion.}}
   \label{tab:category-success}
   \centering
   \footnotesize
-  \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{lccc}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{lrrrrrr}
     \toprule
-    Category & DeepSeek V4 & Qwen3.5-122B & Qwen3.6-27B \\
+    Endpoint & Code gen. & Compile & Synthesis & Functional & Structural & QoR \\
     \midrule
-    Code generation & 22/25 (88\%) & 22/25 (88\%) & 24/25 (96\%) \\
-    Compile repair & 25/25 (100\%) & 25/25 (100\%) & 25/25 (100\%) \\
-    Synthesis repair & 25/25 (100\%) & 24/25 (96\%) & 25/25 (100\%) \\
-    Functional repair & 24/25 (96\%) & 24/25 (96\%) & 24/25 (96\%) \\
-    Structural repair & 23/25 (92\%) & 20/25 (80\%) & 25/25 (100\%) \\
-    QoR optimization & 25/25 (100\%) & 25/25 (100\%) & 25/25 (100\%) \\
-    \midrule
-    Starter QoR proxy (opt.) & 85.5 & 76.3 & 79.7 \\
+    \CategorySuccessRows
     \bottomrule
   \end{tabular}}
 \end{table}
 
 \begin{table}[H]
-  \caption{\textbf{Token consumption and credit expenditure.}
-  DeepSeek used 3.1$\times$ more tokens than Qwen3.6 and led the
-  starter-anchored QoR proxy.}
+  \caption{\textbf{Observed token and selected-record credit totals.}
+  Selected and All count final records and all attempts, respectively.
+  Qwen token values are lower bounds.}
   \label{tab:costs}
   \centering
   \small
-  \begin{tabular}{lrr}
+  \begin{tabular}{lrrr}
     \toprule
-    Endpoint & Tokens (M) & Credits \\
+    Endpoint & Selected (M) & All (M) & Credits \\
     \midrule
     \TokenAccountingRows
     \bottomrule
   \end{tabular}
 \end{table}
 
-\section{Independent Evaluator Results}
+\section{Evaluator Gate Results}
 \label{app:evaluator-results}
 
-The evaluator reruns each of the \IndependentEvaluatedCount{} final kernels
-that passed the public gate. All \IndependentHiddenCorrectCount{} pass
-evaluator-side hidden correctness, which requires hidden \CSim, candidate
-synthesis, and required hidden \CoSim.
-Table~\ref{tab:evaluator-results} separates this correctness result from
-reference-score coverage.
+All \IndependentHiddenCorrectCount{}/\IndependentEvaluatedCount{} final
+endpoint--task outputs that pass the public gate also pass the evaluator's
+finite hidden-gate suite. The 26 runs without public completion are excluded;
+this result is not a general correctness certificate. Reference means
+condition on available fixed anchors.
 
 \begin{table}[H]
-  \caption{\textbf{Evaluator-side hidden correctness and reference coverage.}
-  Ref. QoR-25 is the reference-anchored QoR score mean on the fully scoreable
-  optimization slice.}
+  \caption{\textbf{Conditional hidden-gate results and available-task scores.}}
   \label{tab:evaluator-results}
   \centering
   \small
-  \begin{tabular}{lrrr}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{lrrrrr}
     \toprule
-    Endpoint & Hidden & Ref. coverage & Ref. QoR-25 \\
+    Endpoint & Hidden & Ref. coverage & Ref. mean & QoR coverage & Ref. QoR \\
     \midrule
-    DeepSeek V4 Pro &
-    \DeepSeekHiddenCorrectCount{}/\DeepSeekEvaluatorReportCount{} &
-    \DeepSeekReferenceScoreableCount{}/\CorpusTaskCount{} &
-    \DeepSeekReferenceQorMean{} \\
-    Qwen3.5-122B-A10B &
-    \QwenThreeFiveHiddenCorrectCount{}/\QwenThreeFiveEvaluatorReportCount{} &
-    \QwenThreeFiveReferenceScoreableCount{}/\CorpusTaskCount{} &
-    \QwenThreeFiveReferenceQorMean{} \\
-    Qwen3.6-27B &
-    \QwenThreeSixHiddenCorrectCount{}/\QwenThreeSixEvaluatorReportCount{} &
-    \QwenThreeSixReferenceScoreableCount{}/\CorpusTaskCount{} &
-    \QwenThreeSixReferenceQorMean{} \\
+    DeepSeek V4 Pro & 143/143 & 120/150 & 84.33 & 25/25 & 75.66 \\
+    Qwen3.5-122B-A10B & 140/140 & 116/150 & 85.58 & 25/25 & 78.77 \\
+    Qwen3.6-27B & 141/141 & 120/150 & 85.84 & 24/25 & 78.56 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular}}
 \end{table}
 
-Full-corpus reference means remain unavailable because some frozen
-starter/reference syntheses report data-dependent or missing latency and
-interval metrics. On the \CommonReferenceTaskCount{} tasks with valid scores
-for every endpoint, the means are DeepSeek \DeepSeekCommonReferenceMean{},
-Qwen3.5 \QwenThreeFiveCommonReferenceMean{}, and Qwen3.6
-\QwenThreeSixCommonReferenceMean{}. One Qwen3.5 report stops with
-\texttt{required\_metric\_missing} after evaluator-side hidden correctness
-passes because neither anchor supplies the required fixed metric.
+Raw QoR means have different task counts. The paired comparison therefore
+uses the same \CommonQorTaskCount{} tasks for every endpoint: starter/reference
+means are 74.98/75.69 for DeepSeek, 77.77/78.93 for Qwen3.5, and
+77.06/78.56 for Qwen3.6. Raw/API-conditioned completion is 143/150 for DeepSeek,
+140/150 versus 140/145 for Qwen3.5, and 141/150 versus 141/147 for Qwen3.6.
 
-\section{Reproduction}
+\section{Reproduction and Boundaries}
 \label{app:reproduction}
 
-Task list: \path{tasks/track_a_150/candidate_manifest.json}.
-Campaigns: \path{runs/150_ultimate/}. We audited the proxy macros in
-\path{technical-paper/results_generated.tex} from the selected optimization-task
-\path{run_report.json} files using the definition in
-Section~\ref{sec:evaluation}. Independent evaluator macros in
-\path{technical-paper/evaluator_results_generated.tex} come from
-\path{technical-paper/evidence/track_a_150_reevaluation_summary.json} via
-\path{technical-paper/scripts/update_evaluator_results.py}. The existing
-\path{update_results.py} helper targets a separate \path{final_report.json}
-schema and does not generate either table.
+The canonical machine-readable paper dataset is
+\path{technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json}.
+The frozen corpus is \path{releases/track_a_150_v4_20260911}; generation and
+campaign-summary scripts are \path{tools/build_track_a_v4_paper_data.py} and
+\path{tools/summarize_track_a_v4_campaign.py}.
 
-All campaigns: source snapshot {\small\ExecutionSourceHash},
-temperature~0, 4,096-token output limit, 180\,s request timeout, $\leq$2
-retries.
+The corpus, timeout, token limit, temperature, tool timeouts, and deterministic
+infrastructure-only replacement rule are matched, but retry counts differ.
+The snapshots match in 83/86 tracked files, including controller, prompts,
+gates, and scoring. The three differences concern provider/run-contract,
+metric-recording, and runner/record-validation plumbing; the latter also
+resolves provider reasoning mode. Because the execution snapshot omits the
+provider adapter, neutrality cannot be established. Results therefore compare
+deployed configurations, not isolated endpoint/model or component effects.

@@ -33,6 +33,66 @@ from agent.security.paths import (
 )
 from agent.security.redaction import redact_sensitive_text
 
+
+_MAX_MISMATCH_FILE_BYTES = 64 * 1024
+_MAX_MISMATCH_VALUE_CHARS = 240
+
+
+def _public_csim_mismatch_diagnostic(build_dir: Path) -> str:
+    """Return one bounded actual-vs-golden mismatch from a CSim workspace.
+
+    Several public benchmark testbenches report only that two files differ.
+    The files themselves are submission-visible artifacts, so returning the
+    first differing line gives the repair model actionable public evidence
+    without exposing evaluator-only inputs.
+    """
+
+    runtime_dir = (
+        Path(build_dir) / "csim_proj" / "sol" / "csim" / "build"
+    )
+    if not runtime_dir.is_dir():
+        return ""
+    for golden in sorted(runtime_dir.glob("*.golden*")):
+        names = [
+            golden.name.replace(".golden", "", 1),
+            golden.name.replace(".golden", ".actual", 1),
+        ]
+        actual = next(
+            (
+                runtime_dir / name
+                for name in names
+                if name != golden.name and (runtime_dir / name).is_file()
+            ),
+            None,
+        )
+        if actual is None:
+            continue
+        expected_bytes = golden.read_bytes()[:_MAX_MISMATCH_FILE_BYTES]
+        actual_bytes = actual.read_bytes()[:_MAX_MISMATCH_FILE_BYTES]
+        if expected_bytes == actual_bytes:
+            continue
+        expected_lines = expected_bytes.decode(
+            "utf-8", errors="replace"
+        ).splitlines()
+        actual_lines = actual_bytes.decode("utf-8", errors="replace").splitlines()
+        line_count = max(len(expected_lines), len(actual_lines))
+        for index in range(line_count):
+            expected = expected_lines[index] if index < len(expected_lines) else "<EOF>"
+            observed = actual_lines[index] if index < len(actual_lines) else "<EOF>"
+            if expected == observed:
+                continue
+            expected = expected[:_MAX_MISMATCH_VALUE_CHARS]
+            observed = observed[:_MAX_MISMATCH_VALUE_CHARS]
+            return redact_sensitive_text(
+                "PUBLIC_CSIM_MISMATCH: "
+                f"actual_file={actual.name} expected_file={golden.name} "
+                f"first_differing_line={index + 1} "
+                f"expected={expected!r} actual={observed!r} "
+                f"expected_lines={len(expected_lines)} "
+                f"actual_lines={len(actual_lines)}"
+            )
+    return ""
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Secure tool executor — single authority for all HLS tool calls
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -87,12 +147,19 @@ class SecureToolExecutor:
         self._validate(build_dir, files, top, part, clock_ns, kind="csim")
         prepared = self._transform(files)
         with _clean_subprocess_env():
-            return self._redact_result(
-                self._get_csim().run(
-                    build_dir, prepared, top=top, part=part,
-                    clock_ns=clock_ns, data_files=data_files,
-                )
+            result = self._get_csim().run(
+                build_dir, prepared, top=top, part=part,
+                clock_ns=clock_ns, data_files=data_files,
             )
+        if (
+            not bool(getattr(result, "ok", False))
+            and getattr(result, "phase", "") == "runtime_fail"
+        ):
+            diagnostic = _public_csim_mismatch_diagnostic(build_dir)
+            if diagnostic:
+                result.log = (getattr(result, "log", "") or "").rstrip()
+                result.log += "\n" + diagnostic + "\n"
+        return self._redact_result(result)
 
     def synth(
         self,

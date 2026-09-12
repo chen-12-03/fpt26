@@ -1,0 +1,21 @@
+{
+  "hidden_golden_sha256": {
+    "track_a_hidden_output_0.golden": "41de57c2dc0cb346963de9a0b44c6e816fdbaea101d09ae1041c74122af09348",
+    "track_a_hidden_stderr.golden": "ba127e3669a7baade46db7b0c166d2a13567a1335acc03d411f0743f1d71ad5a",
+    "track_a_hidden_stdout.golden": "8b4bc2b29532506323d3afc0e2cdf393dddd4bdcc8ddac3559682126d62b5352"
+  },
+  "hidden_input_derivation": "hidden_input_assignment_literal:i:0->3",
+  "hidden_tb_sha256": "81aa9c423319089304b43d8e0624e672567c7bdd0374dd18b90a56a8e1455390",
+  "limitations": [
+    "Golden outputs were generated from the pinned reference implementation.",
+    "Independent implementation agreement remains a stronger optional oracle gate."
+  ],
+  "oracle_strategy": "reference_generated_transcript_and_output_golden",
+  "public_golden_sha256": {},
+  "public_input_derivation": "preserved_existing_public_testbench",
+  "public_tb_sha256": "0df5bb485c3985e3f043910d2ce12ef0a602218fe9b4d263dac4cb264ded6e24",
+  "public_testbench_preserved": true,
+  "schema_version": 1,
+  "task_id": "compile_repair__21__amd_intro__misc_malloc_removed",
+  "validation_evidence": "runs/track_a_150_v2_credibility_20260908/hardening_clone_evidence_batch2/compile_repair__21__amd_intro__misc_malloc_removed/hardening_evidence.json"
+}

@@ -11,13 +11,31 @@ from pathlib import Path
 import pytest
 
 from agent.errors import SecurityError
-from agent.integrations.vitis import SecureToolExecutor
+from agent.integrations.vitis import (
+    SecureToolExecutor,
+    _public_csim_mismatch_diagnostic,
+)
 
 _VALID_FILES = {"top.cpp": "int top() { return 0; }", "top.h": "int top();"}
 
 
 def _executor(ws: Path) -> SecureToolExecutor:
     return SecureToolExecutor(workspace_root=ws)
+
+
+def test_public_csim_mismatch_diagnostic_reports_first_differing_line(
+    tmp_path: Path,
+) -> None:
+    runtime = tmp_path / "csim_proj" / "sol" / "csim" / "build"
+    runtime.mkdir(parents=True)
+    (runtime / "result.golden.dat").write_text("0\n1\n3\n")
+    (runtime / "result.dat").write_text("0\n1\n4\n")
+
+    diagnostic = _public_csim_mismatch_diagnostic(tmp_path)
+
+    assert "first_differing_line=3" in diagnostic
+    assert "expected='3'" in diagnostic
+    assert "actual='4'" in diagnostic
 
 
 class TestToolParameterValidation:
