@@ -1,19 +1,15 @@
 High-level synthesis (HLS) agents must repair and optimize unfamiliar kernels
 under limited model and tool budgets. The Verified-Candidate Loop (\VCL)
-retains a verified fallback, promotes a candidate only after seven tool gates,
+retains a verified fallback, promotes a candidate only after seven validation gates,
 and ranks valid candidates with a bounded composite score. Deterministic
 diagnostic extraction and public-evidence retrieval constrain later model
 proposals. We evaluate three deployed agent--endpoint configurations on a
-frozen, balanced \CorpusTaskCount{}-task suite. A deterministic retry rule
-replaces only records already classified as LLM-API infrastructure errors.
-Across the final records, \IndependentEvaluatedCount{} endpoint--task outputs
-reach public completion; all \IndependentHiddenCorrectCount{} pass the
-evaluator's finite hidden gate suite. DeepSeek V4 Pro has the largest raw
-completion point estimate (\DeepSeekSuccessCount{}/\CorpusTaskCount{}) and
-lowest observed selected-record token total (\DeepSeekTokensM{}M), whereas
-Qwen3.5-122B-A10B has the largest API-conditioned completion point estimate
-(\QwenThreeFiveApiCleanCount{}/\QwenThreeFiveApiCleanDenominator{}) and paired
-QoR means (\QwenThreeFiveCommonQorProxy{},
-\QwenThreeFiveCommonReferenceQorMean{}) on \CommonQorTaskCount{} common tasks.
-Single campaigns and source-provenance differences make these descriptive
-configuration results, not causal model comparisons.
+frozen, balanced \CorpusTaskCount{}-task suite. Final completion is
+\DeepSeekSuccessCount{}/\CorpusTaskCount{} for DeepSeek V4 Pro,
+\QwenThreeFiveSuccessCount{}/\CorpusTaskCount{} for Qwen3.5-122B-A10B, and
+\QwenThreeSixSuccessCount{}/\CorpusTaskCount{} for Qwen3.6-27B. All
+\IndependentHiddenCorrectCount{} outputs that pass the public gates also pass
+our evaluator-side held-out gate suite, which is distinct from the organizer's
+final hidden benchmarks. Qwen3.5 records the highest paired composite scores
+(\QwenThreeFiveCommonQorProxy{}, \QwenThreeFiveCommonReferenceQorMean{}) on
+\CommonQorTaskCount{} common tasks, while DeepSeek uses the fewest observed tokens.

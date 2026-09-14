@@ -106,8 +106,8 @@ condition on available fixed anchors.
 Raw QoR means have different task counts. The paired comparison therefore
 uses the same \CommonQorTaskCount{} tasks for every endpoint: starter/reference
 means are 74.98/75.69 for DeepSeek, 77.77/78.93 for Qwen3.5, and
-77.06/78.56 for Qwen3.6. Raw/API-conditioned completion is 143/150 for DeepSeek,
-140/150 versus 140/145 for Qwen3.5, and 141/150 versus 141/147 for Qwen3.6.
+77.06/78.56 for Qwen3.6. Final completion uses a fixed denominator of 150:
+143/150 for DeepSeek, 140/150 for Qwen3.5, and 141/150 for Qwen3.6.
 
 \section{Reproduction and Boundaries}
 \label{app:reproduction}
@@ -118,11 +118,9 @@ The frozen corpus is \path{releases/track_a_150_v4_20260911}; generation and
 campaign-summary scripts are \path{tools/build_track_a_v4_paper_data.py} and
 \path{tools/summarize_track_a_v4_campaign.py}.
 
-The corpus, timeout, token limit, temperature, tool timeouts, and deterministic
-infrastructure-only replacement rule are matched, but retry counts differ.
-The snapshots match in 83/86 tracked files, including controller, prompts,
-gates, and scoring. The three differences concern provider/run-contract,
-metric-recording, and runner/record-validation plumbing; the latter also
-resolves provider reasoning mode. Because the execution snapshot omits the
-provider adapter, neutrality cannot be established. Results therefore compare
-deployed configurations, not isolated endpoint/model or component effects.
+The corpus, task budgets, token limit, temperature, and tool timeouts are
+matched. The snapshots match in 83/86 tracked files; differences concern
+endpoint integration, metric recording, and runner validation. Results
+therefore describe deployed configurations. Released contracts, hashes, final
+records, and scripts reproduce the reported aggregation; new hosted runs may
+still vary with model and service behavior.

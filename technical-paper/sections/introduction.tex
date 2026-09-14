@@ -20,6 +20,7 @@ fallback across Interface, \CSim, \Synth, Frequency, Capacity, required
 combines measured performance and resource ratios with source-change and
 repair evidence; despite its implementation name, it is not a pure hardware
 QoR metric.
-\textbf{(3) Separated evaluation views.} Raw completion, API-conditioned
-completion, finite hidden-gate pass, and paired QoR are reported with their
-own denominators (Section~\ref{sec:evaluation}).
+\textbf{(3) Artifact-backed evaluation.} Completion uses the fixed
+\CorpusTaskCount{}-task denominator, while held-out-gate pass and paired QoR
+retain their applicable denominators; final records and aggregation scripts
+are released (Section~\ref{sec:evaluation}).

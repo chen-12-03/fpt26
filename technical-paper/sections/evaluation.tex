@@ -1,71 +1,66 @@
-\section{Separated Evaluation Measures}
+\section{Evaluation on a Frozen Task Suite}
 \label{sec:evaluation}
 
-\textbf{Protocol.} Each configuration first processes the same frozen,
-balanced \CorpusTaskCount{}-task Track-A v4 suite~\cite{fpt26tracka}. A
-deterministic merge rule permits a retry only when the currently selected
-record is classified as an LLM-API infrastructure error; the chronological
-retry replaces it regardless of retry outcome. Validation failures and
-900-second task timeouts are ineligible. First-pass public completions are
-143, 129, and 131; after 0, 17, and 19 eligible retry records, the final counts
-are 143, 140, and 141.
-
-Public completion retains all 150 tasks. API-conditioned completion excludes
-only unresolved LLM API-call records from its denominator and retains task
-timeouts and validation failures. A separate evaluator reruns each
-public-completed output using finite hidden \CSim, synthesis, and required
-\CoSim{} gates. The QoR columns apply Eq.~\eqref{eq:score} to the same
+\textbf{Protocol.} Each configuration processes the same frozen, balanced
+\CorpusTaskCount{}-task suite constructed from four public HLS repositories
+and released with our artifacts~\cite{fpt26repo}, with matched task budgets,
+temperature, token limit, and tool timeouts. Only LLM-API infrastructure errors
+are rerun; a chronological retry replaces the prior record regardless of its
+outcome, leaving exactly one final record per task. Completion is the number of
+completed final records divided by 150. Our separate evaluator reruns every
+output that passes the public gates using finite held-out \CSim, synthesis, and
+required \CoSim{} gates; these are not the organizer's final hidden benchmarks.
+The score columns apply Eq.~\eqref{eq:score} to the same
 \CommonQorTaskCount{} tasks.
 
 \begin{table}[!h]
   \centering
-  \caption{\textbf{Final descriptive point estimates.} Hidden is conditional
-  on Public; API-cond. removes unresolved API-call records. QoR means use the
-  paired subset; Qwen token totals are lower bounds.}
+  \caption{\textbf{Final campaign results.} Completion uses the fixed
+  150-task denominator; Held-out is conditional on Completion. Scores use the
+  paired subset.}
   \label{tab:headline-results}
   \scriptsize
   \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{lrrrrrr}
+  \begin{tabular}{lrrrr}
     \toprule
-    Configuration & Public & API-cond. & Hidden & Tok. (M) & Proxy & Ref. QoR \\
+    Configuration & Completion & Held-out & Starter & Reference \\
     \midrule
     DeepSeek V4 Pro & \DeepSeekSuccessCount{}/\CorpusTaskCount{} &
-    \DeepSeekApiCleanCount{}/\DeepSeekApiCleanDenominator{} &
     \DeepSeekHiddenCorrectCount{}/\DeepSeekEvaluatorReportCount{} &
-    \DeepSeekTokensM{} & \DeepSeekCommonQorProxy{} &
-    \DeepSeekCommonReferenceQorMean{} \\
+    \DeepSeekCommonQorProxy{} & \DeepSeekCommonReferenceQorMean{} \\
     Qwen3.5-122B-A10B & \QwenThreeFiveSuccessCount{}/\CorpusTaskCount{} &
-    \QwenThreeFiveApiCleanCount{}/\QwenThreeFiveApiCleanDenominator{} &
     \QwenThreeFiveHiddenCorrectCount{}/\QwenThreeFiveEvaluatorReportCount{} &
-    $\geq$\QwenThreeFiveTokensM{} & \QwenThreeFiveCommonQorProxy{} &
+    \QwenThreeFiveCommonQorProxy{} &
     \QwenThreeFiveCommonReferenceQorMean{} \\
     Qwen3.6-27B & \QwenThreeSixSuccessCount{}/\CorpusTaskCount{} &
-    \QwenThreeSixApiCleanCount{}/\QwenThreeSixApiCleanDenominator{} &
     \QwenThreeSixHiddenCorrectCount{}/\QwenThreeSixEvaluatorReportCount{} &
-    $\geq$\QwenThreeSixTokensM{} & \QwenThreeSixCommonQorProxy{} &
-    \QwenThreeSixCommonReferenceQorMean{} \\
+    \QwenThreeSixCommonQorProxy{} & \QwenThreeSixCommonReferenceQorMean{} \\
     \bottomrule
   \end{tabular}}
 \end{table}
 
-\textbf{Results.} (1) All
-\IndependentHiddenCorrectCount{}/\IndependentEvaluatedCount{} final outputs
-that pass the public gate also pass the recorded finite hidden-gate suite. The
-26 endpoint--task runs without public completion are outside this denominator;
-the result is test-bounded evidence, not a correctness certificate.
+\textbf{Results.} DeepSeek records the highest completion at
+\DeepSeekSuccessCount{}/\CorpusTaskCount{} (\DeepSeekSuccessRate), followed by
+Qwen3.6 at \QwenThreeSixSuccessCount{}/\CorpusTaskCount{}
+(\QwenThreeSixSuccessRate) and Qwen3.5 at
+\QwenThreeFiveSuccessCount{}/\CorpusTaskCount{} (\QwenThreeFiveSuccessRate).
+Together, \IndependentEvaluatedCount{}/\TotalModelTaskRuns{} final
+endpoint--task records pass the public gates; all
+\IndependentHiddenCorrectCount{} also pass our evaluator-side held-out suite.
+The remaining 26 records are retained as non-completions in the
+fixed-denominator rates.
 
-(2) DeepSeek has the largest raw completion point estimate
-(\DeepSeekSuccessRate); Qwen3.5 has the largest API-conditioned point estimate
-(\QwenThreeFiveApiCleanRate). These answer different questions, so the latter
-is not relabelled as agent completion.
+On the \CommonQorTaskCount{} tasks scoreable for every configuration, Qwen3.5
+records the highest starter- and reference-anchored means. Its reference mean
+is 0.37 above Qwen3.6. These QoR values use the fixed composite utility defined
+in Section~III.
 
-(3) Qwen3.5 has the largest paired QoR point estimates. Its reference mean is
-only 0.37 above Qwen3.6; one campaign per configuration provides no uncertainty
-or stable-ranking claim. DeepSeek has the lowest observed selected-record
-token total.
+\textbf{Token use.} Observed all-attempt consumption, including retries, is
+2.128M tokens for DeepSeek, $\geq$4.261M for Qwen3.5, and $\geq$5.398M for
+Qwen3.6. Failed Qwen requests omit usage, so both Qwen totals are lower bounds.
 
-\textbf{Configuration boundary.} The recorded snapshots match in 83/86 files,
-including controller, prompts, gates, and scoring; differences are confined to
-provider/run-contract, metric-recording, and runner/record-validation plumbing.
-Because the provider adapter is outside the snapshot, the rows compare complete
-deployed configurations rather than isolating endpoint or model effects.
+\textbf{Reproduction and limits.} Campaigns share the controller, prompts,
+gates, score, and budgets; endpoint adapters and provider reasoning differ.
+Thus one campaign per configuration supports descriptive, not causal,
+comparison. The public artifact repository~\cite{fpt26repo} provides code,
+run records, hashes, and aggregation scripts; hosted reruns may vary.

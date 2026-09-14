@@ -20,8 +20,10 @@ fractions clipped to $[0,1]$. The final score is
 S=100\,V(c)\,Q_{\mathrm{HW}}\,E.
 \label{eq:score}
 \end{equation}
-The 0.99 and 2 factors encode anti-no-op and repair policies; the 0.85/0.15
-and 0.55/0.45 exponents are fixed heuristic weights. The same scoring module
-and constants apply to every campaign, but we make no sensitivity claim;
-reported QoR comparisons are conditional on this utility. Promotion occurs
-only after $V(c){=}1$, and a failed gate yields $S{=}0$.
+The 0.99 and 2 factors encode anti-no-op and repair policies, while 0.85/0.15
+is a fixed latency/II split. The 0.55/0.45 performance/resource balance was
+heuristically calibrated against 95 official PPA references using 99 fresh
+Vitis~2025.2 measurements; 0.55 lies inside their feasible interval. This
+supports a common operating point, but the evidence is limited and one fixed
+exponent need not fit every task. Promotion occurs only after $V(c){=}1$, and
+a failed gate yields $S{=}0$.

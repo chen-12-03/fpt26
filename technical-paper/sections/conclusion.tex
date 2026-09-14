@@ -1,13 +1,17 @@
-\section{Limits and Next Steps}
+\section{Conclusion}
 
-The \VCL{} retains a verified fallback under finite tool gates and a composite
-promotion utility. All 424 public-completed outputs pass the recorded hidden
-suite, conditional on excluding 26 runs without public completion.
+The \VCL{} preserves a verified fallback under finite validation gates. Across
+one campaign per configuration, completion ranges from 140/150 to 143/150; all
+424 outputs that pass the public gates also pass our evaluator-side held-out
+suite, which is not the organizer's final hidden benchmark. Qwen3.5 has the
+highest paired composite-score means (77.77/78.93), whereas DeepSeek uses the
+fewest observed tokens.
 
-Claims remain system-level: evidence comprises one Vitis~2025.2/U55C campaign
-per configuration, no repeats, intervals, sensitivity study, or component
-ablation, and QoR covers 24 common tasks under a fixed heuristic. Moreover,
-provider/run plumbing differs despite 83/86 matching source files; the provider
-adapter is unsnapshotted and the DeepSeek identity lacks immutable license
-evidence. Hence causal, stable-ranking, and competition-compliance claims are
-unwarranted.
+All configurations complete 25/25 synthesis-repair tasks; DeepSeek, Qwen3.5,
+and Qwen3.6 respectively lead functional repair (22/25), code generation
+(25/25), and structural repair (25/25).
+
+These results describe deployed configurations rather than causal model
+effects. The public repository provides code, run records, and aggregation
+scripts. Repeated campaigns, component ablations, and score-sensitivity studies
+remain future work.

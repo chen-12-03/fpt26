@@ -51,9 +51,8 @@ S.~Yao, J.~Zhao, D.~Yu, N.~Du, I.~Shafran, K.~Narasimhan, and Y.~Cao,
   ``{ReAct}: Synergizing reasoning and acting in language models,'' in
   \emph{International Conference on Learning Representations}, 2023.
 
-\bibitem{fpt26tracka}
-{FPT 2026 Organizing Committee}, ``{FPT'26 Design Competition: Track A},''
-  \url{https://fpt2026.uark.edu/fpt26-design-competition/}, 2026, accessed July
-  2026.
+\bibitem{fpt26repo}
+{Team 46474}, ``{FPT'26 Track-A Agent and Evaluation Artifacts},''
+  \url{https://github.com/chen-12-03/fpt26}, 2026, accessed September 2026.
 
 \end{thebibliography}
