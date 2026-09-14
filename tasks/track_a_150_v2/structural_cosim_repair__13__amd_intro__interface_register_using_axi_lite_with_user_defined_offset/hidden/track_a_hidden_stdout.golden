@@ -1,6 +1,0 @@
-HLS AXI-Lite Example
-Function c += a + b
-Initial values a = 8, b = 10, c = 0
-HW result = 15
-SW result = 15
-Success SW and HW results match
