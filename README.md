@@ -29,23 +29,12 @@ OPENROUTER_API_KEY=${KEY}
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 LLM4HLS_MODEL=qwen/qwen3.6-27b
 EOF
-# 3. Run a single task (mounts Vitis parent directory at /tools/Xilinx)
-VITIS_PARENT=$(dirname $(dirname "$VITIS_SDK"))   # e.g. /tools/Xilinx
-docker run --rm \
-  -v $(pwd):/workspace \
-  -v "${VITIS_PARENT}:/tools/Xilinx:ro" \
-  --env-file /tmp/fpt26.env \
-  -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
-  -e FPT26_CLI_IN_CONTAINER=1 \
-  -w /workspace/fpt26-agent-v3 \
-  fpt26-agent-v3:latest \
-  bash -c "source /tools/Xilinx/2025.2/Vitis/settings64.sh && \
-    python3 -m agent.run_cli \
-      --task-root /workspace/tasks/track_a_150 \
-      --task-id qor_optimization__13__amd_intro__interface_streaming_axi_stream_to_master \
-      --mode auto \
-      --backend openrouter \
-      --output-root /workspace/runs/demo"
+# 3. Run one public task, then grade it in a separate offline container.
+RUN_LABEL=demo_qwen36 \
+MODEL_ID=qwen/qwen3.6-27b \
+ENV_FILE=/tmp/fpt26.env BACKEND=openrouter \
+SHARD_COUNT=1 SHARD_INDEX=0 TASK_IDS=ta2_qo_001 \
+./run_track_a_v4_split.sh
 ```
 
 ## Prerequisites
@@ -101,20 +90,12 @@ LLM4HLS_MODEL=qwen/qwen3.6-27b
 ├── fpt26-harness/           # Vitis tool-call harness
 │   ├── run-vitis.sh         #   csim / synth / cosim wrapper
 │   └── vitis.dockerfile     #   Reference Vitis image
-├── tasks/track_a_150/       # 150-task balanced benchmark
-│   ├── candidate_manifest.json
-│   ├── code_generation/     #   25 tasks: stub → kernel
-│   ├── compile_repair/      #   25 tasks: fix compile errors
-│   ├── synthesis_repair/    #   25 tasks: fix synthesis failures
-│   ├── functional_repair/   #   25 tasks: fix CSim failures
-│   ├── structural_cosim_repair/  # 25 tasks: fix CoSim deadlocks
-│   └── qor_optimization/    #   25 tasks: improve PPA
+├── releases/track_a_150_v4_20260911/
+│   ├── public_agent/        # Public-only 150-task bundle
+│   └── evaluator_private/   # Hidden tests + references (Evaluator only)
 ├── tools/                   # Audit, validation & summarisation scripts
-├── runs/150_ultimate/       # Raw results (submission evidence)
-│   ├── CROSS_MODEL_REPORT.md
-│   ├── deepseek/
-│   ├── qwen3.5-122b-a10b/
-│   └── qwen3.6-27b/
+├── runs/                    # Ignored runtime evidence and summaries
+├── run_track_a_v4_split.sh  # Physically isolated campaign entry point
 ├── docs/experiment-results.md  # Detailed paper experiment tables
 ├── technical-paper/         # IEEE double-column paper + LaTeX source
 │   ├── main.pdf
@@ -139,50 +120,29 @@ The `--mode` flag selects the agent's repair pipeline:
 
 ## Batch Evaluation (150 Tasks)
 
-The scoring infrastructure runs each task in its own isolated Docker
-container.  The launcher therefore needs the Docker socket mounted:
+The campaign uses distinct Submission and Evaluator containers. The
+Submission container never mounts the repository root or evaluator bundle;
+the Evaluator has no API environment and runs with `--network none`:
 
 ```bash
-# Three-way shard launch — copy & paste for each shard index
-SHARD=0  # or 1, 2
-MODEL=qwen/qwen3.6-27b
-OUTPUT=runs/my_run_shard${SHARD}
-
-VITIS_PARENT=$(dirname $(dirname "$VITIS_SDK"))
-docker run -d --name fpt26-s${SHARD} \
-  -v $(pwd):/workspace \
-  -v "${VITIS_PARENT}:/tools/Xilinx:ro" \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  --env-file /tmp/fpt26.env \
-  -e PYTHONPATH=/workspace:/workspace/fpt26-agent-v3:/workspace/fpt26-harness \
-  -w /workspace/fpt26-agent-v3 \
-  fpt26-agent-v3:latest \
-  bash -c "source /tools/Xilinx/2025.2/Vitis/settings64.sh && \
-    python3 -m scoring.run_p0_real_api_shard \
-      --task-root /workspace/tasks/track_a_150 \
-      --output-root /workspace/${OUTPUT} \
-      --shard-index ${SHARD} --shard-count 3 \
-      --task-timeout-s 7200 \
-      --backend openrouter --model ${MODEL}"
+RUN_LABEL=my_qwen36_full150 \
+MODEL_ID=qwen/qwen3.6-27b \
+ENV_FILE=/tmp/fpt26.env BACKEND=openrouter \
+SHARD_COUNT=3 SHARD_INDEX=all \
+./run_track_a_v4_split.sh
 ```
 
-After all shards finish, generate the cross-model report:
-
-```bash
-python3 tools/write_track_a_final_summary.py \
-  --run-root runs/my_run_shard0 \
-  runs/my_run_shard1 \
-  runs/my_run_shard2 \
-  --output runs/my_run/CROSS_MODEL_REPORT.md
-```
+See [`docs/track-a-v4-isolated-reproduction.md`](docs/track-a-v4-isolated-reproduction.md)
+for mount guarantees, external private-bundle placement, resume behavior,
+output layout, and three-model commands.
 
 ## Reproducing Paper Results
 
 The detailed tables omitted from the two-page paper are collected in
 [`docs/experiment-results.md`](docs/experiment-results.md).
 
-1. Place the three model outputs under `runs/150_ultimate/` (already provided
-   with submission evidence).
+1. Retain the six canonical v4 run roots and their `shard_summary.json` files,
+   or regenerate them with the isolated launcher above.
 2. Refresh generated macros:
    ```bash
    python3 technical-paper/scripts/update_results.py

@@ -369,6 +369,8 @@ def execution_source_snapshot(root: Path | None = None) -> dict[str, Any]:
             "scoring/scoring_v3.py",
             "scoring/profiles.py",
             "scoring/run_p0_real_api_shard.py",
+            "scoring/isolated_role_entrypoint.py",
+            "scoring/assemble_isolated_shard.py",
             "scoring/snapshot_execution_source.py",
             "scoring/reconcile_p0_evaluators.py",
             "scoring/audit_p0_acceptance.py",
@@ -1294,11 +1296,26 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Run only task IDs listed in retry_task_ids of a P0 audit",
     )
+    parser.add_argument(
+        "--allow-legacy-shared-container",
+        action="store_true",
+        help=(
+            "Explicitly allow the historical single-container launcher. "
+            "New reproducible runs must use run_track_a_v4_split.sh."
+        ),
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    if not args.allow_legacy_shared_container:
+        raise RuntimeError(
+            "the shared-container batch entry point is disabled by default; "
+            "use run_track_a_v4_split.sh so the submission container cannot "
+            "mount hidden/reference data (or pass "
+            "--allow-legacy-shared-container only to reproduce historical runs)"
+        )
     if not 0 <= args.shard_index < args.shard_count:
         raise RuntimeError("shard index is outside shard count")
     requested = set(args.task_id)
