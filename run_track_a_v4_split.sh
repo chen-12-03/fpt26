@@ -26,13 +26,29 @@ COSIM_TIMEOUT_S=${COSIM_TIMEOUT_S:-240}
 HOST_OUTPUT_ROOT=$HOST_REPO/runs/$RUN_LABEL
 AGENT_ROOT=$HOST_REPO/fpt26-agent-v3
 HARNESS_ROOT=$HOST_REPO/fpt26-harness
-VITIS_ROOT=/tools/Xilinx/2025.2/Vitis
+VITIS_SDK=${VITIS_SDK:-/tools/Xilinx/2025.2/Vitis}
+VITIS_MOUNT_ROOT=${VITIS_MOUNT_ROOT:-$(dirname "$(dirname "$VITIS_SDK")")}
 
 test -f "$ENV_FILE" || { echo "env file not found: $ENV_FILE" >&2; exit 2; }
 test -d "$PUBLIC_ROOT" || { echo "public corpus not found: $PUBLIC_ROOT" >&2; exit 2; }
 test -d "$PRIVATE_ROOT" || { echo "evaluator corpus not found: $PRIVATE_ROOT" >&2; exit 2; }
 test -d "$AGENT_ROOT" || { echo "agent source not found: $AGENT_ROOT" >&2; exit 2; }
 test -d "$HARNESS_ROOT" || { echo "harness source not found: $HARNESS_ROOT" >&2; exit 2; }
+test -f "$VITIS_SDK/settings64.sh" || {
+  echo "Vitis settings not found: $VITIS_SDK/settings64.sh" >&2
+  exit 2
+}
+VITIS_SDK=$(realpath "$VITIS_SDK")
+VITIS_MOUNT_ROOT=$(realpath "$VITIS_MOUNT_ROOT")
+case "$VITIS_SDK" in
+  "$VITIS_MOUNT_ROOT"/*) ;;
+  *)
+    echo "VITIS_SDK must be below VITIS_MOUNT_ROOT" >&2
+    exit 2
+    ;;
+esac
+VITIS_RELATIVE_PATH=${VITIS_SDK#"$VITIS_MOUNT_ROOT"/}
+CONTAINER_VITIS_SDK=/tools/Xilinx/$VITIS_RELATIVE_PATH
 [[ "$SHARD_COUNT" =~ ^[1-9][0-9]*$ ]] || { echo "invalid SHARD_COUNT" >&2; exit 2; }
 [[ "$RUN_LABEL" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || {
   echo "RUN_LABEL may contain only letters, digits, dot, underscore, and hyphen" >&2
@@ -77,7 +93,8 @@ fi
 common_mounts=(
   -v "$AGENT_ROOT:/opt/fpt26-agent:ro"
   -v "$HARNESS_ROOT:/opt/fpt26-harness:ro"
-  -v /tools/Xilinx:/tools/Xilinx:ro
+  -v "$VITIS_MOUNT_ROOT:/tools/Xilinx:ro"
+  -e "LLM4HLS_VITIS_HLS_ROOT=$CONTAINER_VITIS_SDK"
   -e PYTHONPATH=/opt/fpt26-agent:/opt/fpt26-harness
   -e PYTHONDONTWRITEBYTECODE=1
   -e PYTHONUNBUFFERED=1
@@ -102,7 +119,7 @@ run_submission() {
     -v "$PUBLIC_ROOT:/fpt26-public-tasks:ro" \
     -v "$attempt_root/submission:/fpt26-output" \
     "$IMAGE" \
-    bash -lc 'source /tools/Xilinx/2025.2/Vitis/settings64.sh && exec python3 -m scoring.isolated_role_entrypoint "$@"' \
+    bash -lc 'source "$LLM4HLS_VITIS_HLS_ROOT/settings64.sh" && exec python3 -m scoring.isolated_role_entrypoint "$@"' \
     fpt26-entry submission \
       --task "/fpt26-public-tasks/$task_id" \
       --output-root /fpt26-output \
@@ -130,7 +147,7 @@ run_evaluator() {
     -v "$attempt_root/submission:/fpt26-submission:ro" \
     -v "$attempt_root/evaluator:/fpt26-output" \
     "$IMAGE" \
-    bash -lc 'source /tools/Xilinx/2025.2/Vitis/settings64.sh && exec python3 -m scoring.isolated_role_entrypoint "$@"' \
+    bash -lc 'source "$LLM4HLS_VITIS_HLS_ROOT/settings64.sh" && exec python3 -m scoring.isolated_role_entrypoint "$@"' \
     fpt26-entry evaluator \
       --task "/fpt26-evaluator-tasks/$task_id" \
       --submission-root /fpt26-submission \
@@ -214,6 +231,7 @@ echo "Track-A v4 physically isolated run"
 echo "  run=$RUN_LABEL model=$MODEL_ID backend=$BACKEND"
 echo "  public=$PUBLIC_ROOT"
 echo "  evaluator=$PRIVATE_ROOT"
+echo "  vitis=$VITIS_SDK"
 echo "  tasks=${#SELECTED_TASK_IDS[@]} shards=$SHARD_COUNT selected_shard=$SHARD_INDEX"
 
 if [[ "$SHARD_INDEX" == all ]]; then

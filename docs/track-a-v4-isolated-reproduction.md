@@ -18,7 +18,8 @@ matches both submission records.
 ## Inputs
 
 - Docker image: `fpt26-agent-v3:latest`
-- Vitis 2025.2: mounted read-only from `/tools/Xilinx`
+- Vitis 2025.2: mounted read-only from `/tools/Xilinx` by default; set
+  `VITIS_SDK` when the host installation lives elsewhere
 - Public bundle: `releases/track_a_150_v4_20260911/public_agent`
 - Evaluator bundle: `releases/track_a_150_v4_20260911/evaluator_private`
 - One untracked environment file per model containing its API endpoint, key,
@@ -27,6 +28,50 @@ matches both submission records.
 The evaluator bundle may be moved outside the public repository. Set
 `PRIVATE_ROOT=/absolute/path/to/evaluator_private`; the Submission mount list
 is unchanged.
+
+## Deterministic paper-data check
+
+The submitted paper macros come from the committed canonical dataset and the
+frozen evaluator mapping. This check uses no network, API key, or Vitis
+license:
+
+```bash
+docker run --rm --network none \
+  -v "$PWD:/workspace:ro" -w /workspace \
+  fpt26-agent-v3:latest \
+  python3 technical-paper/scripts/update_results.py --check
+```
+
+The command verifies both `technical-paper/results_generated.tex` and
+`technical-paper/evaluator_results_generated.tex`. To regenerate the files,
+use a writable repository mount, add `--user "$(id -u):$(id -g)"`, and remove
+`--check`.
+
+Verify the frozen public and evaluator corpus manifests separately:
+
+```bash
+VITIS_SDK=${VITIS_SDK:-/tools/Xilinx/2025.2/Vitis}
+VITIS_MOUNT_ROOT=${VITIS_MOUNT_ROOT:-$(dirname "$(dirname "$VITIS_SDK")")}
+VITIS_RELATIVE_PATH=$(realpath --relative-to="$VITIS_MOUNT_ROOT" "$VITIS_SDK")
+
+docker run --rm --network none \
+  -v "$PWD:/workspace:ro" \
+  -v "$VITIS_MOUNT_ROOT:/tools/Xilinx:ro" \
+  -e "LLM4HLS_VITIS_HLS_ROOT=/tools/Xilinx/$VITIS_RELATIVE_PATH" \
+  -w /workspace \
+  fpt26-agent-v3:latest \
+  /bin/bash -lc 'source "$LLM4HLS_VITIS_HLS_ROOT/settings64.sh" && \
+    python3 tools/audit_track_a_release.py \
+      --release-root releases/track_a_150_v4_20260911 \
+      --output /tmp/track_a_v4_release_audit.json'
+```
+
+`VITIS_SDK` must point to the directory containing `settings64.sh`, and it must
+be below `VITIS_MOUNT_ROOT`. The launcher applies the same path mapping.
+
+Evidence reproduction is deterministic. A new hosted-model campaign may
+produce different source candidates because provider implementations and
+model sampling can change.
 
 ## Basic smoke run
 

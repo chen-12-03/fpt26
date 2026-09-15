@@ -75,6 +75,12 @@ texput.*
 # IDE
 .vscode/
 .idea/
+.claude/
+
+# Retired local worktrees and paper variants
+/fpt26/
+/technical-paper-cn/
+/technical-paper/main.pdf
 
 # Temporary files
 tmp/

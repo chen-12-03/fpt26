@@ -710,7 +710,7 @@ QoR 只在以下五处出现。这样既体现评分机制，又保持图的可�
 | `technical-paper/figures/figure_spec_vcl.md` | 早期紧凑图规范；双路径语义以本文件为准 |
 | `technical-paper/main_cn.md` | 中文论文主叙事 |
 | `technical-paper/report_zh_review.md` | 中文审阅和背景说明 |
-| `docs/2507.00642v4.pdf` | ChatHLS 参考论文；仅用于观察绘图风格和信息密度 |
+| `https://arxiv.org/abs/2507.00642v4` | ChatHLS 参考论文；仅用于观察绘图风格和信息密度 |
 
 ### 23.10 相关测试
 

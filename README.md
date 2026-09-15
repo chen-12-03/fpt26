@@ -18,7 +18,7 @@ Vitis 2025.2 and targets the Alveo U55C platform.
 export VITIS_SDK=/tools/Xilinx/2025.2/Vitis   # <-- EDIT THIS LINE
 ls "$VITIS_SDK/settings64.sh"                 # verify the path exists
 
-# 1. Build the Docker image (base image: public ubuntu:22.04)
+# 1. Build the Docker image (base image: Xilinx Alveo runtime on Ubuntu 22.04)
 export FPT26_REPO_ROOT=$(pwd) HOST_UID=$(id -u) HOST_GID=$(id -g)
 docker compose -f fpt26-agent-v3/docker-compose.yml build
 
@@ -98,7 +98,6 @@ LLM4HLS_MODEL=qwen/qwen3.6-27b
 ├── run_track_a_v4_split.sh  # Physically isolated campaign entry point
 ├── docs/experiment-results.md  # Detailed paper experiment tables
 ├── technical-paper/         # IEEE double-column paper + LaTeX source
-│   ├── main.pdf
 │   ├── main.tex
 │   ├── output/pdf/FPT26_46474_NULL.pdf
 │   └── sections/
@@ -141,17 +140,43 @@ output layout, and three-model commands.
 The detailed tables omitted from the two-page paper are collected in
 [`docs/experiment-results.md`](docs/experiment-results.md).
 
-1. Retain the six canonical v4 run roots and their `shard_summary.json` files,
-   or regenerate them with the isolated launcher above.
-2. Refresh generated macros:
-   ```bash
-   python3 technical-paper/scripts/update_results.py
-   ```
-3. Compile the paper:
-   ```bash
-   cd technical-paper
-   pdflatex main && bibtex main && pdflatex main && pdflatex main
-   ```
+The repository supports two reproduction levels. Evidence reproduction is
+deterministic and requires no API key or Vitis license. A new three-endpoint
+campaign uses hosted models and may produce different candidate text.
+
+Verify that the committed LaTeX macros match the canonical v4 dataset:
+
+```bash
+docker run --rm --network none \
+  -v "$PWD:/workspace:ro" -w /workspace \
+  fpt26-agent-v3:latest \
+  python3 technical-paper/scripts/update_results.py --check
+```
+
+Regenerate both macro files after changing the canonical dataset:
+
+```bash
+docker run --rm --network none \
+  --user "$(id -u):$(id -g)" \
+  -v "$PWD:/workspace" -w /workspace \
+  fpt26-agent-v3:latest \
+  python3 technical-paper/scripts/update_results.py
+```
+
+The generator reads only the committed canonical dataset and the frozen v4
+evaluator mapping. It does not read `runs/` or `tasks/track_a_150`. The exact
+data source is
+[`technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json`](technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json).
+
+Compile the paper with an IEEEtran-capable TeX installation:
+
+```bash
+cd technical-paper
+pdflatex main && bibtex main && pdflatex main && pdflatex main
+```
+
+See [`docs/track-a-v4-isolated-reproduction.md`](docs/track-a-v4-isolated-reproduction.md)
+for corpus-integrity checks and full campaign commands.
 
 ## Submission Checklist (Track-A)
 
@@ -167,7 +192,7 @@ The detailed tables omitted from the two-page paper are collected in
 
 ## License
 
-Agent code: MIT.  Task corpus kernels derived from AMD/Xilinx
-`Vitis-HLS-Introductory-Examples` (Apache-2.0) and `Vitis_Accel_Examples`
-(MIT).  See `tasks/track_a_150/candidate_manifest.json` for per-task
-provenance.
+Original repository code is available under the [MIT License](LICENSE). The
+frozen corpus retains the licenses of its ten upstream source suites. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), [`LICENSES/`](LICENSES/),
+and the evaluator-side `EVALUATOR_MAPPING.json` for task-level provenance.

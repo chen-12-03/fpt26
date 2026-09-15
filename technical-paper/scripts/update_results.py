@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate LaTeX macros and table rows from the frozen corpus and run reports."""
+"""Regenerate paper macros from the committed Track-A v4 evidence."""
 
 from __future__ import annotations
 
@@ -7,27 +7,13 @@ import argparse
 import json
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 
 MODEL_SPECS = (
-    (
-        "DeepSeek",
-        "DeepSeek V4 Pro",
-        "deepseek/deepseek-v4-pro",
-        "track_a_150_or_dsv4_*/final_report.json",
-    ),
-    (
-        "QwenThreeFive",
-        "Qwen3.5-122B-A10B",
-        "qwen/qwen3.5-122b-a10b",
-        "track_a_150_or_qwen35_*/final_report.json",
-    ),
-    (
-        "QwenThreeSix",
-        "Qwen3.6-27B",
-        "qwen/qwen3.6-27b",
-        "track_a_150_or_qwen36_*/final_report.json",
-    ),
+    ("DeepSeek", "deepseek-v4-pro", "DeepSeek V4 Pro", False),
+    ("QwenThreeFive", "qwen3.5-122b-a10b", "Qwen3.5-122B-A10B", True),
+    ("QwenThreeSix", "qwen3.6-27b", "Qwen3.6-27B", True),
 )
 
 CATEGORY_ORDER = (
@@ -35,417 +21,311 @@ CATEGORY_ORDER = (
     "compile_repair",
     "synthesis_repair",
     "functional_repair",
-    "structural_cosim_repair",
+    "structural_repair",
     "qor_optimization",
 )
-
-MAIN_TABLE_NAMES = {
-    "DeepSeek": "DeepSeek V4 Pro",
-    "QwenThreeFive": "Qwen3.5-122B-A10B",
-    "QwenThreeSix": "Qwen3.6-27B",
-}
-
-
-def load_json(path: Path) -> dict:
-    with path.open(encoding="utf-8") as handle:
-        return json.load(handle)
-
-
-def latest_report(runs_root: Path, pattern: str) -> Path:
-    matches = sorted(runs_root.glob(pattern))
-    if not matches:
-        raise FileNotFoundError(f"no report matches {runs_root / pattern}")
-    return matches[-1]
-
-
-def percent(value: float, digits: int = 1) -> str:
-    return f"{100.0 * value:.{digits}f}"
 
 
 def command(name: str, value: str) -> str:
     return rf"\newcommand{{\{name}}}{{{value}}}"
 
 
-def breakable_monospace(value: str, chunk_size: int = 8) -> str:
-    chunks = [
-        value[index : index + chunk_size]
-        for index in range(0, len(value), chunk_size)
-    ]
-    return r"\texttt{" + r"\allowbreak{}".join(chunks) + "}"
+def load_json(path: Path) -> dict[str, Any]:
+    with path.open(encoding="utf-8") as handle:
+        value = json.load(handle)
+    if not isinstance(value, dict):
+        raise ValueError(f"expected a JSON object: {path}")
+    return value
 
 
-def submission_report_path(repo_root: Path, recorded_path: str) -> Path:
-    path = Path(recorded_path)
-    if path.exists():
-        return path
-    parts = path.parts
-    if "runs" not in parts:
-        raise ValueError(f"cannot resolve submission report: {recorded_path}")
-    candidate = repo_root.joinpath(*parts[parts.index("runs") :])
-    if not candidate.exists():
-        raise FileNotFoundError(candidate)
-    return candidate
+def percent(value: float) -> str:
+    return f"{value:.1f}\\%"
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    repo_root = Path(__file__).resolve().parents[2]
-    parser.add_argument(
-        "--runs-root", type=Path, default=repo_root / "runs"
-    )
-    parser.add_argument(
-        "--manifest",
-        type=Path,
-        default=repo_root / "tasks/track_a_150/candidate_manifest.json",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=repo_root / "technical-paper/results_generated.tex",
-    )
-    args = parser.parse_args()
+def millions(value: int) -> str:
+    return f"{value / 1_000_000:.3f}"
 
-    manifest = load_json(args.manifest)
-    tasks = manifest["tasks"]
-    repo_counts = Counter(
-        task["source_url"].split("/tree/")[0].rsplit("/", 1)[-1]
-        for task in tasks
-    )
-    cosim_count = sum(bool(task["requires_cosim"]) for task in tasks)
 
-    reports: list[tuple[str, str, dict, Path]] = []
-    execution_source_hash: str | None = None
-    credit_limit: int | None = None
-    for prefix, display, expected_model, pattern in MODEL_SPECS:
-        path = latest_report(args.runs_root, pattern)
-        report = load_json(path)
-        models = report["model_and_api"]["models"]
-        if models != [expected_model]:
-            raise ValueError(f"{path}: expected {expected_model}, found {models}")
-        if report["coverage"]["recorded_task_count"] != manifest["task_count"]:
-            raise ValueError(f"{path}: report and corpus task counts differ")
-        if report["model_and_api"]["clients"] != ["OpenRouterClient"]:
-            raise ValueError(f"{path}: campaign did not use OpenRouterClient")
-        proven_task_count = report["model_and_api"][
-            "model_compliance_proven_task_count"
-        ]
-        if proven_task_count != manifest["task_count"]:
-            raise ValueError(f"{path}: model compliance is incomplete")
-        if report["model_and_api"]["mock_or_scripted_backend_observed"]:
-            raise ValueError(f"{path}: mock or scripted backend was observed")
-        report_source_hash = report["coverage"]["execution_source_tree_sha256"]
-        report_credit_limit = report["aggregate"]["credit_limit"]
-        if execution_source_hash is None:
-            execution_source_hash = report_source_hash
-            credit_limit = report_credit_limit
-        if report_source_hash != execution_source_hash:
-            raise ValueError(f"{path}: execution source hash differs")
-        if report_credit_limit != credit_limit:
-            raise ValueError(f"{path}: campaign credit limit differs")
-        reports.append((prefix, display, report, path))
+def validate_inputs(data: dict[str, Any], mapping: dict[str, Any]) -> None:
+    if data.get("schema_version") != 1:
+        raise ValueError("unsupported paper-data schema")
+    if mapping.get("schema_version") != 1:
+        raise ValueError("unsupported evaluator-mapping schema")
 
-    assert execution_source_hash is not None
-    assert credit_limit is not None
+    task_count = int(data["frozen_release"]["task_count"])
+    tasks = mapping["tasks"]
+    if mapping.get("task_count") != task_count or len(tasks) != task_count:
+        raise ValueError("paper data and evaluator mapping use different task counts")
+    if len({row["public_task_id"] for row in tasks}) != task_count:
+        raise ValueError("evaluator mapping contains duplicate public task IDs")
+
+    expected_models = {key for _, key, _, _ in MODEL_SPECS}
+    if set(data["models"]) != expected_models:
+        raise ValueError("paper data does not contain the expected three endpoints")
+    for _, key, _, _ in MODEL_SPECS:
+        view = data["models"][key]["selected_view"]
+        if view["public_gate_completion"]["denominator"] != task_count:
+            raise ValueError(f"{key}: selected view has the wrong denominator")
+        if set(view["categories"]) != set(CATEGORY_ORDER):
+            raise ValueError(f"{key}: category set differs from the paper contract")
+
+    common = data["common_qor_subset"]
+    if common["task_count"] != len(common["task_ids"]):
+        raise ValueError("common QoR task count does not match its ID list")
+
+
+def corpus_counts(mapping: dict[str, Any]) -> Counter[str]:
+    counts: Counter[str] = Counter()
+    for row in mapping["tasks"]:
+        url = row["source_url"]
+        if "/sharc-lab/hls-eval/" in url:
+            counts["hls_eval"] += 1
+        elif "/Xilinx/Vitis-HLS-Introductory-Examples/" in url:
+            counts["intro"] += 1
+        elif "/Xilinx/Vitis_Accel_Examples/" in url:
+            counts["accel"] += 1
+        elif "/Xilinx/Vitis-HLS-Performance-Pragma/" in url:
+            counts["performance_pragma"] += 1
+        else:
+            raise ValueError(f"unclassified source URL: {url}")
+    return counts
+
+
+def render_results(data: dict[str, Any], mapping: dict[str, Any]) -> str:
+    task_count = int(data["frozen_release"]["task_count"])
+    generated_on = data["generated_on"]
+    source_counts = corpus_counts(mapping)
+    unique_sources = len({row["source_path"] for row in mapping["tasks"]})
+    first_view = data["models"][MODEL_SPECS[0][1]]["selected_view"]
+    tasks_per_category = first_view["categories"][CATEGORY_ORDER[0]]["task_count"]
+    required_cosim = first_view["categories"]["structural_repair"]["task_count"]
+
     lines = [
-        "% Generated by technical-paper/scripts/update_results.py.",
-        "% Edit the JSON inputs, then rerun the script; do not edit this file.",
-        command("CorpusTaskCount", str(manifest["task_count"])),
-        command(
-            "TasksPerCategory",
-            str(next(iter(manifest["category_counts"].values()))),
-        ),
-        command(
-            "IntroExampleTaskCount",
-            str(repo_counts["Vitis-HLS-Introductory-Examples"]),
-        ),
-        command(
-            "AccelExampleTaskCount",
-            str(repo_counts["Vitis_Accel_Examples"]),
-        ),
-        command(
-            "UniqueSourcePathCount",
-            str(len({task["source_path"] for task in tasks})),
-        ),
-        command("RequiredCosimTaskCount", str(cosim_count)),
-        command(
-            "TotalModelTaskRuns",
-            str(manifest["task_count"] * len(reports)),
-        ),
-        command("CampaignCreditLimit", f"{credit_limit:,}"),
-        command(
-            "ExecutionSourceHash",
-            breakable_monospace(execution_source_hash),
-        ),
+        f"% Audited from the canonical Track-A v4 dataset generated on {generated_on}.",
+        "% Source: evidence/track_a_v4_three_model_paper_data_20260913.json",
+        "% Primary comparison: one final selected-record campaign result per endpoint.",
+        command("CorpusTaskCount", str(task_count)),
+        command("TasksPerCategory", str(tasks_per_category)),
+        command("RequiredCosimTaskCount", str(required_cosim)),
+        command("TotalModelTaskRuns", str(task_count * len(MODEL_SPECS))),
         "",
+        "% Frozen v4 corpus provenance.",
+        command("HLSEvalTaskCount", str(source_counts["hls_eval"])),
+        command("IntroExampleTaskCount", str(source_counts["intro"])),
+        command("AccelExampleTaskCount", str(source_counts["accel"])),
+        command("PerformancePragmaTaskCount", str(source_counts["performance_pragma"])),
+        command("UniqueSourcePathCount", str(unique_sources)),
     ]
 
-    main_rows: list[str] = []
-    headline_rows: list[str] = []
-    category_rows: list[str] = []
-    token_rows: list[str] = []
-    provenance_rows: list[str] = []
-    campaign_summaries: dict[str, dict[str, int]] = {}
-    candidate_events = 0
-    candidate_interface_rejects = 0
-    candidate_synth_gates = 0
-    candidate_cosim_gates = 0
-    candidate_cosim_rejects = 0
-    for prefix, display, report, path in reports:
-        aggregate = report["aggregate"]
-        categories = report["category_metrics"]
-        success_count = aggregate["success_count"]
-        task_count = report["coverage"]["recorded_task_count"]
-        success_rate = percent(aggregate["success_rate"])
-        structural_rate = percent(
-            categories["structural_cosim_repair"]["success_rate"], 0
-        )
-        qor_rate = percent(categories["qor_optimization"]["success_rate"], 0)
-        qor_score = categories["qor_optimization"][
-            "mean_official_score_all_tasks"
-        ]
-        scored_mean = aggregate["official_score_mean_scored_tasks"]
-        all_task_mean = aggregate["official_score_mean_all_tasks"]
-        score_sum = aggregate["official_score_sum"]
-        scored_count = aggregate["scored_task_count"]
-        unscored_count = task_count - scored_count
-        prompt_tokens_m = aggregate["tokens"]["prompt"] / 1_000_000
-        completion_tokens_m = aggregate["tokens"]["completion"] / 1_000_000
-        tokens_m = aggregate["tokens"]["total"] / 1_000_000
-        api_failures = aggregate["failed_api_requests"]
-        retry_count = len(report["retry_task_ids"])
-        per_task = report["per_task"]
-        reeval_report_count = sum(
-            1
-            for candidate in (path.parent / "re_eval").glob(
-                "*/run_report.json"
-            )
-        )
-        selected_reeval_score_count = sum(
-            "/re_eval/"
-            in str(record.get("evaluator_report") or "").replace("\\", "/")
-            for record in per_task.values()
-        )
-        if selected_reeval_score_count > reeval_report_count:
-            raise ValueError(
-                f"{path}: selected evaluator reruns exceed available reports"
-            )
-        api_affected_task_count = sum(
-            (record.get("failed_api_requests") or 0) > 0
-            for record in per_task.values()
-        )
-        if api_affected_task_count != retry_count:
-            raise ValueError(
-                f"{path}: retry-task and failed-request task counts differ"
-            )
-        run_completed_count = sum(
-            record["outcome"] == "completed" for record in per_task.values()
-        )
-        api_affected_completed_count = sum(
-            record["outcome"] == "completed"
-            and (record.get("failed_api_requests") or 0) > 0
-            for record in per_task.values()
-        )
-        zero_response_failed_count = sum(
-            record["outcome"] == "failed"
-            and (record.get("api_requests") or 0) > 0
-            and (record.get("api_responses") or 0) == 0
-            for record in per_task.values()
-        )
-        if success_count != run_completed_count:
-            raise ValueError(
-                f"{path}: aggregate success no longer matches completed outcomes"
-            )
+    for prefix, key, display, lower_bound in MODEL_SPECS:
+        row = data["models"][key]
+        view = row["selected_view"]
+        outcomes = view["outcomes"]
+        public = view["public_gate_completion"]
+        api_clean = view["api_clean_agent_completion"]
+        qor = view["qor_25"]
+        selected_tokens = view["token_accounting"]
+        all_tokens = row["selection"]["all_attempt_token_accounting"]
+        common = data["common_qor_subset"]["models"][key]
+        comments = [f"% {display}."]
+        if lower_bound:
+            if prefix == "QwenThreeFive":
+                comments = [
+                    f"% {display}. Token totals are lower bounds because failed requests",
+                    "% omit usage.",
+                ]
+            else:
+                comments = [
+                    f"% {display}. Token totals are lower bounds because failed requests omit usage."
+                ]
         lines.extend(
             [
-                command(f"{prefix}SuccessCount", str(success_count)),
-                command(
-                    f"{prefix}FailureCount",
-                    str(task_count - success_count),
-                ),
-                command(f"{prefix}SuccessRate", rf"{success_rate}\%"),
-                command(f"{prefix}StructuralRate", rf"{structural_rate}\%"),
-                command(f"{prefix}QorRate", rf"{qor_rate}\%"),
-                command(f"{prefix}QorScore", f"{qor_score:.2f}"),
-                command(f"{prefix}ScoredMean", f"{scored_mean:.2f}"),
-                command(f"{prefix}ScoredTaskCount", str(scored_count)),
-                command(f"{prefix}UnscoredTaskCount", str(unscored_count)),
-                command(f"{prefix}AllTaskMean", f"{all_task_mean:.2f}"),
-                command(f"{prefix}ScoreSum", f"{score_sum:.2f}"),
-                command(f"{prefix}TokensM", f"{tokens_m:.2f}"),
-                command(f"{prefix}PromptTokensM", f"{prompt_tokens_m:.2f}"),
-                command(
-                    f"{prefix}CompletionTokensM",
-                    f"{completion_tokens_m:.2f}",
-                ),
-                command(
-                    f"{prefix}ApiRequests",
-                    f"{aggregate['api_requests']:,}",
-                ),
-                command(
-                    f"{prefix}ApiResponses",
-                    f"{aggregate['api_responses']:,}",
-                ),
-                command(
-                    f"{prefix}ApiFailures",
-                    f"{api_failures:,}",
-                ),
-                command(f"{prefix}RetryTaskCount", str(retry_count)),
-                command(
-                    f"{prefix}ApiAffectedTaskCount",
-                    str(api_affected_task_count),
-                ),
-                command(
-                    f"{prefix}RunCompletedCount",
-                    str(run_completed_count),
-                ),
-                command(
-                    f"{prefix}ApiAffectedCompletedCount",
-                    str(api_affected_completed_count),
-                ),
-                command(
-                    f"{prefix}ZeroResponseFailedCount",
-                    str(zero_response_failed_count),
-                ),
-                command(
-                    f"{prefix}Credits",
-                    f"{aggregate['credits_spent']:,}",
-                ),
-                command(
-                    f"{prefix}ToolCalls",
-                    f"{aggregate['tool_calls']:,}",
-                ),
-                command(
-                    f"{prefix}ReevalReportCount",
-                    str(reeval_report_count),
-                ),
-                command(
-                    f"{prefix}SelectedReevalScoreCount",
-                    str(selected_reeval_score_count),
-                ),
                 "",
+                *comments,
+                command(f"{prefix}SuccessCount", str(public["numerator"])),
+                command(f"{prefix}FailureCount", str(outcomes.get("failed", 0))),
+                command(
+                    f"{prefix}InfrastructureErrorCount",
+                    str(outcomes.get("infrastructure_error", 0)),
+                ),
+                command(f"{prefix}SuccessRate", percent(public["percent"])),
+                command(f"{prefix}ApiCleanCount", str(api_clean["numerator"])),
+                command(f"{prefix}ApiCleanDenominator", str(api_clean["denominator"])),
+                command(f"{prefix}ApiCleanRate", percent(api_clean["percent"])),
+                command(f"{prefix}QorProxyCount", str(qor["available_count"])),
+                command(
+                    f"{prefix}QorProxy",
+                    f"{qor['submission_starter_anchored_proxy']['mean']:.2f}",
+                ),
+                command(
+                    f"{prefix}CommonQorProxy",
+                    f"{common['submission_starter_anchored_proxy_mean']:.2f}",
+                ),
+                command(
+                    f"{prefix}TokensM",
+                    millions(selected_tokens["observed_total_tokens"]),
+                ),
+                command(
+                    f"{prefix}AllAttemptTokensM",
+                    millions(all_tokens["observed_total_tokens"]),
+                ),
+                command(f"{prefix}Credits", f"{selected_tokens['credits_spent']:,}"),
+                command(
+                    f"{prefix}ToolCalls", str(selected_tokens["submission_tool_calls"])
+                ),
+                command(f"{prefix}ApiRequests", str(selected_tokens["request_count"])),
+                command(f"{prefix}ApiResponses", str(selected_tokens["response_count"])),
+                command(
+                    f"{prefix}ApiFailures", str(selected_tokens["failed_request_count"])
+                ),
             ]
         )
 
-        main_rows.append(
-            f"{MAIN_TABLE_NAMES[prefix]} & {success_rate} & {structural_rate} & "
-            f"{qor_score:.2f} & {tokens_m:.2f} \\\\"
-        )
-        headline_rows.append(
-            f"{display} & {run_completed_count}/{task_count} & "
-            f"{scored_count} & {scored_mean:.2f} & {score_sum:.2f} & "
-            f"{api_failures} \\\\"
-        )
-        category_values = []
-        for category in CATEGORY_ORDER:
-            category_count = categories[category]["task_count"]
-            category_success = categories[category]["success_count"]
-            category_rate = percent(
-                categories[category]["success_rate"], 0
-            )
-            category_values.append(
-                f"{category_success}/{category_count} ({category_rate}\\%)"
-            )
+    category_rows = []
+    token_rows = []
+    for _, key, display, lower_bound in MODEL_SPECS:
+        view = data["models"][key]["selected_view"]
         category_rows.append(
-            f"{display} & "
-            + " & ".join(category_values)
-            + f" & {qor_score:.2f} \\\\"
-        )
-        token_rows.append(
-            f"{display} & {tokens_m:.2f} & "
-            f"{aggregate['credits_spent']:,} \\\\"
-        )
-        for record in per_task.values():
-            submission_path = submission_report_path(
-                repo_root, record["submission_report"]
+            " & ".join(
+                [display]
+                + [
+                    f"{view['categories'][category]['outcomes'].get('completed', 0)}/"
+                    f"{view['categories'][category]['task_count']}"
+                    for category in CATEGORY_ORDER
+                ]
             )
-            submission_report = load_json(submission_path)
-            for event in submission_report.get(
-                "candidate_validation_history", []
-            ):
-                if event.get("stage") == "baseline":
-                    continue
-                candidate_events += 1
-                candidate_interface_rejects += int(event.get("ok") is not True)
-            for event in submission_report.get(
-                "synthesis_gate_history", []
-            ):
-                stage = str(event.get("stage") or "")
-                if stage != "pipeline_synth" and not stage.endswith(
-                    "_accepted"
-                ):
-                    candidate_synth_gates += 1
-            for event in submission_report.get("cosim_gate_history", []):
-                stage = str(event.get("stage") or "")
-                if stage != "pipeline_cosim" and not stage.endswith(
-                    "_accepted"
-                ):
-                    candidate_cosim_gates += 1
-                    candidate_cosim_rejects += int(
-                        event.get("ok") is not True
-                    )
-        campaign_summaries[prefix] = {
-            "success_count": success_count,
-            "structural_success_count": categories[
-                "structural_cosim_repair"
-            ]["success_count"],
-        }
-        provenance_rows.append(
-            f"% {display}: {path.relative_to(repo_root)}"
+            + r" \\"
         )
-
-    qwen35 = campaign_summaries["QwenThreeFive"]
-    qwen36 = campaign_summaries["QwenThreeSix"]
+        selected_total = millions(view["token_accounting"]["observed_total_tokens"])
+        all_total = millions(
+            data["models"][key]["selection"]["all_attempt_token_accounting"][
+                "observed_total_tokens"
+            ]
+        )
+        marker = r"$\geq$" if lower_bound else ""
+        token_rows.append(
+            " & ".join(
+                [
+                    display,
+                    marker + selected_total,
+                    marker + all_total,
+                    f"{view['token_accounting']['credits_spent']:,}",
+                ]
+            )
+            + r" \\"
+        )
     lines.extend(
         [
-            command(
-                "OverallGapTaskCount",
-                str(qwen35["success_count"] - qwen36["success_count"]),
-            ),
-            command(
-                "StructuralGapTaskCount",
-                str(
-                    qwen35["structural_success_count"]
-                    - qwen36["structural_success_count"]
-                ),
-            ),
-            command("CandidateEventCount", f"{candidate_events:,}"),
-            command(
-                "CandidateInterfaceRejectCount",
-                f"{candidate_interface_rejects:,}",
-            ),
-            command(
-                "CandidateSynthGateCount",
-                f"{candidate_synth_gates:,}",
-            ),
-            command(
-                "CandidateCosimGateCount",
-                f"{candidate_cosim_gates:,}",
-            ),
-            command(
-                "CandidateCosimRejectCount",
-                f"{candidate_cosim_rejects:,}",
-            ),
             "",
-            r"\newcommand{\MainModelResultsRows}{%",
-            *main_rows,
-            "}",
-            r"\newcommand{\HeadlineModelResultsRows}{%",
-            *headline_rows,
-            "}",
-            r"\newcommand{\CategorySuccessRows}{%",
-            *category_rows,
-            "}",
-            r"\newcommand{\TokenAccountingRows}{%",
-            *token_rows,
-            "}",
-            "",
-            *provenance_rows,
-            "",
+            "% Repository-only appendix rows, ordered as code generation, compile repair,",
+            "% synthesis repair, functional repair, structural repair, and QoR optimization.",
+            command("CategorySuccessRows", "%\n" + "\n".join(category_rows) + "\n"),
+            command("TokenAccountingRows", "%\n" + "\n".join(token_rows) + "\n"),
         ]
     )
+    return "\n".join(lines) + "\n"
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text("\n".join(lines), encoding="utf-8")
+
+def render_evaluator_results(data: dict[str, Any]) -> str:
+    lines = [
+        "% Audited from evidence/track_a_v4_three_model_paper_data_20260913.json.",
+        "% Counts use the final selected record for every task.",
+    ]
+    total_evaluated = 0
+    total_hidden = 0
+    for prefix, key, display, _ in MODEL_SPECS:
+        view = data["models"][key]["selected_view"]
+        hidden = view["evaluator_hidden_correctness"]
+        reference = view["reference_anchored_official_score"]
+        qor = view["qor_25"]["evaluator_reference_anchored_score"]
+        common = data["common_qor_subset"]["models"][key]
+        total_evaluated += hidden["denominator"]
+        total_hidden += hidden["numerator"]
+        lines.extend(
+            [
+                "",
+                f"% {display}.",
+                command(f"{prefix}EvaluatorReportCount", str(hidden["denominator"])),
+                command(f"{prefix}HiddenCorrectCount", str(hidden["numerator"])),
+                command(f"{prefix}ReferenceScoreableCount", str(reference["count"])),
+                command(
+                    f"{prefix}ValidityOnlyCount",
+                    str(reference["validity_only_completed_count"]),
+                ),
+                command(f"{prefix}ReferenceMeanScoreable", f"{reference['mean']:.2f}"),
+                command(f"{prefix}ReferenceQorScoreableCount", str(qor["count"])),
+                command(f"{prefix}ReferenceQorMean", f"{qor['mean']:.2f}"),
+                command(
+                    f"{prefix}CommonReferenceQorMean",
+                    f"{common['evaluator_reference_anchored_score_mean']:.2f}",
+                ),
+            ]
+        )
+    lines.extend(
+        [
+            "",
+            "% Aggregate and paired-comparison subset.",
+            command("IndependentEvaluatedCount", str(total_evaluated)),
+            command("IndependentHiddenCorrectCount", str(total_hidden)),
+            command("CommonQorTaskCount", str(data["common_qor_subset"]["task_count"])),
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def write_or_check(path: Path, rendered: str, check: bool) -> None:
+    if check:
+        if not path.is_file() or path.read_text(encoding="utf-8") != rendered:
+            raise SystemExit(f"generated output is stale: {path}")
+        print(f"verified {path}")
+        return
+    path.write_text(rendered, encoding="utf-8")
+    print(f"wrote {path}")
+
+
+def main() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=repo_root
+        / "technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json",
+    )
+    parser.add_argument("--mapping", type=Path)
+    parser.add_argument(
+        "--results-output",
+        type=Path,
+        default=repo_root / "technical-paper/results_generated.tex",
+    )
+    parser.add_argument(
+        "--evaluator-output",
+        type=Path,
+        default=repo_root / "technical-paper/evaluator_results_generated.tex",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="verify committed outputs without writing files",
+    )
+    args = parser.parse_args()
+
+    data = load_json(args.input)
+    mapping_path = args.mapping
+    if mapping_path is None:
+        mapping_path = (
+            repo_root
+            / data["frozen_release"]["path"]
+            / "evaluator_private/EVALUATOR_MAPPING.json"
+        )
+    mapping = load_json(mapping_path)
+    validate_inputs(data, mapping)
+    write_or_check(args.results_output, render_results(data, mapping), args.check)
+    write_or_check(
+        args.evaluator_output,
+        render_evaluator_results(data),
+        args.check,
+    )
 
 
 if __name__ == "__main__":

@@ -37,8 +37,18 @@ clock_ns = 10.0
     return task
 
 
-def test_submission_isolation_accepts_public_only_tree(tmp_path: Path) -> None:
+def test_submission_isolation_accepts_public_only_tree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     task = _write_public_task(tmp_path / "public", "ta2_cr_001")
+    # The unit test itself runs from a repository-mounted development
+    # container.  The production Submission container has no /workspace mount,
+    # so isolate the filesystem-tree assertion from the outer test harness.
+    monkeypatch.setattr(
+        "scoring.isolated_role_entrypoint.mounted_paths",
+        lambda: [],
+    )
 
     result = assert_submission_isolation(task)
 
