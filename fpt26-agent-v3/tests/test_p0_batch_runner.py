@@ -56,12 +56,11 @@ def test_tool_timeout_policy_does_not_affect_other_corpora(
 @pytest.mark.parametrize(
     "task_root",
     [
-        Path("/workspace/tasks/track_a_150_v2"),
-        Path("/workspace/releases/track_a_150_v2_20260910/public_agent"),
-        Path("/workspace/releases/track_a_150_v2_20260910/evaluator_private"),
+        Path("/workspace/releases/track_a_150_v4_20260911/public_agent"),
+        Path("/workspace/releases/track_a_150_v4_20260911/evaluator_private"),
     ],
 )
-def test_track_a_150_v2_and_release_roots_use_scoped_timeouts(
+def test_track_a_v4_release_roots_use_scoped_timeouts(
     task_root: Path,
 ) -> None:
     policy = resolve_tool_timeout_policy(task_root)
@@ -98,14 +97,16 @@ def test_track_a_150_tool_timeout_rejects_non_finite_value(
 
 
 def test_discovery_is_exactly_expected_unique_tasks() -> None:
-    task_root = Path("/workspace/tasks")
+    task_root = Path(
+        "/workspace/releases/track_a_150_v4_20260911/public_agent"
+    )
     if not task_root.exists():
-        pytest.skip("task corpus is only mounted at /workspace/tasks in Docker")
+        pytest.skip("the frozen v4 public corpus is not mounted")
 
     tasks = discover_tasks(task_root)
 
-    assert len(tasks) == EXPECTED_TASK_COUNT
-    assert len({task.name for task in tasks}) == EXPECTED_TASK_COUNT
+    assert len(tasks) == 150
+    assert len({task.name for task in tasks}) == 150
 
 
 def test_discovery_can_explicitly_quarantine_metric_incomplete_tasks(
@@ -243,7 +244,7 @@ def test_discovery_rejects_unknown_excluded_task_id(tmp_path: Path) -> None:
 def test_summary_records_quarantine_without_full199_claim() -> None:
     quarantine = {
         "enabled": True,
-        "source": "tasks/generated/public_hls_validated_tasks_manifest.json",
+        "source": "releases/track_a_150_v4_20260911/public_agent/PUBLIC_CORPUS_MANIFEST.json",
         "excluded_task_count": 27,
         "excluded_task_ids": ["public_metric_missing"],
         "effective_task_count": EXPECTED_TASK_COUNT - 27,
@@ -419,7 +420,9 @@ def test_submission_command_preserves_competition_mode(
     expected: bool,
 ) -> None:
     command = build_submission_command(
-        task_dir=Path("/workspace/tasks/generated/task_001"),
+        task_dir=Path(
+            "/workspace/releases/track_a_150_v4_20260911/public_agent/ta2_cr_001"
+        ),
         backend="custom",
         output_root=Path("/workspace/runs/submission"),
         competition=competition,
@@ -498,6 +501,43 @@ def test_execution_source_snapshot_is_deterministic_and_content_sensitive(
     )
     changed_nested_asset = execution_source_snapshot(project)
     assert changed_nested_asset["tree_sha256"] != first["tree_sha256"]
+
+
+def test_execution_source_snapshot_includes_harness_launcher_and_provenance(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    project = tmp_path / "agent-project"
+    (project / "agent").mkdir(parents=True)
+    (project / "agent" / "main.py").write_text("VALUE = 1\n")
+    harness = tmp_path / "harness"
+    (harness / "llm4hls").mkdir(parents=True)
+    harness_source = harness / "llm4hls" / "tools.py"
+    harness_source.write_text("HARNESS = 1\n")
+    launcher = tmp_path / "run_track_a_v4_split.sh"
+    launcher.write_text("#!/usr/bin/env bash\n")
+    monkeypatch.setenv("FPT26_GIT_COMMIT", "abc123")
+    monkeypatch.setenv("FPT26_GIT_DIRTY", "true")
+    monkeypatch.setenv("FPT26_IMAGE_REFERENCE", "fpt26-agent-v3:test")
+    monkeypatch.setenv("FPT26_IMAGE_ID", "sha256:image")
+    monkeypatch.setenv("FPT26_IMAGE_REPO_DIGESTS", '["repo@sha256:digest"]')
+
+    first = execution_source_snapshot(project, harness, launcher)
+
+    assert first["schema_version"] == 2
+    assert first["components"]["harness"]["file_count"] == 1
+    assert first["components"]["launcher"]["sha256"]
+    assert "harness/llm4hls/tools.py" in first["files"]
+    assert "launcher/run_track_a_v4_split.sh" in first["files"]
+    assert first["runtime_provenance"]["git"] == {
+        "commit": "abc123",
+        "dirty": True,
+    }
+    assert first["runtime_provenance"]["container_image"]["image_id"] == "sha256:image"
+
+    harness_source.write_text("HARNESS = 2\n")
+    changed = execution_source_snapshot(project, harness, launcher)
+    assert changed["tree_sha256"] != first["tree_sha256"]
 
 
 def test_submission_audit_rejects_hidden_access_and_incomplete_api() -> None:

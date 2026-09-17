@@ -49,6 +49,18 @@ case "$VITIS_SDK" in
 esac
 VITIS_RELATIVE_PATH=${VITIS_SDK#"$VITIS_MOUNT_ROOT"/}
 CONTAINER_VITIS_SDK=/tools/Xilinx/$VITIS_RELATIVE_PATH
+if GIT_COMMIT=$(git -C "$HOST_REPO" rev-parse HEAD 2>/dev/null); then
+  if [[ -n "$(git -C "$HOST_REPO" status --porcelain=v1)" ]]; then
+    GIT_DIRTY=true
+  else
+    GIT_DIRTY=false
+  fi
+else
+  GIT_COMMIT=unavailable
+  GIT_DIRTY=unknown
+fi
+IMAGE_ID=$(docker image inspect "$IMAGE" --format '{{.Id}}')
+IMAGE_REPO_DIGESTS=$(docker image inspect "$IMAGE" --format '{{json .RepoDigests}}')
 [[ "$SHARD_COUNT" =~ ^[1-9][0-9]*$ ]] || { echo "invalid SHARD_COUNT" >&2; exit 2; }
 [[ "$RUN_LABEL" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || {
   echo "RUN_LABEL may contain only letters, digits, dot, underscore, and hyphen" >&2
@@ -93,7 +105,15 @@ fi
 common_mounts=(
   -v "$AGENT_ROOT:/opt/fpt26-agent:ro"
   -v "$HARNESS_ROOT:/opt/fpt26-harness:ro"
+  -v "$SCRIPT_DIR/run_track_a_v4_split.sh:/opt/fpt26-launcher/run_track_a_v4_split.sh:ro"
   -v "$VITIS_MOUNT_ROOT:/tools/Xilinx:ro"
+  -e FPT26_HARNESS_ROOT=/opt/fpt26-harness
+  -e FPT26_LAUNCHER_PATH=/opt/fpt26-launcher/run_track_a_v4_split.sh
+  -e "FPT26_GIT_COMMIT=$GIT_COMMIT"
+  -e "FPT26_GIT_DIRTY=$GIT_DIRTY"
+  -e "FPT26_IMAGE_REFERENCE=$IMAGE"
+  -e "FPT26_IMAGE_ID=$IMAGE_ID"
+  -e "FPT26_IMAGE_REPO_DIGESTS=$IMAGE_REPO_DIGESTS"
   -e "LLM4HLS_VITIS_HLS_ROOT=$CONTAINER_VITIS_SDK"
   -e PYTHONPATH=/opt/fpt26-agent:/opt/fpt26-harness
   -e PYTHONDONTWRITEBYTECODE=1
@@ -232,6 +252,8 @@ echo "  run=$RUN_LABEL model=$MODEL_ID backend=$BACKEND"
 echo "  public=$PUBLIC_ROOT"
 echo "  evaluator=$PRIVATE_ROOT"
 echo "  vitis=$VITIS_SDK"
+echo "  git_commit=${GIT_COMMIT:-unavailable} git_dirty=$GIT_DIRTY"
+echo "  image=$IMAGE image_id=$IMAGE_ID"
 echo "  tasks=${#SELECTED_TASK_IDS[@]} shards=$SHARD_COUNT selected_shard=$SHARD_INDEX"
 
 if [[ "$SHARD_INDEX" == all ]]; then

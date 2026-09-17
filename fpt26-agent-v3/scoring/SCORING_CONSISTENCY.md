@@ -103,8 +103,8 @@ V7 不改变 V6 的任何公式、权重、utility、correctness gate 或效率�
 - 在 `Scorecard`/`run_report` 中记录 `available_resources` 与
   `resource_capacity_pass`，使判定可审计。
 
-V6 → V7 是 capacity 集成修复；其同产物双评分和 fresh V7 基线记录在
-`docs/iteration-log.md`。
+V6 → V7 是 capacity 集成修复；该历史边界仅作方法说明，不是当前
+v4 复现入口的输入。
 
 ## V5 → V6 公式历史
 
@@ -121,8 +121,8 @@ V6 先在 log-ratio 域做等权几何折中，再映射一次。它保证：
 - 任意有限 resource growth 都可被足够大的真实 performance improvement 超越；
 - 极端 area bloat、性能回退仍连续、单调地受罚。
 
-V5 → V6 是公式一致性修复；其同产物双评分和 V6 基线记录在
-`docs/iteration-log.md`，不得与 V7 趋势混用。
+V5 → V6 是公式一致性修复；历史 V6/V7 趋势不得与当前 v4
+结果混用。
 
 ## 保持不变
 

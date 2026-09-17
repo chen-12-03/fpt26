@@ -1,3 +1,0 @@
-c2hlsc__des
-pp4fpga__parallel_merge_sort
-amd_accel__performance_host_global_bandwidth_src_kernel

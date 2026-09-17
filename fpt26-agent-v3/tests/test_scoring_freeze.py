@@ -58,14 +58,25 @@ def test_frozen_scoring_files_match_manifest() -> None:
 def test_frozen_schema11_evidence_and_real_run() -> None:
     """Require tracked evidence and audit retained real-run evidence when present."""
     manifest = _manifest()
-    for name, record in manifest["evidence"].items():
+    for record in manifest["evidence"].values():
         path = _WORKSPACE_ROOT / record["path"]
-        if name == "real_api_summary" and not path.exists():
-            continue
         assert path.is_file(), f"frozen evidence missing: {record['path']}"
         assert _sha256(path) == record["sha256"], f"frozen evidence changed: {record['path']}"
 
-    summary_path = _WORKSPACE_ROOT / manifest["evidence"]["real_api_summary"]["path"]
+    reproduction_record = manifest["evidence"].get("reproduction_validation")
+    if reproduction_record is not None:
+        report = json.loads((_WORKSPACE_ROOT / reproduction_record["path"]).read_text())
+        assert report["verdicts"]["paper_level"] == "REPRODUCIBLE"
+        assert report["verdicts"]["strict_task_level"] == "PARTIALLY_REPRODUCIBLE"
+        assert report["aggregate"]["paper"]["record_count"] == 150
+        assert report["aggregate"]["rerun"]["record_count"] == 150
+        assert all(report["canonical_consistency"].values())
+        return
+
+    summary_record = manifest["evidence"].get("real_api_summary")
+    if summary_record is None:
+        return
+    summary_path = _WORKSPACE_ROOT / summary_record["path"]
     if not summary_path.exists():
         return
     summary = json.loads(summary_path.read_text())

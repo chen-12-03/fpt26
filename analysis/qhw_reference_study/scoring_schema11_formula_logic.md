@@ -3,7 +3,7 @@
 > 状态：实现已写入评分器；单元与回归测试通过；10 个真实 API/Vitis 任务验证完成  
 > 版本：schema-11，2026-08-03  
 > 对应实现：`fpt26-agent-v3/scoring/scoring_v3.py`  
-> 真实实验：`analysis/schema11_ali_real10/results.md`  
+> 当前真实实验：`technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json`
 > 适用对象：任意候选代码的生产评分；文末另列冻结 reference 的验证公式
 
 ## 一页版公式

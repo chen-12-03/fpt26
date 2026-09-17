@@ -21,6 +21,12 @@ cat > /tmp/fpt26.env << EOF
 OPENROUTER_API_KEY=${KEY}
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 LLM4HLS_MODEL=qwen/qwen3.6-27b
+FPT26_LLM_TEMPERATURE=0
+FPT26_LLM_MAX_TOKENS=8192
+FPT26_LLM_MAX_RETRIES=0
+FPT26_LLM_OPEN_SOURCE=true
+FPT26_LLM_LICENSE=apache-2.0
+FPT26_LLM_SOURCE=https://huggingface.co/Qwen/Qwen3.6-27B-FP8
 EOF
 
 RUN_LABEL=demo_qwen36 \
@@ -45,7 +51,7 @@ fpt26-agent-v3/                       智能体和评分代码
 fpt26-harness/                        Vitis 工具封装
 releases/track_a_150_v4_20260911/
   public_agent/                       Submission 只读挂载
-  evaluator_private/                  仅 Evaluator 挂载
+  evaluator_private/                  运行时仅 Evaluator 挂载
 technical-paper/                      论文源码、最终 PDF 和证据
 tools/                                审计与汇总工具
 run_track_a_v4_split.sh               物理隔离的运行入口
@@ -76,6 +82,9 @@ SHARD_COUNT=3 SHARD_INDEX=all \
 挂载边界、断点续跑、输出结构和三模型命令见
 [`docs/track-a-v4-isolated-reproduction.md`](docs/track-a-v4-isolated-reproduction.md)。
 
+`evaluator_private` 表示运行时信任边界，不表示仓库机密。该 bundle 为了
+复现而公开，但始终不会挂载进 Submission 容器。
+
 ## 复现论文数据
 
 论文数据复现不需要 API key 或 Vitis license。下面的离线命令验证两份
@@ -102,6 +111,12 @@ docker run --rm --network none \
 `technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json`
 和冻结的 evaluator mapping，不读取 `runs/` 或旧任务目录。托管模型输出
 具有非确定性，因此重新运行完整三模型评估可能产生不同候选代码。
+
+本次清理后 DeepSeek 150 任务全量重跑的独立比较见
+[`track_a_v4_deepseek_reproduction_validation_20260917.md`](technical-paper/evidence/track_a_v4_deepseek_reproduction_validation_20260917.md)
+及对应的
+[`JSON`](technical-paper/evidence/track_a_v4_deepseek_reproduction_validation_20260917.json)；
+两者不会修改论文 canonical 数据。
 
 论文编译命令：
 

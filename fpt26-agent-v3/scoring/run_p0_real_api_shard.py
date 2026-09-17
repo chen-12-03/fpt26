@@ -348,19 +348,64 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def execution_source_snapshot(root: Path | None = None) -> dict[str, Any]:
-    """Hash the execution/scoring sources used by one long-running shard."""
+def _component_snapshot(root: Path, paths: list[Path]) -> dict[str, Any]:
+    entries = {
+        str(path.relative_to(root)): _sha256(path)
+        for path in sorted(set(paths))
+        if path.is_file()
+    }
+    payload = "\n".join(
+        f"{relative}:{digest}"
+        for relative, digest in sorted(entries.items())
+    )
+    return {
+        "root": str(root),
+        "file_count": len(entries),
+        "tree_sha256": hashlib.sha256(payload.encode("utf-8")).hexdigest(),
+        "files": entries,
+    }
+
+
+def _runtime_provenance() -> dict[str, Any]:
+    repo_digests_raw = os.environ.get("FPT26_IMAGE_REPO_DIGESTS", "[]")
+    try:
+        repo_digests = json.loads(repo_digests_raw)
+    except json.JSONDecodeError:
+        repo_digests = [repo_digests_raw]
+    return {
+        "git": {
+            "commit": os.environ.get("FPT26_GIT_COMMIT"),
+            "dirty": {
+                "true": True,
+                "false": False,
+            }.get(os.environ.get("FPT26_GIT_DIRTY", "").lower()),
+        },
+        "container_image": {
+            "reference": os.environ.get("FPT26_IMAGE_REFERENCE"),
+            "image_id": os.environ.get("FPT26_IMAGE_ID"),
+            "repo_digests": repo_digests,
+        },
+        "vitis_sdk": os.environ.get("LLM4HLS_VITIS_HLS_ROOT"),
+    }
+
+
+def execution_source_snapshot(
+    root: Path | None = None,
+    harness_root: Path | None = None,
+    launcher_path: Path | None = None,
+) -> dict[str, Any]:
+    """Hash all mounted execution sources and record immutable provenance."""
 
     project_root = (
         root.resolve()
         if root is not None
         else Path(__file__).resolve().parents[1]
     )
-    paths = sorted((project_root / "agent").rglob("*.py"))
-    paths.extend(
+    agent_paths = sorted((project_root / "agent").rglob("*.py"))
+    agent_paths.extend(
         sorted((project_root / "agent" / "knowledge_assets").rglob("*.json"))
     )
-    paths.extend(
+    agent_paths.extend(
         project_root / relative
         for relative in (
             "Dockerfile",
@@ -377,20 +422,60 @@ def execution_source_snapshot(root: Path | None = None) -> dict[str, Any]:
             "scoring/audit_p0_official.py",
         )
     )
-    entries = {
-        str(path.relative_to(project_root)): _sha256(path)
-        for path in sorted(set(paths))
-        if path.is_file()
-    }
+    agent = _component_snapshot(project_root, agent_paths)
+
+    resolved_harness = harness_root
+    if resolved_harness is None:
+        configured = os.environ.get("FPT26_HARNESS_ROOT")
+        candidate = Path(configured) if configured else project_root.parent / "fpt26-harness"
+        resolved_harness = candidate if candidate.is_dir() else None
+    harness = None
+    if resolved_harness is not None:
+        resolved_harness = resolved_harness.resolve()
+        harness_paths = [
+            path
+            for path in resolved_harness.rglob("*")
+            if path.is_file()
+            and "__pycache__" not in path.parts
+            and path.suffix != ".pyc"
+        ]
+        harness = _component_snapshot(resolved_harness, harness_paths)
+
+    resolved_launcher = launcher_path
+    if resolved_launcher is None:
+        configured = os.environ.get("FPT26_LAUNCHER_PATH")
+        resolved_launcher = Path(configured) if configured else None
+    launcher = None
+    if resolved_launcher is not None and resolved_launcher.is_file():
+        resolved_launcher = resolved_launcher.resolve()
+        launcher = {
+            "path": str(resolved_launcher),
+            "sha256": _sha256(resolved_launcher),
+        }
+
+    entries = dict(agent["files"])
+    if harness is not None:
+        entries.update(
+            {f"harness/{relative}": digest for relative, digest in harness["files"].items()}
+        )
+    if launcher is not None:
+        entries[f"launcher/{resolved_launcher.name}"] = launcher["sha256"]
     payload = "\n".join(
         f"{relative}:{digest}"
         for relative, digest in sorted(entries.items())
     )
     return {
+        "schema_version": 2,
         "root": str(project_root),
         "file_count": len(entries),
         "tree_sha256": hashlib.sha256(payload.encode("utf-8")).hexdigest(),
         "files": entries,
+        "components": {
+            "agent": agent,
+            "harness": harness,
+            "launcher": launcher,
+        },
+        "runtime_provenance": _runtime_provenance(),
     }
 
 

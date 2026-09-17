@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "frozen_at": "2026-09-10",
+  "frozen_at": "2026-09-15",
   "scoring_version": "11.1.0",
   "scoring_schema": 11,
   "formula": {
@@ -17,9 +17,9 @@
     "production_efficiency": "measured_cost_time",
     "candidate_self_anchor_allowed": false
   },
-  "policy": "Schema 11.1 production candidate. The 0.99 edit penalty requires regression tests before the 150-task real-API/Vitis campaign; that campaign supplies fresh end-to-end revalidation.",
+  "policy": "Schema 11.1 public reproducibility snapshot. Construction-time corpora and experiment plans are intentionally excluded; the frozen formula, focused tests, retained method evidence, and v4 isolated campaign are the public verification boundary.",
   "validation": {
-    "status": "unit_validated_full_150_task_campaign_pending",
+    "status": "public_snapshot_validated_full_deepseek_pending_schema2_api_smoke",
     "current_scoring_version": "11.1.0",
     "current_formula_scoped_tests": "100 passed; 0 failed",
     "prior_real_api_scoring_version": "11.0.0",
@@ -41,30 +41,22 @@
     "fpt26-agent-v3/scoring/__init__.py": "67f8f0bfe550e3808a0c9be49f48b0368469f83aeee82145d142ef107564711d",
     "fpt26-agent-v3/scoring/scoring_v3.py": "5a95d4b9f7e472ff1f1ae57a93feb6198fabbb884bb687a8a5fcd79f29b39549",
     "fpt26-agent-v3/scoring/profiles.py": "0455a6d855c8ed16cc6c7d2aecd90679dc232d0b8451a094bef155ef5d65f70a",
-    "fpt26-agent-v3/scoring/evaluator.py": "152cd5034c86ce8971db8a0dc5729b963452bc3a4f6dd91781834b1ca7a30825",
+    "fpt26-agent-v3/scoring/evaluator.py": "008434dc1b8de91fe8643d37a1b8bc50edbb9beeb98ae1783ccf87a7e8890c5b",
     "fpt26-agent-v3/agent/reporting/builder.py": "0876e2e1373649f01628429bdc103e4deffab4f545b20d39a2b8526a201928b9",
     "fpt26-agent-v3/agent/reporting/schema.py": "dd1a6455bb6377be24f6797a06f74472845a7be6fad47be5401c7eb2876d2bb5",
-    "fpt26-agent-v3/scoring/SCORING_CONSISTENCY.md": "390ccf87b4fe2ec1fb5175521abbb73e11b30e222888529f35f66c156a03a4d2",
+    "fpt26-agent-v3/scoring/SCORING_CONSISTENCY.md": "efb9256e1b53d3c84dac712ecf8e5e202dbbc3a92dbeb3bd265abf2275f4cdba",
     "fpt26-agent-v3/scoring/test_scoring_v3.py": "c85930e416f7629bd10691a46e32787f7f738f2d8a0e8c989b7179e1ce1dae84",
     "fpt26-agent-v3/tests/test_scoring_profiles.py": "0b257cfae11e0b6fc07b0cc9eab3f8a5c8882448ffa8900821987021f1312aeb",
     "fpt26-agent-v3/tests/test_candidate_pipeline.py": "4e3b1b1cba59ab82572b213e7f06237bfd9a2d5d2af6f519c413e89da1ed4d7d"
   },
   "evidence": {
-    "real_api_summary": {
-      "path": "runs/schema11_ali_qwen3coder_real10_20260803/shard_summary.json",
-      "sha256": "23f99f51b5da80e4ee4fc555cc0e5d1d7abccc4f79eb058149647bc74f493445"
-    },
-    "experiment_plan": {
-      "path": "analysis/schema11_ali_real10/experiment_plan.md",
-      "sha256": "4331af08aa9fe26428ac544e7b826a337aff14277b0e0afd3df13f8f09fc6c53"
-    },
-    "experiment_report": {
-      "path": "analysis/schema11_ali_real10/results.md",
-      "sha256": "25f52465ead32e7117498ff13608960bd5feed0b99aea5c1f908ff366b541ecb"
+    "reproduction_validation": {
+      "path": "technical-paper/evidence/track_a_v4_deepseek_reproduction_validation_20260917.json",
+      "sha256": "6092466f8f53dde8a0c340705f8e9fde790033e8025119b45a7f7ec03abd98aa"
     },
     "formula_logic": {
       "path": "analysis/qhw_reference_study/scoring_schema11_formula_logic.md",
-      "sha256": "1f7e4bbd9f7a10ffb1d5bc28d7d03f41b81e1032a2ba42987b4b0bc31545b479"
+      "sha256": "47f0bd31cad1aeba9c473f050c4b0e0fc9479b8bc484a9a1bde968d1c261e2cc"
     }
   }
 }

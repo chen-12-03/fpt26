@@ -29,6 +29,10 @@ The evaluator bundle may be moved outside the public repository. Set
 `PRIVATE_ROOT=/absolute/path/to/evaluator_private`; the Submission mount list
 is unchanged.
 
+The name `evaluator_private` means private from the Submission process at
+runtime. It is intentionally included in the public reproducibility release;
+physical mount isolation, not repository secrecy, is the enforced boundary.
+
 ## Deterministic paper-data check
 
 The submitted paper macros come from the committed canonical dataset and the
@@ -77,9 +81,9 @@ model sampling can change.
 
 ```bash
 RUN_LABEL=split_smoke_qwen36 \
-MODEL_ID=qwen3.6-27b \
+MODEL_ID=qwen/qwen3.6-27b \
 ENV_FILE=/tmp/fpt26_qwen36.env \
-BACKEND=custom \
+BACKEND=openrouter \
 SHARD_COUNT=1 SHARD_INDEX=0 \
 TASK_IDS="ta2_cr_001 ta2_qo_001" \
 MAX_REPAIR_ATTEMPTS=2 MAX_OPTIMIZATION_CANDIDATES=1 \
@@ -93,9 +97,9 @@ single numeric shard index when jobs are managed externally.
 
 ```bash
 RUN_LABEL=track_a_v4_qwen36_full150 \
-MODEL_ID=qwen3.6-27b \
+MODEL_ID=qwen/qwen3.6-27b \
 ENV_FILE=/tmp/fpt26_qwen36.env \
-BACKEND=custom \
+BACKEND=openrouter \
 SHARD_COUNT=3 SHARD_INDEX=all \
 ./run_track_a_v4_split.sh
 ```
@@ -104,9 +108,17 @@ Interrupted output is never silently overwritten. Continue only the same run
 contract with `RESUME=1`; use a fresh `RUN_LABEL` for retries or changed code,
 model, budgets, or inputs.
 
-The launcher returns a nonzero status when any shard record has an audit
-error. A completed HLS result can still fail this audit, for example when the
-model environment omits required license and source evidence.
+Use the exact provider model identifier in both `MODEL_ID` and the environment
+file. The identifiers used by the documented OpenRouter route are
+`deepseek/deepseek-v4-pro`, `qwen/qwen3.5-122b-a10b`, and
+`qwen/qwen3.6-27b`. A custom OpenAI-compatible endpoint may expose a different
+identifier; record that exact endpoint value rather than silently rewriting it.
+
+The launcher remains fail-closed and returns exit code 4 when any shard record
+has an audit error. New summaries separate `execution_audit` from
+`model_compliance`: a run may have a valid, isolated HLS execution while model
+license/source provenance remains `unproven`. `overall_audit` still fails until
+both dimensions pass.
 
 ## Reproducibility evidence
 
@@ -131,6 +143,31 @@ data scripts and adds an explicit `isolation_contract`. The paper's starter-
 anchored and reference-anchored values remain reproducible because the
 Evaluator retains both private reference inputs and the unchanged scoring
 engine; only the Submission container's visibility changed.
+
+Future summaries use execution-source schema 2. The tree hash covers the agent,
+the mounted `fpt26-harness`, and `run_track_a_v4_split.sh`; runtime provenance
+also records the Git commit and dirty flag, Docker image ID/RepoDigests, and
+Vitis SDK path. A locally built image may have no registry RepoDigest, in which
+case its immutable local image ID is retained.
+
+## Compare a rerun with the paper result
+
+The comparison tool never modifies the canonical paper JSON. It writes a
+separate task-level JSON and Markdown report:
+
+```bash
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -v "$PWD:/workspace" -w /workspace \
+  fpt26-agent-v3:latest \
+  python3 tools/compare_track_a_v4_reproduction.py \
+    --rerun-root runs/<new-run> \
+    --paper-run-root runs/track_a_150_v4_deepseek_v4pro_nothink_full150_20260912_v1 \
+    --output-json technical-paper/evidence/<comparison>.json \
+    --output-md technical-paper/evidence/<comparison>.md
+```
+
+The retained cleanup-validation result is
+[`track_a_v4_deepseek_reproduction_validation_20260917.md`](../technical-paper/evidence/track_a_v4_deepseek_reproduction_validation_20260917.md).
 
 The historical `scoring.run_p0_real_api_shard` shared-container entry point is
 disabled by default. Its `--allow-legacy-shared-container` switch exists only

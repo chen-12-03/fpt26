@@ -28,6 +28,12 @@ cat > /tmp/fpt26.env << EOF
 OPENROUTER_API_KEY=${KEY}
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 LLM4HLS_MODEL=qwen/qwen3.6-27b
+FPT26_LLM_TEMPERATURE=0
+FPT26_LLM_MAX_TOKENS=8192
+FPT26_LLM_MAX_RETRIES=0
+FPT26_LLM_OPEN_SOURCE=true
+FPT26_LLM_LICENSE=apache-2.0
+FPT26_LLM_SOURCE=https://huggingface.co/Qwen/Qwen3.6-27B-FP8
 EOF
 # 3. Run one public task, then grade it in a separate offline container.
 RUN_LABEL=demo_qwen36 \
@@ -62,6 +68,12 @@ The agent supports any OpenAI-compatible API via environment variables:
 | `OPENROUTER_API_KEY` | — | API key (**required**) |
 | `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | API base URL |
 | `LLM4HLS_MODEL` | — | Model ID, e.g. `qwen/qwen3.6-27b` |
+| `FPT26_LLM_TEMPERATURE` | backend default | Set `0` for the paper campaign contract |
+| `FPT26_LLM_MAX_TOKENS` | backend default | Set `8192` for the paper campaign contract |
+| `FPT26_LLM_MAX_RETRIES` | backend default | Set `0` for the paper campaign contract |
+| `FPT26_LLM_OPEN_SOURCE` | — | Set `true` only for a model with public weights |
+| `FPT26_LLM_LICENSE` | — | SPDX-style model license evidence, e.g. `apache-2.0` |
+| `FPT26_LLM_SOURCE` | — | Public model-card URL or repository identifier |
 
 For the recommended three-model evaluation (see paper), use:
 
@@ -92,7 +104,7 @@ LLM4HLS_MODEL=qwen/qwen3.6-27b
 │   └── vitis.dockerfile     #   Reference Vitis image
 ├── releases/track_a_150_v4_20260911/
 │   ├── public_agent/        # Public-only 150-task bundle
-│   └── evaluator_private/   # Hidden tests + references (Evaluator only)
+│   └── evaluator_private/   # Runtime-private: mounted only into Evaluator
 ├── tools/                   # Audit, validation & summarisation scripts
 ├── runs/                    # Ignored runtime evidence and summaries
 ├── run_track_a_v4_split.sh  # Physically isolated campaign entry point
@@ -123,6 +135,10 @@ The campaign uses distinct Submission and Evaluator containers. The
 Submission container never mounts the repository root or evaluator bundle;
 the Evaluator has no API environment and runs with `--network none`:
 
+`evaluator_private` describes the runtime trust boundary, not repository
+confidentiality. The bundle is published for reproducibility, but it is never
+mounted into the Submission container.
+
 ```bash
 RUN_LABEL=my_qwen36_full150 \
 MODEL_ID=qwen/qwen3.6-27b \
@@ -139,6 +155,9 @@ output layout, and three-model commands.
 
 The detailed tables omitted from the two-page paper are collected in
 [`docs/experiment-results.md`](docs/experiment-results.md).
+The independent full-DeepSeek rerun comparison is available as a
+[human-readable report](technical-paper/evidence/track_a_v4_deepseek_reproduction_validation_20260917.md)
+and [machine-readable JSON](technical-paper/evidence/track_a_v4_deepseek_reproduction_validation_20260917.json).
 
 The repository supports two reproduction levels. Evidence reproduction is
 deterministic and requires no API key or Vitis license. A new three-endpoint
@@ -164,8 +183,8 @@ docker run --rm --network none \
 ```
 
 The generator reads only the committed canonical dataset and the frozen v4
-evaluator mapping. It does not read `runs/` or `tasks/track_a_150`. The exact
-data source is
+evaluator mapping. It does not read `runs/` or any retired construction-time
+task tree. The exact data source is
 [`technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json`](technical-paper/evidence/track_a_v4_three_model_paper_data_20260913.json).
 
 Compile the paper with an IEEEtran-capable TeX installation:

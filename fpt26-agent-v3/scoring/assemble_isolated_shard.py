@@ -38,6 +38,41 @@ def _report_ref(path: Path, shard_root: Path, report_prefix: str) -> str:
     return "/workspace/" + str(Path(report_prefix) / relative)
 
 
+def summarize_audit_status(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Separate execution/isolation validity from model compliance evidence."""
+
+    model_unproven = sum(
+        "model_compliance_unproven" in (record.get("audit_errors") or [])
+        for record in records
+    )
+    execution_errors = sum(
+        any(
+            error != "model_compliance_unproven"
+            for error in (record.get("audit_errors") or [])
+        )
+        for record in records
+    )
+    any_errors = sum(bool(record.get("audit_errors")) for record in records)
+    if model_unproven == 0:
+        compliance = "proven"
+    elif model_unproven == len(records):
+        compliance = "unproven"
+    else:
+        compliance = "mixed"
+    return {
+        "audit_error_record_count": any_errors,
+        "execution_audit_error_record_count": execution_errors,
+        "model_compliance_unproven_record_count": model_unproven,
+        "status": {
+            "record_collection": "complete",
+            "execution_audit": "passed" if execution_errors == 0 else "failed",
+            "model_compliance": compliance,
+            "overall_audit": "passed" if any_errors == 0 else "failed",
+            "launcher_exit_code": 0 if any_errors == 0 else 4,
+        },
+    }
+
+
 def _record(
     shard_root: Path,
     task_root: Path,
@@ -244,6 +279,7 @@ def assemble(
         for record in records
         for role in ("submission", "evaluator")
     )
+    audit_status = summarize_audit_status(records)
     result = {
         "schema_version": 3,
         "purpose": "p0_physically_isolated_split_role_real_api_vitis_acceptance",
@@ -258,7 +294,7 @@ def assemble(
         "selected_task_count": len(records),
         "completed_record_count": len(records),
         "outcome_counts": dict(sorted(outcomes.items())),
-        "audit_error_record_count": sum(bool(record["audit_errors"]) for record in records),
+        **audit_status,
         "execution_source": {"start": source, "current": source, "stable": True},
         "execution_source_capture": "submission_start" if captured_sources else "assembly_fallback",
         "elapsed_s": elapsed_s,

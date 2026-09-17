@@ -51,7 +51,6 @@ xsim.dir/
 **/hls_prj/
 **/agent_runs/
 **/generated/
-!tasks/generated/
 /work/vitis_task/
 *.7z
 *.zip

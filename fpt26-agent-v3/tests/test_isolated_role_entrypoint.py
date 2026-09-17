@@ -4,11 +4,32 @@ from pathlib import Path
 
 import pytest
 
+from scoring.assemble_isolated_shard import summarize_audit_status
 from scoring.isolated_role_entrypoint import (
     assert_evaluator_isolation,
     assert_submission_isolation,
     resolve_submission_artifacts,
 )
+
+
+def test_audit_status_separates_execution_from_model_compliance() -> None:
+    result = summarize_audit_status(
+        [
+            {"audit_errors": ["model_compliance_unproven"]},
+            {"audit_errors": ["model_compliance_unproven"]},
+        ]
+    )
+
+    assert result["audit_error_record_count"] == 2
+    assert result["execution_audit_error_record_count"] == 0
+    assert result["model_compliance_unproven_record_count"] == 2
+    assert result["status"] == {
+        "record_collection": "complete",
+        "execution_audit": "passed",
+        "model_compliance": "unproven",
+        "overall_audit": "failed",
+        "launcher_exit_code": 4,
+    }
 
 
 def _write_public_task(root: Path, task_id: str) -> Path:

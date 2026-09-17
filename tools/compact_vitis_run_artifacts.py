@@ -115,7 +115,16 @@ def delete_non_reports(project_root: Path) -> None:
 
 def compact_run(run_root: Path, apply: bool) -> dict:
     projects = discover_projects(run_root)
-    totals = Counter()
+    totals = Counter(
+        {
+            "before_files": 0,
+            "before_allocated_bytes": 0,
+            "deleted_files": 0,
+            "deleted_allocated_bytes": 0,
+            "retained_files": 0,
+            "retained_allocated_bytes": 0,
+        }
+    )
     projects_by_type: Counter[str] = Counter()
     suffix_counts: Counter[str] = Counter()
     retained_records: list[dict] = []

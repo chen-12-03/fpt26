@@ -8,8 +8,6 @@ from agent.testbench import (
     discover_task_data_files,
     normalize_task_testbench_data,
 )
-from agent.integrations.task_repository import PublicTaskRepository
-from llm4hls.task import load_task
 from llm4hls.tools import CoSimTool as HarnessCoSimTool
 from agent.runner import CoSimTool as AgentCoSimTool
 
@@ -73,36 +71,6 @@ def test_ignores_non_data_files():
         assert ".gitignore" not in found
         assert "README.md" not in found
         assert "Makefile" not in found
-
-
-def test_real_machsuite_task_discovers_data():
-    """Agent preparation surfaces separate public and hidden fixture maps."""
-    task_dir = Path(__file__).resolve().parents[2] / "tasks/generated/machsuite__gemm_blocked"
-    if not task_dir.is_dir():
-        return  # skip when the task repo isn't mounted
-    t = load_task(str(task_dir))
-    normalize_task_testbench_data(t)
-    assert len(t.public_data_files) >= 2
-    assert "input.data" in t.public_data_files
-    assert "check.data" in t.public_data_files
-    assert len(t.public_data_files["input.data"]) > 0
-    assert t.hidden_data_files["input.data"] == t.public_data_files["input.data"]
-
-
-def test_public_repository_attaches_public_fixtures_during_load():
-    """Submission loading must stage fixtures before ToolServer construction."""
-    task_dir = (
-        Path(__file__).resolve().parents[2]
-        / "tasks/generated/machsuite__gemm_ncubed"
-    )
-    if not task_dir.is_dir():
-        return
-
-    task, _ = PublicTaskRepository().load(task_dir)
-
-    assert sorted(task.public_data_files) == ["check.data", "input.data"]
-    assert task.data_files == task.public_data_files
-    assert not hasattr(task, "reference_code") or task.reference_code is None
 
 
 def test_cosim_stages_data_files_before_vitis(monkeypatch, tmp_path):

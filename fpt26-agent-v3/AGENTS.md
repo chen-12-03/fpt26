@@ -72,27 +72,15 @@ Agent 根据工具结果（csim fail / cosim deadlock / all pass）自行判断�
 
 ```
 fpt26_new/                  ← 仓库根目录
-├── tasks/                  ← 🆕 统一测试任务库（199 个 task）
-│   ├── official/           ← 官方 3 个竞赛任务
-│   │   ├── dotProduct_optimize/
-│   │   ├── projection_bugfix/
-│   │   └── residual_stream_deadlock/
-│   └── generated/          ← 196 个任务（10 个来源）
-│       ├── c2hlsc__*/      ← C2HLSC 加密/HLS 任务
-│       ├── chstone__*/     ← CHStone HLS benchmark
-│       ├── flowgnn__*/     ← FlowGNN 图神经网络
-│       ├── gnnbuilder__*/  ← GNNBuilder 图处理
-│       ├── machsuite__*/   ← MachSuite FPGA benchmark
-│       ├── polybench__*/   ← PolyBench 数值计算
-│       ├── pp4fpga__*/     ← PP4FPGA 并行模式
-│       ├── rosetta__*/     ← Rosetta HLS benchmark
-│       ├── amd_intro__*/   ← AMD Vitis-HLS-Introductory-Examples public tasks
-│       └── amd_accel__*/   ← AMD Vitis_Accel_Examples public tasks
+├── releases/track_a_150_v4_20260911/
+│   ├── public_agent/      ← Submission 只读挂载的 150 个公开任务
+│   └── evaluator_private/ ← Evaluator 单独挂载的 hidden/reference
+├── tasks/official/          ← 3 个小型官方开发样例
 ├── fpt26-agent-v3/         ← 当前 agent（v3）
 ├── fpt26-harness/          ← 官方 harness（llm4hls/）
-├── third_party/            ← 第三方参考（hls-generator）
-├── runs/                   ← 运行输出
-└── docs/                   ← 设计文档
+├── technical-paper/        ← 论文、canonical 数据与复现脚本
+├── runs/                   ← 本地运行输出（Git 忽略）
+└── docs/                   ← 公开结果与隔离复现文档
 ```
 
 ### 3.2 Agent 目录
@@ -179,24 +167,24 @@ class RunState:
 
 ### 5.1 任务路径
 
-所有任务统一位于 `/workspace/tasks/`：
+开发样例位于 `tasks/official/`；正式 v4 语料按角色分开挂载：
 
 | 类别 | 路径 | 数量 |
 |------|------|:----:|
 | 官方竞赛任务 | `/workspace/tasks/official/<name>` | 3 |
-| 自动生成任务 | `/workspace/tasks/generated/<name>` | 94 |
+| Track-A v4 公开任务 | `/fpt26-public-tasks/<task_id>` | 150 |
+| Track-A v4 评测任务 | `/fpt26-evaluator-tasks/<task_id>` | 150 |
 
 ### 5.2 测试优先级 ⚠️
 
-**必须优先使用 official 任务进行测试和优化。** 只有 official 任务表现理想后，才引入 generated 任务扩展测试。
+**必须先使用 official 任务做快速开发测试，再使用冻结的 v4 release 做隔离验收。**
 
 ```
-official (3 tasks) → 理想 → generated (94 tasks)
-                     ↓ 不理想
-              继续优化 official，不碰 generated
+official (3 tasks) → 基本流程通过 → v4 release (小样本 / 150 tasks)
 ```
 
-原因：避免对 generated 任务过拟合，确保 agent 优化策略的泛化能力。official 任务覆盖了三种核心场景（repair / optimize / structural），是衡量 agent 性能的最小完备集。
+正式验收必须使用 `run_track_a_v4_split.sh`，以保证 Submission 与
+Evaluator 的物理隔离和语料哈希校验。
 
 ### 5.2 Docker 运行命令
 
@@ -222,9 +210,9 @@ docker run ... python3 -m agent.main --task /workspace/tasks/official/dotProduct
 # 官方任务 — 结构修复模式（含 cosim）
 docker run ... python3 -m agent.main --task /workspace/tasks/official/residual_stream_deadlock --mode structural
 
-# 生成任务示例
-docker run ... python3 -m agent.main --task /workspace/tasks/generated/polybench__seidel_2d --mode optimize
-docker run ... python3 -m agent.main --task /workspace/tasks/generated/machsuite__aes_aes --mode full
+# Track-A v4 请通过仓库根目录的物理隔离入口运行
+RUN_LABEL=smoke MODEL_ID=<provider-model-id> TASK_IDS=ta2_qo_001 \
+  ./run_track_a_v4_split.sh
 
 # 常用参数
 --output-root runs/iter1        # 输出目录（默认 runs/）
