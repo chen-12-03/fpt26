@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="730" viewBox="0 0 1800 730" role="img" aria-labelledby="title desc">
+<title id="title">Code-grounded Verified-Candidate Loop</title>
+<desc id="desc">Candidate-loop abstraction of the active submission implementation. Public baseline checks precede this loop. The model returns full source; interface validation precedes full-plan budget admission in optimization and structural repair. Ordinary repair is charged per tool. Applicable validity checks precede candidate retention. Metric completeness belongs to optimization scoring, followed by a strict Q_HW improvement comparison. Local diagnostic feedback and history-conditioned retrieval guide proposals. Optimization reuses retained source. Finalization prefers last_verified_kernel and otherwise may emit a failure fallback with status. Optional search guards, competition lanes, and exceptional exits are omitted. See agent_workflow_sources.md for every module, edge, scope limitation, and source reference.</desc>
+<metadata>
+Module sources, relative to fpt26-agent-v3:
+Task: agent/main.py::_run_submission; agent/pipeline/submission.py::run_submission.
+Proposal: agent/prompts.py::SYSTEM; agent/agents/repair.py::RepairAgent.run; agent/agents/structural.py::StructuralRepairAgent.run; agent/agents/optimization/controller.py::run_optimization_loop.
+Interface: agent/candidate/validator.py::validate_candidate.
+Budget: agent/candidate/validator.py::can_afford_validation; optimization/controller.py and structural.py callers. Per-tool charges: ../fpt26-harness/llm4hls/harness.py::ToolServer.
+Validity: candidate/validator.py::record_synth_gates, record_cosim_gate, mark_fully_verified; runner.py::ToolServer.
+Metrics and comparison: agents/optimization/scoring.py::score_candidate; scoring/scoring_v3.py::grade; optimization/controller.py strict q_hw comparison.
+Feedback: agents/optimization/feedback.py; agents/repair.py::_repair_attempt_record; structural.py cosim_log prompt.
+RAG: knowledge.py::retrieve_knowledge, format_for_prompt; optimization/controller.py KnowledgeQuery(history=history).
+Retained source: optimization/controller.py best, current_kernel=best, state.kernel=best.
+Finalize and output: pipeline/submission.py::_finalize; main.py::_run_submission.
+</metadata>
+<defs>
+ <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#3d573b"/></marker>
+ <marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#a05b47"/></marker>
+ <style>
+  text {font-family:Arial,Helvetica,sans-serif;fill:#293c28;text-anchor:middle}
+  .head {font-size:27px;font-weight:600}
+  .body {font-size:22px}
+  .label {font-size:20px;fill:#55644f}
+  .small {font-size:18px;fill:#63705e}
+  .redlabel {font-size:20px;fill:#a05b47}
+  .box {fill:#f5f7f2;stroke:#52694a;stroke-width:2.2}
+  .flow {fill:none;stroke:#3d573b;stroke-width:2.4;marker-end:url(#arrow)}
+  .feedback {fill:none;stroke:#a05b47;stroke-width:2.3;stroke-dasharray:9 6;marker-end:url(#red)}
+ </style>
+</defs>
+<rect width="1800" height="730" fill="white"/>
+
+<!-- Retained source is input to subsequent optimization prompts, not a new model. -->
+<path id="retained-source" d="M1738 162 V65 H320 V150" class="flow"/>
+<rect x="817" y="45" width="365" height="32" fill="white"/>
+<text x="1000" y="69" class="label">Retained source (optimization)</text>
+
+<g id="task">
+ <path d="M30 160 H148 L183 210 L148 260 H30 L55 210 Z" class="box"/>
+ <text x="110" y="202" class="head">Task</text>
+ <text x="110" y="234" class="body">+ starter</text>
+</g>
+<g id="llm-proposal">
+ <rect x="220" y="150" width="200" height="120" class="box"/>
+ <text x="320" y="190" class="head">LLM Proposal</text>
+ <text x="320" y="224" class="body">Full-source</text>
+ <text x="320" y="251" class="body">candidate</text>
+</g>
+<g id="interface">
+ <rect x="460" y="160" width="160" height="100" class="box"/>
+ <text x="540" y="201" class="head">Interface</text>
+ <text x="540" y="233" class="body">check</text>
+</g>
+<g id="budget">
+ <path d="M710 150 L770 210 L710 270 L650 210 Z" fill="#f8e5a4" stroke="#52694a" stroke-width="2.2"/>
+ <text x="710" y="204" font-size="22" font-weight="600">Budget†</text>
+ <text x="710" y="234" class="body">admit?</text>
+</g>
+<path d="M183 210 H220" class="flow"/>
+<path d="M420 210 H460" class="flow"/>
+<path d="M620 210 H650" class="flow"/>
+<path d="M770 210 H810" class="flow"/>
+
+<g id="validity">
+ <rect x="810" y="135" width="290" height="155" fill="#fff" stroke="#52694a" stroke-width="2.2"/>
+ <rect x="810" y="135" width="7" height="155" fill="#52694a"/>
+ <text x="955" y="172" class="head">Validity Checks</text>
+ <text x="955" y="207" class="body">CSim → Synth</text>
+ <text x="955" y="239" class="body">Timing + capacity</text>
+ <text x="955" y="270" class="body">→ CoSim*</text>
+</g>
+<g id="qor-scoring">
+ <rect x="1150" y="155" width="155" height="115" class="box"/>
+ <text x="1227" y="193" font-size="25" font-weight="600">QoR Score</text>
+ <text x="1227" y="225" font-size="20">Complete</text>
+ <text x="1227" y="251" font-size="20">metrics</text>
+</g>
+<g id="qor-promotion">
+ <path d="M1400 141 L1480 210 L1400 279 L1320 210 Z" fill="#3d573b"/>
+ <text x="1400" y="203" font-size="25" font-weight="600" style="fill:white">Q<tspan baseline-shift="sub" font-size="17">HW</tspan></text>
+ <text x="1400" y="234" font-size="21" style="fill:white">improves?</text>
+</g>
+<path d="M1100 210 H1150" class="flow"/>
+<circle cx="1122" cy="210" r="4" fill="#3d573b"/>
+<text x="1227" y="309" class="label">optimization</text>
+<path d="M1305 210 H1320" class="flow"/>
+<path d="M1480 210 H1515" class="flow"/>
+<text x="1497" y="190" class="label">yes</text>
+<path d="M1122 210 V103 H1625 V150" class="flow"/>
+<text x="1372" y="96" class="label">repair / structural: valid</text>
+
+<g id="verified-fallback">
+ <path d="M1515 173 C1515 142 1765 142 1765 173 V267 C1765 298 1515 298 1515 267 Z" class="box"/>
+ <path d="M1515 173 C1515 204 1765 204 1765 173" fill="none" stroke="#52694a" stroke-width="2.2"/>
+ <text x="1640" y="225" font-size="25" font-weight="600">Verified Fallback</text>
+ <text x="1640" y="260" class="body">retain / update</text>
+</g>
+
+<!-- Not every rejection in every mode builds the same feedback. This is shared diagnostic data flow. -->
+<g id="reflection">
+ <rect x="775" y="400" width="425" height="125" fill="#fffaf6" stroke="#a05b47" stroke-width="2.2"/>
+ <rect x="775" y="400" width="7" height="125" fill="#e5bb58"/>
+ <text x="988" y="442" class="head" style="fill:#93533f">Failure Reflection</text>
+ <text x="988" y="477" font-size="22">Diagnostics + ΔQoR → constraints</text>
+ <text x="988" y="507" class="small">Local processing</text>
+</g>
+<path d="M540 260 V334 H815 V400" class="feedback"/>
+<text x="671" y="325" font-size="18" style="fill:#a05b47">interface failure (repair / opt.)</text>
+<path d="M955 290 V355 H865 V400" class="feedback"/>
+<text x="1010" y="347" class="redlabel">diagnostics</text>
+<path d="M1400 279 V365 H1105 V400" class="feedback"/>
+<text x="1255" y="355" class="redlabel">no improvement</text>
+<path d="M775 427 H665 V350 H380 V270" class="feedback"/>
+<text x="435" y="318" class="redlabel">candidate feedback</text>
+
+<g id="retrieval">
+ <rect x="220" y="400" width="360" height="125" class="box"/>
+ <text x="400" y="444" class="head">QoR-RAG</text>
+ <text x="400" y="482" class="body">Rules + success/failure cases</text>
+</g>
+<path d="M775 482 H580" class="flow"/>
+<text x="678" y="467" class="label">query history</text>
+<path d="M320 400 V270" class="flow"/>
+<text x="335" y="385" class="label" style="text-anchor:start">bounded optimization context</text>
+
+<!-- Full-plan admission is scoped by †. The bridge denotes a crossing, not a junction. -->
+<path d="M710 150 V79 C726 79 726 51 710 51 V25 H1786 V452 H1765" class="feedback"/>
+<rect x="962" y="8" width="290" height="30" fill="white"/>
+<text x="1107" y="31" class="redlabel">insufficient budget → stop</text>
+
+<g id="finalize">
+ <rect x="1485" y="395" width="280" height="135" class="box"/>
+ <text x="1625" y="435" class="head">Finalize</text>
+ <text x="1625" y="470" font-size="21">Prefer verified fallback</text>
+ <text x="1625" y="501" font-size="21">Else failure fallback</text>
+</g>
+<path d="M1640 291 V395" class="flow"/>
+<text x="1675" y="347" class="label">stop</text>
+<g id="output">
+ <path d="M1485 574 H1738 L1765 618 L1738 662 H1485 L1510 618 Z" fill="#3d573b"/>
+ <text x="1627" y="610" class="head" style="fill:white">Output</text>
+ <text x="1630" y="643" font-size="20" style="fill:white">Kernel · status · evidence</text>
+</g>
+<path d="M1625 530 V574" class="flow"/>
+
+<!-- Scope, not additional implementation claims. -->
+<path d="M30 606 H83" class="flow"/><text x="97" y="613" class="small" style="text-anchor:start">Source / evidence flow</text>
+<path d="M393 606 H446" class="feedback"/><text x="460" y="613" class="small" style="text-anchor:start">Feedback / stop</text>
+<text x="30" y="665" class="small" style="text-anchor:start">* CoSim when required. † Full-plan admission: optimization / structural repair; ordinary repair is charged per tool.</text>
+<text x="30" y="698" class="small" style="text-anchor:start">Candidate-loop view; public baseline checks and optional proposal guards omitted.</text>
+</svg>

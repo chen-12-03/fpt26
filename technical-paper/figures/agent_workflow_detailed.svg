@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+<title id="title">FPT26 agent architecture: evidence-driven Verified-Candidate Loop</title>
+<desc id="desc">User task input enters the submission controller. Evidence-based planning builds a common system prompt and retrieved HLS context. A language model proposes kernel source. Candidate screening, metered Vitis execution, and result analysis feed candidate selection. Diagnostic feedback guides subsequent proposals; verified state is retained. Finalization exports source, run reports, and submission evidence. A separate offline evaluator consumes artifacts and private tests, without feeding the agent.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#242a30"/></marker>
+  <marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#345d80"/></marker>
+  <marker id="gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#77818a"/></marker>
+  <style>
+    text {font-family: 'Times New Roman', Times, serif; fill:#17212b}
+    .title {font-size:30px; font-weight:bold}
+    .sub {font-size:19px; fill:#4b5560}
+    .section {font-size:18px; font-weight:bold; letter-spacing:1px}
+    .heading {font-size:23px; font-weight:bold}
+    .body {font-size:19px}
+    .small {font-size:17px; fill:#465461}
+    .module {font-family: 'Courier New', monospace; font-size:15px; fill:#4b5966}
+    .box {fill:white; stroke:#27343f; stroke-width:1.6}
+    .soft {fill:#f2f6f9; stroke:#345d80; stroke-width:1.6}
+    .green {fill:#f2f7f3; stroke:#3e6050; stroke-width:1.6}
+    .rule {stroke:#bcc5cc; stroke-width:1}
+    .flow {fill:none; stroke:#242a30; stroke-width:2; marker-end:url(#arrow)}
+    .feedback {fill:none; stroke:#345d80; stroke-width:2; stroke-dasharray:8 5; marker-end:url(#blue)}
+    .state {fill:none; stroke:#77818a; stroke-width:1.6; stroke-dasharray:2 5; marker-end:url(#gray)}
+    .label {font-size:17px; fill:#345d80}
+  </style>
+</defs>
+<rect width="1600" height="1200" fill="white"/>
+<text x="60" y="53" class="title">Evidence-Driven Agent Workflow for HLS Kernel Repair and Optimization</text>
+<text x="60" y="83" class="sub">FPT26 · Verified-Candidate Loop (VCL) · active submission implementation and isolated evaluator</text>
+<path d="M60 107 H1540" class="rule"/>
+<text x="60" y="153" class="section">A. SUBMISSION AGENT — PUBLIC TASK DATA</text>
+<text x="1540" y="153" text-anchor="end" class="small">Candidate-loop view; baseline validation precedes proposals</text>
+
+<!-- Input, orchestration, prompt construction, model communication -->
+<g id="user-input">
+ <rect x="60" y="190" width="280" height="205" class="box"/>
+ <text x="80" y="223" class="heading">User / task input</text>
+ <path d="M80 239 H320" class="rule"/>
+ <text x="80" y="270" class="body">CLI mode and run limits</text>
+ <text x="80" y="299" class="body">Kernel + public testbench</text>
+ <text x="80" y="328" class="body">task.toml, target, budget</text>
+ <text x="80" y="371" class="module">main.py · task_io.py</text>
+</g>
+<g id="controller">
+ <rect x="390" y="190" width="350" height="205" class="soft"/>
+ <text x="410" y="223" class="heading">Controller / planning</text>
+ <path d="M410 239 H720" class="rule"/>
+ <text x="410" y="269" class="body">Preflight → public baseline checks</text>
+ <text x="410" y="297" class="body">CSim / Synth fail → RepairAgent</text>
+ <text x="410" y="325" class="body">CoSim fail → StructuralRepairAgent</text>
+ <text x="410" y="353" class="body">All gates pass → OptimizeAgent*</text>
+ <text x="410" y="382" class="module">pipeline/submission.py</text>
+</g>
+<g id="planning-context">
+ <rect x="790" y="190" width="350" height="205" class="soft"/>
+ <text x="810" y="223" class="heading">Evidence-guided context</text>
+ <path d="M810 239 H1120" class="rule"/>
+ <text x="810" y="269" class="body">Shared SYSTEM policy for all modes</text>
+ <text x="810" y="297" class="body">Source + reports + previous failures</text>
+ <text x="810" y="325" class="body">Bottleneck / action constraints</text>
+ <text x="810" y="353" class="body">QoR-RAG: public rules and cases</text>
+ <text x="810" y="382" class="module">prompts.py · knowledge.py</text>
+</g>
+<g id="llm">
+ <rect x="1190" y="190" width="350" height="205" class="soft"/>
+ <text x="1210" y="223" class="heading">LLM reasoning / proposal</text>
+ <path d="M1210 239 H1520" class="rule"/>
+ <text x="1210" y="269" class="body">Diagnose issue; propose one edit</text>
+ <text x="1210" y="297" class="body">OpenAI-compatible model backend</text>
+ <text x="1210" y="325" class="body">Request: system + task context</text>
+ <text x="1210" y="353" class="body">Response: full C/C++ kernel source</text>
+ <text x="1210" y="382" class="module">backends.py · llm/protocol.py</text>
+</g>
+<path d="M340 287 H390" class="flow"/>
+<path d="M740 287 H790" class="flow"/>
+<path d="M1140 287 H1190" class="flow"/>
+<path d="M1365 395 V490" class="flow"/>
+<text x="1380" y="449" class="small">source candidate</text>
+
+<!-- Results and decisions feed back to evidence-based proposal -->
+<path d="M200 490 V446 H475 V395" class="feedback"/>
+<text x="208" y="433" class="label">continue / next stage</text>
+<path d="M565 490 V429 H965 V395" class="feedback"/>
+<text x="631" y="419" class="label">diagnostics + diff + next constraint</text>
+
+<!-- Validation chain runs right to left -->
+<g id="candidate-screening">
+ <rect x="1190" y="490" width="350" height="210" class="box"/>
+ <text x="1210" y="524" class="heading">Candidate screening</text>
+ <path d="M1210 540 H1520" class="rule"/>
+ <text x="1210" y="569" class="body">Extract source; check interface</text>
+ <text x="1210" y="597" class="body">Optimization: action / repeat guards</text>
+ <text x="1210" y="625" class="body">Validation affordability checks*</text>
+ <text x="1210" y="653" class="body">Reject before tools when possible</text>
+ <text x="1210" y="684" class="module">candidate/validator.py · agents/</text>
+</g>
+<g id="tool-execution">
+ <rect x="790" y="490" width="350" height="210" class="box"/>
+ <text x="810" y="524" class="heading">Metered tool execution</text>
+ <path d="M810 540 H1120" class="rule"/>
+ <text x="810" y="569" class="body">ToolServer → SecureToolExecutor</text>
+ <text x="810" y="597" class="body">Public CSim → Synth → CoSim†</text>
+ <text x="810" y="625" class="body">Vitis HLS subprocesses in Docker</text>
+ <text x="810" y="653" class="body">Credits, elapsed time, logs, reports</text>
+ <text x="810" y="684" class="module">runner.py · integrations/vitis.py</text>
+</g>
+<g id="analysis">
+ <rect x="390" y="490" width="350" height="210" class="box"/>
+ <text x="410" y="524" class="heading">Evidence / gate analysis</text>
+ <path d="M410 540 H720" class="rule"/>
+ <text x="410" y="569" class="body">Normalize logs; classify failures</text>
+ <text x="410" y="597" class="body">Correctness + required RTL checks</text>
+ <text x="410" y="625" class="body">100 MHz + device-capacity gates</text>
+ <text x="410" y="653" class="body">Latency, clock, resources → Q<tspan baseline-shift="sub" font-size="13">HW</tspan></text>
+ <text x="410" y="684" class="module">analysis/ · candidate/validator.py</text>
+</g>
+<g id="selection">
+ <rect x="60" y="490" width="280" height="210" class="green"/>
+ <text x="80" y="524" class="heading">Select / retain / stop</text>
+ <path d="M80 540 H320" class="rule"/>
+ <text x="80" y="569" class="body">Repair: retain passing fix</text>
+ <text x="80" y="597" class="body">Optimize: valid + Q<tspan baseline-shift="sub" font-size="13">HW</tspan> ↑</text>
+ <text x="80" y="625" class="body">Else retain verified best</text>
+ <text x="80" y="653" class="body">Limits / convergence → stop</text>
+ <text x="80" y="684" class="module">agents/ · optimization/</text>
+</g>
+<path d="M1190 593 H1140" class="flow"/>
+<path d="M790 593 H740" class="flow"/>
+<path d="M390 593 H340" class="flow"/>
+
+<!-- Shared in-process state, not a second model or external memory -->
+<g id="shared-state">
+ <rect x="390" y="750" width="1150" height="90" fill="#f7f8f9" stroke="#77818a" stroke-width="1.4"/>
+ <text x="410" y="780" class="heading">RunState — shared in-process state and evidence</text>
+ <text x="410" y="810" class="body">Current / verified kernel · gate history · ToolResult records · budget and usage · stop reason · artifact metadata</text>
+ <text x="1518" y="779" text-anchor="end" class="module">agents/base.py</text>
+</g>
+<path d="M565 700 V750" class="state"/>
+<path d="M965 700 V750" class="state"/>
+<path d="M1365 700 V750" class="state"/>
+<path d="M340 656 H362 V791 H390" class="state"/>
+<path d="M420 840 V910" class="state"/>
+<text x="434" y="879" class="small">read selected state</text>
+<path d="M200 700 V910" class="flow"/>
+<text x="215" y="791" class="small">stop / terminal status</text>
+
+<!-- Final artifacts and separate offline evaluator -->
+<g id="finalize">
+ <rect x="60" y="910" width="420" height="170" class="green"/>
+ <text x="80" y="944" class="heading">Public acceptance + finalization</text>
+ <path d="M80 960 H460" class="rule"/>
+ <text x="80" y="989" class="body">Export last verified kernel when available</text>
+ <text x="80" y="1017" class="body">Otherwise fallback + explicit failure status</text>
+ <text x="80" y="1053" class="module">pipeline/submission.py · main.py</text>
+</g>
+<g id="output">
+ <rect x="550" y="910" width="440" height="170" class="green"/>
+ <text x="570" y="944" class="heading">Final output to user</text>
+ <path d="M570 960 H970" class="rule"/>
+ <text x="570" y="989" class="body">final_&lt;kernel&gt; + run_report.json</text>
+ <text x="570" y="1017" class="body">submission_evidence.json + resource_usage.md</text>
+ <text x="570" y="1053" class="module">main.py · reporting/</text>
+</g>
+<path d="M480 995 H550" class="flow"/>
+<path d="M990 995 H1100" class="flow"/>
+<text x="1045" y="975" text-anchor="middle" class="small">artifacts</text>
+<path d="M1050 872 V1090" stroke="#77818a" stroke-width="1.5" stroke-dasharray="7 5"/>
+<g id="offline-evaluator">
+ <text x="1100" y="888" class="section">B. OFFLINE EVALUATOR</text>
+ <rect x="1100" y="910" width="440" height="170" class="box"/>
+ <text x="1120" y="944" class="heading">Independent grading</text>
+ <path d="M1120 960 H1520" class="rule"/>
+ <text x="1120" y="989" class="body">Check evidence + digest; hidden tests / anchors</text>
+ <text x="1120" y="1017" class="body">Formal scorecard; no feedback to submission</text>
+ <text x="1120" y="1053" class="module">pipeline/evaluator.py · scoring_v3.py</text>
+</g>
+
+<!-- Line-style semantics and scope notes -->
+<path d="M60 1110 H1540" class="rule"/>
+<path d="M60 1139 H115" class="flow"/><text x="127" y="1145" class="small">control / artifact transfer</text>
+<path d="M380 1139 H435" class="feedback"/><text x="447" y="1145" class="small">feedback / iteration</text>
+<path d="M670 1139 H725" class="state"/><text x="737" y="1145" class="small">state / evidence communication</text>
+<text x="60" y="1178" class="small">* Stage and budget-admission behavior is mode-dependent. † CoSim runs only when required. Reasoning is internal to the LLM; the returned artifact is source code.</text>
+</svg>

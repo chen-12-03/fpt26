@@ -1,40 +1,36 @@
-\section{Tool Evidence Controls the Agent Workflow}
+\section{Evidence-Gated Agent Workflow}
 \label{sec:vcl}
 
-The task interface exposes an editable kernel, public tests, target part, and
-budgets while withholding evaluator-side tests and frozen references. The controller
-records every candidate, gate, metric, token, and credit in one run state.
+The task interface exposes a kernel, public tests, target part, and budgets,
+while withholding evaluator tests and references. The controller stores
+candidate state, tool results, and run evidence.
 
-The \VCL{} runs seven gates in order: Interface, \CSim, \Synth, Frequency,
-Capacity, required \CoSim, and Metric completeness. Frequency enforces
-100\,MHz, Capacity enforces U55C limits, and \CoSim{} applies only when
-required. Define validity $V(c)=\prod_i G_i$ over applicable gates
-$G_i\in\{0,1\}$; an inapplicable gate contributes $1$. Let $b$ be the
-verified fallback. The promotion rule is
-$P(c)=V(c)\land[Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)]$.
+The \VCL{} checks Interface, \CSim, \Synth, Frequency, Capacity, and
+required \CoSim. Frequency enforces 100\,MHz and Capacity enforces U55C
+limits. Repair and structural candidates restore validity without requiring
+a QoR gain. Optimization additionally uses complete scoring evidence and
+promotes $c$ only when $Q_{\mathrm{HW}}(c)>Q_{\mathrm{HW}}(b)$, where $b$
+is the current best. Let $V(c)$ denote passage of applicable validity gates.
 
-Local failure classification and retrieval require no additional model call;
-generating a subsequent candidate still does. \textbf{Failure Reflection}
-parses interface, synthesis, and co-simulation diagnostics plus the source
-diff into a compact constraint for the next proposal. \textbf{QoR-RAG}
-retrieves compatible public rules and measured success/failure cases by task
-metadata and bottleneck, then adds them to the optimization context. Thus
-interface mismatches produce signature/pragma constraints, synthesis failures
-produce timing/resource/II constraints, and co-simulation deadlocks produce
-handshake/port-width constraints. Duplicate candidates and repeated failures
-stop retries.
+\textbf{Failure Reflection} summarizes diagnostics, source differences, and
+measured QoR rejection into subsequent proposal feedback; structural repair
+uses co-simulation logs. \textbf{QoR-RAG} retrieves public rules and measured
+success/failure cases using source metadata, bottlenecks, and failure history,
+then supplies bounded optimization context. Both use local processing;
+generating another candidate requires a model call. Attempt limits, duplicate
+guards, stagnation, and evidence-supported convergence bound the search.
 
-Figure~\ref{fig:vcl} summarises the loop. The controller records every
-candidate and gate outcome for audit, while a failed or incomplete candidate
-never replaces the last verified fallback.
+Figure~\ref{fig:vcl} summarizes the loop. Rejected candidates do not replace
+an existing verified fallback. If none exists, a failed run may export a
+starter-derived fallback with its failure status.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.84\textwidth]{系统框图.png}
+  \includegraphics[width=0.76\textwidth]{figures/agent_workflow.png}
   \vspace{-4pt}
-  \caption{\textbf{The Verified-Candidate Loop.} A candidate replaces the
-  verified fallback only after every applicable gate passes and the composite
-  $Q_{\mathrm{HW}}$ improves.}
+  \caption{\textbf{The Verified-Candidate Loop.} Repair restores validity;
+  optimization additionally requires a measured $Q_{\mathrm{HW}}$ improvement.
+  Diagnostic feedback and retrieval guide subsequent proposals.}
   \label{fig:vcl}
   \vspace{-6pt}
 \end{figure*}

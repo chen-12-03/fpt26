@@ -1,7 +1,7 @@
 High-level synthesis (HLS) agents must repair and optimize unfamiliar kernels
 under limited model and tool budgets. The Verified-Candidate Loop (\VCL)
-retains a verified fallback, promotes a candidate only after seven validation gates,
-and ranks valid candidates with a bounded composite score. Deterministic
+retains candidates after applicable validity checks,
+and promotes optimization candidates only on a composite-score gain. Deterministic
 diagnostic extraction and public-evidence retrieval constrain later model
 proposals. We evaluate three deployed agent--endpoint configurations on a
 frozen, balanced \CorpusTaskCount{}-task suite. Final completion is
